@@ -1,7 +1,8 @@
 // 아르세이아의 견습생 · 같이 하기 서버
 // 설치할 것 없이 Node.js만 있으면 됩니다:  node server.js   (포트를 바꾸려면 PORT=9000 node server.js)
 // 하는 일: game.html을 보여 주고, 접속한 사람들 사이에 메시지(게임·대화·파티 초대)를 전달합니다. 게임 계산은 방장의 브라우저가 합니다.
-const http=require('http'),fs=require('fs'),path=require('path'),crypto=require('crypto'),os=require('os');
+// v19: 대화 채널(전체 · 파티 · 귓속말), 최근 전체 대화 30줄(메모리에만, 재시작하면 사라짐), 5초에 5번까지.
+const http=require('http'),fs=require('fs'),path=require('path'),crypto=require('crypto'),os=require('os'),zlib=require('zlib');
 const PORT=+process.env.PORT||8080,GAME=path.join(__dirname,'game.html');
 // 구글 로그인(선택): Render의 Environment에 FIREBASE_CONFIG 이름으로 Firebase 웹 앱 설정을 붙여 넣으면 켜진다.
 // "const firebaseConfig = { apiKey: "...", ... };" 를 통째로 붙여 넣어도 된다.
@@ -11,12 +12,23 @@ function fbConfig(){const raw=process.env.FIREBASE_CONFIG||'';if(!raw.trim())ret
   return o}
 const FB=fbConfig();
 const clients=new Map();let nextId=1,hostId=0;
+// v19 대화: 최근 「전체」 대화만 메모리에 30줄 (저장하지 않음)
+const HIST=[],HIST_MAX=30,CHAT_N=5,CHAT_MS=5000,CHAT_LEN=120;
 
+// game.html을 읽어 쪽 하나로 감싸고 gzip까지 해 둔다. game.html이 바뀌면(수정 시각·크기) 다시 만든다.
+let PACK=null;
+function pagePack(cb){fs.stat(GAME,(e,st)=>{if(e)return cb(e);const key=st.mtimeMs+':'+st.size;if(PACK&&PACK.key===key)return cb(null,PACK);
+  fs.readFile(GAME,(err,buf)=>{if(err)return cb(err);
+    const raw=Buffer.from('<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><script>window.COOP_SERVER=1'+(FB?';window.FIREBASE_CONFIG='+JSON.stringify(FB).replace(/</g,'\\u003c'):'')+'</script></head><body>'+buf.toString('utf8')+'</body></html>');
+    zlib.gzip(raw,{level:6},(ze,gz)=>{if(ze)return cb(ze);PACK={key,raw,gz,etag:'"'+crypto.createHash('sha1').update(raw).digest('hex').slice(0,20)+'"'};cb(null,PACK)})})})}
 const server=http.createServer((req,res)=>{
   if(req.url==='/'||req.url.startsWith('/?')||req.url==='/index.html'){
-    fs.readFile(GAME,(err,buf)=>{if(err){res.writeHead(500);res.end('game.html을 찾을 수 없습니다');return}
-      res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store'});
-      res.end('<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><script>window.COOP_SERVER=1'+(FB?';window.FIREBASE_CONFIG='+JSON.stringify(FB).replace(/</g,'\\u003c'):'')+'</script></head><body>'+buf.toString('utf8')+'</body></html>')});return}
+    // v18: game.html에 배경음악이 들어가 약 13MB가 됐다 → 한 번 만든 페이지를 gzip으로 줄여 두고(약 10MB), ETag로 바뀌지 않았으면 다시 보내지 않는다(304).
+    pagePack((err,pk)=>{if(err){res.writeHead(500);res.end('game.html을 찾을 수 없습니다');return}
+      if(req.headers['if-none-match']===pk.etag){res.writeHead(304,{'ETag':pk.etag,'Cache-Control':'no-cache'});res.end();return}
+      const gz=/\bgzip\b/.test(req.headers['accept-encoding']||'');
+      res.writeHead(200,Object.assign({'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-cache','ETag':pk.etag,'Vary':'Accept-Encoding'},gz?{'Content-Encoding':'gzip'}:{}));
+      res.end(gz?pk.gz:pk.raw)});return}
   if(req.url==='/status'){res.writeHead(200,{'Content-Type':'application/json'});res.end(JSON.stringify({players:clients.size,inParty:[...clients.values()].filter(c=>c.room).length,host:hostId}));return}
   res.writeHead(404);res.end();
 });
@@ -27,8 +39,8 @@ server.on('upgrade',(req,sock)=>{
   const acc=crypto.createHash('sha1').update(key+'258EAFA5-E914-47DA-95CA-C5AB0DC85B11').digest('base64');
   sock.write('HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: '+acc+'\r\n\r\n');
   sock.setNoDelay(true);
-  const c={id:nextId++,sock,buf:Buffer.alloc(0),name:'',cls:'',lvl:0,room:false,chatT:0};clients.set(c.id,c);
-  send(c,{t:'hello',id:c.id,host:hostId});
+  const c={id:nextId++,sock,buf:Buffer.alloc(0),name:'',cls:'',lvl:0,room:false,cv:0,ct:[],hist:false};clients.set(c.id,c);
+  send(c,{t:'hello',id:c.id,host:hostId,f:['chat2']});// f: 이 서버가 아는 것 (옛 게임은 무시)
   sock.on('data',d=>{c.buf=Buffer.concat([c.buf,d]);let m;while((m=readFrame(c))!==null){if(m===false){drop(c);return}onMsg(c,m)}});
   sock.on('close',()=>drop(c));sock.on('error',()=>drop(c));
 });
@@ -52,9 +64,26 @@ function part(c){if(!c.room)return;c.room=false;
   else{roomcast({t:'leave',id:c.id});console.log(`- ${c.name} 파티에서 나감`)}}
 function drop(c){if(!clients.has(c.id))return;clients.delete(c.id);try{c.sock.destroy()}catch(_){}
   console.log(`- ${c.name||'손님'} 접속 끊김 (지금 ${clients.size}명)`);part(c);who()}
-const nm=s=>String(s||'').replace(/\s+/g,' ').trim();
+const nm=s=>String(s||'').replace(/[\u0000-\u001f\u007f\u200b-\u200f\u202a-\u202e\u2066-\u2069\ufeff]/g,' ').replace(/\s+/g,' ').trim();
+// v19 대화: 5초에 5번까지 · 120자 · 글자 그대로 전달(화면에 그릴 때 게임이 모두 글자로 바꿔 그린다)
+function chatOk(c){const now=Date.now();while(c.ct.length&&now-c.ct[0]>=CHAT_MS)c.ct.shift();if(c.ct.length>=CHAT_N)return false;c.ct.push(now);return true}
+const csys=(c,x)=>{if(c.cv>=19)send(c,{t:'csys',x})};
+function findName(n){n=nm(n).toLowerCase();if(!n)return null;for(const o of clients.values())if(o.name&&o.name.toLowerCase()===n)return o;return null}
+function onChat(c,m){const x=nm(m.x).slice(0,CHAT_LEN);if(!x)return;
+  if(!chatOk(c)){csys(c,'너무 빨리 보내고 있습니다. 잠시 뒤에 다시 보내세요');return}
+  const ch=m.ch==='party'||m.ch==='w'?m.ch:'all',ts=Date.now();
+  if(ch==='all'){const o={t:'chat',ch,from:c.id,n:c.name,x,p:c.room?1:0,ts};lobbycast(o);HIST.push({from:c.id,n:c.name,x,ts});if(HIST.length>HIST_MAX)HIST.shift();return}
+  // 옛 게임(v18)은 ch를 모르므로 글 앞에 채널을 붙여 보낸다
+  const out=(d,o)=>send(d,d.cv>=19?o:Object.assign({},o,{x:(ch==='w'?'(귓속말) ':'(파티) ')+o.x}));
+  if(ch==='party'){if(!c.room){csys(c,'파티에 들어가 있지 않습니다');return}
+    const o={t:'chat',ch,from:c.id,n:c.name,x,p:1,ts};for(const d of clients.values())if(d.room)out(d,o);return}
+  const d=(m.to&&clients.get(+m.to))||findName(m.tn);
+  if(!d||!d.name){csys(c,`${nm(m.tn)||'그 사람'}님은 지금 접속해 있지 않습니다`);return}
+  if(d===c){csys(c,'자기 자신에게는 귓속말을 보낼 수 없습니다');return}
+  const o={t:'chat',ch,from:c.id,n:c.name,to:d.id,tn:d.name,x,p:c.room?1:0,ts};out(d,o);send(c,o)}
 function onMsg(c,s){if(!s)return;let m;try{m=JSON.parse(s)}catch(_){return}
-  if(m.t==='me'){c.name=nm(m.name).slice(0,16)||'모험가';c.cls=String(m.cls||'').slice(0,12);c.lvl=m.lvl|0;who();return}
+  if(m.t==='me'){c.name=nm(m.name).slice(0,16)||'모험가';c.cls=String(m.cls||'').slice(0,12);c.lvl=m.lvl|0;c.cv=Math.min(999,m.cv|0);
+    if(!c.hist&&c.cv>=19){c.hist=true;if(HIST.length)send(c,{t:'chist',list:HIST})}who();return}
   if(m.t==='join'){if(m.name)c.name=nm(m.name).slice(0,16)||'모험가';if(!c.name)c.name='모험가';if(c.room)return;
     if(m.host){if(hostId&&clients.has(hostId)){send(c,{t:'err',msg:'이미 방장이 있습니다. 참가하기를 누르세요'});return}hostId=c.id}
     else if(!hostId){send(c,{t:'err',msg:'아직 방이 없습니다. 먼저 한 사람이 방 만들기를 누르세요'});return}
@@ -62,8 +91,7 @@ function onMsg(c,s){if(!s)return;let m;try{m=JSON.parse(s)}catch(_){return}
     send(c,{t:'joined',id:c.id,host:hostId});roomcast({t:'peer',id:c.id,name:c.name},c.id);who();return}
   if(!c.name)return;
   if(m.t==='part'){part(c);who();return}
-  if(m.t==='chat'){const now=Date.now();if(now-c.chatT<400)return;c.chatT=now;const x=nm(m.x).slice(0,120);if(!x)return;
-    lobbycast({t:'chat',from:c.id,n:c.name,x,p:c.room?1:0});return}
+  if(m.t==='chat'){onChat(c,m);return}
   if(m.t==='inv'||m.t==='invr'){const d=clients.get(m.to);if(!d||!d.name||d===c)return;
     if(m.t==='inv'&&!c.room)return;send(d,{t:m.t,from:c.id,n:c.name,ok:m.ok?1:0});return}
   if(!c.room)return;
