@@ -196,6 +196,7 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
   #target{top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 168px);min-width:180px}
 }
 @media (prefers-reduced-motion:reduce){#log div{transition:none}.tools button.lvup,.sk.binding{animation:none}}
+.node.passive{border-radius:50%!important;border-style:dashed!important}.node .pv{position:absolute;left:50%;bottom:-7px;transform:translateX(-50%);font-size:9px;line-height:1;padding:1px 3px;border-radius:3px;background:#2a2418;color:#ffd76a;border:1px solid #6a5a30;white-space:nowrap;pointer-events:none}
 </style>
 
 <canvas id="game" aria-label="게임 화면"></canvas>
@@ -2058,7 +2059,7 @@ def('mage',1,'stop','멈춤','Stop','arcane','bolt',6,3,{mult:.5,spd:720,r:6,stu
 def('mage',1,'gust','돌풍','Gust','wind','cone',5,2,{mult:.7,range:150,ang:1.2,knock:90},'한 줄기 바람으로 앞쪽의 적을 밀어냅니다.');
 def('mage',2,'static','정전기','Static Spark','storm','chain',5,.9,{mult:.9,jumps:3},'손끝의 번쩍임이 가까운 적 셋에게 튑니다. 벼락 마법의 첫걸음.');
 def('mage',2,'waterjet','물줄기','Water Jet','ice','bolt',5,.7,{mult:1.1,spd:560,r:7,slow:1,knock:40},'물을 가늘고 세게 뿜어 밀어내고 느리게 합니다.');
-def('mage',2,'ease','피로 덜기','Ease Fatigue','life','buff',12,20,{dur:12,spd:.3},'몸의 무게를 덜어 12초 동안 30% 빨리 움직입니다.');
+def('mage',2,'ease','피로 덜기','Ease Fatigue','life','passive',0,0,{pv:{spd:[.08,.012]}},'몸의 무게를 늘 덜어 둡니다. 패시브: 이동 속도가 오릅니다.');
 def('mage',3,'firebolt','화염 화살','Fire Bolt','fire','bolt',6,.5,{mult:1.5,spd:500,r:8,burn:1},'불덩이를 날려 보냅니다. 맞은 적은 3초간 불탑니다. 전투 마법사의 기본기.');
 def('mage',3,'frost','서리','Frost','ice','bolt',7,.8,{mult:1.2,spd:480,r:7,freeze:1},'물이 스스로 멈추고 싶게 만들어 맞은 적을 1초 동안 얼립니다.');
 def('mage',3,'windblade','바람 칼날','Wind Blade','wind','bolt',6,.6,{mult:1.3,spd:720,r:7,pierce:1},'날처럼 벼린 바람이 줄지어 선 적을 모두 꿰뚫습니다.');
@@ -2098,7 +2099,7 @@ def('priest',1,'minorheal','작은 치유','Minor Healing','holy','heal',12,5,{p
 def('priest',1,'lightward','빛의 막','Veil of Light','holy','shield',12,12,{mult:2,flat:10,dur:10},'몸에 얇은 빛의 막을 둘러 10초 동안 피해를 흡수합니다.');
 def('priest',1,'blessing','축복','Blessing','holy','buff',10,25,{dur:20,dmg:.15,regen:1},'용기와 작은 행운. 20초 동안 피해 15% 증가, 마나 회복 증가.');
 def('priest',2,'lightarrow','빛의 화살','Arrow of Light','holy','bolt',5,.5,{mult:1.4,spd:680,r:7},'새벽빛을 화살처럼 쏩니다.');
-def('priest',2,'faith','믿음의 힘','Strength of Faith','holy','buff',14,25,{dur:15,dmg:.25},'팔에 힘을 실어 15초 동안 피해가 25% 늘어납니다.');
+def('priest',2,'faith','믿음의 힘','Strength of Faith','holy','passive',0,0,{pv:{dmg:[.05,.01]}},'흔들리지 않는 믿음이 팔에 힘을 싣습니다. 패시브: 피해가 늘 오릅니다.');
 def('priest',2,'symbolflash','성표 섬광','Holy Symbol Flash','holy','cone',9,3,{mult:1.1,range:180,ang:1.1,stun:.6},'성표를 들어 앞쪽으로 빛을 쏟아 적을 멈칫하게 합니다.');
 def('priest',3,'javelin','빛의 투창','Javelin of Light','holy','bolt',9,1,{mult:1.8,spd:640,r:8,pierce:1},'빛을 투창으로 벼려 던져 줄지어 선 적을 꿰뚫습니다.');
 def('priest',3,'closewounds','상처 봉합','Close Wounds','holy','heal',22,9,{pct:.3,mult:2},'깊은 상처와 부러진 뼈를 붙입니다.');
@@ -2133,7 +2134,7 @@ def('priest',9,'sunsword','태양의 검','Sword of the Sun','holy','cone',60,8,
 // ---- v5: 학파마다 위계별 선택지를 늘린 마법 (룬의 계승자 설정집의 학파 목록에서) ----
 // 화염
 def('mage',1,'ember','불씨','Ember','fire','cone',3,.6,{mult:.9,range:150,ang:1.1,burn:1},'손끝의 불씨를 앞쪽으로 흩뿌려 불붙입니다. 맞은 적은 3초간 탑니다.');
-def('mage',1,'warmth','온기','Warmth','fire','buff',8,20,{dur:20,regen:1.5,dmg:.05},'손바닥에 온기를 모아 몸을 데웁니다. 20초 동안 마나 회복과 피해가 조금 오릅니다.');
+def('mage',1,'warmth','온기','Warmth','fire','passive',0,0,{pv:{regen:[1,.4],dmg:[.03,.008]}},'몸속에 늘 온기를 품습니다. 패시브: 마나 회복과 마법 피해가 늘 조금 오릅니다.');
 def('mage',2,'dancingflames','불빛 춤','Dancing Flames','fire','orbit',10,8,{mult:.7,orbs:3,orad:62,dur:6,burn:1},'불꽃 셋을 띄워 내 둘레를 돌게 합니다. 닿는 적을 태웁니다.');
 def('mage',2,'smokecall','연기 부르기','Smoke Call','fire','field',9,7,{mult:.25,rad:110,dur:5,slow:1},'짙은 연기로 한 곳을 덮어 안의 적을 느리게 하고 숨을 막습니다.');
 def('mage',2,'flameshaping','불꽃 다루기','Flame Shaping','fire','nova',8,3,{mult:.9,rad:150,burn:1},'둘레의 불기운을 한꺼번에 부풀려 터뜨립니다.');
@@ -2145,12 +2146,12 @@ def('mage',5,'ringoffire','화염 원','Ring of Fire','fire','field',22,10,{mult
 def('mage',5,'flamelance','불빛 창','Flame Lance','fire','bolt',12,1,{mult:2.3,spd:900,r:7,pierce:1,burn:1},'불을 가늘게 모아 멀리 있는 적까지 줄지어 꿰뚫습니다.');
 def('mage',6,'firestorm','화염 폭풍','Firestorm','fire','field',30,9,{mult:.7,rad:150,dur:5,pull:1,burn:1},'불 섞인 회오리를 일으켜 적을 한가운데로 끌어당기며 태웁니다.');
 def('mage',7,'callmagma','화산 불러내기','Call the Magma','fire','field',38,12,{mult:1.1,rad:170,dur:6,burn:1,stun:.2},'땅속 깊은 용암을 끌어올려 좁은 땅을 불바다로 만듭니다.');
-def('mage',8,'heartoffire','불의 심장','Heart of Fire','fire','armor',45,30,{mult:1.4,dur:12,red:.3,aura:130,dmg:.25,burn:1},'몸을 잠시 살아 있는 불로 바꿉니다. 피해 25% 증가, 둘레의 적을 계속 태웁니다.');
+def('mage',8,'heartoffire','불의 심장','Heart of Fire','fire','armor',45,30,{mult:1.4,burst:1,dur:12,red:.3,aura:130,dmg:.25,burn:1},'몸을 잠시 살아 있는 불로 바꿉니다. 피해 25% 증가, 둘레의 적을 계속 태웁니다.');
 def('mage',9,'seaofflame','불바다','Sea of Flame','fire','field',70,22,{mult:1.5,rad:280,dur:7,burn:1},'한 고을을 끝없는 불길로 덮는 금기의 전쟁 마법.');
 // 냉기 (물과 얼음)
 def('mage',1,'splash','물 끼얹기','Splash','ice','bolt',3,.35,{mult:.9,spd:600,r:6,slow:1},'물을 끼얹어 적을 느리게 합니다.');
 def('mage',1,'drawwater','물 끌어오기','Draw Water','ice','nova',6,3,{mult:.7,rad:140,knock:70},'땅속의 물을 한꺼번에 끌어올려 둘레의 적을 밀어냅니다.');
-def('mage',1,'purifywater','물 맑히기','Purify Water','ice','buff',8,20,{dur:20,regen:2},'몸속 흐름을 맑혀 20초 동안 마나가 빨리 찹니다.');
+def('mage',1,'purifywater','물 맑히기','Purify Water','ice','passive',0,0,{pv:{regen:[2,1.5]}},'몸속 마나의 흐름을 늘 맑게 유지합니다. 언제나 켜져 있는 패시브: 초당 마나 회복이 스킬 레벨마다 크게 오릅니다.');
 def('mage',2,'watershaping','물 다루기','Water Shaping','ice','orbit',10,8,{mult:.6,orbs:4,orad:58,dur:6,slow:1},'물줄기 넷을 띄워 둘레를 돌게 합니다. 닿는 적이 느려집니다.');
 def('mage',2,'gatherdew','이슬 모으기','Gather Dew','life','heal',12,10,{pct:.12,mult:.8},'공기 속 물기를 모아 상처를 씻어 냅니다.');
 def('mage',3,'waterwhip','물 채찍','Water Whip','ice','cone',8,1.1,{mult:1.4,range:200,ang:.5,knock:60,slow:1},'물을 날처럼 벼려 채찍으로 휘두릅니다.');
@@ -2169,10 +2170,10 @@ def('mage',8,'turncurrent','해류 돌리기','Turn the Current','ice','cone',40
 def('mage',9,'tidalwave','대해일','Great Tidal Wave','ice','beam',65,16,{mult:6,len:620,w:120,knock:220,slow:1},'바다를 일으켜 앞쪽을 덮칩니다. 세레스의 기록에만 남아 있습니다.');
 def('mage',9,'monsoon','우기','Monsoon','ice','rain',60,20,{mult:1.6,rad:230,dur:7,rate:9,srad:46,slow:1},'한 계절의 비를 한 번에 쏟습니다.');
 // 폭풍 (대기)
-def('mage',1,'breeze','산들바람','Breeze','wind','buff',8,20,{dur:15,spd:.15,regen:.6},'바람을 등에 받아 15초 동안 빨라집니다.');
+def('mage',1,'breeze','산들바람','Breeze','wind','passive',0,0,{pv:{spd:[.05,.01],regen:[.5,.2]}},'늘 바람을 등에 받습니다. 패시브: 이동 속도와 마나 회복이 오릅니다.');
 def('mage',1,'clearair','공기 맑히기','Clear Air','wind','nova',6,3,{mult:.6,rad:110,knock:90},'둘레의 공기를 한꺼번에 밀어내 적을 떼어 냅니다.');
 def('mage',2,'windshaping','바람 다루기','Wind Shaping','wind','orbit',10,8,{mult:.65,orbs:3,orad:70,dur:6,knock:30},'바람 칼날 셋을 둘레에 돌게 합니다.');
-def('mage',2,'windreading','바람 읽기','Wind Reading','wind','buff',12,25,{dur:20,dmg:.12},'바람의 흐름을 읽어 20초 동안 마법이 더 정확히 꽂힙니다. 피해 12% 증가.');
+def('mage',2,'windreading','바람 읽기','Wind Reading','wind','passive',0,0,{pv:{dmg:[.04,.01]}},'바람의 흐름을 늘 읽어 마법이 더 정확히 꽂힙니다. 패시브: 마법 피해가 오릅니다.');
 def('mage',3,'airwall','공기 방벽','Air Wall','wind','shield',14,14,{mult:2.8,flat:18,dur:10},'바람의 벽으로 날아오는 것을 흘립니다.');
 def('mage',3,'dustdevil','먼지 바람','Dust Devil','wind','field',12,8,{mult:.45,rad:110,dur:5,slow:1},'흙먼지 회오리로 적의 눈을 가리고 느리게 합니다. 대지 학파와의 융합.');
 def('mage',4,'shockinggrasp','번쩍이는 손','Shocking Grasp','storm','cone',10,1,{mult:2.3,range:160,ang:1.3,stun:.7},'손에 벼락을 담아 가까운 적을 마비시킵니다.');
@@ -2237,14 +2238,14 @@ def('priest',5,'gloria','글로리아','Gloria','holy','buff',26,30,{dur:30,crit
 def('priest',6,'magnificat','마그니피캇','Magnificat','holy','buff',30,40,{dur:30,regen:8,cdr:.08,party:450},'찬미의 노래로 30초 동안 마나가 넘치게 차오르고 재사용 대기가 8% 줄어듭니다. 파티원에게도 걸립니다. (라그나로크)');
 def('priest',6,'fortitude','인내의 기도','Prayer of Fortitude','holy','buff',32,45,{dur:60,hp:.18,life:.004,party:450},'60초 동안 최대 생명력이 18% 늘고 생명력이 조금씩 차오릅니다. 파티원에게도 걸립니다. (월드 오브 워크래프트)');
 def('priest',7,'aspersio','아스페르시오','Aspersio','holy','buff',38,30,{dur:30,dmg:.3,crit:.05,party:450},'성수를 뿌려 30초 동안 피해 30%, 치명타 5%를 더합니다. 파티원에게도 걸립니다. (라그나로크)');
-def('priest',8,'assumptio','어섬티오','Assumptio','holy','buff',46,45,{dur:20,dr:.35,party:450},'하늘로 들어 올리는 은총. 20초 동안 받는 피해가 35% 줄어듭니다. 파티원에게도 걸립니다. (라그나로크)');
+def('priest',8,'assumptio','어섬티오','Assumptio','holy','buff',46,45,{burst:1,dur:20,dr:.35,party:450},'하늘로 들어 올리는 은총. 20초 동안 받는 피해가 35% 줄어듭니다. 파티원에게도 걸립니다. (라그나로크)');
 def('priest',9,'benediction','성인의 대축복','Benediction of the Saints','holy','buff',64,60,{dur:30,dmg:.35,dr:.2,spd:.15,crit:.08,regen:5,life:.006,party:550},'모든 축복을 한꺼번에 내립니다. 30초 동안 피해·방어·속도·치명타·회복이 모두 오릅니다. 파티원에게도 걸립니다.');
 // 수호: 막고 버티게 하는 기도
 def('priest',2,'kyrie','키리에 엘레이손','Kyrie Eleison','holy','shield',16,14,{mult:2.4,flat:16,dur:15,party:450},'주여 자비를. 15초 동안 피해를 흡수하는 막을 두릅니다. 파티원에게도 걸립니다. (라그나로크)');
 def('priest',3,'safetywall','세이프티 월','Safety Wall','holy','field',18,16,{mult:0,rad:80,dur:7,drf:.5},'7초 동안 빛의 벽을 세워, 그 안에 선 사람이 받는 피해를 절반으로 줄입니다. 동료도 함께 지켜 줍니다. (라그나로크)');
 def('priest',5,'barrier','파워 워드: 방벽','Power Word: Barrier','holy','field',30,30,{mult:0,rad:150,dur:9,drf:.3,heal:.02},'넓은 방벽을 세워 9초 동안 안의 모두가 받는 피해를 30% 줄이고 조금씩 낫게 합니다. (월드 오브 워크래프트)');
 def('priest',6,'guardianspirit','수호 천사','Guardian Spirit','holy','ward',34,50,{dur:20,heal:.5,party:450},'수호 천사가 20초 동안 곁을 지켜, 쓰러질 일격을 한 번 막고 생명력 50%로 일으켜 세웁니다. 파티원에게도 걸립니다. (월드 오브 워크래프트)');
-def('priest',8,'painsup','고통 억제','Pain Suppression','holy','buff',40,40,{dur:8,dr:.5,party:450},'8초 동안 받는 피해가 절반으로 줄어듭니다. 보스의 큰 공격 앞에서 쓰세요. 파티원에게도 걸립니다. (월드 오브 워크래프트)');
+def('priest',8,'painsup','고통 억제','Pain Suppression','holy','buff',40,40,{burst:1,dur:8,dr:.5,party:450},'8초 동안 받는 피해가 절반으로 줄어듭니다. 보스의 큰 공격 앞에서 쓰세요. 파티원에게도 걸립니다. (월드 오브 워크래프트)');
 def('priest',9,'aegis','신성한 아이기스','Divine Aegis','holy','shield',60,40,{mult:7,flat:120,dur:20,party:550},'거대한 빛의 방패로 20초 동안 아주 큰 피해를 흡수합니다. 파티원에게도 걸립니다.');
 // 치유: 살리고 일으키는 기도
 def('priest',2,'renew','리뉴','Renew','holy','hot',14,8,{dur:12,pct:.3,mult:1.6,party:450},'12초 동안 상처가 조금씩 아물게 합니다. 파티원에게도 걸립니다. (월드 오브 워크래프트)');
@@ -2261,7 +2262,7 @@ def('priest',5,'chastise','성언: 징벌','Holy Word: Chastise','holy','bolt',2
 def('priest',6,'divinestar','디바인 스타','Divine Star','holy','bolt',22,3,{mult:2.3,spd:500,r:12,pierce:1,atone:.05},'빛의 별을 굴려 줄지어 선 적을 꿰뚫고 생명력을 되찾습니다. (월드 오브 워크래프트)');
 def('priest',7,'halo','헤일로','Halo','holy','nova',36,9,{mult:3,rad:300,atone:.08},'넓은 빛의 고리를 퍼뜨려 적을 치고 나와 동료를 크게 치유합니다. (월드 오브 워크래프트)');
 def('priest',8,'grandcross','그랜드 크로스','Grand Cross','holy','nova',44,7,{mult:4.6,rad:230,ud:2,stun:.6,atone:.04},'발밑에 거대한 십자를 그어 둘레를 정화합니다. 언데드에게 두 배. (라그나로크)');
-def('priest',9,'apotheosis','아포테오시스','Apotheosis','holy','buff',58,60,{dur:20,dmg:.5,cdr:.3},'20초 동안 신의 그릇이 되어 피해가 50% 늘고 재사용 대기가 30% 줄어듭니다. (월드 오브 워크래프트)');
+def('priest',9,'apotheosis','아포테오시스','Apotheosis','holy','buff',58,60,{burst:1,dur:20,dmg:.5,cdr:.3},'20초 동안 신의 그릇이 되어 피해가 50% 늘고 재사용 대기가 30% 줄어듭니다. (월드 오브 워크래프트)');
 // 멋진 이름과 영창: [이름, 영창]. 설정집의 이름은 kn으로 남긴다
 const NAMES={
   spark:['플레임 스파크','카스'],stop:['셀 바인드','셀'],gust:['윈드 해머','베안'],
@@ -2398,7 +2399,7 @@ const EMB={
   life:'<path d="M0 4c-3-1.5-4-4-3.5-7 2.5 0 4.5 1.5 3.5 4.5M0 4c3-1.5 4-4 3.5-7-2.5 0-4.5 1.5-3.5 4.5"/>'};
 const PAL={fire:['#ff7a2e','#5a1a08','#ffd27a'],ice:['#8fd8ff','#0e2a44','#e8f8ff'],storm:['#9fc0ff','#141a3e','#fff6b0'],wind:['#bfeedd','#0e2e2a','#ffffff'],earth:['#c9a46a','#2e2010','#efd8a8'],
   arcane:['#b9a2ff','#21123e','#efe6ff'],light:['#fff3b0','#3a3010','#ffffff'],holy:['#ffe39a','#3a2c0c','#ffffff'],life:['#9fe39a','#103a14','#efffe8']};
-function iconBody(s,c,hi){const k=s.kind,h=(hash(s.id.length*7,s.id.charCodeAt(0)*13+s.id.charCodeAt(s.id.length-1))*4)|0;let g='';
+function iconBody(s,c,hi){if(s.kind==='passive'){const o=Object.assign({},s,{kind:'buff'});for(const x in s.pv)o[x]=1;return iconBody(o,c,hi)+`<circle cx="16" cy="16" r="14" stroke="${c}" stroke-width="1" stroke-dasharray="2.5 2.5" fill="none" opacity=".8"/>`}const k=s.kind,h=(hash(s.id.length*7,s.id.charCodeAt(0)*13+s.id.charCodeAt(s.id.length-1))*4)|0;let g='';
   const st=(w)=>`stroke="${c}" stroke-width="${w}" fill="none" stroke-linecap="round" stroke-linejoin="round"`;
   switch(k){
     case'bolt':
@@ -2519,7 +2520,7 @@ const preOk=id=>(PRE[id]||[]).every(p=>P.sk[p]>0);
       for(let d=0;d<8;d++){if(want+d>=0&&!used.has(want+d)){c=want+d;break}if(want-d>=0&&!used.has(want-d)){c=want-d;break}}
       used.add(c);TREEPOS[s.id]={row:r-1,col:c}}}
 })})();
-const isDmg=s=>(!['heal','hot','shield','buff','ward','invuln','blink','rez'].includes(s.kind)||s.kind==='blink')&&(s.mult||0)>0;
+const isDmg=s=>(!['heal','hot','shield','buff','ward','invuln','blink','rez','passive'].includes(s.kind)||s.kind==='blink')&&(s.mult||0)>0;
 
 /* ---------- items ---------- */
 const RAR=[{n:'일반',c:'#e8e4d8',a:0},{n:'마법',c:'#7aa2ff',a:1},{n:'희귀',c:'#f2d45c',a:3},{n:'세트',c:'#5ee06a',a:2},{n:'유니크',c:'#c8a060',a:0},{n:'상급 유니크',c:'#ff8a3a',a:0}];
@@ -2597,7 +2598,13 @@ let shake=0,time=0,spawnT=0,paused=true,saveT=0,lastRank=1;
 const keys=new Set(),mouse={x:0,y:0,active:false,l:false,r:false};let joy=null,fireTouch=null,touchMode=false;
 
 const stat=k=>gearStats()[k]||0;
-const buffSum=k=>{let v=0;for(const id in P.buffs)v+=P.buffs[id][k]||0;return v};
+// 패시브: 배워 두면 늘 켜져 있는 마법 (스킬 레벨에 따라 커짐)
+const PASSIVES={mage:[],priest:[]};for(const id in SPELLS)if(SPELLS[id].kind==='passive')PASSIVES[SPELLS[id].cls].push(id);
+let passKey='',passVal={},passT=-1,passP=null;
+function passSum(k){if(passT===time&&passP===P)return passVal[k]||0;passT=time;passP=P;const ids=PASSIVES[P.cls]||[];let key=P.cls;for(const id of ids)key+=','+skLv(id);
+  if(key!==passKey){passKey=key;passVal={};for(const id of ids){const L=skLv(id);if(L<=0)continue;const e=eff(id,L);for(const s in SPELLS[id].pv)passVal[s]=(passVal[s]||0)+e[s]}}
+  return passVal[k]||0}
+const buffSum=k=>{let v=GHOST?0:passSum(k);for(const id in P.buffs)v+=P.buffs[id][k]||0;return v};
 const maxHp=()=>Math.round(((40+P.lvl*12+P.st.vit*4)*CLASSES[P.cls].hp+stat('hp'))*(1+Math.min(.5,buffSum('hp'))));
 const maxMp=()=>Math.round((20+P.lvl*5+P.st.spi*3)*CLASSES[P.cls].mp)+Math.round(stat('mp'));
 const power=()=>4+P.lvl*1.5+P.st.int+stat('int'),regen=()=>1+P.lvl*.12+P.st.spi*.06+stat('regen')+buffSum('regen'),critC=()=>.05+stat('crit')/100+Math.min(.3,buffSum('crit'));
@@ -2618,7 +2625,11 @@ function eff(id,L){const s=SPELLS[id],e=Object.assign({},s);L=Math.max(1,L);
   if(e.rad)e.rad=Math.round(s.rad*(1+.015*(L-1)));
   if(e.jumps)e.jumps=s.jumps+Math.floor((L-1)/4);
   if(e.cnt>1)e.cnt=s.cnt+Math.floor((L-1)/5);
-  if(e.dur&&['field','rain','storm','buff','hot','orbit','summon','armor'].includes(s.kind))e.dur=Math.round(s.dur*(1+.03*(L-1))*10)/10;
+  // 강화·갑옷: 스킬 레벨마다 30초씩 (최대 300초). 위급할 때 쓰는 짧은 강화(burst)는 조금만
+  if(e.dur&&(s.kind==='buff'||s.kind==='armor'))e.dur=s.burst?Math.round(s.dur*(1+.04*(L-1))*10)/10:Math.min(300,s.dur+30*(L-1));
+  else if(e.dur&&['field','rain','storm'].includes(s.kind))e.dur=Math.round(s.dur*(1+.05*(L-1))*10)/10;
+  else if(e.dur&&['hot','orbit','summon'].includes(s.kind))e.dur=Math.round(s.dur*(1+.03*(L-1))*10)/10;
+  if(s.pv)for(const k in s.pv)e[k]=Math.round((s.pv[k][0]+s.pv[k][1]*(L-1))*1000)/1000;
   if(e.freeze)e.freeze=Math.round(s.freeze*(1+.03*(L-1))*10)/10;
   if(e.stun)e.stun=Math.round(s.stun*(1+.03*(L-1))*10)/10;
   if(s.kind==='blink')e.range=s.range+8*(L-1);
@@ -2753,6 +2764,7 @@ function tryCast(id,target){
   if(P.dead||paused)return;const s0=SPELLS[id];if(!s0||s0.cls!==P.cls)return;
   const L=skLv(id);
   if(L<=0){if(P.noMpT<=0){msg(`${s0.n}: 아직 배우지 않았습니다. 스킬 트리(T)에서 찍으세요`,'#a39d8f');P.noMpT=1.5}return}
+  if(s0.kind==='passive')return;
   if((P.cd[id]||0)>0)return;
   const c=costOf(id);
   if(P.mp<c){if(P.noMpT<=0){msg('마나가 부족합니다','#8fb0ff');P.noMpT=1.5}return}
@@ -2883,8 +2895,9 @@ function gainXp(n){
   }
 }
 function learnPoint(id){
-  if(!canLearn(id))return false;const first=!P.sk[id];P.sk[id]=(P.sk[id]||0)+1;P.sp--;
-  if(first){let slot=-1;for(const i of [0,1,2,3,4,5,6,7,8,9,10,11,12])if(!P.bar[i]){slot=i;break}
+  if(!canLearn(id))return false;const first=!P.sk[id];P.sk[id]=(P.sk[id]||0)+1;P.sp--;passT=-1;
+  if(first&&SPELLS[id].kind==='passive')msg(`${SPELLS[id].n}: 패시브라서 배운 순간부터 늘 켜져 있습니다`,EL[SPELLS[id].el]);
+  else if(first){let slot=-1;for(const i of [0,1,2,3,4,5,6,7,8,9,10,11,12])if(!P.bar[i]){slot=i;break}
     if(slot>=0){P.bar[slot]=id;msg(`${SPELLS[id].n}을(를) [${SLOTS[slot].k}] 칸에 넣었습니다`,EL[SPELLS[id].el])}}
   buildBar();save();return true}
 function hitPlayer(d,src){
@@ -4058,7 +4071,7 @@ function updateHud(){
 const panel=$('#panel'),pbody=$('#pbody');let tab='tree',treeSel=0,nodeSel=null;
 function openPanel(t){tab=t;panel.hidden=false;paused=true;renderPanel()}
 function closePanel(){panel.hidden=true;bindId=null;paused=!$('#intro').hidden||!$('#death').hidden;buildBar()}
-const KINDN={rez:'부활',bolt:'투사체',nova:'주변 범위',chain:'연쇄',field:'지속 지대',rain:'광역 낙하',strike:'지정 낙하',beam:'관통 직선',cone:'부채꼴',blink:'이동',heal:'치유',hot:'지속 치유',shield:'보호막',buff:'강화',ward:'가호',invuln:'무적',storm:'주변 낙뢰',orbit:'궤도',summon:'소환',armor:'갑옷'};
+const KINDN={rez:'부활',bolt:'투사체',nova:'주변 범위',chain:'연쇄',field:'지속 지대',rain:'광역 낙하',strike:'지정 낙하',beam:'관통 직선',cone:'부채꼴',blink:'이동',heal:'치유',hot:'지속 치유',shield:'보호막',buff:'강화',ward:'가호',invuln:'무적',storm:'주변 낙뢰',orbit:'궤도',summon:'소환',armor:'갑옷',passive:'패시브'};
 const potPrice=t=>8+t.base*4+Math.floor(P.lvl*1.5),buyPrice=it=>itemPrice(it)*4,respecPrice=()=>100+P.lvl*30;
 function shopStock(t){let st=shops[t.id];if(!st||st.lvl!==P.lvl||time-st.time>180){st=shops[t.id]={lvl:P.lvl,time,items:[]};for(let i=0;i<8;i++)st.items.push(makeItem(Math.max(t.base+DIFF[P.diff].add,P.lvl-1)+ri(0,2),R()<.3))}return st}
 function itemRow(it,btns){const cur=P.gear[it.slot],diff=Math.round(itemScore(it)-itemScore(cur));
@@ -4071,6 +4084,7 @@ function numsAt(id,L){const s=eff(id,L),out=[];
   if(s.kind==='hot')out.push(['총 회복',Math.round((maxHp()*s.pct+power()*s.mult)*sup)]);
   if(s.kind==='shield')out.push(['흡수',Math.round((power()*s.mult+s.flat)*sup)]);
   if(s.kind==='buff'){if(s.dmg)out.push(['피해 증가',Math.round(s.dmg*100)+'%']);if(s.spd)out.push(['이동 속도',Math.round(s.spd*100)+'%']);if(s.dr)out.push(['받는 피해 감소',Math.round(s.dr*100)+'%']);if(s.crit)out.push(['치명타',`+${Math.round(s.crit*100)}%`]);if(s.cdr)out.push(['재사용 대기 감소',Math.round(s.cdr*100)+'%']);if(s.hp)out.push(['최대 생명력',`+${Math.round(s.hp*100)}%`]);if(s.regen)out.push(['마나 회복',`+${Math.round(s.regen*10)/10}/초`]);if(s.life)out.push(['생명력 회복',`${Math.round(s.life*1000)/10}%/초`])}
+  if(s.kind==='passive'){if(s.regen)out.push(['초당 마나 회복',`+${Math.round(s.regen*10)/10}`]);if(s.dmg)out.push(['피해 증가',Math.round(s.dmg*100)+'%']);if(s.spd)out.push(['이동 속도',Math.round(s.spd*100)+'%']);out.push(['상태','늘 켜짐']);return out}
   if(s.drf)out.push(['안에서 받는 피해',`-${Math.round(s.drf*100)}%`]);if(s.atone)out.push(['맞히면 생명력',`+${Math.round(s.atone*1000)/10}%`]);if(s.kind==='rez')out.push(['되살릴 때 생명력',Math.round(s.pct*100)+'%']);if(s.party)out.push(['파티 범위',s.party]);
   if(s.kind==='ward')out.push(['되살아날 때 생명력',Math.round(s.heal*100)+'%']);
   if(s.heal&&s.kind==='field')out.push(['회복 /0.5초',Math.round(maxHp()*s.heal*.5*sup)]);
@@ -4088,8 +4102,8 @@ function detailHtml(id){const s=SPELLS[id],base=P.sk[id]||0,L=skLv(id),bon=base?
   const reqs=[];if(P.lvl<need)reqs.push(`레벨 ${need} 필요`);else if(base<MAXSK&&P.lvl<ptNeed(id))reqs.push(`다음 점수는 레벨 ${ptNeed(id)}부터 (점수를 찍을 때마다 요구 레벨 +1)`);const miss=(pre||[]).filter(p=>!P.sk[p]);if(miss.length)reqs.push(`선행 마법 ${miss.map(p=>SPELLS[p].n).join(', ')}에 1점 이상`);
   if(reqs.length)h+=`<div class="req">${reqs.join(' · ')}</div>`;else if(pre)h+=`<div class="req ok">선행 마법 ${pre.map(p=>SPELLS[p].n).join(', ')} ✓</div>`;else h+='<div class="req ok">선행 마법 없음 · 레벨만 되면 바로 찍을 수 있습니다</div>';
   h+=`<div class="acts"><button type="button" data-learn="${id}" ${canLearn(id)?'':'disabled'}>+1 포인트 ${P.sp?`(남은 ${P.sp})`:''}</button>`;
-  if(L)h+=`<button type="button" data-bind="${id}">${bindId===id?'누를 키를 기다리는 중… (Esc 취소)':'다음에 누르는 키에 넣기'}</button>`;h+='</div>';
-  if(L){h+='<div class="slotpick">';SLOTS.forEach((sl,i)=>{h+=`<button type="button" data-assign="${id}" data-i="${i}" aria-pressed="${P.bar[i]===id}" title="${sl.k} 칸에 넣기">${sl.k}</button>`});h+='</div>'}
+  if(L&&s.kind!=='passive')h+=`<button type="button" data-bind="${id}">${bindId===id?'누를 키를 기다리는 중… (Esc 취소)':'다음에 누르는 키에 넣기'}</button>`;h+='</div>';
+  if(L&&s.kind!=='passive'){h+='<div class="slotpick">';SLOTS.forEach((sl,i)=>{h+=`<button type="button" data-assign="${id}" data-i="${i}" aria-pressed="${P.bar[i]===id}" title="${sl.k} 칸에 넣기">${sl.k}</button>`});h+='</div>'}
   return h+'</div>'}
 function treeHtml(){const C=CLASSES[P.cls],trees=C.trees;
   let h=`<div class="pts">남은 스킬 포인트 <b>${P.sp}</b> <span class="muted">· 레벨마다 1점 · 한 마법에 최대 ${MAXSK}점 · 선으로 이어진 마법만 위의 마법에 1점이 필요하고, 나머지는 레벨만 되면 바로 찍습니다</span></div><div class="treetabs">`;
@@ -4105,7 +4119,7 @@ function treeHtml(){const C=CLASSES[P.cls],trees=C.trees;
     const gx=q.x+(p.x>=q.x?30:-30),d=adj?`M${q.x} ${q.y+25}V${p.y-25}`:`M${q.x} ${q.y+25}V${q.y+29}H${gx}V${p.y-29}H${p.x}V${p.y-25}`;
     lines+=`<path d="${d}" fill="none" stroke="${on?'#c9a24a':'#5a4a36'}" stroke-width="2" stroke-linejoin="round"/>`}
     const L=skLv(s.id),cls=L?'has':canLearn(s.id)?'can':P.lvl<RANK_LV[s.rank-1]||!preOk(s.id)?'locked':'';
-    nodes+=`<button class="node ${cls}" type="button" data-node="${s.id}" aria-pressed="${nodeSel===s.id}" title="${s.n}" style="left:${p.x-25}px;top:${p.y-25}px">${spellSvg(s)}${L?`<span class="nl">${L}</span>`:''}</button>`}
+    nodes+=`<button class="node ${cls}${s.kind==='passive'?' passive':''}" type="button" data-node="${s.id}" aria-pressed="${nodeSel===s.id}" title="${s.n}${s.kind==='passive'?' (패시브)':''}" style="left:${p.x-25}px;top:${p.y-25}px">${spellSvg(s)}${s.kind==='passive'?'<span class="pv">패시브</span>':''}${L?`<span class="nl">${L}</span>`:''}</button>`}
   h+=`<div class="treescroll"><div class="tree" style="width:${width}px;height:${height}px"><svg class="lines" width="${width}" height="${height}">${lines}</svg>${labels}${nodes}</div></div>`;
   h+=detailHtml(nodeSel);
   return h}
@@ -4240,7 +4254,7 @@ function load(d,slot){
   if(typeof d.x==='number'){P.x=clamp(d.x,20,WORLD-20);P.y=clamp(d.y,20,WORLD-20)}
   if(d.v>=4){P.xp=d.xp|0;P.sk={};for(const k in d.sk||{})if(SPELLS[k]&&SPELLS[k].cls===d.cls)P.sk[k]=clamp(d.sk[k]|0,0,MAXSK);
     P.sp=d.sp|0;P.st=Object.assign(P.st,d.st||{});P.ap=d.ap|0;const df=d.diff|0;P.diff=DIFF[df]&&P.lvl>=DIFF[df].req?df:0;
-    P.bar=Array(21).fill(null).map((_,i)=>{const x=d.bar&&d.bar[i];return x&&SPELLS[x]&&SPELLS[x].cls===d.cls?x:null})}
+    P.bar=Array(21).fill(null).map((_,i)=>{const x=d.bar&&d.bar[i];return x&&SPELLS[x]&&SPELLS[x].cls===d.cls&&SPELLS[x].kind!=='passive'?x:null})}
   else{P.xp=Math.min(d.xp|0,xpNeed(P.lvl)-1);P.sp=P.lvl-1;P.ap=(P.lvl-1)*5;
     setTimeout(()=>{msg(`새 성장 체계로 바뀌었습니다. 스킬 포인트 ${P.sp}점과 능력치 포인트 ${P.ap}점을 돌려받았습니다`,'#ffd76a');msg('스킬 트리(T)와 캐릭터(C)에서 찍으세요','#ffd76a')},400)}
   P.hp=Math.min(maxHp(),d.hp>0?d.hp:maxHp());P.mp=Math.min(maxMp(),d.mp||maxMp());
@@ -4307,6 +4321,6 @@ function start(data){
 }
 window.claude?.hot?.snapshot?.(()=>saveData());
 window.claude?.hot?.ready?window.claude.hot.ready(start):start(window.claude?.hot?.data??{});
-window.__game={moveBody,get REG(){return REG},get EDGES(){return EDGES},REGIONS,ALLTOWNS,loadRegion,switchRegion,useEdge,liqAt,blockedAt,regionTick,dgMob,enemyTarget,inSafe,ghostTest:(from,sp,x,y)=>netGhostCast({from,sp,L:10,x,y}),get NET(){return NET},get DG(){return DG},get allies(){return allies},get loot(){return loot},CAVES,enterDungeon,leaveDungeon,TYPES,SETS,gearStats,stat,get act(){return act},hurtE,killE,save,saveData,load,readSlot,get P(){return P},get enemies(){return enemies},get bolts(){return bolts},SPELLS,TREE,PRE,tryCast,newGame,gainXp,update,spawnEnemy,learnPoint,skLv,makeItem,render,bindTo,set bindId(v){bindId=v},S2W,W2S,get cam(){return{camX,camY}},saveNow,cloudPush,get ACC(){return ACC},get curSlot(){return curSlot}};
+window.__game={regen,spdMul,dmgMul,eff,moveBody,get REG(){return REG},get EDGES(){return EDGES},REGIONS,ALLTOWNS,loadRegion,switchRegion,useEdge,liqAt,blockedAt,regionTick,dgMob,enemyTarget,inSafe,ghostTest:(from,sp,x,y)=>netGhostCast({from,sp,L:10,x,y}),get NET(){return NET},get DG(){return DG},get allies(){return allies},get loot(){return loot},CAVES,enterDungeon,leaveDungeon,TYPES,SETS,gearStats,stat,get act(){return act},hurtE,killE,save,saveData,load,readSlot,get P(){return P},get enemies(){return enemies},get bolts(){return bolts},SPELLS,TREE,PRE,tryCast,newGame,gainXp,update,spawnEnemy,learnPoint,skLv,makeItem,render,bindTo,set bindId(v){bindId=v},S2W,W2S,get cam(){return{camX,camY}},saveNow,cloudPush,get ACC(){return ACC},get curSlot(){return curSlot}};
 })();
 </script>
