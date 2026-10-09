@@ -3,7 +3,7 @@
 This repo serves two jobs:
 
 1. **Deployed release** (repo root): `game.html`, `server.js`, `package.json`, `audio/`, `app/`, `img/`. Render redeploys the co-op server from `main` on every push. Do not edit, move or rename these files; the owner's release process replaces them.
-2. **Game source for co-development**: `source/`. Before any work, read `source/AI-작업-원칙.md` (the owner's design rules, history, mobile notes and work process) and `source/함께-개발-안내.md` (build and #qa commands).
+2. **Game source for co-development**: `source/`. Before any work, read `source/AI-작업-원칙.md` (the owner's design rules, history, mobile notes and work process), `source/세부-설정-기록.md` (every detailed setting and number the owner chose; ask the owner before changing any of them) and `source/함께-개발-안내.md` (build and #qa commands).
 
 Rules in short:
 - Never push to `main`. Work on a branch and open a pull request describing what changed and the #qa result.
