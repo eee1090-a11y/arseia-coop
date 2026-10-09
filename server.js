@@ -11,6 +11,17 @@ function fbConfig(){const raw=process.env.FIREBASE_CONFIG||'';if(!raw.trim())ret
   if(!o.apiKey||!o.authDomain||!o.projectId){console.log('  FIREBASE_CONFIG를 읽지 못했습니다. apiKey, authDomain, projectId가 들어 있는지 확인하세요');return null}
   return o}
 const FB=fbConfig();
+// v21 게임 창(앱으로 설치): server.js 옆 app 폴더가 있으면 켜진다. 없으면 예전처럼 웹 페이지로만 동작한다.
+const APPDIR=path.join(__dirname,'app'),APP=fs.existsSync(path.join(APPDIR,'manifest.webmanifest'));
+const APPFILES={'manifest.webmanifest':'application/manifest+json','icon-192.png':'image/png','icon-512.png':'image/png','icon-180.png':'image/png','icon.svg':'image/svg+xml'};
+const APPHEAD=APP?'<link rel="manifest" href="/app/manifest.webmanifest"><meta name="theme-color" content="#1b1430"><link rel="icon" href="/app/icon-192.png"><link rel="apple-touch-icon" href="/app/icon-180.png">'+
+  '<meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="아르세이아"><meta name="apple-mobile-web-app-status-bar-style" content="black">'+
+  '<script>window.APP_INSTALL=1;addEventListener("beforeinstallprompt",function(e){e.preventDefault();window.__bip=e;dispatchEvent(new Event("app-installable"))});'+
+  'if("serviceWorker"in navigator)addEventListener("load",function(){navigator.serviceWorker.register("/sw.js").catch(function(){})})</script>':'';
+function appFile(req,res){const n=req.url==='/sw.js'?'sw.js':req.url.slice(5).split('?')[0];
+  const type=n==='sw.js'?'text/javascript; charset=utf-8':APPFILES[n];if(!APP||!type){res.writeHead(404);res.end();return}
+  fs.readFile(path.join(APPDIR,n),(e,buf)=>{if(e){res.writeHead(404);res.end();return}
+    res.writeHead(200,{'Content-Type':type,'Cache-Control':/\.png$|\.svg$/.test(n)?'public, max-age=86400':'no-cache'});res.end(buf)})}
 const clients=new Map();let nextId=1,hostId=0;
 // v19 대화: 최근 「전체」 대화만 메모리에 30줄 (저장하지 않음)
 const HIST=[],HIST_MAX=30,CHAT_N=5,CHAT_MS=5000,CHAT_LEN=120;
@@ -19,7 +30,7 @@ const HIST=[],HIST_MAX=30,CHAT_N=5,CHAT_MS=5000,CHAT_LEN=120;
 let PACK=null;
 function pagePack(cb){fs.stat(GAME,(e,st)=>{if(e)return cb(e);const key=st.mtimeMs+':'+st.size;if(PACK&&PACK.key===key)return cb(null,PACK);
   fs.readFile(GAME,(err,buf)=>{if(err)return cb(err);
-    const raw=Buffer.from('<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><script>window.COOP_SERVER=1'+(FB?';window.FIREBASE_CONFIG='+JSON.stringify(FB).replace(/</g,'\\u003c'):'')+'</script></head><body>'+buf.toString('utf8')+'</body></html>');
+    const raw=Buffer.from('<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">'+APPHEAD+'<script>window.COOP_SERVER=1'+(FB?';window.FIREBASE_CONFIG='+JSON.stringify(FB).replace(/</g,'\\u003c'):'')+'</script></head><body>'+buf.toString('utf8')+'</body></html>');
     zlib.gzip(raw,{level:6},(ze,gz)=>{if(ze)return cb(ze);PACK={key,raw,gz,etag:'"'+crypto.createHash('sha1').update(raw).digest('hex').slice(0,20)+'"'};cb(null,PACK)})})})}
 const server=http.createServer((req,res)=>{
   if(req.url==='/'||req.url.startsWith('/?')||req.url==='/index.html'){
@@ -32,6 +43,10 @@ const server=http.createServer((req,res)=>{
   // v20: 배경음악은 game.html 옆 audio/music 폴더의 파일로 둔다(브라우저가 곡을 기억해 두어 다음부터는 받지 않음)
   {const m=/^\/audio\/music\/([a-z0-9_-]+\.mp3)$/.exec(req.url.split('?')[0]);if(m){const f=path.join(__dirname,'audio','music',m[1]);
     fs.stat(f,(e,st)=>{if(e){res.writeHead(404);res.end();return}res.writeHead(200,{'Content-Type':'audio/mpeg','Content-Length':st.size,'Cache-Control':'public, max-age=604800'});fs.createReadStream(f).pipe(res)});return}}
+  // v21: 무료 그림(Flare)은 game.html 옆 img 폴더의 flare-*.js 파일(처음 필요할 때 받음 · 이름 규칙 밖은 404)
+  {const m=/^\/img\/(flare-[a-z0-9_-]+\.js)$/.exec(req.url.split('?')[0]);if(m){const f=path.join(__dirname,'img',m[1]);
+    fs.stat(f,(e,st)=>{if(e||!st.isFile()){res.writeHead(404);res.end();return}res.writeHead(200,{'Content-Type':'text/javascript; charset=utf-8','Content-Length':st.size,'Cache-Control':'public, max-age=604800'});fs.createReadStream(f).pipe(res)});return}}
+  if(req.url==='/sw.js'||req.url.startsWith('/app/')){appFile(req,res);return}
   if(req.url==='/status'){res.writeHead(200,{'Content-Type':'application/json'});res.end(JSON.stringify({players:clients.size,inParty:[...clients.values()].filter(c=>c.room).length,host:hostId}));return}
   res.writeHead(404);res.end();
 });
@@ -109,6 +124,7 @@ server.listen(PORT,()=>{
   console.log('\n  아르세이아의 견습생 · 같이 하기 서버가 켜졌습니다\n');
   console.log(`  이 컴퓨터에서:      http://localhost:${PORT}`);
   for(const ip of ips)console.log(`  같은 와이파이 친구: http://${ip}:${PORT}`);
+  console.log(APP?'  게임 창(앱으로 설치): 켜짐':'  게임 창(앱으로 설치): 꺼짐 (app 폴더 없음)');
   console.log(FB?`  구글 로그인: 켜짐 (${FB.projectId})`:'  구글 로그인: 꺼짐 (FIREBASE_CONFIG 없음)');
   console.log('\n  끄려면 이 창을 닫거나 Ctrl+C\n');
   if(process.argv.includes('--open')){const u='http://localhost:'+PORT,cmd=process.platform==='win32'?`start "" "${u}"`:process.platform==='darwin'?`open "${u}"`:`xdg-open "${u}"`;require('child_process').exec(cmd,()=>{})}
