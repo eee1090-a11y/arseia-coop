@@ -1,0 +1,6 @@
+source/game-*.html
+source/*.check.js
+source/v5check.js
+source/qa-report.*
+source/shots-qa/
+node_modules/

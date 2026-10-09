@@ -1,0 +1,23 @@
+/* ---------- v22: 던전 초기화 주기 (사용자 06:46) ----------
+   「던전이 리셋되는 주기를 다른 맵에 다녀올 때로 바꿔줘. 같은 맵에 있을 경우에는 1시간에 한번으로.」
+   · 던전에서 나오면 그 던전(동굴 · 난이도 · 어둠 단계별)을 그대로 기억해 둔다: 쓰러뜨린 몬스터 · 보스 · 바닥 전리품 · 나가는 문.
+   · 같은 지역에 있는 동안 다시 들어가면 기억한 던전으로(처음 지은 뒤 1시간이 지나면 새로). 다른 지역으로 가면 모두 잊는다.
+   · 대상: 보통 던전(동굴로 들어가는 곳). 시험의 방 · 미궁 · 3막 장소 · 투기장 · 같이 하기 손님 쪽은 예전처럼.
+   · 저장에 새 값 없음(접속을 끊으면 새로). 같이 하기는 방장의 던전을 그대로 보낸다(netDgData). */
+const K22={m:new Map(),off:0,life:3600e3};
+const k22Now=()=>Date.now()+K22.off;
+function k22Key(c){const t=typeof darkTier==='function'?darkTier():0;return `${CAVES.indexOf(c)}:${P.diff|0}:${t}`}
+function k22Ok(){return !!(DG&&DG.k22&&!NET.guest&&DG.d&&!DG.d.arena&&!DG.d.trial&&!DG.j2t&&!DG.j3t&&DG.ci>=0&&DG.ci<900)}
+{const _e=enterDungeon;enterDungeon=function(c){
+  const key=c&&c.cave&&!NET.guest?k22Key(c):null,k=key&&K22.m.get(key);
+  if(k&&k22Now()-k.t0<K22.life&&k.reg===REG.id){DG=k.DG;DG.kept22=1;enemies=k.en.filter(e=>!e.dead);loot=k.loot;projs=[];fields=[];rains=[];pend=[];warns=[];arcs=[];DG.flow=null;DG.ft=-1;DG.fc=null;
+    for(const e of enemies){e.aggroed=false;e.cast=0}
+    const p0=tc(DG.start.cx,DG.start.cy);P.x=p0.x;P.y=p0.y;for(const a of allies){a.x=P.x+rnd(-40,40);a.y=P.y+rnd(-40,40)}followCam();
+    const left=enemies.length,bd=DG.bossDead;msg(`${DG.d.n}에 다시 들어섰습니다 · ${bd?'보스는 이미 쓰러졌습니다':'쓰러뜨린 몬스터는 그대로입니다'} (남은 몬스터 ${left})`,'#ff9a6a');
+    banner={t:DG.d.n,sub:`던전 · 몬스터 레벨 ${DG.lvl}~${DG.lvl+2} · 다른 지역에 다녀오거나 1시간이 지나면 새로`,col:'#ff9a6a',life:2.2,max:2.2};save();return}
+  if(key)K22.m.delete(key);
+  const r=_e.apply(this,arguments);if(key&&DG&&DG.d===c.cave){DG.k22=key;DG.k22t=k22Now()}return r}}
+{const _l=leaveDungeon;leaveDungeon=function(){if(k22Ok())K22.m.set(DG.k22,{DG,en:enemies.filter(e=>!e.dead&&!e.ally),loot:loot.slice(),t0:DG.k22t||k22Now(),reg:REG.id});return _l.apply(this,arguments)}}
+// 다른 지역으로 가면 모두 새로 · 캐릭터를 바꿔도 새로
+{const _r=loadRegion;loadRegion=function(id){if(REG&&id!==REG.id)K22.m.clear();return _r.apply(this,arguments)}}
+setTimeout(()=>{try{const _ld=load;load=function(){K22.m.clear();return _ld.apply(this,arguments)};if(window.__game)Object.assign(window.__game,{K22})}catch(_){}},0);
