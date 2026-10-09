@@ -30,7 +30,7 @@ const HIST=[],HIST_MAX=30,CHAT_N=5,CHAT_MS=5000,CHAT_LEN=120;
 let PACK=null;
 function pagePack(cb){fs.stat(GAME,(e,st)=>{if(e)return cb(e);const key=st.mtimeMs+':'+st.size;if(PACK&&PACK.key===key)return cb(null,PACK);
   fs.readFile(GAME,(err,buf)=>{if(err)return cb(err);
-    const raw=Buffer.from('<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">'+APPHEAD+'<script>window.COOP_SERVER=1'+(FB?';window.FIREBASE_CONFIG='+JSON.stringify(FB).replace(/</g,'\\u003c'):'')+'</script></head><body>'+buf.toString('utf8')+'</body></html>');
+    const raw=Buffer.from('<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">'+APPHEAD+'<script>window.COOP_SERVER=1'+(FB?';window.FIREBASE_CONFIG='+JSON.stringify(FB).replace(/</g,'\\u003c'):'')+'</script></head><body>'+buf.toString('utf8')+'</body></html>');
     zlib.gzip(raw,{level:6},(ze,gz)=>{if(ze)return cb(ze);PACK={key,raw,gz,etag:'"'+crypto.createHash('sha1').update(raw).digest('hex').slice(0,20)+'"'};cb(null,PACK)})})})}
 const server=http.createServer((req,res)=>{
   if(req.url==='/'||req.url.startsWith('/?')||req.url==='/index.html'){
