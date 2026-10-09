@@ -29,6 +29,9 @@ const server=http.createServer((req,res)=>{
       const gz=/\bgzip\b/.test(req.headers['accept-encoding']||'');
       res.writeHead(200,Object.assign({'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-cache','ETag':pk.etag,'Vary':'Accept-Encoding'},gz?{'Content-Encoding':'gzip'}:{}));
       res.end(gz?pk.gz:pk.raw)});return}
+  // v20: 배경음악은 game.html 옆 audio/music 폴더의 파일로 둔다(브라우저가 곡을 기억해 두어 다음부터는 받지 않음)
+  {const m=/^\/audio\/music\/([a-z0-9_-]+\.mp3)$/.exec(req.url.split('?')[0]);if(m){const f=path.join(__dirname,'audio','music',m[1]);
+    fs.stat(f,(e,st)=>{if(e){res.writeHead(404);res.end();return}res.writeHead(200,{'Content-Type':'audio/mpeg','Content-Length':st.size,'Cache-Control':'public, max-age=604800'});fs.createReadStream(f).pipe(res)});return}}
   if(req.url==='/status'){res.writeHead(200,{'Content-Type':'application/json'});res.end(JSON.stringify({players:clients.size,inParty:[...clients.values()].filter(c=>c.room).length,host:hostId}));return}
   res.writeHead(404);res.end();
 });
