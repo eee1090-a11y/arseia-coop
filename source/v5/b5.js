@@ -319,7 +319,15 @@ addEventListener('keydown',e=>{if(e.ctrlKey&&e.shiftKey&&e.code==='KeyF'){e.prev
 // rAF 간격(per)의 절반만큼 일찍 와도 그린다 (60Hz 화면에서 프레임을 건너뛰지 않게).
 let rafPer=16.7,rafPrev=0;
 function stepSim(dt){if(!paused||NET.on){let r=dt,n=0;do{const d=Math.min(.05,r);update(d);r-=d;n++}while(r>1e-4&&n<5);return n}time+=Math.min(.05,dt);return 0}
-function frameCapMs(){return GFX.fps===30?33.3:16.6}
+// [v25 최적화] 자동 절전: 60 설정이어도 화면에 움직일 것이 없으면(2초 동안 입력 · 이동 · 싸움 · 마법이 없음) 또는 다른 창을 보고 있으면 30번만 그린다.
+// 움직이기 시작하면(키 · 마우스 · 터치, 몬스터가 쫓아옴, 마법) 바로 60으로 돌아온다. 같이하기 중에는 늘 60. 게임 속도는 같다.
+const IDLE={inp:0,px:0,py:0,t:0};
+for(const ev of ['keydown','pointerdown','pointermove','wheel','touchstart'])addEventListener(ev,()=>{IDLE.inp=performance.now();IDLE.t=0},{passive:true,capture:true});
+function idleTick(dt,now){let busy=now-IDLE.inp<1500||NET.on;if(!busy&&!P.dead&&(Math.abs(P.x-IDLE.px)+Math.abs(P.y-IDLE.py)>.5))busy=true;IDLE.px=P.x;IDLE.py=P.y;
+  if(!busy&&(projs.length||fields.length||pend.length||beams.length||bolts.length||rains.length))busy=true;
+  if(!busy)for(const e of enemies)if(e.aggroed&&!e.dead){busy=true;break}
+  IDLE.t=busy?0:IDLE.t+dt}
+function frameCapMs(){if(GFX.fps===30)return 33.3;if(!NET.on&&(IDLE.t>2||!document.hasFocus()))return 33.3;return 16.6}
 const qTickMs=raw=>raw-Math.max(0,frameCapMs()-16.7);// 일부러 쉰 시간은 자동 품질에서 느림으로 치지 않음
 function frame(now){
   {const d=now-rafPrev;rafPrev=now;if(d>0&&d<100)rafPer+=(d-rafPer)*.1}
@@ -329,7 +337,7 @@ function frame(now){
   // [v24 최적화] 밀림 고치기: 예전에는 한 프레임에 0.05초까지만 게임 시간을 흘려, 20fps 아래에서는 게임 전체가 느리게(슬로 모션) 갔다.
   // 이제 실제로 흐른 시간(한 프레임 최대 0.25초)을 0.05초 조각으로 나눠 update를 여러 번 부른다. 조각 크기는 예전과 같아 규칙·수치는 그대로.
   const dt=Math.min(.25,Math.max(0,raw)/1000);
-  stepSim(dt);
+  stepSim(dt);idleTick(dt,now);
   fpsTick(now);render();hudT-=dt;if(hudT<=0){hudT=1/15;updateHud()}
   mmT-=dt;if(mmT<=0){mmT=.15;drawMinimap()}
   requestAnimationFrame(frame);

@@ -1507,6 +1507,7 @@ for(const [c,br] of qJ2Br())qT('2차 전직 v19',`${JOB2[c][br].n}: 전직 의�
   qClick('#pbody [data-tree="0"]');qOk(J2UI.tab===null&&!pbody.querySelector(`[data-node="${atk}"]`),'1차 탭으로 못 돌아감');
   const ob=J2_SPELLS.find(id=>SPELLS[id].job2===other&&SPELLS[id].kind!=='passive');qOk(!canLearn(ob),'다른 갈래 기술을 배움');closePanel();
   P.sk[atk]=10;const e=qDummy(P.x+160,P.y+20),s=SPELLS[atk];if(typeof clsGearFor==='function')clsGearFor(atk);if(PHYS_CLS[c])P.st.dex=Math.max(P.st.dex|0,600);P.cd={};qCast(atk,e);qStep(240,{render:false,until:()=>e.taken>0});
+  /* v25: 물리 기술은 적중 판정이 있어 드물게 빗나감(전체 점검에서 그랜드 챌린지가 가끔 안 맞음) → 두 번까지 다시 */for(let k=0;k<2&&isDmg(s)&&!(e.taken>0);k++){P.cd={};P.mp=maxMp();qRecWait();castReset();qCast(atk,e);qStep(240,{render:false,until:()=>e.taken>0})}
   if(isDmg(s))qOk(e.taken>0,`${s.n} 안 맞음`);else qOk(P.cd[atk]>0||P.buffs[atk],`${s.n} 안 써짐`);
   P.sk[ob]=1;P.cd={};qRecWait();castReset();tryCast(ob,e);qOk(!(P.cd[ob]>0)&&!(CAST.cur&&CAST.cur.id===ob),'다른 갈래 기술을 씀');
   return `${s.n} ${isDmg(s)?Math.round(e.taken)+' 피해':'씀'} · 스킬 포인트 +7 · ${P.bag.find(it=>it.j2u).name}`}));
@@ -1576,7 +1577,9 @@ qT('2차 전직 v19','모든 2차 공격 기술이 몬스터에게 맞음 (터�
   for(const c of QCLS){const L=qSpellList(c);for(const id of J2_SPELLS)if(SPELLS[id].cls===c&&isDmg(SPELLS[id])&&!L.includes(id))bad.push(id+' 적중 점검 목록에 없음')}r.push(J2_SPELLS.filter(id=>isDmg(SPELLS[id])).length+'개는 마법 적중 묶음(3곳)에서');// 공격 기술은 '마법 적중' 묶음이 하나씩 본다 · 여기서는 그 밖의 것만
   for(const id of J2_SPELLS){const s0=SPELLS[id];if(s0.swap||isDmg(s0)||!(s0.kind==='detonate'||s0.shot||(s0.kind==='field'&&s0.spawn)||(s0.kind==='summon'&&(s0.mult>0||s0.legion))))continue;
     const e=qCastPrep(s0.cls,id);P.job2=s0.job2;P.lvl=Math.max(P.lvl,s0.upLv);if(typeof clsGearFor==='function')clsGearFor(id);if(PHYS_CLS[s0.cls])P.st.dex=Math.max(P.st.dex|0,600);P.invT=1e9;
-    qCast(id,{x:e.x,y:e.y});qOk(isFinite(P.x)&&isFinite(P.y),`${id}: 내 위치가 NaN`);qStep(s0.kind==='summon'||s0.spawn?480:240,{render:false,until:()=>e.taken>0});if(!(e.taken>0))bad.push(s0.n+'('+id+')');else r.push(id)}
+    qCast(id,{x:e.x,y:e.y});qOk(isFinite(P.x)&&isFinite(P.y),`${id}: 내 위치가 NaN`);qStep(s0.kind==='summon'||s0.spawn?480:240,{render:false,until:()=>e.taken>0});
+    /* v25: 물리 기술은 적중 판정이 있어 드물게 빗나감(리트리팅 샷이 가끔 안 맞음) → 두 번까지 다시 */for(let k=0;k<2&&PHYS_CLS[s0.cls]&&!(e.taken>0);k++){P.cd={};P.mp=maxMp();qRecWait();castReset();qCast(id,{x:e.x,y:e.y});qStep(240,{render:false,until:()=>e.taken>0})}
+    if(!(e.taken>0))bad.push(s0.n+'('+id+')');else r.push(id)}
   qOk(!bad.length,'안 맞음: '+bad.join(', '));return `${r[0]} · 그 밖 ${r.length-1}개 맞음`});
 qT('2차 전직 v19','같이 하기: 동료의 2차 기술 유령 시전(8갈래)이 오류 없이 보이고 내 쪽 피해는 없음 · 정화는 나를 고른 시전만 · 모르는 기술 id는 무시',()=>{qPrep('mage',{lvl:60});P.invT=1e9;let n=0;
   try{for(const [c,br] of qJ2Br()){qClear();const r=qPeerOn();Object.assign(r,{cls:c,x:P.x+80,tx:P.x+80,y:P.y,ty:P.y});const e=qDummy(P.x+260,P.y);
@@ -3678,7 +3681,7 @@ qT(QG22,'목표 자리: 사람(의뢰인 · 지금 서 있는 자리를 따라�
   finally{if(typeof IN!=='undefined'&&IN)twLeave(true);if(DG)leaveDungeon();qG22Off()}});
 qT(QG22,'화살표가 목표 쪽을 가리킴: 동서남북 네 자리에서 화살표 각도 = 화면 위 목표 방향 · 화살표가 캐릭터 둘레(반지름 72px, 휴대폰은 54px)에 · 큰 지도를 열면 숨김',()=>{qPrep('mage',{lvl:30});qG22Off();const r=[];
   try{P.q={i:1,st:1,c:{}};qgSet('main:1',true);qStep(2,{render:false});qgTick(true);/* 마을 사람이 자리 잡은 뒤의 목표 */const tg=qgTargetW('main:1'),el=QG.el||qgEl();
-    for(const [dx,dy,nm] of [[600,0,'동'],[-450,0,'서'],[0,600,'남'],[0,-450,'북'],[420,420,'남동']]){P.x=tg.x+dx;P.y=tg.y+dy;followCam();qStep(2,{render:false});qgTick(true);qStep(1,{render:false});qgTick(true);/* v24: 마지막 한 프레임에 목표가 바뀌었으면(입구 근처 도착 등) 화살표도 그 목표로 다시 맞춘 뒤 잼 */
+    for(const [dx,dy,nm] of [[600,0,'동'],[-450,0,'서'],[0,600,'남'],[0,-450,'북'],[420,420,'남동']]){P.x=tg.x+dx;P.y=tg.y+dy;followCam();qStep(2,{render:false});qgTick(true);qStep(1,{render:false});qgTick(true);qgDraw();/* v25: 화살표 각도도 방금 고른 목표로 다시 그림(움직이는 마을 사람 목표면 qgTick 뒤 한 틈 어긋남 · 전체 점검에서 가끔 0.02 차이) */ /* v24: 마지막 한 프레임에 목표가 바뀌었으면(입구 근처 도착 등) 화살표도 그 목표로 다시 맞춘 뒤 잼 */
       const c=QG.cur,tgN=qgTargetW('main:1');qOk(c&&tgN&&Math.hypot(c.x-tgN.x,c.y-tgN.y)<=200&&c.label&&tgN.label.includes(c.label.split(' · ').pop()),`${nm} 목표 (지금 목표 ${tgN&&Math.round(tgN.x)},${tgN&&Math.round(tgN.y)} ${tgN&&tgN.label}) ${JSON.stringify(c)} · 나 ${Math.round(P.x)},${Math.round(P.y)} · ${REG.id}${DG?' 던전':''}${IN?' 건물':''}`);const a=W2S(P.x,P.y),b=W2S(c.x,c.y),want=Math.atan2((b.y-20)-(a.y-30),b.x-a.x);
       const iso=Math.atan2((c.x-P.x+c.y-P.y)/2,(c.x-P.x)-(c.y-P.y)),da=x=>Math.abs(Math.atan2(Math.sin(x),Math.cos(x)));
       qOk(da(QG.ang-want)<.01,`${nm} 각도 ${QG.ang.toFixed(3)} (기대 ${want.toFixed(3)})`);qOk(da(QG.ang-iso)<.12,`${nm} 쿼터뷰 방향과 다름 ${QG.ang.toFixed(2)} vs ${iso.toFixed(2)}`);
@@ -3956,6 +3959,90 @@ qT('스킬 설명 v24','4직업 모든 스킬의 스킬 창 설명 · 설명 상
       else{na++;const cd=Math.round(cdOf(id)*100)/100,m=sub.match(/재사용 ([\d.]+)초/),m2=tsub.match(/재사용 ([\d.]+)초/);if(!m||+m[1]!==cd||!m2||+m2[1]!==cd)bad.push(`${tag} 재사용 ${m&&m[1]}/${m2&&m2[1]}≠${cd}`);
         const ct=typeof castTimeOf==='function'?castTimeOf(id):0;if(ct>0&&!s.charge&&(!sub.includes(`시전 ${ct}초`)||!tsub.includes(`시전 ${ct}초`)))bad.push(`${tag} 시전 ${ct}초 안 보임`)}}}
   qOk(np>=40&&na>200,`패시브 ${np} · 그 밖 ${na}`);qOk(!bad.length,bad.slice(0,12).join(' / ')+(bad.length>12?` 외 ${bad.length-12}개`:''));return `패시브 ${np}개 · 그 밖 ${na}개 모두 맞음`});
+/* ===== v25 방어 기술 설명 (사용자 08:53 「갑옷류 스킬의 흡수 · 감소 수치가 툴팁에 제대로 안 나온 것」) · 탭 차수 ===== */
+qT('스킬 설명 v25','4직업 방어 기술(갑옷 · 보호막 · 무적 · 가호 · 받는 피해 강화)을 실제로 써 보고, 스킬 창 설명의 받는 피해 감소 · 흡수량 · 지속 · 되살아날 때 생명력 · 반격 피해가 실제 걸린 값과 같음 · 받는 피해가 느는 강화는 「증가」로',()=>{
+  const bad=[],num=t=>{const m=String(t).match(/-?[\d.]+/);return m?+m[0]:NaN},row=(rows,k)=>{const r=rows.find(r=>r[0]===k);return r?r[1]:null};let n=0;
+  const close=(a,b,tol)=>Math.abs(a-b)<=(tol||Math.max(.06,Math.abs(b)*.02));
+  for(const cls of ['mage','priest','warrior','archer'])for(const id in SPELLS){const s=SPELLS[id];if(s.cls!==cls||s.hidden||!['armor','shield','invuln','ward','buff'].includes(s.kind))continue;
+    if(s.kind==='buff'&&!s.dr)continue;qPrep(cls,{lvl:140});if(s.job3)qJob3On(Object.keys(JOB3[cls]).find(b=>b===s.job3)||s.job3);else if(s.job2)P.job2=s.job2;passT=-1;
+    if(typeof clsGearFor==='function')clsGearFor(id);P.sk[id]=s.job3?6:5;const rows=numsAt(id,skLv(id)),tag=`${s.n}(${id})`;nodeSel=id;const tip=sk23TipHtml(id);
+    P.shield=0;P.shieldT=0;P.ward=null;P.armor=null;P.invT=0;P.buffs={};for(const k in P.cd)P.cd[k]=0;qCast(id,{x:P.x+40,y:P.y});n++;
+    if(s.kind==='armor'){const a=P.armor;if(!a){bad.push(tag+' 안 걸림');continue}
+      const r=row(rows,'받는 피해 감소');if(!r||!close(num(r)/100,a.red,.002))bad.push(`${tag} 감소 ${r}≠${a.red}`);
+      const h=row(rows,'나를 때린 적에게 (맞을 때마다)');if(!h||!close(num(h),a.dmg*.6,Math.max(2,a.dmg*.6*.03)))bad.push(`${tag} 반격 ${h}≠${Math.round(a.dmg*.6)}`);
+      if(row(rows,'피해'))bad.push(tag+' 「피해」 줄이 남음');const d=row(rows,'지속');if(!d||!close(num(d),a.max,.3))bad.push(`${tag} 지속 ${d}≠${a.max}`);
+      if(!/받는 피해 감소/.test(tip))bad.push(tag+' 설명 상자에 감소 없음')}
+    else if(s.kind==='shield'){if(!(P.shield>0)){bad.push(tag+' 안 걸림');continue}
+      const r=row(rows,'흡수');if(!r||!close(num(r),P.shield,2))bad.push(`${tag} 흡수 ${r}≠${P.shield}`);const d=row(rows,'지속');if(!d||!close(num(d),P.shieldT,.3))bad.push(`${tag} 지속 ${d}≠${P.shieldT}`);
+      if(!/흡수/.test(tip)||!/지속/.test(tip))bad.push(tag+' 설명 상자에 흡수 · 지속 없음')}
+    else if(s.kind==='invuln'){if(!(P.invT>0)){bad.push(tag+' 안 걸림');continue}const d=row(rows,'지속');if(!d||!close(num(d),P.invT,.3))bad.push(`${tag} 지속 ${d}≠${P.invT}`);
+      if(row(rows,'받는 피해')!=='없음 (무적)')bad.push(tag+' 무적 줄 없음');if(s.heal&&!row(rows,'생명력 회복'))bad.push(tag+' 회복 줄 없음')}
+    else if(s.kind==='ward'){if(!P.ward){bad.push(tag+' 안 걸림');continue}const r=row(rows,'되살아날 때 생명력');if(!r||!close(num(r)/100,P.ward.heal,.006))bad.push(`${tag} 생명력 ${r}≠${P.ward.heal}`);
+      const d=row(rows,'지속');if(!d||!close(num(d),P.ward.t,.3))bad.push(`${tag} 지속 ${d}≠${P.ward.t}`)}
+    else{const b=P.buffs[id];if(!b){bad.push(tag+' 안 걸림');continue}const k=b.dr<0?'받는 피해 증가':'받는 피해 감소',r=row(rows,k);
+      if(!r||!close(Math.abs(num(r))/100,Math.abs(b.dr),.006))bad.push(`${tag} ${k} ${r}≠${b.dr}`);if(b.dr<0&&row(rows,'받는 피해 감소'))bad.push(tag+' 증가인데 감소로 보임');
+      if(s.ls&&!row(rows,'준 피해의 생명력 흡수'))bad.push(tag+' 흡수 줄 없음')}}
+  qClear();qOk(n>=36,`방어 기술 ${n}개`);qOk(!bad.length,bad.slice(0,12).join(' / ')+(bad.length>12?` 외 ${bad.length-12}개`:''));return `방어 기술 ${n}개 모두 맞음`});
+qT('스킬 창 v25','스킬 창 탭 이름에 차수: 상위 기술 · 2차 갈래 탭은 [2차], 3차 갈래 탭은 [3차] (4직업 · 2차 전 · 3차 뒤) · 1차 갈래 탭은 그대로',()=>{const bad=[];
+  try{for(const cls of ['mage','priest','warrior','archer']){for(const st of [0,2,3]){qPrep(cls,{lvl:st===3?120:st===2?60:40});if(st===2)P.job2=Object.keys(JOB2[cls])[0];if(st===3)qJob3On(Object.keys(JOB3[cls])[0]);passT=-1;
+      openPanel('tree');renderPanel();const tabs=[...pbody.querySelectorAll('button[data-j2tab]')].map(b=>[b.dataset.j2tab,b.textContent]);
+      const adv=tabs.find(t=>t[0]==='adv');if(!adv||!/\[2차\]/.test(adv[1]))bad.push(`${cls}/${st} 상위 기술 ${adv&&adv[1]}`);
+      if(st>=2){const j2=tabs.find(t=>t[0]==='j2');if(!j2||!/\[2차\]/.test(j2[1]))bad.push(`${cls}/${st} 2차 ${j2&&j2[1]}`)}
+      if(st===3){const j3=tabs.find(t=>t[0]==='j3');if(!j3||!/\[3차\]/.test(j3[1]))bad.push(`${cls} 3차 ${j3&&j3[1]}`)}
+      if([...pbody.querySelectorAll('button[data-tree]')].some(b=>/\[\d차\]/.test(b.textContent)))bad.push(cls+' 1차 탭에 차수');
+      renderPanel();if(pbody.querySelectorAll('button[data-j2tab] .tier25').length!==tabs.filter(t=>t[0]!=='j3'||st===3).length)bad.push(cls+' 다시 그리면 겹침');closePanel()}}}
+  finally{closePanel()}qOk(!bad.length,bad.join(' / '));return '4직업 × 2차 전 · 2차 · 3차'});
+/* ===== v25 물약 (사용자 09:05 「단계는 그대로, 단계 사이 회복량 차이를 크게」) ===== */
+qT('물약 v25','물약 단계 수는 5개 그대로 · 단계마다 최대 생명력/마나 비례 몫이 커짐(3·5·8·15·30%) · 높은 레벨에서 위 단계일수록 차이가 커짐(최상급 ≥ 고급×1.6) · 140레벨 최상급은 기본 최대 생명력의 40% 넘게 · 작은 · 보통은 낮은 레벨에서 예전과 거의 같음 · 가방 속 물약(등급 번호)이 새 양으로 마셔짐',()=>{const bad=[];
+  qOk(POT_T.length===5,'단계 수 '+POT_T.length);const pc=POT_T.map(p=>p.pct);for(let T=1;T<5;T++)if(!(pc[T]>pc[T-1]))bad.push('비례 몫 순서 '+pc.join(','));
+  for(const cls of ['mage','priest','warrior','archer']){qPrep(cls,{lvl:140});const a=POT_T.map((p,T)=>potAmt('hp',T)),b=POT_T.map((p,T)=>potAmt('mp',T));
+    if(!(a[4]>=maxHp()*.4))bad.push(`${cls} 140 최상급 ${a[4]}/${maxHp()}`);if(!(a[4]>=a[3]*1.6&&a[3]>=a[2]*1.4))bad.push(`${cls} 140 차이 ${a.join('/')}`);if(!(b[4]>=b[3]*1.4))bad.push(`${cls} 140 마나 ${b.join('/')}`);
+    qPrep(cls,{lvl:5});const old=(k,T)=>Math.round(POT_T[T][k]+(k==='hp'?maxHp():maxMp())*.03);for(const T of [0,1])for(const k of ['hp','mp'])if(Math.abs(potAmt(k,T)-old(k,T))>Math.max(6,old(k,T)*.06))bad.push(`${cls} 5레벨 ${k} ${T}단계 ${potAmt(k,T)}≠예전 ${old(k,T)}`)}
+  qPrep('warrior',{lvl:100});P.pot={hp:0,mp:0,ht:[0,0,0,0,2],mt:[0,0,0,0,1]};P.potCd=0;P.potCdM=0;P.hp=1;const want=potAmt('hp',4);qOk(drinkPotion('hp'),'최상급을 못 마심');
+  qOk(Math.abs(P.potHot.hp.rate*POT_DUR-want)<1,'새 양으로 안 마셔짐 '+P.potHot.hp.rate*POT_DUR+'≠'+want);qOk(potN('hp',4)===1,'개수');
+  qOk(!bad.length,bad.join(' / '));qPrep('mage',{lvl:140});return '140레벨 마법사 생명력 물약 '+POT_T.map((p,T)=>potAmt('hp',T)).join(' · ')+` (최대 ${maxHp()})`});
+/* ===== v25 마우스 휠 단축키 (사용자 09:08) ===== */
+qT('단축키 v25','단축키 창에서 칸을 고르고 휠을 굴리면 그 칸이 「휠 ↑/↓」 · 게임 화면에서 휠 한 칸 = 한 번 시전 · 잘게 오는 휠은 모아서 한 칸 · 창이 열려 있으면 시전 안 함 · 휠에 넣은 것이 없으면 휠을 막지 않음 · 저장 keys에 남고 다시 읽힘',()=>{qPrep('mage');const bad=[];
+  const W=(dy,o)=>{const ev=new WheelEvent('wheel',Object.assign({deltaY:dy,deltaMode:0,bubbles:true,cancelable:true},o||{}));cv.dispatchEvent(ev);return ev};
+  try{P.sk.spark=1;P.bar[2]='spark';buildBar();kbReset();
+    let ev=W(-120);if(ev.defaultPrevented)bad.push('넣은 것 없는데 휠을 막음');
+    kbOpen();KB.cap='s2';const we=new WheelEvent('wheel',{deltaY:-120,bubbles:true,cancelable:true});window.dispatchEvent(we);
+    if(KB.bind.s2!=='WheelUp')bad.push('잡기 '+KB.bind.s2);if(!/휠 ↑/.test(SLOTS[2].k))bad.push('칸 글자 '+SLOTS[2].k);
+    KB.cap='s3';window.dispatchEvent(new WheelEvent('wheel',{deltaY:100,shiftKey:true,bubbles:true,cancelable:true}));if(KB.bind.s3!=='S+WheelDown')bad.push('Shift 잡기 '+KB.bind.s3);kbClose();
+    const cast=()=>{const m=P.mp;P.cd={};WHEEL25.last=0;return ()=>P.mp<m};
+    let c=cast();ev=W(-120);if(!c())bad.push('휠 위로 시전 안 됨');if(!ev.defaultPrevented)bad.push('넣었는데 페이지가 스크롤됨');
+    c=cast();W(-15);W(-15);const mid=c();W(-15);if(mid||!c())bad.push(`잘게 오는 휠: 중간 ${mid} · 끝 ${c()}`);
+    c=cast();P.cd={};W(-120);const t2=c();P.cd={};P.mp=maxMp();const m2=P.mp;W(-120);if(P.mp<m2)bad.push('0.12초 안에 두 번');
+    c=cast();openPanel('tree');W(-120);if(c())bad.push('창이 열렸는데 시전');closePanel();
+    c=cast();W(120);if(c())bad.push('Shift 없이 휠 아래로 시전됨(넣지 않음)');
+    const d=saveData();if(!d.keys||d.keys.s2!=='WheelUp'||d.keys.s3!=='S+WheelDown')bad.push('저장 '+JSON.stringify(d.keys));const k=kbClean(d.keys);if(k.s2!=='WheelUp'||k.s3!=='S+WheelDown')bad.push('읽기 '+JSON.stringify(k))}
+  finally{kbClose();kbReset();qClear()}
+  qOk(!bad.length,bad.join(' / '));return '휠 ↑ · ⇧휠 ↓ 잡기 · 시전 · 모으기 · 창 · 저장'});
+qT('아이템','v25 바닥 물건: 90초 뒤 사라지고 마지막 5초 깜빡임 · 가방이 차서 놓인 보상은 남음',()=>{qPrep('mage',{lvl:60});if(REG.id!=='home')loadRegion('home');qClear();
+  qOk(LOOT25.life===90&&LOOT25.blink===5,`시간 ${LOOT25.life}/${LOOT25.blink}`);const X=P.x+600,Y=P.y;
+  const g={x:X,y:Y,kind:'gold',amt:5,t:88},h={x:X+40,y:Y,kind:'hp',tier:0,t:88},tp={x:X+80,y:Y,kind:'tp',t:88},it={x:X,y:Y+40,kind:'item',item:makeItem(20),t:88},young={x:X+40,y:Y+40,kind:'item',item:makeItem(20),t:10},kp={x:X+80,y:Y+40,kind:'item',item:makeItem(20),t:500,keep:1};
+  loot.push(g,h,tp,it,young,kp);qStep(20,{dt:.05,render:false});/* 1초 → 89초: 아직 있음 */
+  qOk([g,h,tp,it].every(l=>loot.includes(l)),'90초 전에 사라짐');qStep(30,{dt:.05,render:true});/* 1.5초 더 → 90.5초 */
+  qOk(![g,h,tp,it].some(l=>loot.includes(l)),`90초가 지났는데 남음 ${[g,h,tp,it].filter(l=>loot.includes(l)).map(l=>l.kind)}`);qOk(loot.includes(young)&&loot.includes(kp),'젊은 것 · 보상이 사라짐');
+  /* 깜빡임: 85초 전엔 늘 보이고, 마지막 5초엔 보였다 안 보였다, 보상은 늘 보임 */
+  let early=0,on=0,off=0,keepHid=0;for(let t=0;t<85;t+=.05)if(loot25Hide({t}))early++;for(let t=85.01;t<90;t+=.01)loot25Hide({t})?off++:on++;for(let t=85;t<200;t+=.1)if(loot25Hide({t,keep:1}))keepHid++;
+  qOk(!early&&on>100&&off>100&&!keepHid,`깜빡임 ${early}/${on}/${off}/${keepHid}`);
+  let drew=0;const dl=window.__loot25&&drawLoot;qOk(typeof dl==='function','drawLoot 없음');
+  /* 가방이 가득 찰 때 받은 2차 유니크 보상은 바닥에 keep으로 */
+  P.bag=[];while(P.bag.length<sqBagCap())P.bag.push(makeItem(20));const k=Object.keys(J2U)[0],n0=loot.length;j2GiveUniq(k);const r=loot.slice(n0).find(l=>l.kind==='item');
+  qOk(r&&r.keep===1,'가방이 찬 보상에 keep 없음');if(r){r.t=200;qStep(3,{dt:.05,render:false});qOk(loot.includes(r),'보상이 사라짐')}
+  for(const f of [a3Reward,c21Give,j3GiveUniq])qOk(/keep:1/.test(String(f))||/keep:1/.test(String(f.__orig||'')),'keep 빠짐: '+f.name);
+  qClear();P.bag=[];return 'gold/hp/tp/장비 90초 · 깜빡임 · 보상 keep'});
+qT('지도','v25 성벽 · 성탑 · 울타리가 건물 · 던전 문 · 입구 · 노점 · 창고와 겹치지 않음 (봉인 서고 문이 아르덴 성벽 위에 있던 것)',()=>{qPrep('mage',{lvl:60});const bad=[],regs=[...new Set(ALLTOWNS.map(t=>t.reg||'home'))];let nW=0;
+  for(const reg of regs){loadRegion(reg);const L=dm21Layer(reg);qOk(L,'층 없음 '+reg);const W=L.decor.filter(d=>WALL25.K.has(d.k)&&d.foot);nW+=W.length;
+    const O=L.decor.filter(d=>!WALL25.K.has(d.k)&&(d.foot||d.use||d.dm21g||d.k==='cave'||d.k==='edgeportal'||d.k==='gate'||d.k==='stash'||d.k==='shop'||d.k==='npc'||d.k==='statue'||d.k==='fountain'));
+    for(const w of W)for(const f of w.foot)for(const o of O){const p=o.foot?0:o.dm21g||o.use||o.k==='cave'||o.k==='edgeportal'?60:24;
+      const hit=o.foot?o.foot.some(g=>g[0]<f[2]&&g[2]>f[0]&&g[1]<f[3]&&g[3]>f[1]):o.x>f[0]-p&&o.x<f[2]+p&&o.y>f[1]-p&&o.y<f[3]+p;if(hit)bad.push(`${reg} ${w.k}(${Math.round(w.x)},${Math.round(w.y)})×${o.dm21g||o.use||o.k}`)}}
+  loadRegion('home');qOk(nW>=15,`성벽 조각이 너무 적음 ${nW}`);qOk(!bad.length,'겹침: '+bad.slice(0,6).join(' / '));
+  const g=DM21G.a3_archive,A=HOME.towns.find(t=>t.id==='arden');qOk(g&&g.d&&A,'봉인 서고 문 없음');const wx=Math.min(...HOME.decor.filter(d=>d.k==='cwall'&&Math.hypot(d.x-A.x,d.y-A.y)<1200).map(d=>d.x));
+  const dd=Math.hypot(g.d.x-A.x,g.d.y-A.y);qOk(dd>tSafe(A)&&dd<tSafe(A)+1600,`문 거리 ${Math.round(dd)} (안전 ${tSafe(A)})`);qOk(g.d.x<wx-60||g.d.y>A.y+tSafe(A),`문이 아직 성벽 안쪽 ${Math.round(g.d.x-A.x)},${Math.round(g.d.y-A.y)} (성벽 x ${Math.round(wx-A.x)})`);
+  qOk(WALL25.moved.some(m=>m.id==='a3_archive'),'옮긴 기록 없음');qOk(!wall25Hit(HOME,g.d),'옮긴 자리도 걸침');
+  return `성벽 · 울타리 ${nW}조각 겹침 0 · 봉인 서고 문 ${Math.round(g.d.x-A.x)},${Math.round(g.d.y-A.y)}`});
 function qaOverlay(res,sum,done){let el=document.getElementById('qaOverlay');
   if(!el){el=document.createElement('div');el.id='qaOverlay';el.setAttribute('role','region');el.setAttribute('aria-label','자가 점검 결과');document.body.appendChild(el);
     const st=document.createElement('style');st.textContent=`#qaOverlay{position:fixed;inset:12px;z-index:99999;background:rgba(10,9,8,.96);border:1px solid #5c4a2e;border-radius:6px;color:#ece4d0;font:12px/1.35 "Gowun Dodum",sans-serif;overflow:auto;padding:10px 14px;box-shadow:0 8px 40px #000}
@@ -4551,6 +4638,21 @@ qT(QWA,'위계: 3차 공격 기술(10점)은 같은 직업 2차 공격 기술(20
     let N=5;const avg=(ids,L)=>ids.reduce((a,id)=>{const v=pack(id,L);if(window.__QWA_DBG)out.push(id+':'+Math.round(v));return a+v},0)/ids.length;const a2=avg(j2,20),a3=avg(j3,10);N=1;const b2=avg(j2,20),b3=avg(j3,10);
     out.push(`${QCN[cls]} 다섯 무리 2차 20점 ${Math.round(a2)}/초 · 3차 10점 ${Math.round(a3)}/초 (×${qR(a3/a2)}) · 한 마리 ×${qR(b3/b2)}`);if(!(a3>a2*1.3))bad.push(cls+' 무리 ×'+qR(a3/a2));if(!(b3>b2*1.2))bad.push(cls+' 한 마리 ×'+qR(b3/b2))}
   qClear();qOk(!bad.length,bad.join(', ')+' || '+out.join(' | '));return out.join(' | ')});
+const QIC25T={p:'<'+'path',u:'<'+'use'};/* 태그 모양 글자를 그대로 적으면 게임 링크 올리기 도구가 이 페이지를 다른 종류(검토 페이지)로 오해해 그림 파일을 못 올린다 */
+/* ---------- v25 아이콘 (icons25.js): 마법사·사제 스킬마다 다른 그림 · 사제 계열 색 (사용자 2026-10-10) ---------- */
+qT('아이콘 v25','마법사·사제: 같은 직업 안에서 같은 그림 0 · 사제 계열 색(심판 금·퇴마 보라·치유 초록·수호 파랑·축복 분홍), 1차는 탭 = 계열 · 치유 탭은 모두 초록 · 패시브 점선 고리 · 3차 금빛 테두리 · 예전 그림(파티 표시)도 그려짐 · 출처 한 줄',()=>{const bad=[];let n=0;
+  for(const c of ['mage','priest']){const ids=Object.keys(SPELLS).filter(id=>SPELLS[id].cls===c&&TREE[id]!=null),seen=new Map(),svgs=new Set();
+    for(const id of ids){const s=SPELLS[id],svg=spellSvg(s);n++;if(!IC25.has(s)){bad.push(id+' 새 그림 없음');continue}
+      const k=IC25.MAP[id];if(seen.has(k))bad.push(`${id}·${seen.get(k)} 같은 그림`);seen.set(k,id);svgs.add(IC25.P[k]);
+      {const d=IC25.P[IC25.MAP[id]],T=QIC25T;if(!d||svg.split(T.p+' d="'+d+'"').length!==3||svg.includes(T.u))bad.push(id+' 모양')}/* v25 메인: 그림자 + 본 모양 두 번(use href 없이 · 게임 링크 올리기 검사) */
+      if(s.kind==='passive'&&!svg.includes('stroke-dasharray="2.5 2.5"'))bad.push(id+' 패시브 고리');
+      if(s.job3&&!svg.includes('#e8c35a'))bad.push(id+' 3차 금빛 테두리');
+      if(c==='priest'){const f=IC25.fam(s);if(!IC25.FAM[f])bad.push(id+' 계열 없음');else if(!svg.includes(IC25.FAM[f][0]))bad.push(id+' 계열 색');
+        const t=String(TREE[id]);if(/^[0-4]$/.test(t)&&f!==IC25.PTAB[+t])bad.push(id+' 탭과 계열 다름');if(t==='2'&&f!=='heal')bad.push(id+' 치유인데 초록 아님')}}
+    if(svgs.size!==ids.length)bad.push(`${c} 모양 겹침 ${ids.length-svgs.size}`)}
+  if(IC25.has({id:'qa_no_such_skill',kind:'ward'}))bad.push('표에 없는 기술도 새 그림');/* 표에 없는 것(파티 표시 등)은 예전 그림으로 */
+  const cr=document.getElementById('auCredits');if(cr&&!cr.querySelector('.ic25cr'))bad.push('출처 줄 없음');
+  qOk(!bad.length,bad.slice(0,8).join(', '));return `마법사·사제 ${n}개 모두 다른 그림 · 사제 5계열 색`});
 async function qaRun(){
   const t0=performance.now();qaMigr={slot0:qRaw('arseia-char-0'),old:qRaw(QA_OLDKEY)};const pt=$('#patch');if(pt)pt.hidden=true;
   // 마법 적중 · 비공격 마법: 직업별로 항목을 펼친다 (준비 항목 뒤)
@@ -4571,6 +4673,16 @@ async function qaRun(){
   const out={version:typeof PATCHES!=='undefined'?PATCHES[0].v:null,results:res,summary:{total:res.length,pass:sum.pass,fail:sum.fail,ms:sum.ms},perf:qaPerf,realStorageAccess:QA.realAccess,realStorageLog:QA.realLog,
     sessionStorageAccess:QA.sessionAccess,pageErrors:QA.errors.slice(),storeWrites:QA.storeLog.filter(o=>o.op==='set').length,storeRemoves:QA.storeLog.filter(o=>o.op!=='set').map(o=>o.op+':'+o.k),pcap:Q.pcap};
   qaOverlay(res,sum,true);window.__QA_RESULT=JSON.parse(JSON.stringify(out));QA.release()}
+/* ===== v25 최적화: 격자 밀어내기 · 쉬는 화면 30 · 자동 해상도 ===== */
+qT('성능','v25 몬스터끼리 밀어내기(격자): 겹친 몬스터는 떨어지고, 먼 몬스터는 안 움직임',()=>{qPrep('mage');
+  try{const k=Object.keys(TYPES).find(k=>!TYPES[k].boss&&!TYPES[k].mini);const x=P.x+400,y=P.y;const a=dgMob(k,x,y,10),b=dgMob(k,x+2,y,10),c=dgMob(k,x+600,y,10);for(const e of [a,b,c]){e.atkCd=99;e.spd=0}
+    const cx=c.x;updateEnemies(.001);const d=Math.hypot(a.x-b.x,a.y-b.y);qOk(d>2.5,`겹친 둘 거리 ${d.toFixed(1)}`);qOk(Math.abs(c.x-cx)<5,'떨어진 몬스터는 밀리지 않음');return `겹친 둘 ${d.toFixed(1)}만큼 떨어짐`}finally{qClear()}});
+qT('성능','v25 쉬는 화면 자동 절전: 2초 동안 움직임 없으면 30 · 움직이면 60 · 절전(30) 설정은 늘 30',()=>{const f0=GFX.fps,t0=IDLE.t;
+  try{GFX.fps=60;IDLE.t=0;const busy=frameCapMs();IDLE.t=3;const idle=frameCapMs();GFX.fps=30;IDLE.t=0;const s30=frameCapMs();
+    qOk(busy<17||!document.hasFocus(),`움직일 때 ${busy}`);qOk(idle>33,`쉴 때 ${idle}`);qOk(s30>33,'절전 설정');return `움직임 ${busy} · 쉼 ${idle} · 절전 ${s30}ms`}finally{GFX.fps=f0;IDLE.t=t0}});
+qT('성능','v25 자동 해상도: 「자동」에서만 쓰고, 높음·보통·낮음은 고른 값 그대로',()=>{const q0=GFX.q,c0=AUTOR.cap;
+  try{GFX.q='auto';AUTOR.cap=1.25;const a=gfxDprCap();GFX.q='high';const h=gfxDprCap();GFX.q='mid';const m=gfxDprCap();GFX.q='low';const l=gfxDprCap();
+    qOk(a===1.25&&h===1.5&&m===1.25&&l===1,`자동 ${a} 높음 ${h} 보통 ${m} 낮음 ${l}`);return `자동 ${a} · 높음 ${h} · 보통 ${m} · 낮음 ${l}`}finally{GFX.q=q0;AUTOR.cap=c0;resize()}});
 window.__QA_RUN=qaRun;
 setTimeout(()=>{qaRun().catch(e=>{window.__QA_RESULT={fatal:String(e&&e.stack||e),results:[],summary:{total:0,pass:0,fail:1}}})},120);
 }

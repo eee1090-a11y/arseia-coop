@@ -142,12 +142,16 @@ function codexBack(){if(cxFromIntro){cxFromIntro=false;$('#intro').hidden=false;
 
 /* ---------- 물약 등급: 정해진 양을 3초에 걸쳐 회복 · 생명력/마나 따로 재사용 대기 ---------- */
 // P.pot.hp/mp는 예전처럼 '보통' 등급 개수(옛 저장·옛 버전과 호환). 다른 등급은 P.pot.ht/mt[등급] (없으면 0).
+// v25(사용자 2026-10-10 09:05 「단계는 그대로, 단계 사이 회복량 차이를 크게 · 레벨이 오르면 큰 물약이 없다」):
+//   정해진 양(hp/mp)은 그대로 두고, 최대 생명력·마나에 비례하는 몫(pct)을 단계마다 크게 벌린다(예전: 모든 단계 3%).
+//   작은 3% · 보통 5% · 큰 8% · 고급 15% · 최상급 30%. 생명력 3000이면 140 · 270 · 480 · 900 · 1700 (예전 140 · 210 · 330 · 540 · 890).
+//   가방 속 물약은 등급 번호로 저장되므로 그대로 새 양으로 마신다. 값 · 재사용 대기(생명력 9초 · 마나 7초) · 3초에 걸쳐 회복은 그대로.
 const POT_T=[
-  {n:'작은',hp:50,mp:30,lv:1,pr:25},
-  {n:'보통',hp:120,mp:70,lv:5,pr:60},
-  {n:'큰',hp:240,mp:140,lv:12,pr:150},
-  {n:'고급',hp:450,mp:260,lv:24,pr:360},
-  {n:'최상급',hp:800,mp:450,lv:36,pr:800}];
+  {n:'작은',hp:50,mp:30,lv:1,pr:25,pct:.03},
+  {n:'보통',hp:120,mp:70,lv:5,pr:60,pct:.05},
+  {n:'큰',hp:240,mp:140,lv:12,pr:150,pct:.08},
+  {n:'고급',hp:450,mp:260,lv:24,pr:360,pct:.15},
+  {n:'최상급',hp:800,mp:450,lv:36,pr:800,pct:.30}];
 const POT_DEF=1,POT_PCT=.03,POT_DUR=3,POT_CD={hp:9,mp:7},POTN={hp:'생명력 물약',mp:'마나 물약'};
 const potName=(k,T)=>`${POT_T[T].n} ${POTN[k]}`;
 function potN(k,T){const p=P.pot||{};if(T===POT_DEF)return p[k]>0?p[k]|0:0;const a=p[k[0]+'t'];return Array.isArray(a)&&a[T]>0?a[T]|0:0}
@@ -155,7 +159,7 @@ function potSet(k,T,n){n=Math.max(0,n|0);if(T===POT_DEF){P.pot[k]=n;return}let a
 const potAdd=(k,T,n)=>potSet(k,T,potN(k,T)+n);
 function potTotal(k){let n=0;for(let T=0;T<POT_T.length;T++)n+=potN(k,T);return n}
 function potBest(k){for(let T=POT_T.length-1;T>=0;T--)if(potN(k,T)>0)return T;return -1}
-const potAmt=(k,T)=>Math.round(POT_T[T][k]+(k==='hp'?maxHp():maxMp())*POT_PCT);
+const potAmt=(k,T)=>Math.round(POT_T[T][k]+(k==='hp'?maxHp():maxMp())*(POT_T[T].pct!=null?POT_T[T].pct:POT_PCT));
 const potPriceT=(k,T)=>Math.round(POT_T[T].pr*(k==='mp'?.8:1));
 const potOpen=(t,T)=>POT_T[T].lv<=t.base+4+DIFF[P.diff].add;// 마을(지역) 레벨로 등급이 열린다
 const potCdLeft=k=>k==='hp'?Math.max(0,P.potCd||0):Math.max(0,P.potCdM||0);

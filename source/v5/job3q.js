@@ -135,7 +135,7 @@ function j3Advance(br){const J=JOB3[P.cls]&&JOB3[P.cls][br];if(!J||JOB3_OF[P.job
   msg(`3차 전직: 이제 ${J.n}입니다. ${J.desc}`,'#ffcf7a');msg('스킬 트리(T)의 3차 탭에서 새 기술을 찍으세요 (3차 기술은 최대 10점)','#ffcf7a');j3Mirror();buildBar();updateHud();return true}
 function j3MakeUniq(k){const u=J3U[k];if(!u)return null;const il=100,ph=PHYS_CLS[u.cls];
   const it={id:uid++,slot:u.slot,rar:4,name:u.n,il,stats:ph?fixedStatsV18(u.st,il,u.wt):fixedStats(u.st,il),cls:u.cls,lore:u.lore,j3u:k};if(u.wt)it.wt=u.wt;return it}
-function j3GiveUniq(k){const it=j3MakeUniq(k);if(!it)return;if(P.bag.length<sqBagCap()){P.bag.push(it);msg(`보상: ${it.name}`,RAR[4].c)}else{loot.push({x:P.x+rnd(-30,30),y:P.y+rnd(-30,30),kind:'item',item:it,t:0});msg(`가방이 가득 차 ${it.name}을(를) 발밑에 두었습니다`,RAR[4].c)}}
+function j3GiveUniq(k){const it=j3MakeUniq(k);if(!it)return;if(P.bag.length<sqBagCap()){P.bag.push(it);msg(`보상: ${it.name}`,RAR[4].c)}else{loot.push({x:P.x+rnd(-30,30),y:P.y+rnd(-30,30),kind:'item',item:it,t:0,keep:1});msg(`가방이 가득 차 ${it.name}을(를) 발밑에 두었습니다`,RAR[4].c)}}
 {const _r=sqRwHtml;sqRwHtml=function(q){let h=_r(q);if(!q||!q.j3q)return h;const r=q.rw,a=[];const k='j3_'+J3_PFX[q.cls]+q.st;
   if(r.sp)a.push(j2Q()[k]?`<span class="muted">스킬 포인트 +${r.sp} (이미 받음)</span>`:`<b style="color:#ffd76a">스킬 포인트 +${r.sp}</b>`);
   if(r.job3&&q.pick3)a.push(`<b style="color:#ffcf7a">3차 전직 「${JOB3[q.cls][q.pick3].n}」</b>`);if(r.uniq&&J3U[r.uniq])a.push(`<b style="color:${RAR[4].c}">갈래 상징 「${J3U[r.uniq].n}」 (3차 계열 +1)</b>`);

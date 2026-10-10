@@ -29,7 +29,7 @@ function sk23El(){let el=SK23.tip;if(el&&el.isConnected)return el;el=SK23.tip=do
 function sk23TipHtml(id){const s=SPELLS[id];if(!s)return '';const L=sk23Lv(id),mx=sk23Max(id),ci=typeof castInfo==='function'?castInfo(id,Math.max(1,skLv(id))):'';
   let h=`<div class="st-n">${s.n}${s.en?` <i>${s.en}</i>`:''}</div><div class="st-s">${[sk23Tier(s),KINDN[s.kind],ELN[s.el],s.kind==='passive'?'':`재사용 ${Math.round(cdOf(id)*100)/100}초`,ci].filter(Boolean).join(' · ')}</div>`;
   h+=`<div class="st-d">${s.desc||''}</div><div class="st-l">스킬 레벨 <b>${L}</b> / ${mx}${P.sk[id]?'':' · 아직 안 배움'}</div>`;
-  try{const cur=numsAt(id,Math.max(1,skLv(id))).slice(0,s.kind==='passive'?4:3);if(cur.length)h+=`<div class="st-x">${cur.map(([k,v])=>`${k} <b>${v}</b>`).join(' · ')}</div>`}catch(_){}
+  try{const cur=numsAt(id,Math.max(1,skLv(id))).slice(0,s.kind==='passive'||(typeof TIP25==='object'&&TIP25.DEF.includes(s.kind))?4:3);if(cur.length)h+=`<div class="st-x">${cur.map(([k,v])=>`${k} <b>${v}</b>`).join(' · ')}</div>`}catch(_){}
   const why=P.sk[id]>=mx?'':sk23Why(id);if(why&&SK23.cur&&SK23.cur.closest&&SK23.cur.closest('#pbody .tree, #pbody [data-node]'))h+=`<div class="st-w">${why}</div>`;
   return h}
 function sk23Show(t,id){if(!t||!SPELLS[id])return sk23Hide();const el=sk23El();SK23.cur=t;el.innerHTML=sk23TipHtml(id);el.hidden=false;

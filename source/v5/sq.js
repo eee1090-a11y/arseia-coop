@@ -66,7 +66,7 @@ function sqAccept(id){const q=SQBY[id];if(!q||sqAvail(q)!=='ok')return;const s=s
 function sqAbandon(id){const s=sqState();if(!s.a[id])return;delete s.a[id];if(SQE.cur&&SQE.cur.q===id)SQE.cur=null;msg(`의뢰를 포기했습니다: ${SQBY[id].t}`,'#a39d8f');questHud();save()}
 function sqFinish(id){const q=SQBY[id],s=sqState();if(!q||!s.a[id]||!sqAllDone(q))return;const r=q.rw;
   gainXp(sqXp(q));P.gold+=r.gold;if(r.pot){P.pot.hp+=r.pot;P.pot.mp+=r.pot}if(r.tp)P.pot.tp=(P.pot.tp|0)+r.tp;
-  if(r.item){const it=makeItem(Math.max(q.lvl,P.lvl-2),true);if(P.bag.length<sqBagCap()){P.bag.push(it);msg(`보상: ${it.name}`,RAR[it.rar].c)}else loot.push({x:P.x+rnd(-30,30),y:P.y+rnd(-30,30),kind:'item',item:it,t:0})}
+  if(r.item){const it=makeItem(Math.max(q.lvl,P.lvl-2),true);if(P.bag.length<sqBagCap()){P.bag.push(it);msg(`보상: ${it.name}`,RAR[it.rar].c)}else loot.push({x:P.x+rnd(-30,30),y:P.y+rnd(-30,30),kind:'item',item:it,t:0,keep:1})}
   delete s.a[id];s.d[id]=(s.d[id]|0)+1;if(q.rep)s.cd[id]=Date.now()+q.rep*3600e3;if(SQE.cur&&SQE.cur.q===id)SQE.cur=null;
   banner={t:`의뢰 완료 · ${q.t}`,sub:`경험치 ${sqXp(q).toLocaleString()} · 금화 ${r.gold}${r.tp?` · 귀환 두루마리 ${r.tp}장`:''}`,col:'#9fe0ff',life:2.6,max:2.6};
   burst(P.x,P.y,'#9fe0ff',30,150,3,30);msg(`의뢰 완료: ${q.t}`,'#9fe0ff');questHud();save()}

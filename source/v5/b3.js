@@ -210,6 +210,7 @@ function spawnEnemy(){
   }
 }
 function enemyTarget(e){let tg=P,bd=P.dead?1e9:dist(e,P);if(NET.host)for(const r of NET.peers.values()){if(r.dead||!netSame(r))continue;const d=dist(e,r);if(d<bd){bd=d;tg=r}}for(const a of allies){const d=dist(e,a);if(d<bd-30){bd=d;tg=a}}return{tg,d:bd}}
+const EGRID=new Map();
 function updateEnemies(dt){
   const pInTown=!DG&&inSafe(P.x,P.y,10);
   for(const e of enemies){
@@ -244,10 +245,13 @@ function updateEnemies(dt){
     if(!DG)for(const tw of TOWNS){const td=Math.hypot(e.x-tw.x,e.y-tw.y),SF=tSafe(tw);if(td<SF){if(td<.01){e.x=tw.x+SF;continue}e.x=tw.x+(e.x-tw.x)/td*SF;e.y=tw.y+(e.y-tw.y)/td*SF}}// td=0(마을 한가운데)이면 NaN이 되던 것
     e.x=clamp(e.x,20,WORLD-20);e.y=clamp(e.y,20,WORLD-20);
   }
-  for(let i=0;i<enemies.length;i++)for(let j=i+1;j<enemies.length;j++){
-    const a=enemies[i],b=enemies[j];if(a.dead||b.dead)continue;const dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy)||1,m=a.r+b.r;
-    if(d<m){const p=(m-d)/2,wa=a.boss?.1:1,wb=b.boss?.1:1;moveBody(a,-dx/d*p*wa,-dy/d*p*wa);moveBody(b,dx/d*p*wb,dy/d*p*wb)}
-  }
+  // [v25 최적화] 몬스터끼리 밀어내기: 모든 쌍(n²)을 보던 것을 칸(격자)으로 나눠 이웃 칸끼리만 본다. 결과는 같다(겹친 쌍만 밀어냄).
+  {let mr=0;for(const e of enemies)if(!e.dead&&e.r>mr)mr=e.r;const C=Math.max(64,mr*2+1),G=EGRID;G.clear();
+    for(let i=0;i<enemies.length;i++){const a=enemies[i];if(a.dead)continue;const k=(Math.floor(a.x/C)+32768)*65536+Math.floor(a.y/C)+32768;let L=G.get(k);if(!L)G.set(k,L=[]);L.push(i)}
+    for(let i=0;i<enemies.length;i++){const a=enemies[i];if(a.dead)continue;const cx=Math.floor(a.x/C),cy=Math.floor(a.y/C);
+      for(let gx=cx-1;gx<=cx+1;gx++)for(let gy=cy-1;gy<=cy+1;gy++){const L=G.get((gx+32768)*65536+gy+32768);if(!L)continue;for(const j of L){if(j<=i)continue;
+        const b=enemies[j];if(b.dead)continue;const dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy)||1,m=a.r+b.r;
+        if(d<m){const p=(m-d)/2,wa=a.boss?.1:1,wb=b.boss?.1:1;moveBody(a,-dx/d*p*wa,-dy/d*p*wa);moveBody(b,dx/d*p*wb,dy/d*p*wb)}}}}}
   enemies=enemies.filter(e=>!e.dead&&!e.gone);
 }
 // 벽이 있는 곳(던전)에서는 축마다 따로 막는다
@@ -381,7 +385,7 @@ function update(dt){
     zap({x,y,z:2},{x:x+Math.cos(an2)*l,y:y+Math.sin(an2)*l,z:2},{w:1.3,br:1,depth:1,life:.12,col:a.col,glow:a.glow,flick:false,seg:6})}}
   arcs=arcs.filter(a=>a.t>0);
   for(const l of loot){l.t+=dt;if(P.dead)continue;const d=Math.hypot(P.x-l.x,P.y-l.y);if(l.kind!=='item'&&d<110&&d>1){const k=Math.min(1,dt*(260/d));l.x+=(P.x-l.x)*k;l.y+=(P.y-l.y)*k}if(d<34)pickup(l)}
-  loot=loot.filter(l=>!l.taken&&l.t<120);
+  loot=loot.filter(l=>!l.taken&&!loot25Gone(l));/* v25: 90초 (loot25.js) */
   for(const p of parts){p.x+=p.vx*dt;p.y+=p.vy*dt;p.z=(p.z||0)+(p.vz||0)*dt;if(p.g){p.vz-=520*dt;if(p.z<0){p.z=0;p.vz=0}}p.vx*=.94;p.vy*=.94;if(!p.g)p.vz=(p.vz||0)*.94;p.life-=dt}
   parts=parts.filter(p=>p.life>0);if(parts.length>Q.pcap)parts.splice(0,parts.length-Q.pcap);
   for(const t of texts){t.z+=34*dt;t.life-=dt*.9}

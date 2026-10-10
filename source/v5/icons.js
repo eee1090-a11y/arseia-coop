@@ -71,6 +71,7 @@ function iconBody(s,c,hi){if(s.kind==='passive'){const o=Object.assign({},s,{kin
   }
   return g}
 function spellIcon(s){if(s.phys||s.el==='phys'||(typeof ICP!=='undefined'&&ICP[s.id]&&(s.cls==='warrior'||s.cls==='archer')))return physIcon(s);// v18 전사·궁수 (iconsphys.js)
+  if(IC25.has(s))return IC25.svg(s);// v25 마법사·사제: 스킬마다 다른 그림 + 사제 계열 색 (icons25.js)
   const p=PAL[s.el]||PAL.arcane,heal=s.kind==='heal'||s.kind==='hot',c=heal?'#9fe39a':p[0],dk=heal?'#103a14':p[1],hi=p[2],gid='ig'+s.id;
   return `<svg viewBox="0 0 32 32" aria-hidden="true"><defs><radialGradient id="${gid}" cx=".4" cy=".35" r=".8"><stop offset="0" stop-color="${dk}" stop-opacity="1"/><stop offset="1" stop-color="#050404"/></radialGradient></defs><rect x=".5" y=".5" width="31" height="31" rx="3" fill="url(#${gid})" stroke="${c}" stroke-opacity=".35"/>${iconBody(s,c,hi)}<g transform="translate(26.5 26.5) scale(.75)" fill="${hi}" stroke="${hi}" opacity=".9">${EMB[s.el]||''}</g></svg>`}
 const spellSvg=spellIcon;

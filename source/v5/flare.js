@@ -39,7 +39,7 @@ function flReady(name){const PK=FL.P[name];
   for(const k in PK.meta.mon||{}){const f=PK.meta.mon[k].stance.f[0][6],r=PK.meta.r[f];FL.mk[k]=MON_H[FLMH[k]]*1.3*(FLK[k]||1)/r[5]}
   if(PK.meta.tex&&Object.keys(PK.meta.tex).length)flGround();else if(PK.meta.sp&&!PK.meta.mon)flIsoStale();flCredit()}
 function flCredit(){const el=document.getElementById('auCredits');if(!el||el.querySelector('.flcr'))return;const p=document.createElement('p');p.className='muted flcr';p.style.cssText='font-size:12px;margin:4px 0 0';
-  p.textContent='모든 바깥 지역의 나무·바위·석상 등 장식(지역 색으로 다시 칠함)·눈 지역·마을 소품·몬스터 일부 그림: Flare (flarerpg.org) — Clint Bellanger, Justin Nichol 외 (CC-BY-SA 3.0)';el.appendChild(p)}
+  p.textContent='모든 바깥 지역의 나무·바위·석상 등 장식(지역 색으로 다시 칠함)·눈 지역·마을 소품·몬스터 일부 그림: Flare (flarerpg.org) — Clint Bellanger, Justin Nichol 외 (CC-BY-SA 3.0) · 늑대·표범·설인 그림과 사막·바다 야자·선인장 자리 덤불·난파선·건초 더미 장식: 0 A.D. (Wildfire Games, wildfiregames.com) 모델·동작·무늬를 그림으로 옮김 (CC-BY-SA 3.0)';el.appendChild(p)}
 // 장식: 우리 장식 종류 → [묶음 안 종류, 높이 배율(0이면 고정 높이), 고정 높이]
 const FLSP={
   grass:{htree:['htree',1],hbirch:['hbirch',1],hpine:['hpine',1],hdead:['hdead',1],hbush:['hbush',1.05],tree:['htree',1],bush:['hbush',1],
@@ -65,12 +65,13 @@ FL.ib=0;FL.ibF=-1;
 function flIsoStale(){for(const c of chunks.values())if(c.iso)c.iso.stale=1}
 {const _ib=isoBlit;isoBlit=function(c,cx,cy){if(c.iso&&c.iso.stale){if(FL.ibF!==frameN){FL.ibF=frameN;FL.ib=typeof Q!=="undefined"&&Q.lvl===0?1:2}if(FL.ib>0){FL.ib--;c.iso=null}}return _ib.apply(this,arguments)}}
 // 몬스터: 그림 종류(draw)마다 기본 Flare 몬스터, 몇몇 종류는 따로 (미라·익사자 → 좀비, 비룡 → 와이번, 모래 왕 → 해골 마법사)
-const FLDRAW={goblin:'goblin',skeleton:'skeleton',ogre:'ogre',scorpion:'antlion'};
+// [f8w] 늑대(draw 'wolf', 17종)는 Flare에 없어서 0 A.D. 늑대 3D 모델을 Flare와 같은 각도·빛으로 그려 같은 묶음 모양으로 만든 것 (img/flare-m-wolf.js, 만드는 법 f8w-qa/tools/render0ad.py)
+const FLDRAW={goblin:'goblin',skeleton:'skeleton',ogre:'ogre',scorpion:'antlion',wolf:'wolf'};
 const FLTYPE={d_mummy:'zombie',s_drown:'zombie',b_mordun:'zombie',b_setra:'skelmage',t_drake:'wyvern',b_sarakus:'wyvern',m_broodguard:'wyvern',b_astrak:'wyvern'};
 const FLK={wyvern:1.45}; // 날개 달린 비룡은 키보다 몸이 커 보여야 해서 조금 크게
-const FLMH={goblin:'goblin',skeleton:'skeleton',skelmage:'skeleton',zombie:'skeleton',ogre:'ogre',antlion:'scorpion',wyvern:'serpent'};
+const FLMH={wolf:'wolf',goblin:'goblin',skeleton:'skeleton',skelmage:'skeleton',zombie:'skeleton',ogre:'ogre',antlion:'scorpion',wyvern:'serpent'};
 // 원래 그림 색. 종류 색(col)이 이 색과 다를수록 그 색을 더 입힌다 (재 들개·붉은 전갈 같은 변형 구분)
-const FLREF={goblin:'#5c8a3a',skeleton:'#b0a898',skelmage:'#b0a898',zombie:'#8a8a5a',ogre:'#7a6a46',antlion:'#9a7a52',wyvern:'#6a6a5a'};
+const FLREF={wolf:'#8a867f',goblin:'#5c8a3a',skeleton:'#b0a898',skelmage:'#b0a898',zombie:'#8a8a5a',ogre:'#7a6a46',antlion:'#9a7a52',wyvern:'#6a6a5a'};
 function flTinted(PK,key,col,s){const ck=key+col;let cv=FL.tint.get(ck);if(cv)return cv;if(FL.tint.size>500)FL.tint.clear();
   const r=PK.meta.r[key];cv=document.createElement('canvas');cv.width=r[2];cv.height=r[3];const g=cv.getContext('2d');g.drawImage(PK.img,r[0],r[1],r[2],r[3],0,0,r[2],r[3]);
   g.globalCompositeOperation='color';g.globalAlpha=s;g.fillStyle=col;g.fillRect(0,0,r[2],r[3]);g.globalAlpha=1;g.globalCompositeOperation='destination-in';g.drawImage(PK.img,r[0],r[1],r[2],r[3],0,0,r[2],r[3]);
@@ -93,7 +94,7 @@ function flMon(id,draw,g,e,t,st){const PK=flPack('m-'+id);if(!PK){flNeed('m-'+id
   if(ta>0){const cv=flTinted(PK,key,t.col,ta);g.drawImage(cv,-r[4]*k,-r[5]*k,r[2]*k,r[3]*k)}else flDraw(g,PK,key,0,0,k);
   g.restore();
   st.head={x:0,y:-MON_H[draw]-4};return true}
-for(const dk of ['goblin','skeleton','ogre','scorpion','serpent']){const _m=MON[dk];if(!_m)continue;
+for(const dk of ['goblin','skeleton','ogre','scorpion','serpent','wolf']){const _m=MON[dk];if(!_m)continue;
   MON[dk]=function(g,e,t,st){if(flWant()){const id=FLTYPE[e.k]||FLDRAW[dk];if(id&&flMon(id,dk,g,e,t,st))return}return _m.apply(this,arguments)}}
 // 마을 소품: 상자·천막·모닥불·모루·울타리·표지판 (눈 지역은 눈 덮인 것, 수레는 눈 지역만)
 const FLTW={crate:'crate',tent:'tent',campfire:'campfire',anvil:'anvil',fence:'fence',signpost:'signpost'},FLTWS={crate:'s_crate',tent:'s_tent',campfire:'s_campfire',anvil:'s_anvil',fence:'s_fence',signpost:'s_signpost',cart:'s_cart'};
@@ -110,7 +111,86 @@ function flCabin(b){if(!FLCAB.has(b.st)||(b.towers&&b.towers.length)||b.big||b.t
     e={cv,w:r[2]*k,h:r[3]*k,ax:r[4]*k,ay:r[5]*k,win:[],smoke:null,sign:null,flag:null};FLCV.set(ck,e)}
   return e}
 {const _bs=twBldSprite;twBldSprite=function(b){if(flWant()){const e=flCabin(b);if(e)return e}return _bs.apply(this,arguments)}}
-window.__fl={FL,FLM,MON,MON_H,flGround,flRegPack,flTheme,flKM};
+// [f8w] 쓰러질 때: 묶음에 쓰러지는 그림(die)이 있으면 그 그림을 차례로 보여 주고 흐려진다 (없으면 예전처럼 기울며 흐려짐). 그리기만, 시간·위치는 그대로
+function flDie(g,e,x,y,u,ok){const t=TYPES[e.k];if(!t)return false;const id=FLTYPE[e.k]||FLDRAW[t.draw];if(!id)return false;const PK=flPack('m-'+id),M=PK&&PK.meta.mon[id];if(!M||!M.die)return false;
+  const s=FLM.get(e)||{dx:0,dy:1},sx=(s.dx-s.dy),sy=(s.dx+s.dy)/2,di=(((Math.round((Math.atan2(sy,sx)-Math.PI)/(Math.PI/4)))%8)+8)%8;
+  const fi=Math.min(M.die.n-1,Math.floor(u/.7*M.die.n)),key=M.die.f[fi][di],r=PK.meta.r[key],sc=(e.sc||(e.elite?1.25:1))*(ok||1),k=FL.mk[id]*sc,ta=flTintAmt(id,t.col);
+  g.save();g.globalAlpha=u<.7?1:Math.max(0,1-(u-.7)/.3);g.translate(x,y);
+  if(ta>0){const cv=flTinted(PK,key,t.col,ta);g.drawImage(cv,-r[4]*k,-r[5]*k,r[2]*k,r[3]*k)}else flDraw(g,PK,key,0,0,k);
+  g.restore();return true}
+{const _dm=drawMon;drawMon=function(g,e,x,y,o){if(o&&o.die!=null&&flWant()&&flDie(g,e,x,y,o.die,o.k))return;return _dm.apply(this,arguments)}}
+// 쓰러진 몸은 새 물체라 바라보던 방향을 넘겨 준다
+{const _md=monDie;monDie=function(e){const r=_md.apply(this,arguments),c=corpses[corpses.length-1],s=FLM.get(e);if(c&&s&&c.e.k===e.k)FLM.set(c.e,{x:c.e.x,y:c.e.y,dx:s.dx,dy:s.dy});return r}}
+// ── [f9a] 0 A.D.(Wildfire Games, CC-BY-SA 3.0) 그림 묶음 덧붙이기 ─────────────────────────────
+// f9b(Flare 기사·사도·망령·NPC 연결)와 합칠 때 겹치지 않도록 새 연결은 모두 이 덩어리 안에서 기존 표에 덧붙인다 (기존 줄은 그대로)
+// 표범(draw 'panther', 4종): 0 A.D. 호랑이 모델 + 고양이과 동작을 어둡게 칠해 흑표범으로 (img/flare-m-panther.js)
+// 설인(draw 'yeti', 6종): 0 A.D. 북극곰 모델 + 곰 동작 (img/flare-m-yeti.js). 네 발 짐승이지만 덩치 큰 눈 짐승으로 읽힌다
+// 만드는 법: f9a-qa/tools/render0ad.py (+ panther0ad.json · yeti0ad.json) → pack0ad.py
+Object.assign(FLDRAW,{panther:'panther',yeti:'yeti'});
+Object.assign(FLMH,{panther:'panther',yeti:'yeti'});
+Object.assign(FLREF,{panther:'#2a2726',yeti:'#dfe6f0'});
+Object.assign(FLK,{panther:.9,yeti:.72}); // 길쭉한 고양이·곰은 앞모습 높이를 다 채우면 옆모습이 너무 커서 조금 작게
+for(const dk of ['panther','yeti']){const _m=MON[dk];if(!_m)continue;
+  MON[dk]=function(g,e,t,st){if(flWant()){const id=FLTYPE[e.k]||FLDRAW[dk];if(id&&flMon(id,dk,g,e,t,st))return}return _m.apply(this,arguments)}}
+// 흰 곰은 'color' 칠로는 갈색 곰(잿빛 고원곰·천둥뿔 스카른)이 나오지 않아 곱하기로 칠한다: 원래 색(FLREF)이면 그대로, 어두운 색일수록 그 색으로 어둡게
+const FLMUL={yeti:1};
+{const _ft=flTinted;flTinted=function(PK,key,col,s){const id=key.slice(0,key.indexOf('/'));if(!FLMUL[id]||!FLREF[id])return _ft.apply(this,arguments);
+  const ck=key+col+'*';let cv=FL.tint.get(ck);if(cv)return cv;if(FL.tint.size>500)FL.tint.clear();
+  const r=PK.meta.r[key],a=Kit.hex(col),b=Kit.hex(FLREF[id]),m=[0,1,2].map(i=>Math.min(255,Math.round(a[i]/Math.max(1,b[i])*255)));
+  cv=document.createElement('canvas');cv.width=r[2];cv.height=r[3];const g=cv.getContext('2d');g.drawImage(PK.img,r[0],r[1],r[2],r[3],0,0,r[2],r[3]);
+  g.globalCompositeOperation='multiply';g.fillStyle='rgb('+m.join(',')+')';g.fillRect(0,0,r[2],r[3]);
+  g.globalCompositeOperation='destination-in';g.drawImage(PK.img,r[0],r[1],r[2],r[3],0,0,r[2],r[3]);FL.tint.set(ck,cv);return cv}}
+// 장식: 사막 대추야자·선인장 자리(0 A.D.엔 선인장이 없어 가시 많은 다육 덤불·아카시아 가시덤불), 바다 열대 야자·난파선, 들판 건초 더미
+// f7r 장식 짜임(FLTP 지역 테마 → 묶음 차례, FLNEW 새 묶음 종류)에 묶음만 뒤에 덧붙인다: 앞 묶음(Flare)에 없는 종류만 여기서 찾는다. 묶음이 없으면 예전 코드 그림
+// 산호·조개·용암 분기공·얼음 첨탑(coral·shell·vent·icespike)은 0 A.D.에 맞는 모델이 없어 코드 그림 그대로 (빙산·뾰족 바위로 만든 얼음 첨탑은 비닐 덩어리처럼 보여 뺐다). 만드는 법: f9a-qa/tools/render0ad_static.py (+ flora0ad.json) → pack0ad_flora.py
+Object.assign(FLNEW,{'flora0ad-sand':['palm','cactus'],'flora0ad-sea':['palm','wreck'],'flora0ad-misc':['haystack']});
+for(const th in FLTP)FLTP[th].push(...(th==='sand'?['flora0ad-sand','flora0ad-sea']:['flora0ad-sea','flora0ad-sand']),'flora0ad-misc');
+// ── [f9a] 끝 ──────────────────────────────────────────────────────────────────────────────
+window.__fl={FL,FLM,MON,MON_H,flGround,flRegPack,flTheme,flKM,drawMon:(...a)=>drawMon(...a)};
 // [f7r] 지역을 옮기면 그 지역 묶음을 바로 받기 시작한다 (그리기 전에 도착하도록)
 {const _lr=loadRegion;loadRegion=function(){const r=_lr.apply(this,arguments);if(flWant()&&location.hash!=='#qa')flLoad();return r}}
 setTimeout(flLoad,0);
+/* ===== [f9b] 기사·사도·망령 몬스터 + 마을 사람 그림 (이 덩어리만 f9b에서 더함, 다른 곳은 그대로) =====
+   - 그림: Flare fantasycore 주인공 겹그림(images/avatar, 판갑·마법사 옷 등)을 한 장으로 합친 것 → img/flare-m-knight.js · m-apostle.js · m-wraith.js
+           마을 사람: Flare fantasycore images/npcs(기사·조합원·농부 둘·농사꾼 여인 둘·떠돌이 상인) 숨쉬기 그림 + 걷기는 주인공 겹그림 → img/flare-folk.js
+     모두 Clint Bellanger, Justin Nichol 외 (CC-BY-SA 3.0). 만드는 법: f9b-qa/tools/f9b-mon.py · f9b-npc.py
+   - 망령: 색을 빼고 옷자락 아래를 투명하게 한 그림. 떠다니고(위아래로 흔들림) 품질 0이 아니면 반투명 + 빛.
+   - 그림만 바뀐다: 크기(MON_H)·머리 위치·충돌·수치·저장·이름표·클릭 범위 그대로. 묶음이 없거나 「예전 그림」이면 코드 그림. */
+Object.assign(FLDRAW,{knight:'knight',apostle:'apostle',wraith:'wraith'});
+Object.assign(FLMH,{knight:'knight',apostle:'apostle',wraith:'wraith'});
+Object.assign(FLREF,{knight:'#8a8a8e',apostle:'#7a5634',wraith:'#c4c4c4'});
+// 크기: 이 묶음들은 무기(칼·지팡이)를 뺀 몸 높이(h)로 맞춘다 (서기 첫 장 꼭대기가 지팡이 끝일 때 작아지지 않게)
+{const _fr=flReady;flReady=function(name){_fr(name);const PK=FL.P[name];for(const k in PK.meta.mon||{}){const M=PK.meta.mon[k];if(M.h)FL.mk[k]=MON_H[FLMH[k]]*1.3*(FLK[k]||1)/M.h}}}
+for(const dk of ['knight','apostle','wraith']){const _m=MON[dk];if(!_m)continue;
+  MON[dk]=function(g,e,t,st){if(flWant()){const id=FLTYPE[e.k]||FLDRAW[dk];
+      if(dk!=='wraith'){if(flMon(id,dk,g,e,t,st))return}
+      else{const lo=Q.lvl===0;g.save();g.translate(0,-5+Math.sin(st.t*2.2+(e.anim||0))*3);if(!lo)g.globalAlpha*=.8;const ok=flMon(id,dk,g,e,t,st);g.restore();
+        if(ok){if(!lo){const po=g.globalCompositeOperation;g.globalCompositeOperation='lighter';mGlow(g,0,-MON_H.wraith*.62,MON_H.wraith*.62,Kit.rgb(Kit.hex(t.col||'#b49cff'),.5),.55);g.globalCompositeOperation=po}return}}}
+    return _m.apply(this,arguments)}}
+// 마을 사람: 모습(L)마다 가장 가까운 Flare 사람을 고르고, 윗옷·아래옷 색을 그 사람 색(L.body·L.legs·L.tabard)으로 입힌다
+function flFolkHash(s){let h=2166136261;s=String(s);for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return (h>>>0)/4294967296}
+function flFolkArch(L){const h=flFolkHash(L.key),p=L.prop||'';
+  if(L.armor)return 'guard';
+  if(L.child)return L.dress?'woman2':'man2';
+  if(L.dress)return L.skin?(Kit.hex(L.skin)[0]<190?'woman2':'woman1'):p==='staff'||p==='book'||p==='rod'||h<.4?'woman1':'woman2';
+  if(p==='staff'||p==='pitchfork'||p==='rod')return 'man1';
+  if(L.cape)return h<.5?'trader':'guild';
+  if(L.apron||p==='hammer')return 'man2';
+  return ['man1','man2','guild'][Math.floor(h*3)]}
+const FLFW=new Map();// 최근 걷기 그림(f 1·2)을 부른 때 → 걷는 중인지 (부르는 곳이 여러 군데라 여기서 판단)
+function flFolkSprite(L,f){const PK=flPack('folk');if(!PK){flNeed('folk');return undefined}const A=PK.meta.folk[flFolkArch(L)];if(!A)return undefined;
+  const key=L.key||'x';if(f===1||f===2)FLFW.set(key,time);const mv=f===1||f===2||(f===0&&time-(FLFW.get(key)||-9)<.3);
+  const ph=flFolkHash(key+'w'),fr=mv?A.w[Math.floor((time+ph)*10)%A.w.length]:A.s[f>=3?f-2:0],r=PK.meta.r[fr];if(!r)return undefined;
+  const Ht=L.child?44:60,k=Ht/(mv?A.hw:A.hs);
+  const c1=L.armor?(L.tabard||L.body):L.body,c2=L.dress?(L.body||L.legs):L.legs;
+  return SC.get('flfolk/'+key+'/'+fr+'/'+c1+'/'+c2,r[2]*k,r[3]*k,r[4]*k,r[5]*k,(g,w,h)=>{g.drawImage(PK.img,r[0],r[1],r[2],r[3],0,0,w,h);
+    const s=g.getTransform().a,W=Math.max(1,Math.ceil(w*s)),H=Math.max(1,Math.ceil(h*s));
+    for(const [mk,col] of [['/m1',c1],['/m2',c2]]){const m=PK.meta.r[fr+mk];if(!m||!col)continue;
+      const t=document.createElement('canvas');t.width=W;t.height=H;const q=t.getContext('2d');q.drawImage(PK.img,m[0],m[1],m[2],m[3],0,0,W,H);q.globalCompositeOperation='source-in';q.fillStyle=col;q.fillRect(0,0,W,H);
+      g.save();g.globalCompositeOperation='color';g.globalAlpha=.62;g.drawImage(t,0,0,w,h);g.restore()}
+    g.save();g.globalCompositeOperation='destination-in';g.drawImage(PK.img,r[0],r[1],r[2],r[3],0,0,w,h);g.restore()},{scale:Math.max(1.25,DPR)})}
+// 묶음이 있으면 Flare 그림만 쓴다 (굽기 차례가 밀려 null이면 그 프레임은 비워 둔다: 코드 그림과 번갈아 깜빡이지 않게)
+{const _fs=twFolkSprite;twFolkSprite=function(L,f){if(flWant()&&L){const e=flFolkSprite(L,f);if(e!==undefined)return e}return _fs.apply(this,arguments)}}
+{const _fc=flCredit;flCredit=function(){_fc();const p=document.querySelector('#auCredits .flcr');if(p&&!p.dataset.f9b){p.dataset.f9b=1;p.textContent+=' · 기사·사도·망령·마을 사람 그림: Flare 주인공 겹그림·마을 사람 그림 (Clint Bellanger, Justin Nichol 외, CC-BY-SA 3.0)'}}}
+window.__fl.twFolkSprite=(...a)=>twFolkSprite(...a);window.__fl.flFolkArch=flFolkArch;// 확인용 (window.__town의 것은 감싸기 전 함수)
+/* ===== [f9b] 끝 ===== */

@@ -116,7 +116,7 @@ function a3Q12Check(){const s=sqState(),q=SQBY.a3q12;if(s.a.a3q12&&s.d.a3q11a>0&
 {const _f=sqFinish;sqFinish=function(id){const q=SQBY[id];if(!q||!q.a3)return _f.apply(this,arguments);const s=sqState(),n0=s.d[id]|0;
   if(id==='a3q10'&&s.a[id]&&!a3Pick()){if(!v20Obj(s.ch))s.ch={};s.ch.a3q10='a'}
   _f.apply(this,arguments);if((s.d[id]|0)<=n0)return;try{a3Reward(q)}catch(e){if(window.__QA)throw e}a3Q12Check()}}
-function a3Reward(q){const r=q.rw,L=Math.max(q.lvl,P.lvl-2),give=it=>{if(!it)return;if(P.bag.length<sqBagCap()){P.bag.push(it);msg(`보상: ${it.name}`,RAR[it.rar].c)}else{loot.push({x:P.x+rnd(-30,30),y:P.y+rnd(-30,30),kind:'item',item:it,t:0});msg(`가방이 가득 차 ${it.name}을(를) 발밑에 두었습니다`,RAR[it.rar].c)}};
+function a3Reward(q){const r=q.rw,L=Math.max(q.lvl,P.lvl-2),give=it=>{if(!it)return;if(P.bag.length<sqBagCap()){P.bag.push(it);msg(`보상: ${it.name}`,RAR[it.rar].c)}else{loot.push({x:P.x+rnd(-30,30),y:P.y+rnd(-30,30),kind:'item',item:it,t:0,keep:1});msg(`가방이 가득 차 ${it.name}을(를) 발밑에 두었습니다`,RAR[it.rar].c)}};
   // 메인 줄거리 덤: 경험치 +50% (마을 의뢰보다 크게)
   const xx=Math.round(sqXp(q)*.5);if(xx>0)gainXp(xx);
   if(r.item>=2)give(makeItem(L,true,null,R()<.5?'uniq':'set'));if(r.item>=3)give(makeItem(L+2,true,null,'boss'));

@@ -83,7 +83,7 @@ const CH_SPOT={};
 /* ===== echo 덤 ===== */
 const chBonus=t=>{for(const x of chEcho(t))if(x.bonus)return x.bonus;return null};
 {const _f=sqFinish;sqFinish=function(id){const s=sqState(),n0=s.d[id]|0;const bo=chBonus(id);const q=SQBY[id];_f.apply(this,arguments);if((s.d[id]|0)<=n0||!bo||!bo.item)return;
-  const it=makeItem(Math.max(q.lvl,P.lvl-2),true);if(P.bag.length<BAG_MAX){P.bag.push(it);msg(`덤: ${it.name}`,RAR[it.rar].c)}else loot.push({x:P.x+rnd(-30,30),y:P.y+rnd(-30,30),kind:'item',item:it,t:0})}}
+  const it=makeItem(Math.max(q.lvl,P.lvl-2),true);if(P.bag.length<BAG_MAX){P.bag.push(it);msg(`덤: ${it.name}`,RAR[it.rar].c)}else loot.push({x:P.x+rnd(-30,30),y:P.y+rnd(-30,30),kind:'item',item:it,t:0,keep:1})}}
 // 보물고 상자 하나 더 (dg3 · 수호 거상을 쓰러뜨릴 때)
 {const _rk=rewardKill;rewardKill=function(e){_rk.apply(this,arguments);if(!P||GHOST||e.k!==CH_BOSS.dg3||!DG)return;const s=sqState();if(!s.a.dg3)return;const bo=chBonus('dg3');if(!bo||!bo.chest)return;
   loot.push({x:e.x+rnd(-50,50),y:e.y+rnd(-50,50),kind:'item',item:makeItem(e.lvl,true),t:0});msg('레트가 말한 왼쪽 벽 상자에서 장비가 하나 더 나왔습니다','#ffd34d')}}

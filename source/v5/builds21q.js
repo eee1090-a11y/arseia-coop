@@ -80,7 +80,7 @@ for(const cls of ['mage','priest','warrior','archer']){const M=CORE21_QUESTS.men
   SQ.push(q);SQBY[id]=q;C21MQ[cls]=q}
 {const _a=sqAvail;sqAvail=function(q){if(!q||!q.c21m)return _a.apply(this,arguments);if(!P||q.cls!==P.cls)return 'hidden';const s=sqState();
   if(s.a[q.id])return 'active';if(s.d[q.id])return 'done';if(!P.job3)return 'hidden';if(P.lvl<q.lvl)return 'low';return 'ok'}}
-function c21Give(cid,why){const it=makeCore21(cid,Math.max(110,P.lvl));if(!it)return null;if(P.bag.length<sqBagCap())P.bag.push(it);else loot.push({x:P.x+rnd(-30,30),y:P.y+rnd(-30,30),kind:'item',item:it,t:0});
+function c21Give(cid,why){const it=makeCore21(cid,Math.max(110,P.lvl));if(!it)return null;if(P.bag.length<sqBagCap())P.bag.push(it);else loot.push({x:P.x+rnd(-30,30),y:P.y+rnd(-30,30),kind:'item',item:it,t:0,keep:1});
   rings.push({x:P.x,y:P.y,r:10,max:160,life:1,col:'#d6a8ff'});burst(P.x,P.y,'#d6a8ff',40,170,3,30);msg(`${why||'보상'}: 빌드 핵심 장비 「${it.name}」 (${PATHN21[CORE21_BY[cid].path]})`,'#d6a8ff');return it}
 {const _f=sqFinish;sqFinish=function(id){const q=SQBY[id];if(!q||!q.c21m)return _f.apply(this,arguments);const s=sqState(),n0=s.d[id]|0;const r=_f.apply(this,arguments);
   if((s.d[id]|0)>n0){const cid=CORE21_QUESTS.mentor.reward[q.cls];const it=c21Give(cid,'스승의 마지막 시험');if(it&&banner)banner.sub+=` · 「${it.name}」`;save()}return r}}

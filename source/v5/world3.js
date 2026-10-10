@@ -240,7 +240,7 @@ function w3DrawLord(){const A=W3.ar;if(!A||!DG||!DG.d||!DG.d.arena)return;const 
 function w3Uniq(cls,lvl){const u=W3_UNIQ.find(x=>x.cls===cls);if(!u)return null;const il=Math.min(99,Math.max(1,Math.round(lvl||99)))+3;
   const st=u.wt&&typeof fixedStatsV18==='function'?fixedStatsV18(u.st,il,u.wt):fixedStats(u.st,il);const it={id:uid++,slot:u.slot,rar:5,name:u.n,il,stats:st,cls,lore:u.lore,w3u:1};if(u.wt)it.wt=u.wt;return it}
 function w3LordDrop(e){P.w3=P.w3&&typeof P.w3==='object'?P.w3:{};const first=!((P.w3.lord|0)>0);P.w3.lord=(P.w3.lord|0)+1;
-  if(first||R()<.4){const it=w3Uniq(P.cls,e.lvl);if(it){loot.push({x:e.x+rnd(-30,30),y:e.y+50,kind:'item',item:it,t:0});msg(`3차 전용 상급 유니크 「${it.name}」이(가) 떨어졌습니다${first?' (첫 처치)':''}`,RAR[5].c)}}
+  if(first||R()<.4){const it=w3Uniq(P.cls,e.lvl);if(it){loot.push({x:e.x+rnd(-30,30),y:e.y+50,kind:'item',item:it,t:0,keep:first?1:0});msg(`3차 전용 상급 유니크 「${it.name}」이(가) 떨어졌습니다${first?' (첫 처치)':''}`,RAR[5].c)}}
   const J=w3J();if(J&&J.onAshLordKill)w3Try(()=>J.onAshLordKill(e))}
 {const _bd=dgBossDrop;dgBossDrop=function(e){const r=_bd(e),k=e&&e.k;
   if(k==='b_ashlord')w3LordDrop(e);else if(k==='b_w3choir'){const J=w3J();if(J&&J.onChoirBossKill)w3Try(()=>J.onChoirBossKill(e))}

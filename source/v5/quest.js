@@ -77,7 +77,7 @@ const qXp=q=>{const v=qxp24(q,.045);return v!=null?v:Math.round(xpNeed(Math.max(
 function questAccept(){const st=qState(),q=qCur();if(!q||st.st!==0)return;st.st=1;st.c={};msg(`의뢰를 받았습니다: ${q.t}`,'#ffd98a');questHud();save()}
 function questFinish(){const st=qState(),q=qCur();if(!q)return;const r=q.rw;
   gainXp(qXp(q));P.gold+=r.gold;if(r.pot){P.pot.hp+=r.pot;P.pot.mp+=r.pot}if(r.sp)P.sp+=r.sp;if(r.ap)P.ap+=r.ap;
-  const L=Math.max(q.lvl,P.lvl-2),give=it=>{if(P.bag.length<BAG_MAX){P.bag.push(it);msg(`보상: ${it.name}`,RAR[it.rar].c)}else loot.push({x:P.x+rnd(-30,30),y:P.y+rnd(-30,30),kind:'item',item:it,t:0})};
+  const L=Math.max(q.lvl,P.lvl-2),give=it=>{if(P.bag.length<BAG_MAX){P.bag.push(it);msg(`보상: ${it.name}`,RAR[it.rar].c)}else loot.push({x:P.x+rnd(-30,30),y:P.y+rnd(-30,30),kind:'item',item:it,t:0,keep:1})};
   if(r.item===1)give(makeItem(L,true));if(r.item>=2)give(makeItem(L,true,null,R()<.5?'uniq':'set'));if(r.item>=3)give(makeItem(L+2,true,null,'boss'));
   banner={t:`의뢰 완료 · ${q.t}`,sub:`경험치 ${qXp(q).toLocaleString()} · 금화 ${r.gold}${r.sp?` · 스킬 포인트 +${r.sp}`:''}`,col:'#ffd98a',life:2.6,max:2.6};
   burst(P.x,P.y,'#ffd98a',40,160,3,30);st.i++;st.st=0;st.c={};

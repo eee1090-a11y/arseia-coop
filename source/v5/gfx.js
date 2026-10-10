@@ -1,7 +1,7 @@
 /* ---------- 그래픽 기반: 자동 품질 · 스프라이트 캐시 · 그림 도구 · 그림 슬롯 · 갤러리 ---------- */
 // 자동 품질: 실제 프레임 간격의 이동 평균이 길면 한 단계 내리고, 오래 여유 있으면 다시 올린다.
 const Q={lvl:2,ema:16.7,lowT:0,highT:0,pcap:900,burstK:1,
-  tick(ms){if(!(ms>0)||ms>100)return;this.ema+=(ms-this.ema)*.05;
+  tick(ms){if(!(ms>0)||ms>100)return;this.ema+=(ms-this.ema)*.05;if(typeof autoResTick==='function')autoResTick(ms,this.ema,this.lvl);
     if(this.ema>24){this.lowT+=ms;this.highT=0}else if(this.ema<15.5){this.highT+=ms;this.lowT=0}else this.lowT=this.highT=0;
     if(this.lowT>2000&&this.lvl>0){this.lvl--;this.lowT=0;this.apply()}
     if(this.highT>8000&&this.lvl<2){this.lvl++;this.highT=0;this.apply()}},

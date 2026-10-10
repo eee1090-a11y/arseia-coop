@@ -187,7 +187,7 @@ function e22RuneGrade(t){const r=R(),g3=t>=8?.01*(t-7):0,g2=.06+.015*Math.max(0,
 function e22RuneRoll(t){return e22RId(pick(E22_RIDS),e22RuneGrade(t))}
 function e22PartyK(){const pn=typeof PTY==='object'&&PTY.partyN?PTY.partyN():1;return 1+(pn>=3?.2:pn===2?.1:0)}
 function e22Note(x,y){const s=e22St(),left=E22_RW.filter(w=>!s.rw.includes(w.id));if(!left.length){if(typeof ashGain==='function')ashGain(3,x,y);return null}const w=pick(left);e22RwLearn(w.id);return w.id}
-function e22Loot(it,x,y){loot.push({x:x+rnd(-30,30),y:y+rnd(-30,30),kind:'item',item:it,t:0})}
+function e22Loot(it,x,y,keep){loot.push({x:x+rnd(-30,30),y:y+rnd(-30,30),kind:'item',item:it,t:0,keep:keep?1:0})}
 function end22Drop(where,tier,x,y,o){const out=[];if(!P||GHOST)return out;if(typeof o==='string')o={kind:o};o=o||{};const t=clamp(Math.floor(+tier)||0,0,10);x=x==null?P.x:x;y=y==null?P.y:y;
   const pk=e22PartyK(),ck=o.chest?2:1,cls=P.cls,il=MAXLV;
   const rune=n=>{for(let i=0;i<n;i++){const id=e22RuneRoll(t);e22RuneGain(id,1,x+rnd(-20,20),y-i*14);out.push({k:'rune',id})}};
@@ -200,7 +200,7 @@ function end22Drop(where,tier,x,y,o){const out=[];if(!P||GHOST)return out;if(typ
       if(kind==='boss'&&R()<E22_DROP.note.boss(t)*pk)note()}
     if(t>=4&&R()<E22_DROP.set[kind](t)*pk*ck)set()}
   else if(where==='b4'){rune(2+(t>=5?1:0));if(R()<(.12+.01*t)*pk*ck)set();if(R()<(.03+.003*t)*pk*ck)awk();if(R()<.2)note()}
-  else if(where==='b4hidden'){const s=e22St(),first=!(s.nm>0);if(first||R()<E22_NAMEP.after*pk*ck){const it=e22MakeName(cls,il,t);s.nm=(s.nm|0)+1;e22Loot(it,x,y);out.push({k:'name',it});
+  else if(where==='b4hidden'){const s=e22St(),first=!(s.nm>0);if(first||R()<E22_NAMEP.after*pk*ck){const it=e22MakeName(cls,il,t);s.nm=(s.nm|0)+1;e22Loot(it,x,y,first);out.push({k:'name',it});
       if(!E22.quiet){msg(`「${it.name}」 목걸이가 떨어졌습니다${first?' (첫 처치)':''}`,RAR[5].c);banner={t:it.name,sub:'숨은 보스의 목걸이 · 상급 유니크',col:RAR[5].c,life:3,max:3}}}
     rune(4);if(R()<.35*pk*ck)set();if(R()<.12*pk*ck)awk();note()}
   else if(where==='deep'){if(t>=3)rune(1+(R()<.5?1:0));if(t>=4&&R()<.06*pk*ck)set();if(t>=6&&R()<.015*pk*ck)awk();if(R()<.1)note()}

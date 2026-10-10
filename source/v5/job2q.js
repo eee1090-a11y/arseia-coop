@@ -339,7 +339,7 @@ const J2U={
   j2_ranger:{n:'전갈왕 집게 부적',slot:'amulet',cls:'archer',st:{dex:25,tr_j_ranger:1,ms:10},lore:'전갈왕의 집게를 깎아 만든 부적.'}};
 function j2MakeUniq(k){const u=J2U[k];if(!u)return null;const il=50,ph=PHYS_CLS[u.cls];
   const it={id:uid++,slot:u.slot,rar:4,name:u.n,il,stats:ph?fixedStatsV18(u.st,il,u.wt):fixedStats(u.st,il),cls:u.cls,lore:u.lore,j2u:k};if(u.wt)it.wt=u.wt;return it}
-function j2GiveUniq(k){const it=j2MakeUniq(k);if(!it)return;if(P.bag.length<sqBagCap()){P.bag.push(it);msg(`보상: ${it.name}`,RAR[4].c)}else{loot.push({x:P.x+rnd(-30,30),y:P.y+rnd(-30,30),kind:'item',item:it,t:0});msg(`가방이 가득 차 ${it.name}을(를) 발밑에 두었습니다`,RAR[4].c)}}
+function j2GiveUniq(k){const it=j2MakeUniq(k);if(!it)return;if(P.bag.length<sqBagCap()){P.bag.push(it);msg(`보상: ${it.name}`,RAR[4].c)}else{loot.push({x:P.x+rnd(-30,30),y:P.y+rnd(-30,30),kind:'item',item:it,t:0,keep:1});msg(`가방이 가득 차 ${it.name}을(를) 발밑에 두었습니다`,RAR[4].c)}}
 function job2Swap(br){const J=JOB2[P.cls];if(!P.job2||!J||!J[br]||br===P.job2)return false;const price=job2SwapPrice();
   if(P.gold<price){msg(`금화가 모자랍니다 (${price.toLocaleString()} 필요)`,'#ff8a6a');return false}
   P.gold-=price;let pts=0;for(const id of Object.keys(P.sk)){const s=SPELLS[id];if(s&&s.job2){pts+=P.sk[id];delete P.sk[id]}}P.sp+=pts;

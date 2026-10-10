@@ -9,7 +9,14 @@ const lc=document.createElement('canvas'),lctx=lc.getContext('2d');
 const GFX={zoom:1,fog:true,q:'auto',fps:0};try{const v=JSON.parse(localStorage.getItem('arseia-gfx')||'null');if(v&&typeof v==='object'){if(v.zoom===1.15)GFX.zoom=1.15;if(typeof v.fog==='boolean')GFX.fog=v.fog;if(v.art==='old')GFX.art='old';if(['auto','high','mid','low'].includes(v.q))GFX.q=v.q;if([0,60,30].includes(v.fps))GFX.fps=v.fps}}catch(_){}
 // v24 그래픽 품질(설정 단추): 보통은 화소 비율 1.25까지, 낮음은 1까지 (높음 · 자동은 예전대로 1.5)
 const fogOn=()=>GFX.fog&&GFX.q!=='low';// v24: 품질 「낮음」은 빛과 안개도 끈다 (켜기/끄기 저장값은 그대로)
-const gfxDprCap=()=>GFX.q==='low'?1:GFX.q==='mid'?1.25:1.5;
+// [v25 최적화] 자동 해상도: 품질 「자동」에서 효과 단계를 0까지 내려도 계속 느리면 그리는 해상도를 1.5 → 1.25 → 1로 한 단계씩 내린다(고해상도·화면 배율 125~150% 기기만 해당).
+// 오래(30초) 넉넉하면 한 단계 올린다. 바꿀 때 한 번 다시 굽느라 잠깐 멈칫할 수 있어, 자주 바뀌지 않게 기다리는 시간을 길게 둔다.
+const AUTOR={cap:1.5,slowT:0,fastT:0};
+const gfxDprCap=()=>GFX.q==='low'?1:GFX.q==='mid'?1.25:GFX.q==='high'?1.5:AUTOR.cap;
+function autoResTick(ms,ema,lvl){if(GFX.q&&GFX.q!=='auto'){AUTOR.cap=1.5;return}if((window.devicePixelRatio||1)<=1.01)return;
+  if(lvl===0&&ema>26){AUTOR.slowT+=ms;AUTOR.fastT=0}else if(ema<14){AUTOR.fastT+=ms;AUTOR.slowT=0}else{AUTOR.slowT=0;AUTOR.fastT=0}
+  let c=AUTOR.cap;if(AUTOR.slowT>3000&&c>1){c-=.25;AUTOR.slowT=0}else if(AUTOR.fastT>30000&&c<1.5){c+=.25;AUTOR.fastT=0}
+  if(c!==AUTOR.cap){AUTOR.cap=c;resize();if(typeof P!=='undefined'&&P&&P.cls&&typeof heroBake==='function'){SC.bakeLeft=99;heroBake(P,Math.max(1,DPR)*HS*PK)}}}
 let CZ=1;// 당기면 세계 좌표의 화면 크기(W,H)가 1/CZ로 줄고 DPR이 CZ배가 된다 → 캔버스 픽셀 수는 그대로
 function resize(){CZ=GFX.zoom;DPR=Math.min(gfxDprCap(),window.devicePixelRatio||1)*CZ;const cw=cv.clientWidth||innerWidth,ch=cv.clientHeight||innerHeight;W=cw/CZ;H=ch/CZ;cv.width=Math.round(cw*DPR/CZ);cv.height=Math.round(ch*DPR/CZ);lc.width=Math.ceil(W/2);lc.height=Math.ceil(H/2)}
 addEventListener('resize',resize);resize();
