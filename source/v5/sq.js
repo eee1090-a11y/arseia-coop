@@ -53,7 +53,7 @@ const sqAllDone=q=>q.goals.every((_,j)=>sqGoalDone(q,j));
 function sqAvail(q){const s=sqState();if(s.a[q.id])return 'active';if(!q.rep&&s.d[q.id])return 'done';if(q.rep&&(s.cd[q.id]||0)>Date.now())return 'cool';if(P.lvl<q.lvl-3)return 'low';return 'ok'}
 // 가방 칸 수: 다른 작업에서 BAG_MAX 같은 이름으로 늘리면 그 값을 쓴다
 const sqBagCap=()=>{try{return typeof BAG_MAX==='number'?BAG_MAX:20}catch(e){return 20}};
-const sqXp=q=>Math.round(xpNeed(Math.max(1,q.lvl))*.3*q.rw.xp);
+const sqXp=q=>{const v=qxp24(q,.035);return v!=null?v:Math.round(xpNeed(Math.max(1,q.lvl))*.3*q.rw.xp)};// v24: 50레벨 이상은 quest.js qxp24 (필요 경험치의 9.5% 아래)
 function sqRwHtml(q){const r=q.rw,a=[`경험치 ${sqXp(q).toLocaleString()}`,`금화 ${r.gold}`];if(r.pot)a.push(`물약 ${r.pot}개씩`);if(r.tp)a.push(`<b style="color:#9fd0ff">귀환 두루마리 ${r.tp}장</b>`);if(r.item)a.push('좋은 장비');return `<p class="muted">보상: ${a.join(' · ')}${q.rep?` · <span style="color:#9fe39a">${q.rep>=1?'하루에 한 번':'잠시 뒤 다시'} 받을 수 있음</span>`:''}</p>`}
 function sqGoalText(q,j){const g=q.goals[j],a=sqState().a[q.id],c=a?(a.c['g'+j]||0):0;
   if(g.type==='escort'){const E=SQE.cur;return `호위: ${g.d}${E&&E.q===q.id?` · 체력 ${Math.max(0,Math.ceil(E.hp))}/${E.max}`:''}`}

@@ -42,7 +42,7 @@ function render(){
   /* 어둠과 빛 */
   const zl=DG?DG.lvl:zoneLevel(P.x,P.y),dark=DG?.84:zl===0?.26:Math.min(.75,.4+zl*.007+P.diff*.05);
   lctx.setTransform(1,0,0,1,0,0);lctx.globalCompositeOperation='source-over';lctx.globalAlpha=1;lctx.clearRect(0,0,lc.width,lc.height);
-  lctx.fillStyle=`rgba(3,4,10,${dark})`;lctx.fillRect(0,0,lc.width,lc.height);if(GFX.fog)atmosLayer(lctx,lc);lctx.globalCompositeOperation='destination-out';
+  lctx.fillStyle=`rgba(3,4,10,${dark})`;lctx.fillRect(0,0,lc.width,lc.height);if(fogOn())atmosLayer(lctx,lc);lctx.globalCompositeOperation='destination-out';
   const Lt=(x,y,r,a)=>{if(x<-r||x>W+r||y<-r||y>H+r)return;lctx.globalAlpha=a==null?1:clamp(a,0,1);lctx.drawImage(LS,(x-r)/2,(y-r*.62)/2,r,r*.62)};
   if(!P.dead)Lt(P._s.x,P._s.y-20,420,1);
   if(NET.on)for(const r of NET.peers.values())if(r._s&&!r.dead&&netSame(r))Lt(r._s.x,r._s.y-20,340,.9);
@@ -59,7 +59,7 @@ function render(){
   for(const m of pend)if(!m.s.mini){const s=W2S(m.x,m.y);Lt(s.x,s.y,m.s.rad*2,1-m.t/m.max)}
   for(const r of rings){if(r.faint)continue;const s=W2S(r.x,r.y);Lt(s.x,s.y,r.r*2.4,clamp(r.life*2,0,.7))}
   ctx.setTransform(1,0,0,1,0,0);ctx.drawImage(lc,0,0,cv.width,cv.height);
-  if(GFX.fog)drawAtmos(zl);// v20 등불 빛 번짐 (terrain.js) · 안개·가장자리 그늘은 위 어둠 층에 같이 그림(atmosLayer)
+  if(fogOn())drawAtmos(zl);// v20 등불 빛 번짐 (terrain.js) · 안개·가장자리 그늘은 위 어둠 층에 같이 그림(atmosLayer)
   /* 빛나는 마법 효과(어둠 위에) */
   G();ctx.globalCompositeOperation='lighter';
   for(const c of circles)drawRuneCircle(c);

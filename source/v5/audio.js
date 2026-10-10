@@ -7,7 +7,7 @@
      기계 음성(TTS)은 쓰지 않는다 — 대사는 말풍선 글자만. 감싼 함수는 인자를 모두 그대로 넘긴다.
    - 설정은 localStorage 'arseia-audio' 한 키에만 쓴다(캐릭터 키 arseia-char-N은 건드리지 않음).
    - 브라우저 정책상 첫 클릭·키 입력 전에는 소리가 나지 않는다. 그 전 요청은 조용히 버린다. */
-const AU={ctx:null,on:false,bus:{},set:{music:.45,sfx:.7,lines:true},act:0,last:new Map(),noise:null};
+const AU={ctx:null,on:false,bus:{},set:{music:.45,sfx:.7,lines:true},act:0,ends:[],last:new Map(),noise:null};
 (()=>{try{const v=JSON.parse(localStorage.getItem('arseia-audio')||'null');if(v&&typeof v==='object')for(const k in AU.set)if(typeof v[k]===typeof AU.set[k])AU.set[k]=v[k]}catch(_){}})();
 function auSave(){try{localStorage.setItem('arseia-audio',JSON.stringify(AU.set))}catch(_){}}
 const AU_QA=location.hash==='#qa';
@@ -21,11 +21,16 @@ function auUnlock(){try{auInit();if(AU.ctx&&AU.ctx.state==='suspended'){const r=
 
 /* ===== 합성 도구 ===== */
 // 소리 하나가 몇 개 겹쳐 울리는지 세서 너무 많으면 버린다(몬스터 50마리 전투에서도 귀가 아프지 않게)
+// v24(사용자 05:40 「체인 라이트닝과 스파크 체인을 연달아 쓰면 효과음이 씹힘」): 내가 쓴 마법 · 맞음 · 레벨 같은 중요한 소리는 맞는 소리 · 쓰러짐 같은
+// 많이 겹치는 소리에 묻히지 않게 몫을 나눈다(많이 겹치는 소리는 20개까지, 중요한 소리는 48개까지). 울리는 수는 끝나는 시각으로 센다
+// (onended를 못 받아 수가 남아 계속 막히는 일이 없게).
+const AU_LOW=/^(hit|thud|die|gold|item)/;
+function auBusy(t){const e=AU.ends;let n=0;for(let i=e.length-1;i>=0;i--){if(e[i]<=t){e[i]=e[e.length-1];e.pop()}else n++}return n}
 function auGo(key,gap,max){if(!AU.on||AU.ctx.state!=='running'||AU.set.sfx<=0)return false;const t=AU.ctx.currentTime,l=AU.last.get(key)||-9;
-  if(t-l<gap||AU.act>(max||26))return false;AU.last.set(key,t);return true}
+  if(t-l<gap||auBusy(t)>(max||(AU_LOW.test(key)?20:48)))return false;AU.last.set(key,t);return true}
 function auOut(pan,vol){const c=AU.ctx,g=c.createGain();g.gain.value=vol;let n=g;
   if(pan&&c.createStereoPanner){const p=c.createStereoPanner();p.pan.value=Math.max(-1,Math.min(1,pan));g.connect(p);p.connect(AU.bus.sfx)}else g.connect(AU.bus.sfx);return n}
-function auEnd(node,stopAt){AU.act++;node.onended=()=>{AU.act--};node.stop(stopAt)}
+function auEnd(node,stopAt){AU.act++;AU.ends.push(stopAt);node.onended=()=>{AU.act--};node.stop(stopAt)}
 // 음 하나: f0→f1로 미끄러지며 a초에 올라가 dur초에 사라진다
 function tone(out,type,f0,f1,dur,vol,a,t0){const c=AU.ctx,t=(t0||c.currentTime),o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.setValueAtTime(f0,t);if(f1&&f1!==f0)o.frequency.exponentialRampToValueAtTime(Math.max(20,f1),t+dur);
   a=a||.005;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+a);g.gain.exponentialRampToValueAtTime(.0008,t+dur);o.connect(g);g.connect(out);o.start(t);auEnd(o,t+dur+.02);return o}
@@ -79,7 +84,7 @@ const SFX={
   // 시전 시간이 있는 마법을 외우는 동안 차오르는 소리 (멈추는 함수를 돌려준다)
   charge(s,dur){if(!AU.on||AU.ctx.state!=='running'||AU.set.sfx<=0)return null;const c=AU.ctx,t=c.currentTime,out=auOut(0,.5),o=c.createOscillator(),f=c.createBiquadFilter(),g=c.createGain();
     o.type='sawtooth';o.frequency.setValueAtTime({fire:110,ice:147,storm:123,earth:82,holy:131,light:131}[s.el]||117,t);f.type='lowpass';f.Q.value=6;f.frequency.setValueAtTime(200,t);f.frequency.exponentialRampToValueAtTime(2400,t+Math.max(.2,dur));
-    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.13,t+Math.max(.15,dur*.8));o.connect(f);f.connect(g);g.connect(out);o.start(t);AU.act++;o.onended=()=>{AU.act--};
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.13,t+Math.max(.15,dur*.8));o.connect(f);f.connect(g);g.connect(out);o.start(t);AU.act++;AU.ends.push(t+dur+.1);o.onended=()=>{AU.act--};
     return(ok)=>{const n=c.currentTime;g.gain.cancelScheduledValues(n);g.gain.setValueAtTime(g.gain.value,n);g.gain.linearRampToValueAtTime(0,n+(ok?.05:.18));o.stop(n+.2);if(!ok)tone(out,'sine',300,120,.2,.08)}},
   level(){if(!auGo('level',.5))return;const out=auOut(0,.9),t=AU.ctx.currentTime;[523,659,784,1046,1318].forEach((f,i)=>{tone(out,'triangle',f,f,.7,.16,.01,t+i*.09);tone(out,'sine',f*2,f*2,.5,.04,.01,t+i*.09)});hiss(out,'highpass',5000,8000,.7,1.2,.08,.3,t+.3)},
   gold(o){if(!auGo('gold',.05))return;const p=auPos(o),out=auOut(p.pan,.6),t=AU.ctx.currentTime;tone(out,'triangle',2637,2637,.12,.12,.002,t);tone(out,'triangle',3322,3322,.18,.1,.002,t+.06)},

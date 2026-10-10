@@ -315,9 +315,21 @@ function fpsTick(now){if(!FPSM.on){FPSM.prev=now;return}const d=now-FPSM.prev;FP
 addEventListener('keydown',e=>{if(e.ctrlKey&&e.shiftKey&&e.code==='KeyF'){e.preventDefault();FPSM.on=!FPSM.on;
   if(!FPSM.el){FPSM.el=document.createElement('div');FPSM.el.style.cssText='position:fixed;left:50%;top:4px;transform:translateX(-50%);z-index:9999;padding:3px 7px;border-radius:5px;background:rgba(0,0,0,.6);color:#d6f5c8;font:12px monospace;pointer-events:none';document.body.appendChild(FPSM.el)}
   FPSM.el.hidden=!FPSM.on;FPSM.el.textContent='FPS 재는 중…';FPSM.n=FPSM.acc=FPSM.worst=0;FPSM.t0=performance.now()}});
+// [v24 최적화 · 「게임 최적화 방안」 스레드] 프레임 상한: 화면 주사율이 120·144Hz여도 60번(절전이면 30번)만 그린다 → 발열·전력 절약.
+// rAF 간격(per)의 절반만큼 일찍 와도 그린다 (60Hz 화면에서 프레임을 건너뛰지 않게).
+let rafPer=16.7,rafPrev=0;
+function stepSim(dt){if(!paused||NET.on){let r=dt,n=0;do{const d=Math.min(.05,r);update(d);r-=d;n++}while(r>1e-4&&n<5);return n}time+=Math.min(.05,dt);return 0}
+function frameCapMs(){return GFX.fps===30?33.3:16.6}
+const qTickMs=raw=>raw-Math.max(0,frameCapMs()-16.7);// 일부러 쉰 시간은 자동 품질에서 느림으로 치지 않음
 function frame(now){
-  Q.tick(now-last);const dt=Math.min(.05,(now-last)/1000);last=now;
-  if(!paused||NET.on)update(dt);else{time+=dt}
+  {const d=now-rafPrev;rafPrev=now;if(d>0&&d<100)rafPer+=(d-rafPer)*.1}
+  const raw=now-last,cap=frameCapMs();
+  if(raw<cap-rafPer/2&&raw>=0){requestAnimationFrame(frame);return}
+  Q.tick(qTickMs(raw));last=now;
+  // [v24 최적화] 밀림 고치기: 예전에는 한 프레임에 0.05초까지만 게임 시간을 흘려, 20fps 아래에서는 게임 전체가 느리게(슬로 모션) 갔다.
+  // 이제 실제로 흐른 시간(한 프레임 최대 0.25초)을 0.05초 조각으로 나눠 update를 여러 번 부른다. 조각 크기는 예전과 같아 규칙·수치는 그대로.
+  const dt=Math.min(.25,Math.max(0,raw)/1000);
+  stepSim(dt);
   fpsTick(now);render();hudT-=dt;if(hudT<=0){hudT=1/15;updateHud()}
   mmT-=dt;if(mmT<=0){mmT=.15;drawMinimap()}
   requestAnimationFrame(frame);

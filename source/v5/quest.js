@@ -68,7 +68,12 @@ function qGoalsHtml(q){return '<ul class="qgoals">'+q.goals.map((g,j)=>{const ok
 function qRewardHtml(q){const r=q.rw,a=[`경험치 ${qXp(q).toLocaleString()}`,`금화 ${r.gold}`];
   if(r.item)a.push(r.item>=2?'유니크·세트 장비':'좋은 장비');if(r.item>=3)a.push('상급 유니크');if(r.pot)a.push(`물약 ${r.pot}개씩`);if(r.sp)a.push(`<b style="color:#ffd76a">스킬 포인트 +${r.sp}</b>`);if(r.ap)a.push(`<b style="color:#ffd76a">능력치 포인트 +${r.ap}</b>`);
   return `<p class="muted">보상: ${a.join(' · ')}</p>`}
-const qXp=q=>Math.round(xpNeed(Math.max(1,q.lvl))*.45*q.rw.xp);
+/* v24(사용자 2026-10-10 06:06 「50레벨 이상에서 퀘스트 보상 경험치는 적정 레벨 필요 경험치의 최대 10% 미만」):
+   적정 레벨(q.lvl) 50 이상 의뢰는 보상 경험치 = 그 레벨 필요 경험치(v24 곡선) × 비율, 비율은 rw.xp에 비례하되 9.5%를 넘지 않음.
+   주 의뢰 4.5%×rw.xp · 마을 의뢰 · 시험 3.5%×rw.xp · 3막 의뢰는 덤(+50%)까지 합쳐 9.5% 아래. 49레벨 이하는 예전 그대로. 진행 중 의뢰도 받을 때 이 값으로 계산(저장에 값 없음) */
+const QXP24_LV=50,QXP24_MAX=.095;
+const qxp24=(q,per)=>{const L=Math.max(1,q.lvl);if(L<QXP24_LV)return null;const top=q.a3?QXP24_MAX/1.5:QXP24_MAX;return Math.round(xpNeed(L)*Math.min(top,per*(q.rw.xp||1)*(q.a3?1/1.5:1)))};
+const qXp=q=>{const v=qxp24(q,.045);return v!=null?v:Math.round(xpNeed(Math.max(1,q.lvl))*.45*q.rw.xp)};
 function questAccept(){const st=qState(),q=qCur();if(!q||st.st!==0)return;st.st=1;st.c={};msg(`의뢰를 받았습니다: ${q.t}`,'#ffd98a');questHud();save()}
 function questFinish(){const st=qState(),q=qCur();if(!q)return;const r=q.rw;
   gainXp(qXp(q));P.gold+=r.gold;if(r.pot){P.pot.hp+=r.pot;P.pot.mp+=r.pot}if(r.sp)P.sp+=r.sp;if(r.ap)P.ap+=r.ap;

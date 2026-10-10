@@ -158,8 +158,8 @@ qT('마법 적중','비 마법 균형: 넓어진 한 줄기 · 몬스터 5마리
   const one=(id)=>{const s=eff(id,10);let tot=0;for(let k=0;k<2;k++){qClear();P.x=QA_SPOT.x;P.y=QA_SPOT.y;followCam();const e=qDummy(P.x+200,P.y+20);QA.reseed(500+k);if(qCast(id,{x:e.x,y:e.y}))qStep(Math.ceil(qMaxT(s)*60),{render:false,each:()=>{P.mp=maxMp();P.hp=maxHp()}});tot+=e.taken}qClear();return tot/2};
   for(const id of qRainIds().filter(id=>!SPELLS[id].final)){const s0=SPELLS[id];qPrep(s0.cls,{lvl:60});if(typeof clsGearFor==='function')clsGearFor(id);P.sk[id]=10;const s=eff(id,10),fr=Math.ceil(((chanOf(id)?chanPlan(id,10).dur:s.dur)+.6)*60);
     /* v22: 몬스터 맞는 크기(hR)가 몸 그림만큼 커져 예전 좁은 한 줄기도 더 잘 맞게 됨 → 이 점검은 비 모양(좁은 한 줄기 ↔ 넓은 한 줄기)만 비교하려고 둘 다 v21 맞는 크기(e.r)로 잰다. 몸 크기 맞히기는 「v22 사거리」에서 따로 */
-    const pack=(useOld)=>{const keep=rainSR,keepK=rainDK,keepH=hR;if(useOld){rainSR=s=>s.srad;rainDK=()=>1}hR=e=>e.r||0;let sum=0;
-      try{for(let seed=1;seed<=8;seed++){QA.reseed(seed*7717);const pts=[0,1,2,3,4].map(()=>qDisc(s.rad*.6));QA.reseed(seed*13+1);const t=qRainRun(id,pts,fr);sum+=t?t.reduce((a,b)=>a+b,0):0}}finally{rainSR=keep;rainDK=keepK;hR=keepH}return sum/8};
+    /* v24: 좁은 예전 한 줄기는 몇 번 맞느냐에 따라 크게 흔들려(다른 곳의 난수 쓰임만 바뀌어도 2.75배 등) 아주 넓은 3차 비(원 400 이상)는 씨앗 16개로 잰다 */const NS=s.rad>=400?16:8;const pack=(useOld)=>{const keep=rainSR,keepK=rainDK,keepH=hR;if(useOld){rainSR=s=>s.srad;rainDK=()=>1}hR=e=>e.r||0;let sum=0;
+      try{for(let seed=1;seed<=NS;seed++){QA.reseed(seed*7717);const pts=[0,1,2,3,4].map(()=>qDisc(s.rad*.6));QA.reseed(seed*13+1);const t=qRainRun(id,pts,fr);sum+=t?t.reduce((a,b)=>a+b,0):0}}finally{rainSR=keep;rainDK=keepK;hR=keepH}return sum/NS};
     let cand=Object.keys(SPELLS).filter(k=>SPELLS[k].cls===s0.cls&&SPELLS[k].rank===s0.rank&&isDmg(SPELLS[k])&&((SPELLS[k].kind==='bolt'&&!SPELLS[k].aoe)||SPELLS[k].kind==='beam'));
     if(!cand.length)cand=Object.keys(SPELLS).filter(k=>SPELLS[k].cls===s0.cls&&Math.abs(SPELLS[k].rank-s0.rank)<=1&&isDmg(SPELLS[k])&&((SPELLS[k].kind==='bolt'&&!SPELLS[k].aoe)||SPELLS[k].kind==='beam'));
     let ref=0,refId='';for(const k of cand){P.sk[k]=10;const v=one(k)/Math.max(cdOf(k),castTimeOf(k)||0,.25)*cdOf(id);if(v>ref){ref=v;refId=k}}
@@ -307,8 +307,10 @@ function qCastPrep(cls,id){qPrep(cls,{lvl:60});P.sk[id]=10;qMana(id);P.mp=maxMp(
 qT('시전','표: 시전 시간 마법과 채널링 마법이 정해진 만큼만 · 나머지는 즉시',()=>{const mg=id=>!(typeof PHYS_CLS==='object'&&PHYS_CLS[SPELLS[id].cls])&&!SPELLS[id].job2&&!SPELLS[id].job3,ct=Object.keys(SPELLS).filter(id=>mg(id)&&(castTimeOf(id)>0||CAST_T[id])),ch=Object.keys(SPELLS).filter(id=>mg(id)&&chanOf(id));
   // v18: 전사·궁수의 시전·채널링은 설계 표(CAST_T_V18 · CHAN_V18) 그대로
   if(typeof CAST_T_V18==='object'){for(const id in CAST_T_V18)qOk(SPELLS[id]&&PHYS_CLS[SPELLS[id].cls]&&CAST_T[id]===CAST_T_V18[id],`v18 시전 ${id}`);for(const id in CHAN_V18)qOk(SPELLS[id]&&PHYS_CLS[SPELLS[id].cls]&&CHAN[id]===CHAN_V18[id],`v18 채널링 ${id}`)}
-  qOk(ct.length>=4&&ct.length<=16,`시전 시간 ${ct.length}개`);qOk(ch.length>=4&&ch.length<=10,`채널링 ${ch.length}개`);// v19: 벼락 비·스톰 거스트·하늘의 노여움 등이 합쳐지거나 3차로 가서 4개 이상
-  const all=Object.keys(SPELLS).filter(id=>SPELLS[id].kind!=='passive').length;qOk(ct.length+ch.length<all*.2,'너무 많은 마법이 즉시가 아님');
+  qOk(ct.length>=4&&ct.length<=40,`시전 시간 ${ct.length}개`);qOk(ch.length>=4&&ch.length<=10,`채널링 ${ch.length}개`);// v19: 벼락 비·스톰 거스트·하늘의 노여움 등이 합쳐지거나 3차로 가서 4개 이상
+  // v24(사용자 05:13): 캐스팅/채널링은 최대 50% 정도 → 직업마다 1차·상위 기술 공격 기술 중 시전+채널링 ≤ 50%
+  for(const c of ['mage','priest','warrior','archer']){const at=Object.keys(SPELLS).filter(id=>{const s=SPELLS[id];return s.cls===c&&!s.job2&&!s.job3&&isDmg(s)&&!['summon','orbit','armor','blink'].includes(s.kind)});
+    const nc=at.filter(id=>CAST_T[id]||chanOf(id)||SPELLS[id].charge).length;qOk(nc<=at.length*.5,`${c} 시전·채널링 ${nc}/${at.length}`)}
   qOk(!castTimeOf('qa_new_spell')&&!chanOf('qa_new_spell'),'모르는 id가 즉시가 아님');
   for(const id of ch){const p=chanPlan(id,10),s=eff(id,10);const tot=p.c.mode==='keep'||(p.ov&&p.ov.cnt)?p.mul:p.mul*p.N;qOk(Math.abs(tot-1)<1e-9,`${id}: 틱 피해 합 ×${qR(tot)}`);qOk(p.c.mode!=='keep'&&!(p.ov&&p.ov.cnt)||p.N===(p.ov&&p.ov.cnt?s.cnt:Math.ceil(s.dur/.5)),`${id}: 틱 수 ${p.N}`);qOk(Math.abs(p.iv*p.N-p.dur)<1e-9,`${id}: 틱 간격`);
     if(p.c.mode==='keep')qOk(Math.abs(p.dur-s.dur)<1e-9,`${id}: 채널링 시간 ${p.dur} ≠ 지속 ${s.dur}`)}
@@ -394,7 +396,9 @@ qT('위계','v19 옛 저장: 9위계였던 마법(상위 기술)의 점수는 �
     P.lvl=53;qOk(canLearn('sunfall')&&learnPoint('sunfall')&&P.sk.sunfall===4,'레벨 53에도 못 찍음')}finally{QA_ADV.auto=true}
   return `상위 기술 3점 유지 · 3차로 간 2점 돌려받음 · 전직 뒤 52레벨에 씀 · 53레벨부터 4점째`});
 // 후딜레이 시험용 마법사 마법: 썬더 보이스(v20에 아이 오브 스톰으로 합쳐짐)가 없으면 시전 시간 없는 1차 공격 마법 중 후딜레이 0.4초 이상인 것
-const qTV=()=>SPELLS.thundervoice?'thundervoice':Object.keys(SPELLS).find(id=>{const s=SPELLS[id];return s.cls==='mage'&&s.tab!=='adv'&&!s.job2&&s.rank<=8&&isDmg(s)&&!CAST_T[id]&&!CHAN[id]&&recOf(id)>=.4})||'meteor';
+const qTV=()=>SPELLS.thundervoice?'thundervoice':Object.keys(SPELLS).find(id=>{const s=SPELLS[id];return s.cls==='mage'&&s.tab!=='adv'&&!s.job2&&s.rank<=8&&isDmg(s)&&!CAST_T[id]&&!CHAN[id]&&recOf(id)>=.4})||/* v24: 센 마법사 기술이 모두 시전 시간을 가지면 시전 기술 중에서 */Object.keys(SPELLS).find(id=>{const s=SPELLS[id];return s.cls==='mage'&&!s.job2&&!s.job3&&isDmg(s)&&CAST_T[id]&&!CHAN[id]&&recOf(id)>=.4})||'meteor';
+// v24: 시전 시간이 있는 기술이면 다 외울 때까지 진행 (후딜레이는 외운 뒤에 시작)
+const qTVCast=(id,t)=>{tryCast(id,t);if(CAST.cur&&CAST.cur.id===id){let n=0;while(CAST.cur&&n++<400)update(1/60)}};
 qT('후딜레이','표: 기본기 0~0.1초 · 9위계 > 1위계 · 위급한 치유·보호막·무적·가호·순간이동 0 · 무기 기본 공격 0 · 툴팁에 표시',()=>{const bad=[];
   for(const id of ['spark','splash','light','smite','crackstone','firebolt','ember'])if(SPELLS[id]&&recOf(id)>.1)bad.push(`${id} ${recOf(id)}`);
   for(const id of ['minorheal','closewounds','greaterheal','salvation','regeneration','rewind','gatherdew','arcaneheal','lightward','kyrie','divineshield','iceshield','airwall','stoneset','shieldcircle','inviolable','stonebody','bodyofwater','guardianspirit','painsup','blink','windleap'])if(SPELLS[id]&&recOf(id)!==0)bad.push(`${id} ${recOf(id)}≠0`);
@@ -408,7 +412,7 @@ qT('후딜레이','표: 기본기 0~0.1초 · 9위계 > 1위계 · 위급한 치
   return `평균 1위계 ${qR(a1)} · 5위계 ${qR(a5)} · 9위계 ${qR(a9)} · ${SPELLS[TV].n} ${recOf(TV)}초 · 메테오 ${recOf('meteor')}초`});
 qT('후딜레이','쓰고 나면 잠깐 다른 마법이 막히고 그사이 누른 마법은 끝나자마자 나감 · 움직임·물약은 됨 · 단축칸이 어두워짐',()=>{qPrep('mage',{lvl:60});
   const TV=qTV();for(const id of [TV,'spark','firebolt'])P.sk[id]=10;P.bar[2]='spark';buildBar();P.x=QA_SPOT.x;P.y=QA_SPOT.y;followCam();const e=qDummy(P.x+120,P.y);
-  qMana(TV);P.mp=maxMp();tryCast(TV,e);const r=recOf(TV);qOk(P.cd[TV]>0,'시전 안 됨');qOk(r>=.4&&Math.abs(REC.t-r)<1e-9,`후딜레이 ${REC.t} (표 ${r})`);
+  qMana(TV);P.mp=maxMp();qTVCast(TV,e);const r=recOf(TV);qOk(P.cd[TV]>0,'시전 안 됨');qOk(r>=.4&&REC.t>r-.02&&REC.t<=r+1e-9,`후딜레이 ${REC.t} (표 ${r})`);
   tryCast('spark',e);qOk(!(P.cd.spark>0),'후딜레이 중에 다른 마법이 나감');qOk(REC.q&&REC.q.id==='spark','누른 마법을 기억하지 않음');
   render();qOk(barEl.classList.contains('rec'),'단축칸이 어두워지지 않음');
   const x0=P.x;keys.add('KeyD');qStep(6,{render:false});keys.delete('KeyD');qOk(Math.abs(P.x-x0)>1,'후딜레이 중에 못 움직임');qOk(!(P.cd.spark>0),'후딜레이가 끝나기 전에 나감');
@@ -941,7 +945,7 @@ qT('파티 v18','모르가스: 50%에서 분신(파티 2 · 혼자 1), 하나만
     ({e}=qBossAt(3,0));e.hp=Math.round(e.max*.45);qStep(1,{render:false,each:()=>{P.invT=1e9}});B=e.mg;cs=enemies.filter(o=>o.clone&&o.mg===B);qOk(cs.length===1&&B.win===15,`혼자 분신 ${cs.length} 시간 ${B.win}`);
     hurtE(e,e.hp+10,{el:'fire'});qOk(e.down&&!e.dead,'혼자: 보스가 먼저 쓰러지면 기다려야 함');hurtE(cs[0],cs[0].hp+10,{el:'fire'});qOk(e.dead&&DG.bossDead,'혼자: 분신까지 잡았는데 보스가 안 죽음');out.push('혼자 분신 1 · 15초')}finally{qPtyOff();if(DG)leaveDungeon()}
   return out.join(' · ')});
-qT('파티 v18','협동 처치: 5% 이상 깎았거나 도운 사람이 둘이면 각자 전리품 한 번 더(구경만 하면 없음), 참가자는 kill 메시지 co로 받음',()=>{const out=[];const jk21=Object.assign({},JUNK21);JUNK21[0]=JUNK21[1]=1;/* v21: 잡템 줄이기(난수)는 이 점검의 개수와 무관 */
+qT('파티 v18','협동 처치: 5% 이상 깎았거나 도운 사람이 둘이면 각자 전리품 한 번 더(구경만 하면 없음), 참가자는 kill 메시지 co로 받음',()=>{const out=[];const jk21=Object.assign({},JUNK21);JUNK21[0]=JUNK21[1]=1;const d24=DROP24;DROP24=0;/* v24: 덤 한 개(1/5 난수)는 이 점검의 개수와 무관 *//* v21: 잡템 줄이기(난수)는 이 점검의 개수와 무관 */
   try{const items=()=>loot.filter(l=>l.kind==='item').length;
     let {e}=qBossAt(0,0);loot=[];hurtE(e,e.hp+10,{el:'fire'});const solo=items();leaveDungeon();
     let pt;({e,pt}=qBossAt(0,1));loot=[];netOnMsg({t:'dmg',from:'qa_peer',id:e.id,a:Math.ceil(e.max*.06)});hurtE(e,e.hp+10,{el:'fire'});
@@ -950,12 +954,12 @@ qT('파티 v18','협동 처치: 5% 이상 깎았거나 도운 사람이 둘이�
     ({e,pt}=qBossAt(0,1));loot=[];PTY.support('qa_peer',pt.r,SPELLS.minorheal,200);hurtE(e,e.hp+10,{el:'fire'});qOk(items()===solo+1,'치유로 도운 동료가 기여로 안 셈');out.push('치유 기여 인정');qPtyOff();
     // 참가자 쪽: kill 메시지의 co에 내 id가 있으면 한 번 더
     pt=qPty(2);NET.guest=true;loot=[];netOnKill({id:987654,k:DG.d.boss,x:Math.round(P.x),y:Math.round(P.y),l:DG.lvl,el:0,a:netArea(),co:['qa_me','qa_peer']});const g1=items();
-    loot=[];netOnKill({id:987655,k:DG.d.boss,x:Math.round(P.x),y:Math.round(P.y),l:DG.lvl,el:0,a:netArea()});const g0=items();qOk(g1===g0+1,`참가자 협동 ${g1} / 보통 ${g0}`);out.push(`참가자 ${g0}→${g1}`)}finally{Object.assign(JUNK21,jk21);qPtyOff();if(DG)leaveDungeon()}
+    loot=[];netOnKill({id:987655,k:DG.d.boss,x:Math.round(P.x),y:Math.round(P.y),l:DG.lvl,el:0,a:netArea()});const g0=items();qOk(g1===g0+1,`참가자 협동 ${g1} / 보통 ${g0}`);out.push(`참가자 ${g0}→${g1}`)}finally{Object.assign(JUNK21,jk21);DROP24=d24;qPtyOff();if(DG)leaveDungeon()}
   return out.join(' · ')});
-qT('파티 v18','쌍둥이 준보스: 둘을 10초 안에 함께 쓰러뜨리면 보너스 상자(늦으면 없음)',()=>{const out=[];const jk21=Object.assign({},JUNK21);JUNK21[0]=JUNK21[1]=1;/* v21: 잡템 줄이기(난수)와 무관 */
+qT('파티 v18','쌍둥이 준보스: 둘을 10초 안에 함께 쓰러뜨리면 보너스 상자(늦으면 없음)',()=>{const out=[];const jk21=Object.assign({},JUNK21);JUNK21[0]=JUNK21[1]=1;const d24=DROP24;DROP24=0;/* v24: 덤 한 개(1/5 난수)는 이 점검의 개수와 무관 *//* v21: 잡템 줄이기(난수)와 무관 */
   try{for(const late of [0,1]){qEnter(DUNGEONS[0]);P.invT=1e9;const ms=enemies.filter(o=>TYPES[o.k].mini);qOk(ms.length===2,'준보스 둘이 아님');
       loot=[];hurtE(ms[0],ms[0].hp+10,{el:'fire'});const n1=loot.filter(l=>l.kind==='item').length;if(late)DG.tw[ms[0].k]=time-11;loot=[];hurtE(ms[1],ms[1].hp+10,{el:'fire'});const n2=loot.filter(l=>l.kind==='item').length;
-      qOk(late?n2===n1&&!ms[1].tw:n2===n1+2&&ms[1].tw,`${late?'늦게':'함께'}: 아이템 ${n1}→${n2}`);out.push(`${late?'11초 차':'함께'} ${n2}`);leaveDungeon()}}finally{Object.assign(JUNK21,jk21);if(DG)leaveDungeon()}
+      qOk(late?n2===n1&&!ms[1].tw:n2===n1+2&&ms[1].tw,`${late?'늦게':'함께'}: 아이템 ${n1}→${n2}`);out.push(`${late?'11초 차':'함께'} ${n2}`);leaveDungeon()}}finally{Object.assign(JUNK21,jk21);DROP24=d24;if(DG)leaveDungeon()}
   return out.join(' · ')});
 qT('파티 v18','한 명 지원 마법: 고른 동료에게만(시전 메시지 tg), 안 골랐거나 멀면 나에게, 받는 쪽은 tg가 나일 때만',()=>{qPrep('priest');P.invT=1e9;const out=[];
   try{const {r,sent}=qPty(2,{dx:120});const ones=qSpells('priest',s=>s.one&&!s.job2&&!s.job3);qOk(ones.length>=8,`한 명 마법 ${ones.length}개`);for(const s of ones)P.sk[s.id]=10;P.sk.kings=10;
@@ -2064,7 +2068,7 @@ qT('저장 v20','v19 저장 불러오기: 새 칸(aff · affN · books · bty ·
 qT('드랍 v21','잡템 줄이기(사용자 03:17): 몬스터가 떨어뜨린 장비 중 일반은 절반·마법은 70%만 남김 · 희귀·세트·유니크·상급 유니크는 늘 남김 · 처치·던전 보스 덤에 적용, 의뢰 보상은 그대로',()=>{qPrep('mage',{lvl:50});const n=[0,0,0,0,0,0],k=[0,0,0,0,0,0];
   for(let i=0;i<20000;i++){const it=makeItem(50,i%5===0);n[it.rar]++;if(junkKeep(it))k[it.rar]++}
   for(const r of [2,3,4])qOk(k[r]===n[r],`${RAR[r].n} ${k[r]}/${n[r]}`);qOk(Math.abs(k[0]/n[0]-.5)<.03,`일반 ${qR(k[0]/n[0])}`);qOk(Math.abs(k[1]/n[1]-.7)<.03,`마법 ${qR(k[1]/n[1])}`);
-  let it=0;const N=4000;for(let i=0;i<N;i++){loot.length=0;const e=qDummy(P.x+100,P.y);e.lvl=50;e.elite=false;rewardKill(e);it+=loot.filter(l=>l.kind==='item').length}loot.length=0;qClear();const pr=it/N;qOk(pr>.045&&pr<.08,`일반 몬스터 한 마리당 장비 ${qR(pr*100)}% (예전 10%)`);qOk(!junkKeep(null),'빈 값');
+  let it=0;const N=20000;for(let i=0;i<N;i++){loot.length=0;const e=qDummy(P.x+100,P.y);e.lvl=50;e.elite=false;rewardKill(e);it+=loot.filter(l=>l.kind==='item').length}loot.length=0;qClear();const pr=it/N;qOk(pr>.045*DROP24&&pr<.08*DROP24,`일반 몬스터 한 마리당 장비 ${qR(pr*100)}% (예전 10% · v24 ×${DROP24})`);qOk(!junkKeep(null),'빈 값');
   const all=n.reduce((a,b)=>a+b,0),kept=k.reduce((a,b)=>a+b,0);return `남김 ${Math.round(kept/all*100)}% · 일반 ${qR(k[0]/n[0])} · 마법 ${qR(k[1]/n[1])} · 희귀 이상 100%`});
 /* ===== v21 지역 (REGION): 속성 사냥터 6곳 · 몬스터 속성표 · 지옥 봉인 · 던전 6곳 · 같이 하기 · 저장 (wx21-world.js · wx21.js) ===== */
 const Q21_NEW=['mistlake','scorch','starsea','thunder','roots','eclipse'],Q21_HELL=['starsea','thunder','roots','eclipse'];
@@ -2409,7 +2413,7 @@ qT('v21 어둠 단계','몬스터 세기: 생명력 +40%·t (모두) · 피해�
     qOk(Math.abs(b6.max/b0.max-3.4)<.01&&Math.abs(b6.dmg/b0.dmg-1.36)<1e-6,'우두머리');const m=b6.max;qStep(3,{render:false});qOk(b6.max===m,'두 번 키움');out.push('들판 ×3.4');
     P.dark.cur=3;qD21Dg('pt_corridor');qStep(1,{render:false});
     for(const e of enemies){const t=TYPES[e.k],up=t.boss||t.mini||e.elite,hp0=Math.round(t.hp*(1+.34*(e.lvl-1))*DIFF[2].hp*(e.elite?3:1)),dm0=t.dmg*(1+.18*(e.lvl-1))*(e.elite?1.4:1);
-      if(e.afx)continue;qOk(Math.abs(e.max-Math.round(hp0*2.2))<=1,`${e.k} 생명력 ${e.max}/${hp0}`);qOk(Math.abs(e.dmg-dm0*(up?1.18:1))<1e-6,`${e.k} 피해 ${e.dmg}/${dm0}`)}out.push(`던전 ${enemies.length}마리`)}
+      if(e.afx)continue;/* v24: 던전 보스는 v24 보스 세기(B24)가 더 곱해짐 */const bm=e._b24?(e._b24==='dg'?B24.dgHp(e.lvl):B24.fdHp(e.lvl)):1,bd=e._b24?B24.dmg(e.lvl):1;qOk(Math.abs(e.max-Math.round(hp0*2.2*bm))<=1+e.max*1e-6,`${e.k} 생명력 ${e.max}/${hp0} ×${qR(bm)}`);qOk(Math.abs(e.dmg-dm0*bd*(up?1.18:1))<1e-6*Math.max(1,e.dmg),`${e.k} 피해 ${e.dmg}/${dm0}`)}out.push(`던전 ${enemies.length}마리`)}
   finally{qD21End()}return out.join(' · ')});
 qT('v21 어둠 단계','10단계에서도 들판 한 대 상한: 고원·왕도·메아리 12곳 들판 몬스터 한 대가 같은 레벨 맨몸 기본 생명력의 28% 이하(가장 센 굴림 ×1.15도 32% 이하) · 0단계와 같음',()=>{let worst=0,wk='',n=0;
   try{qD21Prep();const chk=(reg,day)=>{if(day)V20.qaNow=day.ms;qWxTo(reg);const T=TOWNS[0];for(const k of REGIONS[reg].mobs){let d0=0;for(const t of [0,10]){P.dark.cur=t;enemies=[];const e=dgMob(k,T.gate.x+40,T.gate.y+40,140);qStep(1,{render:false});
@@ -2511,9 +2515,9 @@ qT('의뢰 v21','중요한 의뢰 알림(사용자 04:07): 50레벨이 되면 2�
 qT('성장','경험치 v21(사용자 04:10): 1~10레벨은 그대로 · 10 뒤로 필요한 경험치가 늘고 40레벨부터는 2.2배 · 몬스터 경험치는 그대로 · 예전 저장은 레벨이 안 내려가고 막대 비율이 그대로 · 저장에 xpc',()=>{
   for(let l=1;l<=10;l++)qOk(xpNeed(l)===xpNeedV20(l),'1~10 바뀜 '+l);
   for(const l of [15,20,25,30])qOk(xpNeed(l)>xpNeedV20(l)*1.1,'느려지지 않음 '+l);
-  for(const l of [40,45,49,50,99,100,139])qOk(Math.abs(xpNeed(l)/xpNeedV20(l)-2.2)<.01,`${l}레벨 배수 ${(xpNeed(l)/xpNeedV20(l)).toFixed(2)}`);
+  for(const l of [40,45,49,50,99,100,139])qOk(Math.abs(xpNeedV23(l)/xpNeedV20(l)-2.2)<.01,`${l}레벨 배수 ${(xpNeedV23(l)/xpNeedV20(l)).toFixed(2)}`);// v24: 그 위에 xpSlow24가 더 곱해짐(「보스 v24」 점검)
   for(let l=11;l<139;l++)qOk(xpSlow21(l+1)>=xpSlow21(l),'갑자기 줄어듦 '+l);
-  qPrep('mage',{lvl:45});const d=saveData();qOk(d.xpc===21,'저장에 xpc 없음');
+  qPrep('mage',{lvl:45});const d=saveData();qOk(d.xpc>=21,'저장에 xpc 없음');
   const old=Object.assign({},d);delete old.xpc;old.lvl=45;old.xp=Math.floor(xpNeedV20(45)*.6);load(old,0);qOk(P.lvl===45,'레벨 바뀜 '+P.lvl);
   const pc=P.xp/xpNeed(45);qOk(Math.abs(pc-.6)<.01,`막대 비율 ${pc.toFixed(3)}`);
   const nw=Object.assign({},d,{xp:1234});load(nw,0);qOk(P.xp===1234,'새 저장의 경험치가 또 바뀜 '+P.xp);
@@ -3674,7 +3678,7 @@ qT(QG22,'목표 자리: 사람(의뢰인 · 지금 서 있는 자리를 따라�
   finally{if(typeof IN!=='undefined'&&IN)twLeave(true);if(DG)leaveDungeon();qG22Off()}});
 qT(QG22,'화살표가 목표 쪽을 가리킴: 동서남북 네 자리에서 화살표 각도 = 화면 위 목표 방향 · 화살표가 캐릭터 둘레(반지름 72px, 휴대폰은 54px)에 · 큰 지도를 열면 숨김',()=>{qPrep('mage',{lvl:30});qG22Off();const r=[];
   try{P.q={i:1,st:1,c:{}};qgSet('main:1',true);qStep(2,{render:false});qgTick(true);/* 마을 사람이 자리 잡은 뒤의 목표 */const tg=qgTargetW('main:1'),el=QG.el||qgEl();
-    for(const [dx,dy,nm] of [[600,0,'동'],[-450,0,'서'],[0,600,'남'],[0,-450,'북'],[420,420,'남동']]){P.x=tg.x+dx;P.y=tg.y+dy;followCam();qStep(2,{render:false});qgTick(true);qStep(1,{render:false});
+    for(const [dx,dy,nm] of [[600,0,'동'],[-450,0,'서'],[0,600,'남'],[0,-450,'북'],[420,420,'남동']]){P.x=tg.x+dx;P.y=tg.y+dy;followCam();qStep(2,{render:false});qgTick(true);qStep(1,{render:false});qgTick(true);/* v24: 마지막 한 프레임에 목표가 바뀌었으면(입구 근처 도착 등) 화살표도 그 목표로 다시 맞춘 뒤 잼 */
       const c=QG.cur,tgN=qgTargetW('main:1');qOk(c&&tgN&&Math.hypot(c.x-tgN.x,c.y-tgN.y)<=200&&c.label&&tgN.label.includes(c.label.split(' · ').pop()),`${nm} 목표 (지금 목표 ${tgN&&Math.round(tgN.x)},${tgN&&Math.round(tgN.y)} ${tgN&&tgN.label}) ${JSON.stringify(c)} · 나 ${Math.round(P.x)},${Math.round(P.y)} · ${REG.id}${DG?' 던전':''}${IN?' 건물':''}`);const a=W2S(P.x,P.y),b=W2S(c.x,c.y),want=Math.atan2((b.y-20)-(a.y-30),b.x-a.x);
       const iso=Math.atan2((c.x-P.x+c.y-P.y)/2,(c.x-P.x)-(c.y-P.y)),da=x=>Math.abs(Math.atan2(Math.sin(x),Math.cos(x)));
       qOk(da(QG.ang-want)<.01,`${nm} 각도 ${QG.ang.toFixed(3)} (기대 ${want.toFixed(3)})`);qOk(da(QG.ang-iso)<.12,`${nm} 쿼터뷰 방향과 다름 ${QG.ang.toFixed(2)} vs ${iso.toFixed(2)}`);
@@ -3799,6 +3803,159 @@ qT('스킬 창 v23','설명 상자: 마우스를 아이콘 · 아래 단축칸�
     n=pbody.querySelector(`[data-node="${id}"]`);n.dispatchEvent(new PointerEvent('pointerdown',o));n.click();qOk(!tip().hidden,'다시 누르기');SK23.hideT&&clearTimeout(SK23.hideT);
     closePanel();qOk(tip().hidden,'창 닫아도 남음')});
   SK23.pt='mouse';qClosePanels();return '마우스 · 단축칸 · 휴대폰'});
+/* ===== v24 보스 세기 · 보스방 · 필요 경험치 (사용자 2026-10-10 05:06 · 05:07) ===== */
+qT('보스 v24','필요 경험치: 10레벨까지 v23과 같음 · 20레벨 ×2 · 40레벨 ×5 · 100레벨 ×8 · 140레벨 ×10 · 레벨마다 늘어남 · 57레벨은 v23의 5배 넘게',()=>{const r=[];
+  for(let l=1;l<=10;l++)qOk(xpNeed(l)===xpNeedV23(l),`${l}레벨 바뀜`);
+  for(const [l,k] of [[20,2],[40,5],[100,8],[140,10]]){const f=xpNeed(l)/xpNeedV23(l);qOk(Math.abs(f-k)<.02,`${l}레벨 ×${f.toFixed(2)}`);r.push(`${l} ×${f.toFixed(1)}`)}
+  for(let l=2;l<MAXLV;l++)qOk(xpNeed(l)>xpNeed(l-1),`${l}레벨 필요 경험치가 줄어듦`);for(let l=11;l<MAXLV;l++)qOk(xpNeed(l)/xpNeedV23(l)>=xpNeed(l-1)/xpNeedV23(l-1)-1e-9,`${l} 배수가 줄어듦`);
+  const f57=xpNeed(57)/xpNeedV23(57);qOk(f57>=5,'57레벨 ×'+f57.toFixed(2));return r.join(' · ')+` · 57 ×${f57.toFixed(1)}`});
+qT('보스 v24','저장 안전: v23 저장(xpc 21)은 레벨 그대로 · 경험치 막대 비율 그대로 새 곡선으로 · v20 저장도 비율 그대로 · 새 저장은 xpc 24 · 다시 불러도 그대로 · 10레벨 이하는 그대로',()=>{const r=[];
+  for(const [lv,fr,xpc] of [[57,.5,21],[120,.9,21],[30,.25,undefined],[8,.4,21],[139,.99,21]]){qPrep('mage',{lvl:lv});const old=xpc===21?xpNeedV23(lv):xpNeedV20(lv);P.xp=Math.floor(old*fr);const d=saveData();d.xpc=xpc;if(xpc==null)delete d.xpc;
+    qOk(load(JSON.parse(JSON.stringify(d)),QA_SLOT),'불러오기 실패');qOk(P.lvl===lv,`${lv}레벨 → ${P.lvl}`);const f=P.xp/xpNeed(lv);qOk(Math.abs(f-fr)<.01,`${lv}레벨 막대 ${fr} → ${f.toFixed(3)}`);
+    const d2=saveData();qOk(d2.xpc===24,'xpc '+d2.xpc);const x2=P.xp;qOk(load(JSON.parse(JSON.stringify(d2)),QA_SLOT)&&P.xp===x2&&P.lvl===lv,'다시 불러오니 바뀜');r.push(`${lv} ${Math.round(f*100)}%`)}
+  return r.join(' · ')});
+qT('보스 v24','던전 보스: 생명력 ×(10레벨 3 · 30레벨 5 · 60레벨 8 · 140레벨 10) · 공격력 ×1.15~1.35 · 준보스·졸개는 그대로 · 잿불 용암지대 57레벨 던전 보스는 예전보다 7.5배 넘게(10초 → 1분 넘게)',()=>{const r=[];
+  qPrep('mage',{lvl:57});P.invT=1e9;loadRegion('lava');qOk(CAVES.length>0,'용암지대 던전 없음');
+  for(const c of CAVES){if(DG)leaveDungeon();enterDungeon(c);qOk(DG&&DG.boss,c.cave.n+' 보스 없음');if(!DG||!DG.boss)continue;const b=DG.boss,t=TYPES[b.k],L=b.lvl;
+    const hp0=Math.round(t.hp*(1+.34*(L-1))*DIFF[P.diff].hp);qOk(b._b24==='dg','표시 없음');qOk(Math.abs(b.max/hp0-B24.dgHp(L))<.01,`${t.n} Lv${L} 생명력 ×${(b.max/hp0).toFixed(2)}`);
+    const d0=t.dmg*(1+.18*(L-1));qOk(Math.abs(b.dmg/d0-B24.dmg(L))<.01,`공격력 ×${(b.dmg/d0).toFixed(2)}`);
+    for(const e of enemies)if(e!==b&&!e.dead){qOk(!e._b24,`${TYPES[e.k].n} 도 바뀜`);const t2=TYPES[e.k],h2=Math.round(t2.hp*(1+.34*(e.lvl-1))*DIFF[P.diff].hp*(e.elite?3:1));if(!e.k.startsWith('qa'))qOk(e.max<=h2*1.0001||e._d21||e._k22,`${t2.n} 생명력 ${e.max}/${h2}`);break}
+    qOk(B24.dgHp(L)>=7.5||L<55,`Lv${L} ×${B24.dgHp(L)}`);r.push(`${c.cave.n} Lv${L} ×${B24.dgHp(L).toFixed(1)}`)}
+  leaveDungeon();loadRegion('home');qOk(Math.abs(B24.dgHp(10)-3)<1e-9&&Math.abs(B24.dgHp(30)-5)<1e-9&&Math.abs(B24.dgHp(60)-8)<1e-9&&Math.abs(B24.dgHp(140)-10)<1e-9,'배수 표');return r.join(' · ')});
+qT('보스 v24','보스방: 모든 지역의 모든 동굴 던전에서 보스방(가장 깊은 방)이 원래 방의 2배 넘게 넓고 · 보스가 그 방 가운데 · 다른 방과 한 칸 넘게 떨어짐 · 걸을 수 있음',()=>{let n=0,mn=9;const bad=[];qPrep('mage',{lvl:60});P.invT=1e9;
+  for(const id of Object.keys(REGIONS)){loadRegion(id);for(const c of CAVES.slice()){if(!c.cave||c.cave.trial||c.cave.arena||c.cave.w3k==='trial')continue;if(DG)leaveDungeon();enterDungeon(c);if(!DG||!DG.boss){bad.push(c.cave.n+' 못 들어감');continue}
+    const br=DG.rooms.find(r=>r.b24);if(!br){bad.push(c.cave.n+' 넓힌 방 없음');continue}const k=br.w*br.h/br.b24;mn=Math.min(mn,k);if(k<2)bad.push(`${c.cave.n} ×${k.toFixed(2)}`);
+    const b=DG.boss,bi=Math.floor((b.x-OX)/TS),bj=Math.floor((b.y-OY)/TS);if(!(bi>=br.i&&bi<br.i+br.w&&bj>=br.j&&bj<br.j+br.h))bad.push(c.cave.n+' 보스가 방 밖');
+    for(const o of DG.rooms)if(o!==br&&br.i<=o.i+o.w&&br.i+br.w>=o.i&&br.j<=o.j+o.h&&br.j+br.h>=o.j)bad.push(c.cave.n+' 다른 방과 붙음');
+    for(let y=br.j;y<br.j+br.h;y++)for(let x=br.i;x<br.i+br.w;x++)if(!dgFloor(x,y)){bad.push(c.cave.n+' 막힌 칸');y=1e9;break}
+    const D=bfs(DG.g,DG.start.cx,DG.start.cy);if(D[tIdx(bi,bj)]<0)bad.push(c.cave.n+' 보스에게 못 감');n++}}
+  if(DG)leaveDungeon();loadRegion('home');qOk(!bad.length,bad.slice(0,6).join(' / '));qOk(n>=20,'던전 '+n);return `던전 ${n}곳 · 가장 작은 보스방 ×${mn.toFixed(2)}`});
+qT('보스 v24','필드 보스: 생명력 ×(10레벨까지 1.5 · 30레벨 3 · 60레벨 6 · 140레벨 10) · 공격력도 · 30레벨 아래는 3배 안 · 보스 한 대는 최대 생명력 60%까지(한 방에 안 죽음) · 파티 보스 생명력 ×(1+0.7(n−1)) (v24로 맞춘 보스만 · 따로 맞춘 끝 콘텐츠 보스는 예전 ×(1+1.0(n−1)))',()=>{const r=[];
+  for(const id of ['plains','lava','abyss']){if(!REGIONS[id])continue;qPrep('mage',{lvl:60});P.invT=1e9;loadRegion(id);if(!REG.lair||!REG.boss)continue;P.x=REG.lair.x+200;P.y=REG.lair.y;REG.bossDead=false;REG.bossE=null;for(let i=0;i<6&&!REG.bossE;i++)qStep(1,{render:false});
+    const e=REG.bossE;qOk(e,id+' 우두머리 없음');if(!e)continue;const t=TYPES[e.k],L=e.lvl,hp0=Math.round(t.hp*(1+.34*(L-1))*DIFF[P.diff].hp);qOk(e._b24==='fd'&&Math.abs(e.max/hp0-B24.fdHp(L))<.02,`${id} Lv${L} ×${(e.max/hp0).toFixed(2)} (${e._b24})`);r.push(`${REGIONS[id].n} Lv${L} ×${B24.fdHp(L).toFixed(1)}`)}
+  loadRegion('home');qOk(B24.fdHp(29)<3&&B24.fdHp(10)<=1.5&&Math.abs(B24.fdHp(30)-3)<1e-9&&Math.abs(B24.fdHp(140)-10)<1e-9,'배수 표');
+  qPrep('warrior',{lvl:60});const b=dgMob('b_baldrak',P.x+60,P.y,60);const h0=P.hp=maxHp();hitPlayer(h0*3,b);qOk(!P.dead&&P.hp>=h0*.4-1,`한 방 ${h0}→${P.hp}`);P.hp=maxHp();hitPlayer(10,b);qOk(P.hp<maxHp(),'작은 피해가 막힘');qClear();
+  {const bk=Object.keys(TYPES).find(k=>TYPES[k].boss),pn=PTY.partyN;try{PTY.partyN=()=>2;const a={k:bk,max:1000,hp:1000,_b24:'fd'},b={k:bk,max:1000,hp:1000};PTY.scale(a);PTY.scale(b);
+    qOk(a.max===1700&&b.max===2000&&PTY.HP.boss===1&&PTY.HP.mini===1&&PTY.HP.normal===.9,`파티 배수 v24 보스 ${a.max} · 따로 맞춘 보스 ${b.max}`)}finally{PTY.partyN=pn}}return r.join(' · ')+' · 한 방 60%'});
+qT('시전 v24','시전 시간 나누기: 새 시전 기술은 0.5~2초 · 위력이 큰 쪽이 더 김 · 단순 투사체 기본기(관통 없음 · 재사용 1.2초 이하)는 즉시 · 직업마다 1차·상위 기술 공격의 25~50%가 시전/채널링 · 새 시전 기술 배율 ×(1+0.15×초) · 즉시 장판 공격 ×0.85',()=>{const bad=[],out=[];
+  for(const id in CAST_T_V24){const s=SPELLS[id];if(!s){bad.push(id+' 없음');continue}const ct=CAST_T[id];if(!(ct>=.5&&ct<=2))bad.push(`${id} ${ct}초`);
+    const m=CAST24_MULT[id];if(!m||Math.abs(m[1]-Math.round(m[0]*(1+.15*ct)*1000)/1000)>1e-9||s.mult!==m[1])bad.push(id+' 배율 '+(m&&m.join('→')))}
+  for(const c of ['mage','priest','warrior','archer']){const at=Object.keys(SPELLS).filter(id=>{const s=SPELLS[id];return s.cls===c&&!s.job2&&!s.job3&&isDmg(s)&&!['summon','orbit','armor','blink'].includes(s.kind)});
+    const nc=at.filter(id=>CAST_T[id]||chanOf(id)||SPELLS[id].charge).length,r=nc/at.length;if(!(r>=.25&&r<=.5))bad.push(`${c} ${nc}/${at.length}`);out.push(`${c} ${nc}/${at.length}(${Math.round(r*100)}%)`);
+    const basic=at.filter(id=>{const s=SPELLS[id];return s.kind==='bolt'&&!s.pierce&&(s.cd||0)<=1.2});for(const id of basic)if(CAST_T[id])bad.push(id+' 기본 투사체에 시전');
+    // 위력이 큰 쪽이 더 김: 새 시전 기술을 v23 배율로 줄 세우면 위 절반의 평균 시전이 아래 절반보다 김
+    const nw=Object.keys(CAST_T_V24).filter(id=>SPELLS[id]&&SPELLS[id].cls===c&&CAST24_MULT[id]).sort((a,b)=>CAST24_MULT[a][0]-CAST24_MULT[b][0]);
+    if(nw.length>=4){const h=nw.length>>1,av=a=>a.reduce((x,id)=>x+CAST_T[id],0)/a.length;if(!(av(nw.slice(-h))>av(nw.slice(0,h))))bad.push(c+' 센 기술이 더 짧음')}}
+  let ng=0;for(const id in SPELLS){const s=SPELLS[id];if(!s.cls||s.job3||!['field','rain','storm'].includes(s.kind)||!isDmg(s)||s.heal||id==='healcircle'||CAST_T[id]||chanOf(id)||s.charge)continue;ng++;
+    const m=CAST24_MULT[id];if(!m||Math.abs(m[1]-Math.round(m[0]*.85*1000)/1000)>1e-9||s.mult!==m[1])bad.push(id+' 즉시 장판 배율 '+(m&&m.join('→')))}
+  // 실제로: 플레임 랜스는 0.6초 외운 뒤에 나가고 맞음
+  const e=qCastPrep('mage','flamelance');tryCast('flamelance',{x:e.x,y:e.y});if(!(CAST.cur&&CAST.cur.id==='flamelance'&&Math.abs(CAST.cur.max-.6)<1e-9))bad.push('플레임 랜스 시전 시작 안 됨');
+  qStep(20,{render:false});if(P.cd.flamelance>0)bad.push('0.33초에 벌써 나감');qStep(120,{render:false,until:()=>e.taken>0});if(!(e.taken>0))bad.push('플레임 랜스 안 맞음');castReset();
+  qOk(!bad.length,bad.join(', '));return out.join(' · ')+` · 새 시전 ${Object.keys(CAST_T_V24).length}개 · 즉시 장판 약화 ${ng}개`});
+qT('재사용 v24','강한 공격 기술 재사용 +20~50%(4초 +20% → 20초 이상 +50%) · 재사용 4초 이하 보통 기술 · 도움 기술 · 소환 · 3차 기술은 그대로',()=>{const bad=[];let n=0;
+  for(const id in CD24){const [o,v]=CD24[id],inc=v/o-1;n++;if(!(inc>=.19&&inc<=.51))bad.push(`${id} ${o}→${v}`);if(SPELLS[id].cd!==v)bad.push(id+' 값');if(!isDmg(SPELLS[id]))bad.push(id+' 피해 없음');
+    const exp=Math.min(.5,.2+.3*(o-4)/16);if(Math.abs(v-Math.round(o*(1+exp)*10)/10)>1e-9)bad.push(`${id} 늘림 ${qR(inc)}≠${qR(exp)}`)}
+  for(const id of ['spark','smite','quickshot','slash','flameshaping','turnundead','divinestorm','firebolt','fireburst'])if(SPELLS[id]&&CD24[id])bad.push(id+' 기본기가 늘어남');
+  for(const id of ['meteor','sunfall','godspear','heavenpiercer','apexhunt','testament'])if(SPELLS[id]&&!CD24[id])bad.push(id+' 강한 기술이 그대로');for(const id in CD24)if(SPELLS[id].job3)bad.push(id+' 3차가 늘어남');
+  if(SPELLS.sunfall&&CD24.sunfall&&!(CD24.sunfall[1]/CD24.sunfall[0]>CD24.meteor[1]/CD24.meteor[0]))bad.push('긴 기술이 덜 늘어남');
+  for(const id of ['healcircle','grandtaunt','hold'])if(CD24[id])bad.push(id+' 도움 기술이 늘어남');
+  qPrep('mage',{lvl:60});P.sk.meteor=1;qOk(Math.abs(cdOf('meteor')-CD24.meteor[1]*cdOf('meteor')/SPELLS.meteor.cd)<1e-9&&SPELLS.meteor.cd===CD24.meteor[1],'메테오 재사용 '+cdOf('meteor'));
+  qOk(!bad.length,bad.join(', '));return `${n}개 · 메테오 ${CD24.meteor.join('→')}초 · 선 폴 ${CD24.sunfall.join('→')}초`});
+qT('마을 v24','마을 안(안전 구역 · 건물 안)에서는 공격 기술이 안 나감(알림) · 치유 · 강화 · 순간이동은 됨 · 마을 밖과 던전은 그대로 · 전사 · 궁수 기본 공격도 막힘',()=>{const bad=[];
+  const tryAt=(cls,id,x,y)=>{qPrep(cls,{lvl:60});P.sk[id]=10;qMana(id);P.mp=maxMp();P.cd={};qRecWait();castReset();P.x=x;P.y=y;followCam();if(typeof clsGearFor==='function'&&SPELLS[id].wt)clsGearFor(id);
+    const nb=bolts.length,nf=fields.length,nr=rains.length,np=pend.length,lg=logEl.lastElementChild&&logEl.lastElementChild.textContent;tryCast(id,{x:x+200,y:y});
+    const went=(P.cd[id]||0)>0||!!CAST.cur||!!CAST.ch||bolts.length>nb||fields.length>nf||rains.length>nr||pend.length>np;castReset();qRecWait();return{went,lg2:logEl.lastElementChild&&logEl.lastElementChild.textContent,lg}};
+  const T=TOWNS[0],inT={x:T.x,y:T.y},out={x:QA_SPOT.x,y:QA_SPOT.y};qOk(inSafe(inT.x,inT.y,0)&&!inSafe(out.x,out.y,0),'자리');
+  for(const [c,id] of [['mage','spark'],['mage','meteor'],['mage','firewall'],['priest','smite'],['warrior','slash'],['archer','quickshot'],['archer','firetrap'],['mage','hydra']]){if(!SPELLS[id])continue;
+    SAFE24.msgT=-99;const a=tryAt(c,id,inT.x,inT.y);if(a.went)bad.push(id+' 마을 안에서 나감');if(!/마을 안에서는 공격 기술/.test(a.lg2||''))bad.push(id+' 알림 없음');
+    const b=tryAt(c,id,out.x,out.y);if(!b.went)bad.push(id+' 마을 밖에서 안 나감')}
+  for(const [c,id] of [['priest','minorheal'],['priest','blessing'],['mage','blink'],['mage','shieldcircle']]){if(!SPELLS[id])continue;const a=tryAt(c,id,inT.x,inT.y);if(!a.went)bad.push(id+' 마을 안에서 안 됨')}
+  qOk(!bad.length,bad.join(', '));return '공격 8가지 막힘 · 치유 · 강화 · 순간이동 · 보호막 됨'});
+qT('드랍 v24','장비 드롭 1/5: 일반 몬스터 10%→2% · 정예 1.5개→0.3개 · 던전 보스는 보장 2개 그대로(덤만 1/5) · 파티 보너스 그대로 · 아이템 하나의 등급 확률 그대로',()=>{qPrep('mage',{lvl:50});const jk=junkKeep;junkKeep=it=>!!it;let a=0,b=0,bo=[];
+  try{QA.reseed(2424);const N=20000;for(let i=0;i<N;i++){loot.length=0;const e=qDummy(P.x+100,P.y);e.lvl=50;e.elite=false;rewardKill(e);a+=loot.filter(l=>l.kind==='item').length}
+    const M=4000;for(let i=0;i<M;i++){loot.length=0;const e=qDummy(P.x+100,P.y);e.lvl=50;e.elite=true;rewardKill(e);b+=loot.filter(l=>l.kind==='item').length}
+    const D0=DG;DG={d:{id:'qa_none',n:'Q'},portals:[],ci:-5};try{const bk=Object.keys(TYPES).find(k=>TYPES[k].boss&&!TYPES[k].mini);for(let i=0;i<600;i++){loot=[];dgBossDrop({k:bk,x:P.x,y:P.y,lvl:50,r:30});bo.push(loot.filter(l=>l.kind==='item').length)}}finally{DG=D0}
+    loot.length=0;qClear();qOk(Math.abs(a/N-.02)<.004,`일반 ${qR(a/N*100)}%`);qOk(Math.abs(b/M-.3)<.04,`정예 ${qR(b/M)}개`);
+    qOk(bo.every(n=>n>=2),'보스 보장 2개가 빠짐');const ex=bo.reduce((x,n)=>x+n-2,0)/bo.length;qOk(ex<.3,`보스 덤 ${qR(ex)}개`)}finally{junkKeep=jk;loot=[]}
+  return `일반 ${qR(a/20000*100)}% · 정예 ${qR(b/4000)}개 · 보스 ${qR(bo.reduce((x,n)=>x+n,0)/bo.length)}개`});
+qT('스킬 창 v24','아래 단축칸(화면 아래)에 마우스를 올려도 스킬 트리와 같은 설명 상자 · 빈 칸이면 안 뜸 · 다시 그려도 같은 칸에 붙음 · 휴대폰 손가락은 안 띄움(바로 시전)',()=>{qPrep('mage',{lvl:30});P.sk.firebolt=3;P.bar=Array(21).fill(null);P.bar[2]='firebolt';buildBar();
+  const tip=()=>document.getElementById('sktip'),over=(el,pt)=>el.dispatchEvent(new PointerEvent('pointerover',{bubbles:true,pointerType:pt||'mouse'}));
+  const b=document.querySelector('#bar button[data-slot="2"]');over(b);qOk(tip()&&!tip().hidden&&tip().textContent.includes(SPELLS.firebolt.n)&&/스킬 레벨 3/.test(tip().textContent),'안 뜸');
+  const html=window.__sk23.sk23TipHtml('firebolt');qOk(tip().innerHTML===html,'트리 설명과 다름');const r=tip().getBoundingClientRect();qOk(r.top>=0&&r.bottom<=innerHeight+1&&r.right<=innerWidth+1,'화면 밖');
+  buildBar();qOk(!tip().hidden&&window.__sk23.SK23.cur&&window.__sk23.SK23.cur.isConnected,'다시 그리면 사라짐');
+  over(document.querySelector('#bar button[data-slot="7"]'));qOk(tip().hidden,'빈 칸인데 뜸');over(document.body);sk23Hide();
+  over(b,'touch');qOk(tip().hidden,'손가락에 뜸');P.bar=Array(21).fill(null);buildBar()});
+qT('이동 속도 v24','새 장비에 「이동 속도 %」 옵션이 가끔(마법 · 희귀 · 세트) · 마법 · 희귀 값 2~6%(두 번 뽑혀도 그 레벨 최대값까지) · 네 직업 모두 · 강화+장비 합계 최대 +50%',()=>{const out=[],bad=[];
+  for(const c of ['mage','priest','warrior','archer']){qPrep(c,{lvl:60});QA.reseed(2400+c.length);let n=0,got=0,lo=99,hi=0;
+    for(let i=0;i<4000;i++){const it=makeItem(i%2?30:100,i%3===0);if(it.rar<1||it.rar>2)continue;n++;const v=it.stats.ms;if(v){got++;lo=Math.min(lo,v);hi=Math.max(hi,v)}}
+    const pr=got/n;if(!(pr>.05&&pr<.4))bad.push(`${c} ${qR(pr*100)}%`);if(got&&!(lo>=2&&hi<=6))bad.push(`${c} 값 ${lo}~${hi}`);out.push(`${c} ${Math.round(pr*100)}% (${lo}~${hi}%)`)}
+  qPrep('mage',{lvl:60});const g0=P.gear.amulet;try{P.gear.amulet={id:9e6,slot:'amulet',rar:2,name:'qa',il:60,stats:{ms:5,regen:1},cls:'mage'};qOk(Math.abs(spdMul()-1.05)<1e-9,'장비 5% → '+spdMul());
+    P.gear.amulet={...P.gear.amulet,id:9e6+1,stats:{ms:40}};P.buffs={qa:{t:99,spd:.6}};qOk(Math.abs(spdMul()-1.5)<1e-9,'상한 '+spdMul())}finally{P.gear.amulet=g0;P.buffs={}}
+  qOk(STATN.ms&&/이동/.test(STATN.ms),'이름');qOk(!bad.length,bad.join(', '));return out.join(' · ')});
+qT('퀘스트 몹 v24','하고 있는 의뢰의 처치 · 모으기 대상이 지금 지역 몬스터면 새로 생기는 몬스터의 40% 넘게가 그 몬스터(황금 평원 폭풍 정령 · 입구 근처에서도) · 의뢰가 없거나 다 채우면 예전대로',()=>{qPrep('mage',{lvl:35});qWxTo('plains');
+  const T=TOWNS[0],run=N=>{const c={};for(let i=0;i<N;i++){enemies.length=0;P.x=T.x+700;P.y=T.y;spawnEnemy();const e=enemies[0];if(e)c[e.k]=(c[e.k]||0)+1}enemies.length=0;return c};
+  const s=sqState(),had=s.a.ctm5;QA.reseed(2433);const c0=run(600);let c1,c2;
+  try{s.a.ctm5={c:{},got:[]};qOk(q24Targets().has('p_storm'),'대상 목록');QA.reseed(2433);c1=run(600);s.a.ctm5={c:{g0:99},got:[]};QA.reseed(2433);c2=run(600)}finally{if(had)s.a.ctm5=had;else delete s.a.ctm5}
+  const n=c=>Object.values(c).reduce((a,b)=>a+b,0),r=c=>(c.p_storm||0)/Math.max(1,n(c));
+  qOk(n(c1)>300,'생김 '+n(c1));qOk(r(c1)>=.4,`의뢰 중 폭풍 정령 ${qR(r(c1)*100)}%`);qOk(r(c1)>r(c0)+.25,'늘지 않음');qOk(Math.abs(r(c2)-r(c0))<.05,`다 채운 뒤 ${qR(r(c2)*100)}% vs ${qR(r(c0)*100)}%`);
+  const st=enemies.length;qOk(st===0,'정리');loadRegion('home');return `폭풍 정령: 의뢰 없을 때 ${Math.round(r(c0)*100)}% → 의뢰 중 ${Math.round(r(c1)*100)}%`});
+qT('설정 v24','위 단추 줄: 스킬 트리 · 캐릭터 · 지도는 그대로, 「설정 ⚙」 하나 안에 그래픽 품질 · 프레임 상한 · 화면 · 소리 · 패치노트 (예전 단추는 줄에서 숨김 · 목록에서 열림) · 품질 낮음=효과 단계 0 · 화소 비율 1 · 보통은 1까지 · 30프레임에서 일부러 쉰 시간은 느림으로 안 침 · arseia-gfx 한 키에만',()=>{qPrep('mage');const bad=[],g0={...GFX},l0=Q.lvl;
+  try{const vis=id=>{const e=document.getElementById(id);return !!(e&&getComputedStyle(e).display!=='none')};
+    for(const id of ['treeBtn','charBtn','mapBtn','setBtn'])if(!vis(id))bad.push(id+' 안 보임');for(const id of ['gfxBtn','auBtn','patchBtn'])if(vis(id))bad.push(id+' 줄에 남음');
+    $('#setBtn').click();const el=$('#set24');if(!el||el.hidden)bad.push('목록이 안 열림');else{for(const k of ['auto','high','mid','low'])if(!el.querySelector(`[data-s24q="${k}"]`))bad.push('품질 '+k);for(const k of ['30','60'])if(!el.querySelector(`[data-s24f="${k}"]`))bad.push('프레임 '+k);
+      const r=el.getBoundingClientRect();if(r.left<0||r.right>innerWidth+1||r.bottom>innerHeight+1)bad.push('화면 밖')}
+    el.querySelector('[data-s24go="auBtn"]').click();if(!el.hidden||!$('#auPanel')||$('#auPanel').hidden)bad.push('소리 창');$('#auPanel').hidden=true;
+    $('#setBtn').click();el.querySelector('[data-s24go="gfxBtn"]').click();if(!$('#gfxPanel')||$('#gfxPanel').hidden)bad.push('화면 창');else $('#gfxPanel').hidden=true;
+    $('#setBtn').click();el.querySelector('[data-s24q="low"]').click();if(GFX.q!=='low'||Q.lvl!==0||gfxDprCap()!==1)bad.push(`낮음 ${GFX.q} ${Q.lvl} ${gfxDprCap()}`);for(let i=0;i<600;i++)Q.tick(8);if(Q.lvl!==0)bad.push('낮음인데 올라감');
+    {const gs=localStorage.getItem('arseia-gfx')||'';if(!/"q":"low"/.test(gs))bad.push('저장 '+gs)}
+    el.querySelector('[data-s24q="mid"]').click();for(let i=0;i<1200;i++)Q.tick(8);if(Q.lvl!==1||gfxDprCap()!==1.25)bad.push(`보통 ${Q.lvl}`);
+    el.querySelector('[data-s24q="auto"]').click();el.querySelector('[data-s24f="30"]').click();if(GFX.fps!==30||frameCapMs()<33)bad.push('프레임');Q.lvl=2;Q.ema=16.7;for(let i=0;i<300;i++)Q.tick(qTickMs(33.4));if(Q.lvl!==2)bad.push('30프레임을 느림으로 침 '+Q.lvl);
+    document.body.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true}));if(!el.hidden)bad.push('바깥을 눌러도 안 닫힘')}
+  finally{Object.assign(GFX,g0);gfxSave();Q.lvl=l0;Q.apply();resize();set24Open(false)}
+  qOk(!bad.length,bad.join(', '));return '설정 목록 · 품질 4단계 · 프레임 60/30'});
+qT('소리 v24','연달아 쓴 마법 효과음이 안 씹힘: 체인 라이트닝 → 스파크 체인을 몬스터 무리 속(맞는 소리 · 쓰러지는 소리 가득)에서 0.1초 간격으로 10번 번갈아 써도 시전 소리가 모두 남 · 많이 겹치는 소리는 20개까지 · 끝난 소리는 수에서 빠짐(onended를 못 받아도)',()=>{
+  const k0={on:AU.on,ctx:AU.ctx,ends:AU.ends.slice(),last:new Map(AU.last)};const bad=[];let cast=0,want=0,low=0;
+  try{const C={state:'running',currentTime:100};AU.ctx=C;AU.on=true;AU.ends.length=0;AU.last.clear();
+    for(let i=0;i<20;i++){C.currentTime=100+i*.1;
+      for(let h=0;h<12;h++){const k=['hitstorm','hitfire','die','thud','gold'][h%5];AU.last.delete(k);if(auGo(k,.045)){low++;AU.ends.push(C.currentTime+.6)}}// 무리 속: 맞는 소리 · 쓰러짐이 계속 쌓임
+      const id=i%2?'static':'chainlightning';want++;if(auGo('cast'+id,.06)){cast++;for(let n=0;n<6;n++)AU.ends.push(C.currentTime+.5)}else bad.push(`${i}번째 ${id} 씹힘(울리는 소리 ${auBusy(C.currentTime)})`)}
+    if(!(auBusy(C.currentTime)<=60))bad.push('너무 많이 겹침 '+auBusy(C.currentTime));
+    // 끝난 소리는 수에서 빠짐: 1초 뒤에는 모두 끝남
+    C.currentTime+=5;if(auBusy(C.currentTime)!==0)bad.push('끝난 소리가 남음 '+auBusy(C.currentTime));
+    // 같은 마법을 같은 순간 두 번은 한 번만(겹침 방지 그대로)
+    AU.last.clear();if(!auGo('castspark',.06)||auGo('castspark',.06))bad.push('같은 순간 같은 소리');
+    if(!SPELLS.chainlightning||!SPELLS.static)bad.push('체인 라이트닝 · 스파크 체인 없음')}
+  finally{AU.on=k0.on;AU.ctx=k0.ctx;AU.ends.length=0;AU.ends.push(...k0.ends);AU.last=k0.last}
+  qOk(!bad.length,bad.slice(0,5).join(', '));return `시전 소리 ${cast}/${want} · 많이 겹치는 소리 ${low}개 울림(나머지는 묶임)`});
+qT('경험치 v24','의뢰 보상 경험치: 적정 레벨 50 이상인 모든 의뢰(주 의뢰 · 마을 의뢰 · 시험 · 3막 덤 포함)는 그 레벨 필요 경험치의 10% 미만 · 49레벨 이하는 예전 그대로 · 예: 60레벨 의뢰가 예전 약 70% → 10% 미만',()=>{const bad=[];let n=0,worst=0,wq='';
+  for(const q of QUESTS){if(!q.rw||!q.lvl)continue;const f=qXp(q)/xpNeed(q.lvl);if(q.lvl>=50){n++;if(!(f<.1))bad.push(`주 의뢰 ${q.t} ${qR(f*100)}%`);if(f>worst){worst=f;wq=q.t}}else if(qXp(q)!==Math.round(xpNeed(q.lvl)*.45*q.rw.xp))bad.push('49 이하 바뀜 '+q.t)}
+  for(const q of SQ){if(!q.rw||!q.lvl)continue;const f=sqXp(q)*(q.a3?1.5:1)/xpNeed(q.lvl);if(q.lvl>=50){n++;if(!(f<.1))bad.push(`${q.t} ${qR(f*100)}%`);if(f>worst){worst=f;wq=q.t}}else if(sqXp(q)!==Math.round(xpNeed(q.lvl)*.3*q.rw.xp))bad.push('49 이하 바뀜 '+q.t)}
+  // 실제로 받기: 60레벨 마을 의뢰 하나를 마치면 막대가 10% 미만 오름
+  const q=SQ.find(q=>q.lvl>=58&&q.lvl<=62&&q.rw&&!q.a3&&!q.cls);qPrep('mage',{lvl:q.lvl});P.xp=0;const s=sqState();s.a[q.id]={c:{},got:[]};q.goals.forEach((g,j)=>{s.a[q.id].c['g'+j]=99;if(g.type==='talk'||g.type==='reach')s.a[q.id].c['g'+j]=1});
+  const ok=typeof sqAllDone==='function'?sqAllDone(q):true;if(ok){sqFinish(q.id);const f=P.xp/xpNeed(q.lvl);if(!(P.lvl===q.lvl&&f>0&&f<.1))bad.push(`받기 ${q.t}: Lv${P.lvl} ${qR(f*100)}%`)}
+  qOk(n>20,'50 이상 의뢰 '+n);qOk(!bad.length,bad.slice(0,6).join(', '));return `50 이상 ${n}개 · 가장 큰 「${wq}」 ${qR(worst*100)}%`});
+/* ===== v24 밀림(「게임 최적화 방안」 스레드): 느린 프레임에서도 게임 시간이 실제 시간만큼 흐른다 (예전에는 한 프레임 0.05초까지만 → 슬로 모션) · 프레임 상한 ===== */
+qT('성능','v24 느린 프레임(0.2초)에도 게임 시간이 0.2초 흐름 · 0.05초 조각 4번 · 0.25초 넘는 멈춤은 잘라 냄 · 절전 30fps 상한 · 낮음은 빛과 안개 끔',()=>{qPrep('mage');const pv=paused;paused=false;
+  try{const t0=time,n=stepSim(.2),d1=time-t0;qOk(Math.abs(d1-.2)<1e-6,`0.2초 프레임에 게임 시간 ${d1.toFixed(3)}초`);qOk(n===4,`update ${n}번 (4번이어야)`);
+    const t1=time,n2=stepSim(.016);qOk(n2===1&&Math.abs(time-t1-.016)<1e-6,'보통 프레임은 update 한 번');
+    const f0=GFX.fps;GFX.fps=30;const c30=frameCapMs();GFX.fps=0;const c0=frameCapMs();GFX.fps=f0;qOk(c30>33&&c0<17,`상한 ${c30}/${c0}ms`);
+    {const q0=GFX.q,f0=GFX.fog;try{GFX.fog=true;GFX.q='low';const lo=fogOn();GFX.q='auto';const au=fogOn();qOk(!lo&&au,`빛과 안개 낮음 ${lo} · 자동 ${au}`)}finally{GFX.q=q0;GFX.fog=f0}}
+    return `0.2초 → ${d1.toFixed(3)}초 · update ${n}번 · 상한 60/30`}finally{paused=pv;qClear()}});
+/* ===== v24 스킬 설명 점검 (사용자 06:47 「패시브에 재사용이 붙어 있음 · 앰플리파이드 그레이스는 레벨마다 얼마나 오르는지 안 나옴」) ===== */
+qT('스킬 설명 v24','4직업 모든 스킬의 스킬 창 설명 · 설명 상자: 패시브에는 재사용 · 마나가 없음 · 패시브 값마다 이름 · 단위가 있는 줄(영어 이름 없음)이고 지금 값이 실제 값과 같음 · 「레벨마다(3차는 1점마다)」 줄이 실제로 오르는 양과 같음 · 다른 스킬은 재사용 · 시전 시간이 이번 판 실제 값과 같음',()=>{
+  const bad=[],num=t=>{const m=String(t).match(/-?[\d.]+/);return m?+m[0]:NaN},near=(a,b)=>Math.abs(a-b)<=(Math.abs(b)<1?.006:.051)/* 화면은 1보다 작으면 소수 두 자리, 그 밖은 한 자리 */;let np=0,na=0;
+  const val=(k,v)=>TIP24.FLAT[k]?v:(k==='j3castCut'?-v*100:v*100);
+  for(const cls of ['mage','priest','warrior','archer']){qPrep(cls,{lvl:140});
+    for(const id in SPELLS){const s=SPELLS[id];if(s.cls!==cls||s.hidden)continue;const L=s.job3?6:5;P.sk[id]=L;nodeSel=id;
+      const dh=detailHtml(id),tip=sk23TipHtml(id),sub=(dh.match(/<div class="sub">([\s\S]*?)<\/div>/)||[])[1]||'',tsub=(tip.match(/<div class="st-s">([\s\S]*?)<\/div>/)||[])[1]||'',rows=numsAt(id,skLv(id)),tag=`${s.n}(${id})`;
+      if(s.kind==='passive'){np++;if(/재사용/.test(sub)||/재사용/.test(tsub))bad.push(tag+' 재사용 표시');if(rows.some(r=>r[0]==='마나'))bad.push(tag+' 마나 줄');
+        const e=eff(id,skLv(id));for(const k in s.pv||{}){const r=rows.find(r=>r[0]===tip24Row(cls,k,e[k])[0]);if(!r||r[0]===k){bad.push(`${tag} ${k} 줄 없음`);continue}if(!near(num(r[1]),val(k,e[k])))bad.push(`${tag} ${k} ${r[1]}≠${val(k,e[k])}`)}
+        const e2=eff(id,skLv(id)+tip24Step(id)),steps=Object.keys(s.pv||{}).filter(k=>e2[k]-e[k]>1e-9),pr=rows.find(r=>r[0]==='레벨마다'||r[0]==='1점마다');
+        if(steps.length&&!pr)bad.push(tag+' 레벨마다 줄 없음');else if(steps.length===1&&!near(num(pr[1]),val(steps[0],e2[steps[0]]-e[steps[0]])))bad.push(`${tag} 레벨마다 ${pr[1]}`);
+        if(id==='graceamp'&&!(pr&&/0\.6%/.test(pr[1])))bad.push('앰플리파이드 그레이스 레벨마다 '+(pr&&pr[1]));}
+      else{na++;const cd=Math.round(cdOf(id)*100)/100,m=sub.match(/재사용 ([\d.]+)초/),m2=tsub.match(/재사용 ([\d.]+)초/);if(!m||+m[1]!==cd||!m2||+m2[1]!==cd)bad.push(`${tag} 재사용 ${m&&m[1]}/${m2&&m2[1]}≠${cd}`);
+        const ct=typeof castTimeOf==='function'?castTimeOf(id):0;if(ct>0&&!s.charge&&(!sub.includes(`시전 ${ct}초`)||!tsub.includes(`시전 ${ct}초`)))bad.push(`${tag} 시전 ${ct}초 안 보임`)}}}
+  qOk(np>=40&&na>200,`패시브 ${np} · 그 밖 ${na}`);qOk(!bad.length,bad.slice(0,12).join(' / ')+(bad.length>12?` 외 ${bad.length-12}개`:''));return `패시브 ${np}개 · 그 밖 ${na}개 모두 맞음`});
 function qaOverlay(res,sum,done){let el=document.getElementById('qaOverlay');
   if(!el){el=document.createElement('div');el.id='qaOverlay';el.setAttribute('role','region');el.setAttribute('aria-label','자가 점검 결과');document.body.appendChild(el);
     const st=document.createElement('style');st.textContent=`#qaOverlay{position:fixed;inset:12px;z-index:99999;background:rgba(10,9,8,.96);border:1px solid #5c4a2e;border-radius:6px;color:#ece4d0;font:12px/1.35 "Gowun Dodum",sans-serif;overflow:auto;padding:10px 14px;box-shadow:0 8px 40px #000}
@@ -3838,8 +3995,8 @@ qT('3차 전직 v20','기본 값: 최고 레벨 140 · 3차 갈래 8개(2차 갈
   qOk(skMax('spark')===MAXSK&&!isJ3('spark'),'1차 최대 점수');
   qPrep('mage',{lvl:100});P.job2='archmage';const t2=job2Title();qOk(t2!=='대마법사','전직 전 3차 칭호');P.job3='archsorcerer';qOk(job2Title()==='대마법사','3차 칭호 '+job2Title());P.job3='spiritking';qOk(job2Title()!=='정령왕의 계약자'||JOB3_OF[P.job2]==='spiritking','맞지 않는 갈래의 칭호');
   return `3차 기술 ${J3_SPELLS.length}개 · ${Object.values(T).join(' / ')}`});
-qT('3차 전직 v20','레벨 100→140: 100→140은 60→100의 약 1.5배 사냥(같은 레벨 몬스터) · 필요 경험치는 늘기만 함 · 100 위로 레벨마다 스킬 포인트 2점 · 140에서 멈춤 · 100레벨에 3차 전직 알림',()=>{const kx=l=>1+.35*(l-1);let a=0,b=0;
-  for(let l=60;l<100;l++)a+=xpNeed(l)/kx(l);for(let l=100;l<MAXLV;l++)b+=xpNeed(l)/kx(l);const r=b/a;qOk(r>1.4&&r<1.6,`배율 ${qR(r)}`);for(let l=99;l<MAXLV-1;l++)qOk(xpNeed(l+1)>xpNeed(l),`Lv${l}→${l+1}`);
+qT('3차 전직 v20','레벨 100→140: 100→140은 60→100의 약 1.5배(v24부터 약 1.9배) 사냥(같은 레벨 몬스터) · 필요 경험치는 늘기만 함 · 100 위로 레벨마다 스킬 포인트 2점 · 140에서 멈춤 · 100레벨에 3차 전직 알림',()=>{const kx=l=>1+.35*(l-1);let a=0,b=0;
+  for(let l=60;l<100;l++)a+=xpNeed(l)/kx(l);for(let l=100;l<MAXLV;l++)b+=xpNeed(l)/kx(l);const r=b/a;qOk(r>1.4&&r<2.1,`배율 ${qR(r)}`);/* v24(사용자 05:06): 높은 레벨일수록 필요 경험치를 더 늘림(100레벨 ×8 → 140레벨 ×10) → 예전 1.5배에서 약 1.9배 */for(let l=99;l<MAXLV-1;l++)qOk(xpNeed(l+1)>xpNeed(l),`Lv${l}→${l+1}`);
   qPrep('mage',{lvl:99});P.job2='archmage';P.sp=0;P.ap=0;P.xp=0;gainXp(xpNeed(99));qOk(P.lvl===100&&P.sp===1&&P.ap===5,`99→100: sp${P.sp} ap${P.ap}`);gainXp(xpNeed(100));qOk(P.lvl===101&&P.sp===3&&P.ap===10,`100→101: sp${P.sp} ap${P.ap}`);
   gainXp(1e13);qOk(P.lvl===140&&P.xp===0&&P.sp===3+39*2,`140: Lv${P.lvl} sp${P.sp} xp${P.xp}`);gainXp(1e9);qOk(P.lvl===140&&P.xp===0,'140에서 더 오름');
   qPrep('mage',{lvl:99});P.job2='archmage';P.xp=0;const n0=$('#log').textContent.length;gainXp(xpNeed(99));

@@ -4,7 +4,8 @@
    - 「화면」 설정 「그림: 새 그림 / 예전 그림」. 파일이 없거나 못 불러오면 예전 코드 그림 그대로.
    - 그림만 바뀐다: 크기·충돌·적중·수치·저장은 그대로. */
 const FL={P:{},want:{},mk:{},gtx0:{},tint:new Map()};
-window.FLARE_PACK=function(name,meta,url){const im=new Image();im.onload=()=>{FL.P[name]={img:im,meta};flReady(name)};im.onerror=()=>{FL.want[name]='fail'};im.src=url};
+// [f7r] 그림을 미리 풀어 둔 뒤(decode) 쓴다: 처음 그리는 프레임에서 멈칫하지 않게
+window.FLARE_PACK=function(name,meta,url){const im=new Image();const ok=()=>{if(FL.P[name])return;FL.P[name]={img:im,meta};flReady(name)};im.onload=()=>{im.decode?im.decode().then(ok,ok):ok()};im.onerror=()=>{FL.want[name]='fail'};im.src=url};
 function flWant(){return GFX.art!=='old'}
 // 묶음 하나 받기 (한 번만). #qa에서는 받지 않는다.
 function flNeed(name){if(FL.want[name]||!flWant()||location.hash==='#qa')return;FL.want[name]=1;const s=document.createElement('script');s.src='img/flare-'+name+'.js';s.onerror=()=>{FL.want[name]='fail'};document.head.appendChild(s)}
@@ -12,7 +13,18 @@ function flPack(name){return flWant()&&FL.P[name]||null}
 // 지역 → 장식 묶음
 const FLTH={moss:'grass',meadow:'grass',lush:'grass',beach:'grass',snow:'snow'};
 function flRegPack(){if(DG||!REG)return null;if(REG.id==='home')return 'grass';const R=REGIONS[REG.id],p=R&&R.th&&R.th.paint;return FLTH[p]||null}
-function flLoad(){const p=flRegPack();if(p)flNeed(p)}
+function flLoad(){const p=flRegPack();if(p)flNeed(p);flLoadTheme()}
+// [f7r] 지역 테마 → 찾을 묶음 차례. 앞 묶음에 있는 종류가 먼저 (들판의 덤불은 금빛 meadow 것)
+const FLTH2={moss:'lush',meadow:'meadow',lush:'lush',beach:'beach',sand:'sand',lava:'ember',snow:'snow'};
+const FLTP={home:['grass','lush'],meadow:['meadow','grass','snow'],lush:['lush','grass'],beach:['grass','sand'],sand:['sand'],ember:['ember'],snow:['snow','frost']};
+// 새 묶음에 든 종류 (묶음을 받기 전에 어느 묶음이 필요한지 알아야 한다)
+const FLNEW={meadow:['oak','windtree','wheat','flowers','ruinpillar','bones','searock','hbush'],lush:['oak','jungletree','bigleaf','mushroom','templestone','ruinpillar','tomb','wheat'],
+  sand:['sandrock','rock','bones','ruinpillar','obsidian','searock'],ember:['lavarock','obsidian','ashtree','rock','bones','ruinpillar','templestone','sandrock','hbush'],frost:['frozenbones','ruinpillar']};
+function flTheme(){if(DG||!REG)return null;if(REG.id==='home')return 'home';const R=REGIONS[REG.id],p=R&&R.th&&R.th.paint;return FLTH2[p]||null}
+const FLKM={};
+function flKM(th){let m=FLKM[th];if(m)return m;m=FLKM[th]={};for(const pn of FLTP[th]){if(FLSP[pn]){for(const k in FLSP[pn])if(!(k in m))m[k]=[pn,FLSP[pn][k]]}else for(const k of FLNEW[pn])if(!(k in m))m[k]=[pn,null]}return m}
+// 지역에 들어서면 그 지역 장식이 쓰는 묶음을 미리 받는다
+function flLoadTheme(){const th=flTheme();if(!th||!flWant())return;const m=flKM(th),need=new Set();for(const d of decor){const e=m[d.k];if(e)need.add(e[0])}for(const pn of need)flNeed(pn)}
 function flDraw(c,PK,key,x,y,k){const r=PK.meta.r[key];if(!r)return false;c.drawImage(PK.img,r[0],r[1],r[2],r[3],x-r[4]*k,y-r[5]*k,r[2]*k,r[3]*k);return true}
 // 땅 무늬: 색은 지역 색이 입히므로 무늬는 채널마다 평균 128로 맞춘 명암만 쓴다 (gtexPaint와 같은 모양 {rgb,h,cv})
 function flTex(PK,name){const r=PK.meta.r['tex/'+name];if(!r)return null;const cv=document.createElement('canvas');cv.width=cv.height=256;const g=cv.getContext('2d');g.drawImage(PK.img,r[0],r[1],r[2],r[3],0,0,256,256);
@@ -25,20 +37,33 @@ function flGround(){for(const p in FLTEX)for(const n of FLTEX[p]){if(!(n in FL.g
 function flReady(name){const PK=FL.P[name];
   // 몬스터 크기: 서 있는 앞모습 높이를 우리 그림 높이(MON_H)에 맞춘다
   for(const k in PK.meta.mon||{}){const f=PK.meta.mon[k].stance.f[0][6],r=PK.meta.r[f];FL.mk[k]=MON_H[FLMH[k]]*1.3*(FLK[k]||1)/r[5]}
-  if(PK.meta.tex&&Object.keys(PK.meta.tex).length)flGround();flCredit()}
+  if(PK.meta.tex&&Object.keys(PK.meta.tex).length)flGround();else if(PK.meta.sp&&!PK.meta.mon)flIsoStale();flCredit()}
 function flCredit(){const el=document.getElementById('auCredits');if(!el||el.querySelector('.flcr'))return;const p=document.createElement('p');p.className='muted flcr';p.style.cssText='font-size:12px;margin:4px 0 0';
-  p.textContent='들판·눈 지역·마을 소품·몬스터 일부 그림: Flare (flarerpg.org) — Clint Bellanger, Justin Nichol 외 (CC-BY-SA 3.0)';el.appendChild(p)}
+  p.textContent='모든 바깥 지역의 나무·바위·석상 등 장식(지역 색으로 다시 칠함)·눈 지역·마을 소품·몬스터 일부 그림: Flare (flarerpg.org) — Clint Bellanger, Justin Nichol 외 (CC-BY-SA 3.0)';el.appendChild(p)}
 // 장식: 우리 장식 종류 → [묶음 안 종류, 높이 배율(0이면 고정 높이), 고정 높이]
 const FLSP={
   grass:{htree:['htree',1],hbirch:['hbirch',1],hpine:['hpine',1],hdead:['hdead',1],hbush:['hbush',1.05],tree:['htree',1],bush:['hbush',1],
     fern:['fern2',0,22],rock:['rock',0,30],mossrock:['rock',0,34],stump:['stump',0,34]},
   snow:{snowpine:['snowpine',1],hpine:['snowpine',1],htree:['sdead',1],hdead:['sdead',1],tree:['sdead',1],hbush:['hbush',1],bush:['hbush',1],
     iceboulder:['iceboulder',0,40],rock:['rock',0,32],stump:['stump',0,34]}};
-function flDecor(c,d,x,y,k){const pn=flRegPack();if(!pn)return false;const PK=flPack(pn);if(!PK){flNeed(pn);return false}const m=FLSP[pn][d.k];if(!m)return false;const L=PK.meta.sp[m[0]];if(!L)return false;
-  const key=L[Math.floor((d.v||0)*L.length*.999)],r=PK.meta.r[key];
-  const df=RD.D[d.k],H=m[2]||(df?df.h*.92*m[1]:60),s=H/r[3]*(d.s||1)*(k||1);return flDraw(c,PK,key,x,y,s)}
-{const _rd=RD.draw;RD.draw=function(c,d,x,y,k,t){if(flWant()&&flDecor(c,d,x,y,k))return true;return _rd.apply(this,arguments)}}
-{const _dd=drawDecor;drawDecor=function(d){if(flWant()&&!RD.D[d.k]&&flDecor(ctx,d,d._s.x,d._s.y,1))return;return _dd.apply(this,arguments)}}
+function flDecor(c,d,x,y,k,t){const th=flTheme();if(!th)return false;const e=flKM(th)[d.k];if(!e)return false;const PK=flPack(e[0]);if(!PK){flNeed(e[0]);return false}
+  if(e[1]){const m=e[1],L=PK.meta.sp[m[0]];if(!L)return false;const key=L[Math.floor((d.v||0)*L.length*.999)],r=PK.meta.r[key];
+    const df=RD.D[d.k],H=m[2]||(df?df.h*.92*m[1]:60),s=H/r[3]*(d.s||1)*(k||1);return flDraw(c,PK,key,x,y,s)}
+  const L=PK.meta.sp[d.k];if(!L)return false;const vi=Math.floor((d.v||0)*L.length*.999),key=L[vi],s=PK.meta.z[d.k]*(d.s||1)*(k||1);
+  flDraw(c,PK,key,x,y,s);if(t&&FLFX[d.k]&&!(typeof Q!=="undefined"&&Q.lvl===0))FLFX[d.k](c,d,x,y,s,t);return true}
+// [f7r] 매 프레임 덧빛 (가산 합성 한두 장): 버섯·용암 바위·숯 나무는 은은히 빛나고, 바다 바위엔 물거품 고리. 그래픽 품질 「낮음」(Q.lvl===0)이면 생략
+const FLFXC=['#7affe8','#c890ff','#7ab8ff'];
+const FLFX={
+  mushroom(c,d,x,y,s,t){const i=d.v<.34?0:d.v<.67?1:2;c.globalCompositeOperation='lighter';c.globalAlpha=.32+.18*Math.sin(t*1.6+d.v*9);c.drawImage(Kit.glowCv(FLFXC[i]),x-34*s,y-50*s,68*s,52*s);c.globalAlpha=1;c.globalCompositeOperation='source-over'},
+  lavarock(c,d,x,y,s,t){c.globalCompositeOperation='lighter';c.globalAlpha=.16+.14*Math.sin(t*2.4+d.v*9);c.drawImage(Kit.glowCv('#ff6a1a'),x-34*s,y-26*s,68*s,34*s);c.globalAlpha=1;c.globalCompositeOperation='source-over'},
+  ashtree(c,d,x,y,s,t){c.globalCompositeOperation='lighter';c.globalAlpha=.22+.14*Math.sin(t*2+d.v*9);c.drawImage(Kit.glowCv('#ff5a1a'),x-18*s,y-12*s,36*s,16*s);c.globalAlpha=1;c.globalCompositeOperation='source-over'},
+  searock(c,d,x,y,s,t){const p=(t*.4+d.v)%1;c.strokeStyle='rgba(240,250,255,'+(.5*(1-p))+')';c.lineWidth=1.2*s;c.beginPath();c.ellipse(x,y+2*s,(26+p*10)*s,(6+p*3)*s,0,0,6.283);c.stroke()}};
+{const _rd=RD.draw;RD.draw=function(c,d,x,y,k,t){if(flWant()&&flDecor(c,d,x,y,k,t))return true;return _rd.apply(this,arguments)}}
+{const _dd=drawDecor;drawDecor=function(d){if(flWant()&&!RD.D[d.k]&&flDecor(ctx,d,d._s.x,d._s.y,1,time))return;return _dd.apply(this,arguments)}}
+// [f7r] 땅 조각에 함께 구운 낮은 장식(밀·꽃·뼈 …)은 새 묶음이 늦게 도착하면 예전 그림으로 남는다 → 낡았다고 표시해 두고 한 프레임에 두 조각씩만 다시 굽는다(한꺼번에 굽는 멈칫 없이)
+FL.ib=0;FL.ibF=-1;
+function flIsoStale(){for(const c of chunks.values())if(c.iso)c.iso.stale=1}
+{const _ib=isoBlit;isoBlit=function(c,cx,cy){if(c.iso&&c.iso.stale){if(FL.ibF!==frameN){FL.ibF=frameN;FL.ib=typeof Q!=="undefined"&&Q.lvl===0?1:2}if(FL.ib>0){FL.ib--;c.iso=null}}return _ib.apply(this,arguments)}}
 // 몬스터: 그림 종류(draw)마다 기본 Flare 몬스터, 몇몇 종류는 따로 (미라·익사자 → 좀비, 비룡 → 와이번, 모래 왕 → 해골 마법사)
 const FLDRAW={goblin:'goblin',skeleton:'skeleton',ogre:'ogre',scorpion:'antlion'};
 const FLTYPE={d_mummy:'zombie',s_drown:'zombie',b_mordun:'zombie',b_setra:'skelmage',t_drake:'wyvern',b_sarakus:'wyvern',m_broodguard:'wyvern',b_astrak:'wyvern'};
@@ -85,5 +110,7 @@ function flCabin(b){if(!FLCAB.has(b.st)||(b.towers&&b.towers.length)||b.big||b.t
     e={cv,w:r[2]*k,h:r[3]*k,ax:r[4]*k,ay:r[5]*k,win:[],smoke:null,sign:null,flag:null};FLCV.set(ck,e)}
   return e}
 {const _bs=twBldSprite;twBldSprite=function(b){if(flWant()){const e=flCabin(b);if(e)return e}return _bs.apply(this,arguments)}}
-window.__fl={FL,FLM,MON,MON_H,flGround,flRegPack};
+window.__fl={FL,FLM,MON,MON_H,flGround,flRegPack,flTheme,flKM};
+// [f7r] 지역을 옮기면 그 지역 묶음을 바로 받기 시작한다 (그리기 전에 도착하도록)
+{const _lr=loadRegion;loadRegion=function(){const r=_lr.apply(this,arguments);if(flWant()&&location.hash!=='#qa')flLoad();return r}}
 setTimeout(flLoad,0);

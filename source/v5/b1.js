@@ -6,9 +6,12 @@ const cv=$('#game'),ctx=cv.getContext('2d'),mm=$('#minimap'),mctx=mm.getContext(
 let W=0,H=0,DPR=1;
 const lc=document.createElement('canvas'),lctx=lc.getContext('2d');
 // [그래픽 v20] 화면 설정: 카메라 당기기(CZ 1 / 1.15) · 빛과 안개. 설정은 'arseia-gfx' 한 키에만 쓴다 (캐릭터 키는 건드리지 않음)
-const GFX={zoom:1,fog:true};try{const v=JSON.parse(localStorage.getItem('arseia-gfx')||'null');if(v&&typeof v==='object'){if(v.zoom===1.15)GFX.zoom=1.15;if(typeof v.fog==='boolean')GFX.fog=v.fog;if(v.art==='old')GFX.art='old'}}catch(_){}
+const GFX={zoom:1,fog:true,q:'auto',fps:0};try{const v=JSON.parse(localStorage.getItem('arseia-gfx')||'null');if(v&&typeof v==='object'){if(v.zoom===1.15)GFX.zoom=1.15;if(typeof v.fog==='boolean')GFX.fog=v.fog;if(v.art==='old')GFX.art='old';if(['auto','high','mid','low'].includes(v.q))GFX.q=v.q;if([0,60,30].includes(v.fps))GFX.fps=v.fps}}catch(_){}
+// v24 그래픽 품질(설정 단추): 보통은 화소 비율 1.25까지, 낮음은 1까지 (높음 · 자동은 예전대로 1.5)
+const fogOn=()=>GFX.fog&&GFX.q!=='low';// v24: 품질 「낮음」은 빛과 안개도 끈다 (켜기/끄기 저장값은 그대로)
+const gfxDprCap=()=>GFX.q==='low'?1:GFX.q==='mid'?1.25:1.5;
 let CZ=1;// 당기면 세계 좌표의 화면 크기(W,H)가 1/CZ로 줄고 DPR이 CZ배가 된다 → 캔버스 픽셀 수는 그대로
-function resize(){CZ=GFX.zoom;DPR=Math.min(1.5,window.devicePixelRatio||1)*CZ;const cw=cv.clientWidth||innerWidth,ch=cv.clientHeight||innerHeight;W=cw/CZ;H=ch/CZ;cv.width=Math.round(cw*DPR/CZ);cv.height=Math.round(ch*DPR/CZ);lc.width=Math.ceil(W/2);lc.height=Math.ceil(H/2)}
+function resize(){CZ=GFX.zoom;DPR=Math.min(gfxDprCap(),window.devicePixelRatio||1)*CZ;const cw=cv.clientWidth||innerWidth,ch=cv.clientHeight||innerHeight;W=cw/CZ;H=ch/CZ;cv.width=Math.round(cw*DPR/CZ);cv.height=Math.round(ch*DPR/CZ);lc.width=Math.ceil(W/2);lc.height=Math.ceil(H/2)}
 addEventListener('resize',resize);resize();
 const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const FONT=getComputedStyle(document.documentElement).getPropertyValue('--body')||'sans-serif',DISPLAY=getComputedStyle(document.documentElement).getPropertyValue('--display')||'serif';

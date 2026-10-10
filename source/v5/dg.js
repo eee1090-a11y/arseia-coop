@@ -153,7 +153,7 @@ function updateWarns(dt){for(const w of warns){w.t-=dt;if(w.t<=0&&!w.done){w.don
 function dgBossDrop(e){const t=TYPES[e.k],L=e.lvl,drop=(it)=>loot.push({x:e.x+rnd(-40,40),y:e.y+rnd(-40,40),kind:'item',item:it,t:0});
   loot.push({x:e.x,y:e.y,kind:'gold',amt:L*(t.boss?60:20),t:0});
   // v18: 상급 유니크는 보스 3마리 중 1마리꼴(지옥은 조금 더), 나머지 굴림도 유니크·세트가 덜 나옴
-  if(t.boss){const bu=R()<(P.diff===2?.45:P.diff===1?.38:.33);drop(makeItem(L,true,null,bu?'boss':R()<.5?'uniq':'set'));drop(makeItem(L,true,null,R()<.2?'uniq':R()<.25?'set':null));{const it=makeItem(L,true);if(junkKeep(it))drop(it)}
+  if(t.boss){const bu=R()<(P.diff===2?.45:P.diff===1?.38:.33);drop(makeItem(L,true,null,bu?'boss':R()<.5?'uniq':'set'));drop(makeItem(L,true,null,R()<.2?'uniq':R()<.25?'set':null));if(R()<DROP24){const it=makeItem(L,true);if(junkKeep(it))drop(it)}/* v24: 덤 한 개 1/5 */
     DG.bossDead=true;DG.portals.push({x:e.x,y:e.y+80,exit:1});banner={t:`${t.n} 쓰러짐`,sub:(bu?'상급 유니크가 떨어졌습니다':'전리품이 떨어졌습니다')+' · 빛나는 문으로 나갈 수 있습니다',col:'#ff8a3a',life:3,max:3};flash={col:'#ff8a3a',a:.3}}
-  else{drop(makeItem(L,true,null,R()<.12?'uniq':R()<.15?'set':null));{const it=makeItem(L,true);if(junkKeep(it))drop(it)}}/* v21: 덤 한 개는 잡템이면 줄임 */
+  else{drop(makeItem(L,true,null,R()<.12?'uniq':R()<.15?'set':null));if(R()<DROP24){const it=makeItem(L,true);if(junkKeep(it))drop(it)}}/* v24: 준보스 덤 1/5 *//* v21: 덤 한 개는 잡템이면 줄임 */
   msg(`${t.n}을(를) 쓰러뜨렸습니다!`,'#ff9a6a')}

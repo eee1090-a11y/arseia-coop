@@ -29,7 +29,7 @@ function sk23El(){let el=SK23.tip;if(el&&el.isConnected)return el;el=SK23.tip=do
 function sk23TipHtml(id){const s=SPELLS[id];if(!s)return '';const L=sk23Lv(id),mx=sk23Max(id),ci=typeof castInfo==='function'?castInfo(id,Math.max(1,skLv(id))):'';
   let h=`<div class="st-n">${s.n}${s.en?` <i>${s.en}</i>`:''}</div><div class="st-s">${[sk23Tier(s),KINDN[s.kind],ELN[s.el],s.kind==='passive'?'':`재사용 ${Math.round(cdOf(id)*100)/100}초`,ci].filter(Boolean).join(' · ')}</div>`;
   h+=`<div class="st-d">${s.desc||''}</div><div class="st-l">스킬 레벨 <b>${L}</b> / ${mx}${P.sk[id]?'':' · 아직 안 배움'}</div>`;
-  try{const cur=numsAt(id,Math.max(1,skLv(id))).slice(0,3);if(cur.length)h+=`<div class="st-x">${cur.map(([k,v])=>`${k} <b>${v}</b>`).join(' · ')}</div>`}catch(_){}
+  try{const cur=numsAt(id,Math.max(1,skLv(id))).slice(0,s.kind==='passive'?4:3);if(cur.length)h+=`<div class="st-x">${cur.map(([k,v])=>`${k} <b>${v}</b>`).join(' · ')}</div>`}catch(_){}
   const why=P.sk[id]>=mx?'':sk23Why(id);if(why&&SK23.cur&&SK23.cur.closest&&SK23.cur.closest('#pbody .tree, #pbody [data-node]'))h+=`<div class="st-w">${why}</div>`;
   return h}
 function sk23Show(t,id){if(!t||!SPELLS[id])return sk23Hide();const el=sk23El();SK23.cur=t;el.innerHTML=sk23TipHtml(id);el.hidden=false;
@@ -38,9 +38,11 @@ function sk23Show(t,id){if(!t||!SPELLS[id])return sk23Hide();const el=sk23El();S
   let x=Math.min(Math.max(m,r.left),Math.max(m,vw-m-w)),y=r.bottom+6;if(y+h>vh-m)y=r.top-h-14;if(y<m)y=Math.max(m,Math.min(vh-m-h,r.top));
   el.style.left=Math.round(x)+'px';el.style.top=Math.round(y)+'px';SK23.id=id;clearTimeout(SK23.hideT);if(SK23.pt!=='mouse')SK23.hideT=setTimeout(sk23Hide,4000)}
 function sk23Hide(){if(SK23.tip)SK23.tip.hidden=true;SK23.cur=null;SK23.id=null;clearTimeout(SK23.hideT)}
-const sk23IdOf=t=>{if(!t)return null;if(t.dataset.node)return t.dataset.node;if(t.dataset.dock!=null){const id=P&&P.bar[+t.dataset.dock];return id&&SPELLS[id]?id:null}return null};
+const sk23IdOf=t=>{if(!t)return null;if(t.dataset.node)return t.dataset.node;const k=t.dataset.dock!=null?t.dataset.dock:t.dataset.slot;if(k!=null){const id=P&&P.bar[+k];return id&&SPELLS[id]?id:null}return null};
+// v24(사용자 05:21): 화면 아래 단축칸에 마우스를 올려도 같은 설명 상자 (마우스만 · 휴대폰 단축칸은 누르면 바로 시전되므로 스킬 창 아래 칸을 눌러 봄)
+const sk23BarTgt=e=>e.target&&e.target.closest&&e.target.closest('#bar button[data-slot]');
 const sk23Tgt=e=>e.target&&e.target.closest&&e.target.closest('#pbody [data-node], #pbody [data-dock]');
-document.addEventListener('pointerover',e=>{SK23.pt=e.pointerType||'mouse';if(SK23.pt!=='mouse')return;const t=sk23Tgt(e);if(t===SK23.cur)return;if(!t){if(SK23.cur)sk23Hide();return}const id=sk23IdOf(t);if(id)sk23Show(t,id);else sk23Hide()});
+document.addEventListener('pointerover',e=>{SK23.pt=e.pointerType||'mouse';if(SK23.pt!=='mouse')return;const t=sk23Tgt(e)||sk23BarTgt(e);if(t===SK23.cur)return;if(!t){if(SK23.cur)sk23Hide();return}const id=sk23IdOf(t);if(id)sk23Show(t,id);else sk23Hide()});
 document.addEventListener('pointerdown',e=>{SK23.pt=e.pointerType||'mouse';if(SK23.pt==='mouse')return;const t=sk23Tgt(e);if(!t)sk23Hide()},true);
 // 휴대폰: 누르면 그 자리에 설명 (아이콘을 누르면 창이 다시 그려지므로 그린 뒤 새 아이콘에 붙인다)
 document.addEventListener('click',e=>{if(SK23.pt==='mouse')return;const t=sk23Tgt(e);if(!t)return;const id=sk23IdOf(t);if(!id)return;SK23.tapId=t.dataset.node?'n:'+t.dataset.node:'d:'+t.dataset.dock;SK23.tapT=performance.now();
@@ -57,3 +59,5 @@ body.m22 #pbody .nodeplus{width:32px!important;height:32px!important;font-size:2
 #sktip .st-n{font-size:14px;font-weight:700;color:#ffe2a0}#sktip .st-n i{font-weight:400;font-size:11px;color:#a39d8f}#sktip .st-s{font-size:11.5px;color:#c9b07a;margin:1px 0 4px}
 #sktip .st-d{margin-bottom:4px}#sktip .st-l b{color:#ffd76a}#sktip .st-x{color:#cfc6b2;font-size:12px}#sktip .st-x b{color:#fff}#sktip .st-w{margin-top:4px;color:#e0a070;font-size:12px}`;document.head.appendChild(st)}
 window.__sk23={SK23,sk23Plus,sk23Why,sk23Show,sk23Hide,sk23TipHtml};
+// v24: 단축칸을 다시 그리면(배우기 · 칸 바꾸기) 같은 칸의 새 단추에 설명 상자를 다시 붙이거나 닫는다
+{const _bb=buildBar;buildBar=function(){const r=_bb.apply(this,arguments);try{const c=SK23.cur;if(c&&!c.isConnected&&c.dataset&&c.dataset.slot!=null){const n=document.querySelector(`#bar button[data-slot="${c.dataset.slot}"]`),id=sk23IdOf(n);if(n&&id)sk23Show(n,id);else sk23Hide()}}catch(e){if(window.__QA)throw e}return r}}

@@ -149,7 +149,8 @@ const maxMp=()=>Math.round((20+P.lvl*5+P.st.spi*3)*CLASSES[P.cls].mp)+Math.round
 const power=()=>4+P.lvl*1.5+P.st.int+stat('int'),regen=()=>1+P.lvl*.12+P.st.spi*.06+stat('regen')+buffSum('regen'),critC=()=>.05+stat('crit')/100+Math.min(.3,buffSum('crit'));
 // 피해 증가 상한: 마법사 +80%, 사제 +60% (사제는 강화를 직접 거니 상한을 낮춘다). 갑옷의 피해 증가도 같은 상한 안에서 센다
 const DMGCAP={mage:.8,priest:.6},dmgCap=()=>DMGCAP[P.cls]||.8;
-const dmgMul=()=>1+Math.min(dmgCap(),buffSum('dmg')+(P.armor?P.armor.dmgB:0))-core21Pen()/* v21 시간의 길 −20% (builds21.js) */,spdMul=()=>1+Math.min(.6,buffSum('spd'))+Math.min(40,stat('ms'))/100;
+const dmgMul=()=>1+Math.min(dmgCap(),buffSum('dmg')+(P.armor?P.armor.dmgB:0))-core21Pen()/* v21 시간의 길 −20% (builds21.js) */,spdMul=()=>1+Math.min(SPD_CAP24,Math.min(.6,buffSum('spd'))+Math.min(40,stat('ms'))/100);// v24(사용자 05:24): 강화 · 장비를 다 합쳐 이동 속도 최대 +50%
+const SPD_CAP24=.5;
 // v17: 낮은 레벨일수록 더 많이 (1레벨 4배 → 30레벨 2배로 부드럽게 줄고, 30부터는 2배). 30에서 기울기까지 이어진다
 // 저레벨 4배 → 30레벨 2배 → 60레벨 4배 (고레벨 구간도 천천히: 사용자 요청 v17)
 const XPM50=2+2*(2/3)*(2/3)*(3-4/3),xpMul=l=>{if(l>=100)return 3.66+(5.2-3.66)*Math.min(1,(l-100)/40);/* v20: 100→140은 60→100의 약 1.5배 사냥 */if(l>=50)return XPM50+(3.66-XPM50)*Math.min(1,(l-50)/50);// v19: 50→100은 1→50의 약 2.5배 사냥
@@ -157,7 +158,10 @@ const XPM50=2+2*(2/3)*(2/3)*(3-4/3),xpMul=l=>{if(l>=100)return 3.66+(5.2-3.66)*M
 // v21(사용자 04:10): 10레벨까지는 그대로, 그 뒤로 필요한 경험치를 늘린다. 10→30에서 부드럽게 ×2, 30→40에서 ×2.2, 40부터 끝까지 ×2.2 (곱 한 번, 몬스터 경험치는 그대로)
 const xpSlow21=l=>{if(l<=10)return 1;if(l<30){const x=(l-10)/20;return 1+x*x*(3-2*x)}return Math.min(2.2,2+.02*(l-30))};
 const xpNeedV20=l=>Math.floor(40*Math.pow(l,1.45)*xpMul(l));// 옛 곡선(저장 옮기기용)
-const xpNeed=l=>Math.floor(40*Math.pow(l,1.45)*xpMul(l)*xpSlow21(l));
+// v24(사용자 2026-10-10 05:06 「57레벨인데 2~3분만 사냥해도 레벨업」): v23 곡선에 한 번 더 곱한다. 10레벨까지 그대로 →20레벨 ×2 →40레벨 ×5 →100레벨 ×8 →140레벨 ×10 (구간마다 부드럽게)
+const XP24=[[10,1],[20,2],[40,5],[100,8],[140,10]],xpSlow24=l=>{if(l<=10)return 1;for(let i=1;i<XP24.length;i++){const [a,va]=XP24[i-1],[b,vb]=XP24[i];if(l<=b){const x=(l-a)/(b-a);return va+(vb-va)*x*x*(3-2*x)}}return 10};
+const xpNeedV23=l=>Math.floor(40*Math.pow(l,1.45)*xpMul(l)*xpSlow21(l));// v23 곡선(저장 옮기기용)
+const xpNeed=l=>Math.floor(40*Math.pow(l,1.45)*xpMul(l)*xpSlow21(l)*xpSlow24(l));
 // 스킬 레벨: 찍은 점수 + 장비 보너스(1점 이상 찍은 마법에만)
 // v19: 장비로 얻는 「+모든 마법 레벨」은 합쳐서 최대 +3 (2차 스킬에도 붙으므로)
 // v20: 3차 스킬(job3)은 「3차 계열 +1」(tr_j3_갈래)만 받고, 한 점이 J3K(직업)레벨만큼(피해 +12%) 오른다. 화면에 보이는 레벨은 skShow

@@ -147,6 +147,7 @@ function killE(e){
 function killFx(e){const t=TYPES[e.k];monDie(e);rings.push({x:e.x,y:e.y,r:4,max:e.r*2.4,life:.3,col:t.undead?'#d8d0ff':'#fff'});if(t.undead)for(let i=0;i<8;i++)parts.push({x:e.x+rnd(-8,8),y:e.y+rnd(-8,8),z:10,vx:rnd(-15,15),vy:rnd(-15,15),vz:rnd(50,110),life:.9,max:.9,col:'#cfc6ff',sz:2.4});
   burst(e.x,e.y,t.col,18,140)}
 const xpUp21=d=>d<=20?1:Math.max(.1,1-.9*(d-20)/30);
+let DROP24=.2;// v24: 몬스터 · 보스 덤 장비 드롭 배수 (#qa가 개수를 셀 때 잠깐 0으로)
 function rewardKill(e){const t=TYPES[e.k];questKill(e);
   let xp=t.xp*(1+.35*(e.lvl-1))*(e.elite?3:1)*DIFF[P.diff].xp;
   const gap=P.lvl-5-e.lvl;if(gap>0)xp*=Math.max(.05,1-.15*gap);xp*=xpUp21(e.lvl-P.lvl);// v21(사용자 04:34): 몬스터가 20레벨 이상 높으면 줄어 50레벨 위면 10%
@@ -155,8 +156,9 @@ function rewardKill(e){const t=TYPES[e.k];questKill(e);
   if(R()<.6)loot.push({x:e.x+rnd(-12,12),y:e.y+rnd(-12,12),kind:'gold',amt:ri(1,4)*e.lvl+(e.elite?e.lvl*5:0),t:0});
   if(R()<.13)loot.push({x:e.x+rnd(-14,14),y:e.y+rnd(-14,14),kind:R()<.55?'hp':'mp',tier:potDropTier(e.lvl||1),t:0});
   if(R()<.02)loot.push({x:e.x+rnd(-14,14),y:e.y+rnd(-14,14),kind:'tp',t:0});
-  if(e.elite||R()<.1){const it=makeItem(e.lvl,e.elite);if(junkKeep(it))loot.push({x:e.x+rnd(-16,16),y:e.y+rnd(-16,16),kind:'item',item:it,t:0})}
-  if(e.elite&&R()<.5){const it=makeItem(e.lvl+1,true);if(junkKeep(it))loot.push({x:e.x+rnd(-18,18),y:e.y+rnd(-18,18),kind:'item',item:it,t:0})}/* v21: 잡템 줄이기(junkKeep) */
+  // v24(사용자 2026-10-10 05:17): 몬스터 장비 드롭을 1/5로 — 일반 10%→2% · 정예 확정 1개+50% → 20%+10%. 아이템 하나의 등급 확률(유니크·세트)은 그대로
+  if(R()<(e.elite?1:.1)*DROP24){const it=makeItem(e.lvl,e.elite);if(junkKeep(it))loot.push({x:e.x+rnd(-16,16),y:e.y+rnd(-16,16),kind:'item',item:it,t:0})}
+  if(e.elite&&R()<.5*DROP24){const it=makeItem(e.lvl+1,true);if(junkKeep(it))loot.push({x:e.x+rnd(-18,18),y:e.y+rnd(-18,18),kind:'item',item:it,t:0})}/* v21: 잡템 줄이기(junkKeep) */
 }
 function gainXp(n){
   if(P.lvl>=MAXLV)return;

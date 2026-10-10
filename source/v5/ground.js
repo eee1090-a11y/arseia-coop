@@ -300,7 +300,7 @@ function runChunkJobs(budget){const t0=performance.now();if(paused&&!GJOBS.lengt
 const pcx=P.x/CH,pcy=P.y/CH;
   for(let i=GJOBS.length-1;i>=0;i--)if(GJOBS[i].ready||chunks.get(GJOBS[i].cx*1000+GJOBS[i].cy)!==GJOBS[i])GJOBS.splice(i,1);
   GJOBS.sort((a,b)=>(b.used-a.used)||(Math.hypot(a.cx+.5-pcx,a.cy+.5-pcy)-Math.hypot(b.cx+.5-pcx,b.cy+.5-pcy)));
-  for(const c of GJOBS){while(!c.ready){const t1=performance.now(),r=c.job.next(),dt=performance.now()-t1;c.ms+=dt;GSTAT.sl.push(dt);if(GSTAT.sl.length>4000)GSTAT.sl.shift();if(r.done){c.ready=true;c.fx=r.value;c.job=null;c.pv=null;GSTAT.n++;GSTAT.ms+=c.ms;GSTAT.last=c.ms}
+  for(const c of GJOBS){while(!c.ready){const t1=performance.now(),r=c.job.next(),dt=performance.now()-t1;c.ms+=dt;GSTAT.sl.push(dt);if(GSTAT.sl.length>4000)GSTAT.sl.shift();if(r.done){isoBusy=frameN;c.ready=true;c.fx=r.value;c.job=null;c.pv=null;GSTAT.n++;GSTAT.ms+=c.ms;GSTAT.last=c.ms}
       if(performance.now()-t0>budget)return}}}
 // 땅 그리기: 보이는 조각(없으면 미리보기) → 굽기 일감 → 여유가 있으면 화면 밖 한 겹을 미리 일감에 올린다
 const GVIS=[];
@@ -309,15 +309,18 @@ function drawGround(cx0,cx1,cy0,cy1){{const wk=DG||REG;if(wk!==chunkWorld){chunk
   const ok=(cx,cy)=>cx>=lim.a&&cy>=lim.a&&cx<=lim.b&&cy<=lim.b;
   for(let cy=cy0;cy<=cy1;cy++)for(let cx=cx0;cx<=cx1;cx++){if(!ok(cx,cy)||!inView(cx,cy))continue;const c=getChunkE(cx,cy);if(!c.ready)miss++}
   // 걸을 때는 한 프레임 4ms(멈춤 화면 10ms), 순간이동 직후 화면이 비어 있으면 24ms까지
-  runChunkJobs(miss>4?24:paused?10:4);
+  isoFree=miss>4;runChunkJobs(miss>4?24:paused?10:4);
   for(let cy=cy0;cy<=cy1;cy++)for(let cx=cx0;cx<=cx1;cx++){if(!ok(cx,cy)||!inView(cx,cy))continue;const c=chunks.get(cx*1000+cy);if(!c)continue;
     if(c.ready){if(!isoBlit(c,cx,cy))ctx.drawImage(c.cv,cx*CH,cy*CH,CH+1,CH+1);if(c.fx&&c.fx.length)GVIS.push(c)}else ctx.drawImage(c.pv,.5,.5,4,4,cx*CH,cy*CH,CH+1,CH+1)}
   if(!miss&&GJOBS.length<2&&chunks.size<60){outer:for(let cy=cy0-1;cy<=cy1+1;cy++)for(let cx=cx0-1;cx<=cx1+1;cx++){if(!ok(cx,cy)||chunks.has(cx*1000+cy)||!inView(cx,cy,250))continue;getChunkE(cx,cy).used=frameN-1;break outer}}}
 // [최적화] 다 구운 조각을 화면 방향(마름모)으로 한 번 더 구워 두고, 매 프레임에는 회전 없이 그대로 붙인다.
 // 회전·기울인 큰 그림을 매 프레임 그리는 비용이 프레임의 절반 가까이였다. 그림 내용은 같다.
 const ISO_PAD=2,ISO_MAX=28;
+// [v24 최적화] 화면 방향 굽기는 한 프레임에 한 조각만, 그리고 땅 조각을 막 다 구운 프레임에는 하지 않는다 (걸을 때 가끔 끊기던 것).
+// 못 구운 조각은 이번 프레임만 예전 방식(돌려 그리기)으로 그린다. 멈춘 화면이나 순간이동 직후(빈 조각 많음)는 제한 없음.
+let isoBusy=-1,isoFree=false;
 function isoBlit(c,cx,cy){const s=DPR;
-  if(!c.iso||c.iso.s!==s){let n=0,old=null,ou=1e12;for(const v of chunks.values())if(v.iso&&v!==c){n++;if(v.isoU<ou){ou=v.isoU;old=v}}if(n>=ISO_MAX&&old)old.iso=null;
+  if(!c.iso||c.iso.s!==s){if(!isoFree&&!paused&&isoBusy===frameN)return false;isoBusy=frameN;let n=0,old=null,ou=1e12;for(const v of chunks.values())if(v.iso&&v!==c){n++;if(v.isoU<ou){ou=v.isoU;old=v}}if(n>=ISO_MAX&&old)old.iso=null;
     const w=Math.ceil((2*CH*KI+ISO_PAD*2)*s),h=Math.ceil((CH*KI+ISO_PAD*2)*s),cv2=document.createElement('canvas');cv2.width=w;cv2.height=h;const g=cv2.getContext('2d');
     g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';g.setTransform(s*KI,s*KI/2,-s*KI,s*KI/2,s*(CH*KI+ISO_PAD),s*ISO_PAD);g.drawImage(c.cv,-.5,-.5,CH+1.5,CH+1.5);
     decoIdx();const fl=DFLAT.get(cx*1000+cy);if(fl){g.setTransform(s,0,0,s,0,0);const bl=SC.bakeLeft;SC.bakeLeft=1e9;const ox=(cx*CH-cy*CH)*KI-CH*KI-ISO_PAD,oy=(cx*CH+cy*CH)*KI/2-ISO_PAD;for(const d of fl)RD.draw(g,d,(d.x-d.y)*KI-ox,(d.x+d.y)*KI/2-oy,1,0);SC.bakeLeft=bl}
