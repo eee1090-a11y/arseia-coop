@@ -36,7 +36,7 @@ function wmapWorld22(g,Wd,Hd){const G=WMAP.geo&&WMAP.geo.Wd===Wd&&WMAP.geo.Hd===
   const QR=sqTargetRegs(),rr=(x,y,ww,hh,r)=>{g.beginPath();g.roundRect?g.roundRect(x,y,ww,hh,r):g.rect(x,y,ww,hh)};
   for(const id in REGIONS){if(!WPOS[id])continue;const D=REGIONS[id],p=pos(id),k=regKnown(id),here=REG.id===id,L=p.x-w/2,T=p.y-h/2;
     g.fillStyle='#14120e';rr(L,T,w,h,6);g.fill();if(here){g.fillStyle='rgba(255,215,106,.18)';g.fill()}g.strokeStyle=here?'#ffd76a':k?D.col:'#4a4438';g.lineWidth=here?2.5:1.5;g.stroke();
-    const ex=typeof wx21ElTag==='function'?wx21ElTag(id):null,lv=`${D.hell?'지옥 ':''}Lv${w3LvOf(id)}~`,town=ALLTOWNS.find(t=>t.reg===id&&t.reg!=='home'),tn=id==='home'?'마을 4곳':town?town.n:'';
+    const ex=typeof wx21ElTag==='function'?wx21ElTag(id):null,lv=`${D.hell?'지옥 ':''}Lv${w3LvOf(id)}~`,town=ALLTOWNS.find(t=>t.reg===id&&t.reg!=='home'),tn=id==='home'?`마을 ${HOME.towns.length}곳`:town?town.n:'';
     const y1=G.lines===3?T+fs+5:p.y-3,y2=G.lines===3?y1+f2+5:p.y+fs,y3=y2+f2+5;
     g.textAlign='center';g.fillStyle=k?D.col:'#7a7468';g.fillText(wmapFit(g,k?D.n:D.n+' ?',w-8,fs,1),p.x,y1);
     {g.font=`${f2}px ${FONT}`;const t2=ex?ex.t:'',wa=g.measureText(lv).width,wb=t2?g.measureText(t2).width:0;

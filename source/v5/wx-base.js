@@ -145,7 +145,7 @@ function wxTownAudit(L,t){const P=wxTownParts(L,t),A=[...(P.npcD?[{x:P.npcD.x,y:
 const wxTowns=()=>{const o=HOME.towns.map(t=>[HOME,t]);for(const id of REG_IDS){const L=RCACHE[id];if(L&&L.town)o.push([L,L.town])}return o};
 // 붐비는 고향 마을은 배치를 조금 넓힌다 (바깥 사람 8명 넘으면 한 명당 2.5%, 최대 1.2배). 성벽 · 망루는 그대로 두어 이음새가 벌어지지 않게
 WXT.k={};
-function wxLayScale(t,lay){const n=lay.folk.filter(f=>!f[3]).length+(lay.npc?1:0),k=Math.round(Math.min(1.2,Math.max(1,1+(n-8)*.025))*1000)/1000;WXT.k[t.id]=k;if(k===1)return lay;
+function wxLayScale(t,lay){if(lay.fixed){WXT.k[t.id]=1;return lay}const n=lay.folk.filter(f=>!f[3]).length+(lay.npc?1:0),k=Math.round(Math.min(1.2,Math.max(1,1+(n-8)*.025))*1000)/1000;WXT.k[t.id]=k;if(k===1)return lay;
   const m=a=>a&&[Math.round(a[0]*k),Math.round(a[1]*k)],FIX=new Set(['cwall','gatetower']);
   return{...lay,gate:m(lay.gate),stash:m(lay.stash),npc:m(lay.npc),
     shops:lay.shops.map(([ty,dx,dy,n])=>[ty,Math.round(dx*k),Math.round(dy*k),n]),

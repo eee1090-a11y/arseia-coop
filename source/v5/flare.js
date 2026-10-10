@@ -11,11 +11,11 @@ function flWant(){return GFX.art!=='old'}
 function flNeed(name){if(FL.want[name]||!flWant()||location.hash==='#qa')return;FL.want[name]=1;const s=document.createElement('script');s.src='img/flare-'+name+'.js';s.onerror=()=>{FL.want[name]='fail'};document.head.appendChild(s)}
 function flPack(name){return flWant()&&FL.P[name]||null}
 // 지역 → 장식 묶음
-const FLTH={moss:'grass',meadow:'grass',lush:'grass',beach:'grass',snow:'snow'};
+const FLTH={royal:'grass',moss:'grass',meadow:'grass',lush:'grass',beach:'grass',snow:'snow'};
 function flRegPack(){if(DG||!REG)return null;if(REG.id==='home')return 'grass';const R=REGIONS[REG.id],p=R&&R.th&&R.th.paint;return FLTH[p]||null}
 function flLoad(){const p=flRegPack();if(p)flNeed(p);flLoadTheme()}
 // [f7r] 지역 테마 → 찾을 묶음 차례. 앞 묶음에 있는 종류가 먼저 (들판의 덤불은 금빛 meadow 것)
-const FLTH2={moss:'lush',meadow:'meadow',lush:'lush',beach:'beach',sand:'sand',lava:'ember',snow:'snow'};
+const FLTH2={royal:'meadow',moss:'lush',meadow:'meadow',lush:'lush',beach:'beach',sand:'sand',lava:'ember',snow:'snow'};
 const FLTP={home:['grass','lush'],meadow:['meadow','grass','snow'],lush:['lush','grass'],beach:['grass','sand'],sand:['sand'],ember:['ember'],snow:['snow','frost']};
 // 새 묶음에 든 종류 (묶음을 받기 전에 어느 묶음이 필요한지 알아야 한다)
 const FLNEW={meadow:['oak','windtree','wheat','flowers','ruinpillar','bones','searock','hbush'],lush:['oak','jungletree','bigleaf','mushroom','templestone','ruinpillar','tomb','wheat'],
@@ -33,7 +33,7 @@ function flTex(PK,name){const r=PK.meta.r['tex/'+name];if(!r)return null;const c
 const FLTEX={grass:['grass','road'],snow:['snow']};
 function flGround(){for(const p in FLTEX)for(const n of FLTEX[p]){if(!(n in FL.gtx0))FL.gtx0[n]=GTX[n]||null;const PK=flPack(p);let t=null;if(PK)t=flTex(PK,n);
     if(t)GTX[n]=t;else if(FL.gtx0[n])GTX[n]=FL.gtx0[n];else delete GTX[n]}
-  FL.tint.clear();chunks.clear();GJOBS.length=0}
+  FL.tint.clear();chunkStale()}
 function flReady(name){const PK=FL.P[name];
   // 몬스터 크기: 서 있는 앞모습 높이를 우리 그림 높이(MON_H)에 맞춘다
   for(const k in PK.meta.mon||{}){const f=PK.meta.mon[k].stance.f[0][6],r=PK.meta.r[f];FL.mk[k]=MON_H[FLMH[k]]*1.3*(FLK[k]||1)/r[5]}
@@ -194,3 +194,120 @@ function flFolkSprite(L,f){const PK=flPack('folk');if(!PK){flNeed('folk');return
 {const _fc=flCredit;flCredit=function(){_fc();const p=document.querySelector('#auCredits .flcr');if(p&&!p.dataset.f9b){p.dataset.f9b=1;p.textContent+=' · 기사·사도·망령·마을 사람 그림: Flare 주인공 겹그림·마을 사람 그림 (Clint Bellanger, Justin Nichol 외, CC-BY-SA 3.0)'}}}
 window.__fl.twFolkSprite=(...a)=>twFolkSprite(...a);window.__fl.flFolkArch=flFolkArch;// 확인용 (window.__town의 것은 감싸기 전 함수)
 /* ===== [f9b] 끝 ===== */
+/* ===== [f11] 던전 입구 · 지역 문 · 짝문 그림 (이 덩어리만 f11에서 더함, 다른 곳은 그대로) =====
+   - 던전 입구(drawCave): 던전마다 그 던전 생각에 맞는 모양 하나 + 색 입히기. 모양 17가지는 Flare 타일셋 조각(바위 동굴 입구·광산 입구·폐허 아치·계단 구덩이·선돌·룬 원판·문살·화로…)과
+     0 A.D. 모델(헬라스 신전을 물에 반쯤 잠기게 · 쿠시 피라미드 · 프톨레마이오스 등대)을 같은 Flare 카메라·빛으로 그려 겹친 것 → img/flare-dgent.js
+   - 지역 문(edgeportal) · 짝문(gate): 같은 집안 — 0 A.D. 개선문(이끼 낀 돌빛으로) + Flare 룬 원판, 짝문은 같은 것을 작게 → img/flare-portal.js. 룬 빛만 따로 뗀 그림(_g)을 가는 지역 색(짝문은 보라)으로 곱해 빛나게
+   - 매 프레임 덧그림은 가산 합성 몇 개(입구 빛 · 물결 · 소용돌이 · 불티)만. 그래픽 품질 「낮음」(Q.lvl===0)이면 생략(문 아치 안은 멈춘 빛 한 장), 움직임 줄이기면 멈춘 빛만
+   - 그림만 바뀐다: 자리·들어가는 범위·이름표 자리·수치·저장 그대로. 묶음이 없거나(#qa 포함) 「예전 그림」이면 예전 코드 그림.
+   - 만드는 법: f11-qa/tools/f11-render.py(0 A.D.) → f11-compose.py + f11_recipes.py(겹치기) → f11-pack.py */
+// 던전 id → [모양, 입힐 색, 세기, 'm'이면 곱하기(어둡게)]
+const FLDG={barrow:['barrow'],sewer:['sewer','#4a7a76',.35],fort:['fortgate','#7a6e66',.3],sanctum:['shrine','#c0583a',.4],
+  pt_corridor:['fortgate','#8a7a6a',.25],pt_choir:['crypt','#8a8278',.3],cp_academy:['tower','#8a7ab8',.45],cp_ossuary:['crypt','#b8a888',.3],
+  pl_cellar:['mine','#b89a60',.25],pl_spire:['tower','#7a8aa8',.45],fo_hollow:['roots','#6a7a3a',.35],fo_grove:['shrine','#8aa8c8',.4],
+  de_tomb:['pyramid'],de_hive:['cave','#b0502a',.45],ic_cave:['icecave'],ic_hall:['crypt','#a8c0e0',.45],ju_temple:['shrine','#5a8a3a',.45],ju_pit:['cave','#3a4a3a',.5,'m'],
+  la_forge:['forge','#5a4038',.5,'m'],la_heart:['cave','#6a2a1a',.55,'m'],se_wreck:['wreck'],se_palace:['sunken'],mo_barrow:['barrow','#7a6a8a',.35],mo_circle:['circle','#6a7a5a',.3],
+  hi_mine:['mine'],hi_eyrie:['cave','#8a8c92',.5],ca_vault:['fortgate','#b08a5a',.4],ca_foundry:['forge','#8a6a50',.3],cl_lighthouse:['tower'],cl_nest:['cave','#a08a6a',.3],
+  ab_rift:['rift','#6a4a9a',.35],ab_throne:['rift','#3a2a5a',.45,'m'],lk_abbey:['sunken2','#7aa0a8',.25],sc_kiln:['forge','#7a4a30',.35],ss_grotto:['icecave','#c8d8ff',.3],
+  th_bell:['tower','#6a7080',.45],rt_cavern:['roots','#7ab89a',.3],ec_cathedral:['crypt','#5a4a7a',.45,'m']};
+const FLSUNK=new Set(['sunken','sunken2']),FLEMB=new Set(['forge']),FLHOLE=new Set(['barrow','circle','shrine','sewer']);
+// 색 입힌 그림 (모양·색마다 한 번 굽기)
+function flPkTint(PK,key,col,a,mode){const r=PK.meta.r[key];if(!col)return null;const ck='dg/'+key+col+a+(mode||'');let cv=FL.tint.get(ck);if(cv)return cv;if(FL.tint.size>500)FL.tint.clear();
+  cv=document.createElement('canvas');cv.width=r[2];cv.height=r[3];const g=cv.getContext('2d');g.drawImage(PK.img,r[0],r[1],r[2],r[3],0,0,r[2],r[3]);
+  g.globalCompositeOperation=mode==='m'?'multiply':'color';g.globalAlpha=a;g.fillStyle=col;g.fillRect(0,0,r[2],r[3]);g.globalAlpha=1;
+  g.globalCompositeOperation='destination-in';g.drawImage(PK.img,r[0],r[1],r[2],r[3],0,0,r[2],r[3]);FL.tint.set(ck,cv);return cv}
+function flPkDraw(c,PK,key,x,y,s,tc){const r=PK.meta.r[key],k=PK.meta.k*s;if(tc)c.drawImage(tc,0,0,r[2],r[3],x-r[4]*k,y-r[5]*k,r[2]*k,r[3]*k);else c.drawImage(PK.img,r[0],r[1],r[2],r[3],x-r[4]*k,y-r[5]*k,r[2]*k,r[3]*k)}
+const flLo=()=>typeof Q!=='undefined'&&Q.lvl===0;
+function flDgEnt(d){const c=d.cave;if(!c||c.w3k)return false;const PK=flPack('dgent');if(!PK){flNeed('dgent');return false}
+  const A=FLDG[c.id]||['cave'],key=A[0];if(!PK.meta.r[key])return false;const s=d._s,x=s.x,y=s.y;
+  flPkDraw(ctx,PK,key,x,y,1,flPkTint(PK,key,A[1],A[2],A[3]));
+  if(flLo())return true;
+  const m=PK.meta.m[key]||[0,-20],mx=x+m[0],my=y+m[1],col=c.torch||'#ff9a40',t=reduceMotion?0:time;
+  ctx.globalCompositeOperation='lighter';
+  // 입구 빛 (던전 횃불 색으로 맥박)
+  ctx.globalAlpha=.32+.12*Math.sin(t*3);const R=FLHOLE.has(key)?34:24;ctx.drawImage(Kit.glowCv(col),mx-R,my-R*(FLHOLE.has(key)?.6:1),R*2,R*(FLHOLE.has(key)?1.2:2));
+  if(FLHOLE.has(key)&&!reduceMotion){ctx.fillStyle=col;for(let i=0;i<5;i++){const p=(t*.35+i/5)%1;ctx.globalAlpha=Math.sin(p*Math.PI)*.7;ctx.fillRect(mx+Math.sin(i*4.1+t)*18-1,my-p*40-1,2,2)}}
+  if(FLEMB.has(key)||c.id==='la_heart'){if(!reduceMotion)for(let i=0;i<6;i++){const p=(t*.5+i/6)%1;ctx.globalAlpha=(1-p)*.85;ctx.fillStyle=i%2?'#ffc060':'#ff6a1a';ctx.fillRect(mx+Math.sin(i*5.3+t*1.3)*14-1,my+10-p*60,2,2)}}
+  if(key==='rift'){for(let i=0;i<3;i++){const sp=t*(1.4+i*.4)*(i%2?-1:1)+i*2;ctx.globalAlpha=.55-i*.12;ctx.strokeStyle=col;ctx.lineWidth=2-i*.4;ctx.beginPath();ctx.ellipse(mx,my,16-i*4,30-i*7,0,sp,sp+3.8);ctx.stroke()}}
+  ctx.globalCompositeOperation='source-over';
+  // 가라앉은 신전: 물가 물결 (기준점 둘레 물 원판 테두리)
+  if(FLSUNK.has(key)){ctx.lineWidth=1.2;for(let i=0;i<2;i++){const p=reduceMotion?.5:(t*.22+i*.5)%1;ctx.strokeStyle='rgba(225,245,255,'+(.42*(1-p))+')';ctx.beginPath();ctx.ellipse(x,y+4,44+p*24,20+p*11,0,0,6.283);ctx.stroke()}}
+  ctx.globalAlpha=1;return true}
+{const _dc=drawCave;drawCave=function(d){if(flWant()&&flDgEnt(d))return;return _dc.apply(this,arguments)}}
+// 아치 안 소용돌이: 아치 안쪽 틀(meta.o, 게임 px)을 꽉 채운 빛 + 도는 고리, 앞 땅에 번지는 빛, 옅은 빛기둥. 품질 「낮음」이면 멈춘 채움 한 장만
+function flArchPath(c,o){const hw=(o[2]-o[0])/2,cx=(o[0]+o[2])/2,sp=o[1]+hw;c.beginPath();c.moveTo(o[0],o[3]);c.lineTo(o[0],sp);c.arc(cx,sp,hw,Math.PI,0);c.lineTo(o[2],o[3]);c.closePath()}
+function flVortex(c,o,col,t,lo){const hw=(o[2]-o[0])/2,hh=(o[3]-o[1])/2,cx=(o[0]+o[2])/2,cy=(o[1]+o[3])/2;
+  c.globalCompositeOperation='lighter';
+  if(!lo){// 앞 땅에 번지는 빛 · 위로 옅은 빛기둥
+    c.globalAlpha=.32+.08*Math.sin(t*2);c.drawImage(Kit.glowCv(col),cx-hw*3.2,o[3]-hw*.9,hw*6.4,hw*2.2);
+    c.globalAlpha=.16+.05*Math.sin(t*1.3);c.drawImage(Kit.glowCv(col),cx-hw*.8,o[1]-hh*3.2,hw*1.6,hh*4.4)}
+  c.save();flArchPath(c,o);c.clip();
+  // 바탕을 짙은 같은 색으로 덮은 뒤 빛을 더한다 (돌빛 위에 더하면 하얗게 날아가 색이 안 보임)
+  c.globalCompositeOperation='source-over';c.globalAlpha=.9;c.fillStyle=Kit.lit(col,-.6);c.fill();c.globalCompositeOperation='lighter';
+  c.globalAlpha=lo?.6:.55+.12*Math.sin(t*2.4);c.drawImage(Kit.glowCv(col),cx-hw*1.9,cy-hh*1.5,hw*3.8,hh*3);c.drawImage(Kit.glowCv(col),cx-hw*1.4,cy-hh*1.1,hw*2.8,hh*2.2);
+  c.globalAlpha=lo?.22:.18+.08*Math.sin(t*3.1);c.drawImage(Kit.glowCv('#ffffff'),cx-hw*.8,cy-hh*.55,hw*1.6,hh*1.1);
+  if(!lo){c.strokeStyle=col;for(let i=0;i<5;i++){const sp=t*(1.5+i*.45)*(i%2?-1:1)+i*1.3,k=1-i*.17;c.globalAlpha=.85-i*.12;c.lineWidth=2.4-i*.3;c.beginPath();c.ellipse(cx,cy,hw*k,hh*k,0,sp,sp+3.9);c.stroke()}
+    c.fillStyle='#fff';for(let i=0;i<7;i++){const p=(t*.45+i/7)%1,a=t*2+i*2.4,r=1-p;c.globalAlpha=.9*Math.sin(p*Math.PI);c.fillRect(cx+Math.cos(a)*hw*r-1,cy+Math.sin(a)*hh*r-1,2,2)}}
+  c.restore();c.globalAlpha=1;c.globalCompositeOperation='source-over'}
+// 지역 문: 개선문 + 룬 원판 (룬 빛은 가는 지역 색) + 아치 안을 꽉 채운 소용돌이. 이름표는 예전 자리(-130)
+function flPortal(c,d,x,y,k,t){const PK=flPack('portal');if(!PK){flNeed('portal');return false}if(!PK.meta.r.portal||!PK.meta.o)return false;const col=d.col||'#9ad8ff',s=(d.s||1)*(k||1);
+  c.save();c.translate(x,y);c.scale(s,s);flPkDraw(c,PK,'portal',0,0,1);
+  const tt=reduceMotion?0:t,lo=flLo();
+  // 룬 빛(흰 빛 그림)을 가는 지역 색으로 곱해 가산 합성
+  c.globalCompositeOperation='lighter';c.globalAlpha=lo?.85:.7+.3*Math.sin(tt*2.2);flPkDraw(c,PK,'portal_g',0,0,1,flPkTint(PK,'portal_g',col,1,'m'));
+  flVortex(c,PK.meta.o.portal,col,tt,lo);
+  if(d.label){c.font='700 13px '+FONT;c.textAlign='center';c.lineWidth=3;c.strokeStyle='rgba(0,0,0,.85)';c.strokeText(d.label,0,-130);c.fillStyle=col;c.fillText(d.label,0,-130)}
+  c.restore();return true}
+{const _rd=RD.draw;RD.draw=function(c,d,x,y,k,t){if(d&&d.k==='edgeportal'&&flWant()&&flPortal(c,d,x,y,k,t))return true;return _rd.apply(this,arguments)}}
+// 짝문: 같은 개선문·룬 원판을 작게, 보라 소용돌이. 이름표 「짝문」은 예전 자리(0,-70)
+function flWay(d){const PK=flPack('portal');if(!PK){flNeed('portal');return false}if(!PK.meta.r.waygate||!PK.meta.o)return false;const s=d._s,k=d.s||1,col='#b9a2ff';
+  ctx.save();ctx.translate(s.x,s.y);ctx.scale(k,k);flPkDraw(ctx,PK,'waygate',0,0,1);
+  const t=reduceMotion?0:time,lo=flLo();
+  ctx.globalCompositeOperation='lighter';ctx.globalAlpha=lo?.85:.7+.3*Math.sin(t*2.2);flPkDraw(ctx,PK,'waygate_g',0,0,1,flPkTint(PK,'waygate_g',col,1,'m'));
+  flVortex(ctx,PK.meta.o.waygate,col,t,lo);
+  ctx.font='700 13px '+FONT;ctx.textAlign='center';ctx.lineWidth=3;ctx.strokeStyle='rgba(0,0,0,.85)';ctx.strokeText('짝문',0,-70);ctx.fillStyle='#c9b4ff';ctx.fillText('짝문',0,-70);
+  ctx.restore();return true}
+{const _tl=twLandDraw;twLandDraw=function(d){if(d&&d.k==='gate'&&flWant()&&flWay(d))return true;return _tl.apply(this,arguments)}}
+// 지역에 들어서면 입구·문 묶음을 미리 받는다
+{const _fl=flLoad;flLoad=function(){_fl.apply(this,arguments);if(!flWant()||DG)return;let cv=0,pt=0;for(const d of decor){if(d.k==='cave')cv=1;else if(d.k==='edgeportal'||d.k==='gate')pt=1}if(cv)flNeed('dgent');if(pt)flNeed('portal')}}
+{const _fc=flCredit;flCredit=function(){_fc();const p=document.querySelector('#auCredits .flcr');if(p&&!p.dataset.f11){p.dataset.f11=1;p.textContent+=' · 던전 입구·지역 문·짝문 그림: Flare 타일셋 조각(Clint Bellanger, Justin Nichol 외, CC-BY-SA 3.0)과 0 A.D. 신전·피라미드·등대·개선문 모델(Wildfire Games, CC-BY-SA 3.0)을 겹쳐 그림'}}}
+Object.assign(window.__fl,{FLDG,flDgEnt,flPortal,flWay,flVortex});
+/* ===== [f11] 끝 ===== */
+/* ===== [f12] 높은 사람·직업 NPC 모습 (이 덩어리만 f12에서 더함, 다른 곳은 그대로) =====
+   - 그림: Flare art_src/characters/hero 의 3D 장비 원본(.blend: 마법사 옷·두건·판금·사슬·가죽·활·지팡이·홀·칼·방패·쇠망치)을
+           한 장면에 모아 편히 선 자세로 다시 그린 것 (Clint Bellanger 외, CC-BY-SA 3.0). 걷기는 원래 달리기 동작.
+           img/flare-folk-key.js(전직관 넷) · img/flare-folk-role.js(마법사·사제·귀족·경비병·대장·대장장이). 만드는 법: f12-qa/tools/f12-npc-render.py → f12-npc-pack.py
+   - 전직관: 대마법사 엘리안(보라 옷·흰 머리·큰 지팡이) · 노사제 오벨린(흰 사제복·금 테·홀) · 교관 브로딘(판금·칼·방패) · 순찰대장 세린(초록 두건·가죽·긴 활)
+   - 역할: 마을 사람 모습(L)과 역할 이름으로 고른다. 옷 색은 그 사람 색(L.body·L.legs)을 곱해 입힌다(밝은 회색으로 구운 옷만).
+   - 나머지 사람은 f9b 일곱 모습 그대로. 묶음이 없거나 #qa · 「예전 그림」이면 f9b → 코드 그림 순서로 돌아간다.
+   - 그림만 바뀐다: 자리·클릭 범위·이름표·대사·저장 그대로. */
+const F12KEY={elian:'archmage',j2_priest:'highpriest',j2_warrior:'trainer',j2_archer:'ranger'};
+const F12PK={archmage:'folk-key',highpriest:'folk-key',trainer:'folk-key',ranger:'folk-key',mage:'folk-role',priest:'folk-role',noble:'folk-role',guard:'folk-role',captain:'folk-role',smith:'folk-role'};
+// 옷 색 입히기: m1 윗옷(두건 포함) · m2 아래옷
+const F12TINT={mage:L=>[L.body,L.body],priest:L=>[L.body,L.legs||L.body],noble:L=>[L.body,L.legs],smith:L=>[L.body,L.legs]};
+function f12Look(L){if(!L||L.child)return null;const id=L.key||'';if(F12KEY[id])return F12KEY[id];
+  const F=typeof TWFOLK==='object'&&TWFOLK[id],role=(F&&F.role)||'',ht=L.hat|0,p=L.prop||'',hs=L.hs|0;
+  if(L.armor)return p==='sword'?'captain':'guard';
+  if(/사제|수녀|주교|신관/.test(role)||ht===7)return 'priest';
+  if(/마법|교수|학자|기록관|사절/.test(role)&&(ht===5||p==='staff'||p==='book'))return 'mage';
+  if(ht===5&&p!=='hammer')return 'mage';
+  if(/귀족|영주|공작|백작|재상|대신/.test(role)&&!L.dress)return 'noble';
+  if(/대장장이|대장간/.test(role)&&!L.dress&&(hs===0||hs===3))return 'smith';
+  return null}
+function f12Sprite(L,f){const lk=f12Look(L);if(!lk)return undefined;const pn=F12PK[lk],PK=flPack(pn);if(!PK){flNeed(pn);return undefined}
+  const A=PK.meta.folk[lk];if(!A)return undefined;
+  const key=L.key||'x';if(f===1||f===2)FLFW.set(key,time);const mv=f===1||f===2||(f===0&&time-(FLFW.get(key)||-9)<.3);
+  const ph=flFolkHash(key+'w'),fr=mv?A.w[Math.floor((time+ph)*10)%A.w.length]:A.s[f>=3?Math.min(A.s.length-1,f-2):0],r=PK.meta.r[fr];if(!r)return undefined;
+  const k=60/(mv?A.hw:A.hs),T=F12TINT[lk],cs=T?T(L):[];
+  return SC.get('f12/'+key+'/'+fr+'/'+cs.join('/'),r[2]*k,r[3]*k,r[4]*k,r[5]*k,(g,w,h)=>{g.drawImage(PK.img,r[0],r[1],r[2],r[3],0,0,w,h);
+    const s=g.getTransform().a,W=Math.max(1,Math.ceil(w*s)),H=Math.max(1,Math.ceil(h*s));
+    cs.forEach((col,i)=>{const m=PK.meta.r[fr+'/m'+(i+1)];if(!m||!col)return;
+      // 밝은 회색 옷에 (그 사람 색 × 1.2)를 곱한다: 명암은 그대로, 색과 밝기는 그 사람 것
+      const c=Kit.hex(col).map(v=>Math.min(255,Math.round(v*1.2))),t=document.createElement('canvas');t.width=W;t.height=H;const q=t.getContext('2d');
+      q.drawImage(PK.img,m[0],m[1],m[2],m[3],0,0,W,H);q.globalCompositeOperation='source-in';q.fillStyle='rgb('+c.join(',')+')';q.fillRect(0,0,W,H);
+      g.save();g.globalCompositeOperation='multiply';g.drawImage(t,0,0,w,h);g.restore()});
+    g.save();g.globalCompositeOperation='destination-in';g.drawImage(PK.img,r[0],r[1],r[2],r[3],0,0,w,h);g.restore()},{scale:Math.max(1.25,DPR)})}
+{const _fs=twFolkSprite;twFolkSprite=function(L,f){if(flWant()&&L){const e=f12Sprite(L,f);if(e!==undefined)return e}return _fs.apply(this,arguments)}}
+{const _fc=flCredit;flCredit=function(){_fc();const p=document.querySelector('#auCredits .flcr');if(p&&!p.dataset.f12){p.dataset.f12=1;p.textContent+=' · 전직관·마법사·사제·귀족·경비병·대장장이 그림: Flare art_src 주인공 장비 3D 원본을 편히 선 자세로 다시 그림 (Clint Bellanger 외, CC-BY-SA 3.0)'}}}
+window.__fl.twFolkSprite=(...a)=>twFolkSprite(...a);window.__fl.f12Look=f12Look;// 확인용
+/* ===== [f12] 끝 ===== */

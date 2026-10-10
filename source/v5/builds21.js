@@ -205,7 +205,7 @@ function core21Codex(){let h=`<h2>빌드 핵심 <span class="muted">${CORE21.len
 const CORE21_QUESTS={
   // ① 스승의 마지막 시험: 110레벨, 3차 전직 뒤. 직업별 스승 = 1차 위계 시험 스승
   mentor:{id:'q21_mentor',n:'스승의 마지막 시험',lvl:110,needJob3:true,main:false,
-    npc:{mage:{town:'arden',npc:'elian'},priest:{town:'arden',npc:'j2_priest'},warrior:{town:'haven',npc:'j2_warrior'},archer:{town:'willowen',npc:'j2_archer'}},
+    npc:{mage:{town:'arden',npc:'elian'},priest:{town:'arden',npc:'j2_priest'},warrior:{town:'arden',npc:'j2_warrior'},archer:{town:'arden',npc:'j2_archer'}},
     steps:[{type:'talk',d:'스승과 이야기하기'},
       {type:'kill',k:['q21_wellfoul'],n:1,reg:'ashplateau',d:'재가 내리는 고원의 「샘을 흐리는 자」 처치',item:'맑은 물방울'},
       {type:'trial',room:'ashplateau_trial',sec:180,noMpPot:true,springs:3,d:'시험의 방에서 마나 물약 없이 3분 버티기'},

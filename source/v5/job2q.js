@@ -2,12 +2,12 @@
    데이터는 설계안(job-advancement/code/job2-quests.js · v19-ideas/code/class-trials.js)에서 그대로 옮겼다(소속 고르기 · 현상금 · 책 제외).
    위계 시험 3번(16레벨)은 소속 고르기 대신 평범한 목표로 바꿨다. 퀘스트 스킬 포인트: 시험 10(10·23·31·38·45레벨) + 전직 7(2·2·3) — 한 번만. */
 const J2_NPC={
-  elian:{town:'arden',n:'대마법사 엘리안',role:'마법사 전직관',where:'왕립 마법원 안',lines:['위계의 끝에 닿았다고 마법이 끝나는 건 아닐세.','원소를 섞을 텐가, 정령과 계약할 텐가.']},
-  j2_priest:{town:'arden',n:'대성당의 노사제 오벨린',role:'사제 전직관',where:'왕도 대성당 제단 앞',lines:['빛을 칼로 쥘 것인가, 등불로 들 것인가.','성자의 길은 아직 멀단다.']},
-  j2_warrior:{town:'haven',n:'기사단 교관 브로딘',role:'전사 전직관',where:'헤이븐 교차로 훈련장',lines:['방패가 되든 칼이 되든, 끝까지 서 있는 놈이 이긴다.','결투장은 늘 열려 있다.']},
-  j2_archer:{town:'willowen',n:'순찰대장 세린',role:'궁수 전직관',where:'윌로벤 나루 망루',lines:['멀리서 한 발로 끝낼 텐가, 덫으로 기다릴 텐가.','바람 소리를 먼저 들어.']}};
+  elian:{town:'arden',n:'대마법사 엘리안',role:'마법사 전직관',where:'왕도 왕립 마법원 안',lines:['위계의 끝에 닿았다고 마법이 끝나는 건 아닐세.','원소를 섞을 텐가, 정령과 계약할 텐가.']},
+  j2_priest:{town:'arden',n:'대성당의 노사제 오벨린',role:'사제 전직관',where:'왕도 대성당 안',lines:['빛을 칼로 쥘 것인가, 등불로 들 것인가.','성자의 길은 아직 멀단다.']},
+  j2_warrior:{town:'arden',n:'기사단 교관 브로딘',role:'전사 전직관',where:'왕도 기사단 전당 안',lines:['방패가 되든 칼이 되든, 끝까지 서 있는 놈이 이긴다.','결투장은 늘 열려 있다.']},
+  j2_archer:{town:'arden',n:'순찰대장 세린',role:'궁수 전직관',where:'왕도 사냥꾼 회관 안',lines:['멀리서 한 발로 끝낼 텐가, 덫으로 기다릴 텐가.','바람 소리를 먼저 들어.']}};
 const J2_SPOTS={
-  altar_brenhill:{town:'brenhill',at:'예배당 제단',n:'브렌힐 성소'},altar_willowen:{town:'willowen',at:'나루 사당',n:'윌로벤 성소'},
+  altar_brenhill:{town:'brenhill',at:'예배당 제단',n:'브렌힐 성소'},altar_willowen:{town:'willowen',at:'옛 나루 사당',n:'은류강 옛 나루 성소'},
   altar_haven:{town:'haven',at:'교차로 기도처',n:'헤이븐 성소'},altar_arden:{town:'arden',at:'대성당 제단',n:'아르덴 성소'},
   scout_plains:{region:'plains',at:'평원 북쪽 언덕',n:'황금 평원 정찰 표식'},scout_desert:{region:'desert',at:'사막 바위탑',n:'붉은 사막 정찰 표식'},
   scout_ice:{region:'ice',at:'빙원 얼음 기둥',n:'북부 빙원 정찰 표식'},scout_jungle:{region:'jungle',at:'신전 계단 위',n:'타말 정글 정찰 표식'}};
@@ -31,8 +31,8 @@ const J2_QUESTS=[
  {id:'j2m3b',cls:'mage',town:'arden',giver:'elian',req:'j2m2',pick:'summoner',lvl:50,kind:'전직 · 갈래',t:'정령과의 계약 (서머너)',say:'정령은 힘으로 부리는 게 아니라 계약으로 부르는 걸세. 시련의 문 너머 정령왕의 그림자가 끝없이 정령을 부를 걸세. 그보다 더 잘 부려 보게.',done:'정령들이 자네 이름을 기억했네. 오늘부터 자네는 서머너일세.',
   goals:[{type:'trial',boss:'tb_summoner',d:'시련의 문: 떠도는 정령왕의 그림자 처치'}],rw:{xp:2,gold:5000,sp:3,job2:1,item:'j2_summoner'}},
  // 사제
- {id:'j2p1',cls:'priest',town:'arden',giver:'j2_priest',lvl:50,kind:'전직',t:'네 성소의 순례',say:'은총의 끝에 닿았다 하여 기도가 끝나지는 않는단다. 브렌힐, 윌로벤, 헤이븐, 그리고 이 대성당. 네 성소에서 한 번씩 기도하고 오너라.',done:'걸음마다 빛이 따라왔구나. 이제 네 앞에 길이 둘 있다.',
-  goals:[{type:'use',use:'altar_brenhill',d:'브렌힐 성소에서 기도'},{type:'use',use:'altar_willowen',d:'윌로벤 성소에서 기도'},{type:'use',use:'altar_haven',d:'헤이븐 성소에서 기도'},{type:'use',use:'altar_arden',d:'아르덴 대성당에서 기도'}],rw:{xp:2,gold:5000,sp:2}},
+ {id:'j2p1',cls:'priest',town:'arden',giver:'j2_priest',lvl:50,kind:'전직',t:'네 성소의 순례',say:'은총의 끝에 닿았다 하여 기도가 끝나지는 않는단다. 브렌힐, 은류강 옛 나루, 헤이븐, 그리고 이 대성당. 네 성소에서 한 번씩 기도하고 오너라.',done:'걸음마다 빛이 따라왔구나. 이제 네 앞에 길이 둘 있다.',
+  goals:[{type:'use',use:'altar_brenhill',d:'브렌힐 성소에서 기도'},{type:'use',use:'altar_willowen',d:'은류강 옛 나루 성소에서 기도'},{type:'use',use:'altar_haven',d:'헤이븐 성소에서 기도'},{type:'use',use:'altar_arden',d:'아르덴 대성당에서 기도'}],rw:{xp:2,gold:5000,sp:2}},
  {id:'j2p2',cls:'priest',town:'arden',giver:'j2_priest',req:'j2p1',lvl:50,kind:'전직',t:'얼어붙은 영혼들',say:'북부 빙원의 서리 망령과 산호 군도의 익사자들은 쉬지 못한 영혼이란다. 그들을 보내 주고 오너라.',done:'잘했다. 보내 주는 손도, 지키는 손도 모두 은총이지.',
   goals:[{type:'kill',k:['i_wraith','s_drown'],n:16,d:'서리 망령·익사자 정화'}],rw:{xp:2,gold:5000,sp:2}},
  {id:'j2p3a',cls:'priest',town:'arden',giver:'j2_priest',req:'j2p2',pick:'inquisitor',lvl:50,kind:'전직 · 갈래',t:'이단 심문 (대심문관)',say:'빛을 칼로 쥐겠다면, 혼자서도 어둠을 베어 낼 수 있어야 한다. 시련의 문 너머 타락한 심문관을 심판하거라.',done:'두려움 없는 기도였다. 오늘부터 너는 대심문관이다.',
@@ -40,22 +40,22 @@ const J2_QUESTS=[
  {id:'j2p3b',cls:'priest',town:'arden',giver:'j2_priest',req:'j2p2',pick:'archbishop',lvl:50,kind:'전직 · 갈래',t:'성지 수호 (대주교)',say:'빛을 등불로 들겠다면, 지켜야 할 이를 끝까지 지켜야 한다. 시련의 문 너머 순례자 셋이 망령에게 쫓기고 있다. 그들을 살려 보내거라.',done:'아무도 잃지 않았구나. 오늘부터 너는 대주교다. 성자의 자리는… 아직 조금 더 걸어야 한다.',
   goals:[{type:'trial',boss:'tb_archbishop',d:'시련의 문: 순례자를 지키며 망령 군단장 처치'}],rw:{xp:2,gold:5000,sp:3,job2:1,item:'j2_archbishop'}},
  // 전사
- {id:'j2w1',cls:'warrior',town:'haven',giver:'j2_warrior',lvl:50,kind:'전직',t:'기사의 자격',say:'기사라면 칼만 휘둘러선 안 된다. 서리 기사와 지옥 기사, 무장한 놈들을 상대로 버텨 봐라.',done:'아직 서 있군. 그거면 됐다.',
+ {id:'j2w1',cls:'warrior',town:'arden',giver:'j2_warrior',lvl:50,kind:'전직',t:'기사의 자격',say:'기사라면 칼만 휘둘러선 안 된다. 서리 기사와 지옥 기사, 무장한 놈들을 상대로 버텨 봐라.',done:'아직 서 있군. 그거면 됐다.',
   goals:[{type:'kill',k:['i_knight'],n:12,d:'서리 기사 처치'},{type:'kill',k:['l_knight'],n:12,d:'지옥 기사 처치'}],rw:{xp:2,gold:5000,sp:2}},
- {id:'j2w2',cls:'warrior',town:'haven',giver:'j2_warrior',req:'j2w1',lvl:50,kind:'전직',t:'빙원의 군주',say:'북부 빙원의 군주 흐림니르. 그놈 앞에서 물러서지 않는다면 다음 단계를 보여 주지.',done:'좋다. 이제 방패가 될 건지 칼이 될 건지 골라라.',
+ {id:'j2w2',cls:'warrior',town:'arden',giver:'j2_warrior',req:'j2w1',lvl:50,kind:'전직',t:'빙원의 군주',say:'북부 빙원의 군주 흐림니르. 그놈 앞에서 물러서지 않는다면 다음 단계를 보여 주지.',done:'좋다. 이제 방패가 될 건지 칼이 될 건지 골라라.',
   goals:[{type:'kill',k:['r_hrimnir'],n:1,d:'빙원의 군주 흐림니르 처치'}],rw:{xp:2,gold:5000,sp:2}},
- {id:'j2w3a',cls:'warrior',town:'haven',giver:'j2_warrior',req:'j2w2',pick:'guardian',lvl:50,kind:'전직 · 갈래',t:'성문 지키기 (가디언 나이트)',say:'시련의 문 너머 성문을 고르둔과 그 졸개들이 부수려 한다. 성문이 무너지면 실패다. 모두 네게 붙잡아 둬라.',done:'성문에 금 하나 안 갔군. 오늘부터 너는 가디언 나이트다.',
+ {id:'j2w3a',cls:'warrior',town:'arden',giver:'j2_warrior',req:'j2w2',pick:'guardian',lvl:50,kind:'전직 · 갈래',t:'성문 지키기 (가디언 나이트)',say:'시련의 문 너머 성문을 고르둔과 그 졸개들이 부수려 한다. 성문이 무너지면 실패다. 모두 네게 붙잡아 둬라.',done:'성문에 금 하나 안 갔군. 오늘부터 너는 가디언 나이트다.',
   goals:[{type:'trial',boss:'tb_guardian',d:'시련의 문: 성문을 지키며 고르둔 처치'}],rw:{xp:2,gold:5000,sp:3,job2:1,item:'j2_guardian'}},
- {id:'j2w3b',cls:'warrior',town:'haven',giver:'j2_warrior',req:'j2w2',pick:'berserker',lvl:50,kind:'전직 · 갈래',t:'투기장 연승 (버서커)',say:'투기장에서 쉬지 않고 세 판을 이겨라. 마지막은 챔피언 라크다.',done:'피가 끓는 게 보이는군. 오늘부터 너는 버서커다.',
+ {id:'j2w3b',cls:'warrior',town:'arden',giver:'j2_warrior',req:'j2w2',pick:'berserker',lvl:50,kind:'전직 · 갈래',t:'투기장 연승 (버서커)',say:'투기장에서 쉬지 않고 세 판을 이겨라. 마지막은 챔피언 라크다.',done:'피가 끓는 게 보이는군. 오늘부터 너는 버서커다.',
   goals:[{type:'trial',boss:'tb_berserker',d:'시련의 문: 투기장 3연승'}],rw:{xp:2,gold:5000,sp:3,job2:1,item:'j2_berserker'}},
  // 궁수
- {id:'j2a1',cls:'archer',town:'willowen',giver:'j2_archer',lvl:50,kind:'전직',t:'먼 땅 정찰',say:'순찰대는 발로 지도를 그린다. 평원, 사막, 빙원, 정글에 정찰 표식을 하나씩 남기고 와.',done:'네 군데 다 다녀왔군. 발이 빠른 건 인정하지.',
+ {id:'j2a1',cls:'archer',town:'arden',giver:'j2_archer',lvl:50,kind:'전직',t:'먼 땅 정찰',say:'순찰대는 발로 지도를 그린다. 평원, 사막, 빙원, 정글에 정찰 표식을 하나씩 남기고 와.',done:'네 군데 다 다녀왔군. 발이 빠른 건 인정하지.',
   goals:[{type:'use',use:'scout_plains',d:'황금 평원에 표식'},{type:'use',use:'scout_desert',d:'붉은 사막에 표식'},{type:'use',use:'scout_ice',d:'북부 빙원에 표식'},{type:'use',use:'scout_jungle',d:'타말 정글에 표식'}],rw:{xp:2,gold:5000,sp:2}},
- {id:'j2a2',cls:'archer',town:'willowen',giver:'j2_archer',req:'j2a1',lvl:50,kind:'전직',t:'정글의 큰 사냥감',say:'타말 정글의 칼리를 잡아 와. 순찰대장이 되려면 다들 한 번은 거치는 사냥이야.',done:'깨끗하게 잡았네. 이제 네 사냥 방식을 골라.',
+ {id:'j2a2',cls:'archer',town:'arden',giver:'j2_archer',req:'j2a1',lvl:50,kind:'전직',t:'정글의 큰 사냥감',say:'타말 정글의 칼리를 잡아 와. 순찰대장이 되려면 다들 한 번은 거치는 사냥이야.',done:'깨끗하게 잡았네. 이제 네 사냥 방식을 골라.',
   goals:[{type:'kill',k:['r_kali'],n:1,d:'타말 정글의 지역 보스 칼리 처치'}],rw:{xp:2,gold:5000,sp:2}},
- {id:'j2a3a',cls:'archer',town:'willowen',giver:'j2_archer',req:'j2a2',pick:'hawkeye',lvl:50,kind:'전직 · 갈래',t:'명궁 시험 (호크아이)',say:'시련의 문 너머 괴조는 절대 가까이 오지 않아. 멀리서 맞혀 떨어뜨려.',done:'바람을 읽는 눈이야. 오늘부터 넌 호크아이다.',
+ {id:'j2a3a',cls:'archer',town:'arden',giver:'j2_archer',req:'j2a2',pick:'hawkeye',lvl:50,kind:'전직 · 갈래',t:'명궁 시험 (호크아이)',say:'시련의 문 너머 괴조는 절대 가까이 오지 않아. 멀리서 맞혀 떨어뜨려.',done:'바람을 읽는 눈이야. 오늘부터 넌 호크아이다.',
   goals:[{type:'trial',boss:'tb_hawkeye',d:'시련의 문: 바람 위의 괴조 처치'}],rw:{xp:2,gold:5000,sp:3,job2:1,item:'j2_hawkeye'}},
- {id:'j2a3b',cls:'archer',town:'willowen',giver:'j2_archer',req:'j2a2',pick:'ranger',lvl:50,kind:'전직 · 갈래',t:'덫 사냥 (레인저)',say:'전갈왕은 정면으로 쏴서는 안 죽어. 덫으로 붙잡고 사냥해.',done:'기다릴 줄 아는 사냥꾼이군. 오늘부터 넌 레인저다.',
+ {id:'j2a3b',cls:'archer',town:'arden',giver:'j2_archer',req:'j2a2',pick:'ranger',lvl:50,kind:'전직 · 갈래',t:'덫 사냥 (레인저)',say:'전갈왕은 정면으로 쏴서는 안 죽어. 덫으로 붙잡고 사냥해.',done:'기다릴 줄 아는 사냥꾼이군. 오늘부터 넌 레인저다.',
   goals:[{type:'trial',boss:'tb_ranger',d:'시련의 문: 큰 전갈왕 처치'}],rw:{xp:2,gold:5000,sp:3,job2:1,item:'j2_ranger'}}];
 const CT_GIVER={
   mage:   {early:'oldman', main:'elian',      earlyNote:'노인 바르톨은 은퇴한 왕립 마법원 마법사로 설정(대사만 추가, 그림 그대로).'},
@@ -103,33 +103,33 @@ const CT_QUESTS=[
  // ===== 전사 =====
  {id:'ctw1',cls:'warrior',step:1,town:'brenhill',giver:'bruno',lvl:5,kind:'위계 시험',t:'첫 방패',say:'칼을 휘두르는 건 누구나 한다. 오래 서 있는 게 어렵지. 안개숲 고분의 늑대 우두머리 잿빛 이빨은 새끼들을 불러 둘러싼다. 쓰러지지 말고 그놈을 꺾어 봐라.',done:'끝까지 서 있었군. 좋아, 첫 방패다.',
   goals:[{type:'kill',k:['m_wolfking'],n:1,d:'안개숲 고분의 늑대 우두머리 잿빛 이빨 처치'}],rw:{xp:.8,gold:80,item:1,badge:1}},
- {id:'ctw2',cls:'warrior',step:2,town:'brenhill',giver:'bruno',req:'ctw1',lvl:10,kind:'위계 시험',t:'훈련장 입문',say:'수로 길목을 고블린과 늪 슬라임이 막는다더군. 여덟 놈만 쫓아내고, 헤이븐 교차로 훈련장의 브로딘 교관을 찾아가라. 내 이름을 대면 받아 줄 거다.',done:'(브로딘) 브루노가 보냈다고? 그 녀석 눈은 믿을 만하지. 들어와라.',
-  goals:[{type:'kill',k:['goblin','slime'],n:8,d:'수로 길목의 고블린 주술사·늪 슬라임 쫓아내기'},{type:'talk',town:'haven',npc:'j2_warrior',d:'헤이븐 훈련장의 교관 브로딘 찾아가기'}],rw:{xp:1,gold:150,sp:1,badge:2}},
- {id:'ctw3',cls:'warrior',step:3,town:'haven',giver:'j2_warrior',req:'ctw2',lvl:16,kind:'위계 시험 · 소속',t:'누구의 깃발 아래',say:'싸우는 자는 깃발이 있어야 한다. 에르난 기사단, 발카르의 강철 사제단, 카즈둔 드워프 대장간. 셋 다 만나 보고 골라라.',done:'좋아, 이제 종자다. 그 색을 부끄럽게 하지 마라.',
+ {id:'ctw2',cls:'warrior',step:2,town:'brenhill',giver:'bruno',req:'ctw1',lvl:10,kind:'위계 시험',t:'훈련장 입문',say:'수로 길목을 고블린과 늪 슬라임이 막는다더군. 여덟 놈만 쫓아내고, 왕도 기사단 전당장의 브로딘 교관을 찾아가라. 내 이름을 대면 받아 줄 거다.',done:'(브로딘) 브루노가 보냈다고? 그 녀석 눈은 믿을 만하지. 들어와라.',
+  goals:[{type:'kill',k:['goblin','slime'],n:8,d:'수로 길목의 고블린 주술사·늪 슬라임 쫓아내기'},{type:'talk',town:'arden',npc:'j2_warrior',d:'왕도 기사단 전당의 교관 브로딘 찾아가기'}],rw:{xp:1,gold:150,sp:1,badge:2}},
+ {id:'ctw3',cls:'warrior',step:3,town:'arden',giver:'j2_warrior',req:'ctw2',lvl:16,kind:'위계 시험 · 소속',t:'누구의 깃발 아래',say:'싸우는 자는 깃발이 있어야 한다. 에르난 기사단, 발카르의 강철 사제단, 카즈둔 드워프 대장간. 셋 다 만나 보고 골라라.',done:'좋아, 이제 종자다. 그 색을 부끄럽게 하지 마라.',
   goals:[{type:'pick',grp:'aff',d:'세 깃발의 대표와 이야기하고 하나 고르기'}],rw:{xp:1,gold:300,badge:3}},
- {id:'ctw4',cls:'warrior',step:4,town:'haven',giver:'j2_warrior',req:'ctw3',lvl:23,kind:'위계 시험',t:'배신자의 칼',say:'잿빛 요새의 헤르딘은 원래 우리 기사단이었다. 요새 안에서 그 녀석과 맞서 봐라. 정식 병사가 되려면 배신자의 칼 정도는 받아 내야 한다.',done:'헤르딘의 칼을 받아 냈군. 정식 병사다.',
+ {id:'ctw4',cls:'warrior',step:4,town:'arden',giver:'j2_warrior',req:'ctw3',lvl:23,kind:'위계 시험',t:'배신자의 칼',say:'잿빛 요새의 헤르딘은 원래 우리 기사단이었다. 요새 안에서 그 녀석과 맞서 봐라. 정식 병사가 되려면 배신자의 칼 정도는 받아 내야 한다.',done:'헤르딘의 칼을 받아 냈군. 정식 병사다.',
   goals:[{type:'kill',k:['m_herdin'],n:1,d:'잿빛 요새의 배신자 헤르딘 처치'}],rw:{xp:1.2,gold:500,sp:1,badge:4}},
- {id:'ctw5',cls:'warrior',step:5,town:'haven',giver:'j2_warrior',req:'ctw4',lvl:31,kind:'위계 시험',t:'사막의 집게',say:'붉은 전갈 집게는 방패도 찢고, 모래 미라는 한번 붙잡으면 놓지 않는다. 합쳐서 열다섯. 막을 건 막고, 피할 건 피해라.',done:'방패에 흠집은 났어도 구멍은 없군. 고참이다.',
+ {id:'ctw5',cls:'warrior',step:5,town:'arden',giver:'j2_warrior',req:'ctw4',lvl:31,kind:'위계 시험',t:'사막의 집게',say:'붉은 전갈 집게는 방패도 찢고, 모래 미라는 한번 붙잡으면 놓지 않는다. 합쳐서 열다섯. 막을 건 막고, 피할 건 피해라.',done:'방패에 흠집은 났어도 구멍은 없군. 고참이다.',
   goals:[{type:'kill',k:['d_scorp','d_mummy'],n:15,d:'붉은 전갈·모래 미라 처치'}],rw:{xp:1.5,gold:900,sp:1,badge:5}},
- {id:'ctw6',cls:'warrior',step:6,town:'haven',giver:'j2_warrior',req:'ctw5',lvl:38,kind:'위계 시험',t:'포위전',say:'부대장은 둘러싸여도 무너지지 않아야 한다. 시련의 문 너머에서 졸개 두 무리와 교관 기사가 한꺼번에 덤빈다. 버텨라.',done:'부대장이다. 네 뒤에 선 놈들은 안심하겠군.',
+ {id:'ctw6',cls:'warrior',step:6,town:'arden',giver:'j2_warrior',req:'ctw5',lvl:38,kind:'위계 시험',t:'포위전',say:'부대장은 둘러싸여도 무너지지 않아야 한다. 시련의 문 너머에서 졸개 두 무리와 교관 기사가 한꺼번에 덤빈다. 버텨라.',done:'부대장이다. 네 뒤에 선 놈들은 안심하겠군.',
   goals:[{type:'trial',boss:'ct_war6',d:'시련의 문: 훈련장 포위전 버티기'}],rw:{xp:2,gold:1500,sp:3,badge:6}},
- {id:'ctw7',cls:'warrior',step:7,town:'haven',giver:'j2_warrior',req:'ctw6',lvl:45,kind:'위계 시험',t:'바위를 부수는 팔',say:'용암 골렘은 칼로 베는 게 아니라 부수는 거다. 불 임프는 그 틈을 노리지. 합쳐서 열두 놈. 기사 후보라면 그 정도 팔심은 있어야지.',done:'팔이 아직 붙어 있군. 기사 후보다. 서임은 쉰 레벨이 되면, 방패가 될지 칼이 될지 정할 때 하자.',
+ {id:'ctw7',cls:'warrior',step:7,town:'arden',giver:'j2_warrior',req:'ctw6',lvl:45,kind:'위계 시험',t:'바위를 부수는 팔',say:'용암 골렘은 칼로 베는 게 아니라 부수는 거다. 불 임프는 그 틈을 노리지. 합쳐서 열두 놈. 기사 후보라면 그 정도 팔심은 있어야지.',done:'팔이 아직 붙어 있군. 기사 후보다. 서임은 쉰 레벨이 되면, 방패가 될지 칼이 될지 정할 때 하자.',
   goals:[{type:'kill',k:['l_golem','l_imp'],n:12,d:'용암 골렘·불 임프 부수기'}],rw:{xp:2.5,gold:2500,sp:4,badge:7}},
 
  // ===== 궁수 =====
  {id:'cta1',cls:'archer',step:1,town:'brenhill',giver:'garret',lvl:5,kind:'위계 시험',t:'첫 사냥',say:'좋은 사냥꾼은 가죽을 망치지 않지. 늑대 가죽 여섯 장, 흠 없는 걸로. 몸통 말고 눈을 노려 봐.',done:'깨끗하군. 이 정도면 첫 사냥으로 쳐 주지.',
   goals:[{type:'collect',k:['wolf'],p:.5,n:6,item:'흠 없는 늑대 가죽',d:'회색 늑대에게서 가죽 모으기'}],rw:{xp:.8,gold:80,item:1,badge:1}},
- {id:'cta2',cls:'archer',step:2,town:'brenhill',giver:'garret',req:'cta1',lvl:10,kind:'위계 시험',t:'망루의 눈',say:'수로 쪽 고블린 주술사와 늪 슬라임이 몰려다닌다더군. 여덟을 멀리서 떨구고, 윌로벤 망루의 세린 대장에게 보고해. 순찰대가 쓸 만한 눈을 찾고 있거든.',done:'(세린) 가렛이 보낸 몰이꾼이군. 눈이 좋다고 들었어.',
-  goals:[{type:'kill',k:['goblin','slime'],n:8,d:'고블린 주술사·늪 슬라임 처치'},{type:'talk',town:'willowen',npc:'j2_archer',d:'윌로벤 망루의 순찰대장 세린에게 보고'}],rw:{xp:1,gold:150,sp:1,badge:2}},
- {id:'cta3',cls:'archer',step:3,town:'willowen',giver:'j2_archer',req:'cta2',lvl:16,kind:'위계 시험 · 소속',t:'누구와 함께 쏠 것인가',say:'활 쏘는 법은 하나가 아니야. 우리 순찰대, 초원의 켄타우로스, 숲의 엘프 노래꾼. 셋 다 만나 보고 골라.',done:'정찰병이 됐군. 그 색 망토는 멀리서도 알아보겠어.',
+ {id:'cta2',cls:'archer',step:2,town:'brenhill',giver:'garret',req:'cta1',lvl:10,kind:'위계 시험',t:'망루의 눈',say:'수로 쪽 고블린 주술사와 늪 슬라임이 몰려다닌다더군. 여덟을 멀리서 떨구고, 왕도 사냥꾼 회관의 세린 대장에게 보고해. 순찰대가 쓸 만한 눈을 찾고 있거든.',done:'(세린) 가렛이 보낸 몰이꾼이군. 눈이 좋다고 들었어.',
+  goals:[{type:'kill',k:['goblin','slime'],n:8,d:'고블린 주술사·늪 슬라임 처치'},{type:'talk',town:'arden',npc:'j2_archer',d:'왕도 사냥꾼 회관의 순찰대장 세린에게 보고'}],rw:{xp:1,gold:150,sp:1,badge:2}},
+ {id:'cta3',cls:'archer',step:3,town:'arden',giver:'j2_archer',req:'cta2',lvl:16,kind:'위계 시험 · 소속',t:'누구와 함께 쏠 것인가',say:'활 쏘는 법은 하나가 아니야. 우리 순찰대, 초원의 켄타우로스, 숲의 엘프 노래꾼. 셋 다 만나 보고 골라.',done:'정찰병이 됐군. 그 색 망토는 멀리서도 알아보겠어.',
   goals:[{type:'pick',grp:'aff',d:'세 무리의 대표와 이야기하고 하나 고르기'}],rw:{xp:1,gold:300,badge:3}},
- {id:'cta4',cls:'archer',step:4,town:'willowen',giver:'j2_archer',req:'cta3',lvl:23,kind:'위계 시험',t:'평원의 우두머리',say:'황금 평원의 초원 늑대 우두머리들은 무리를 이끌고 다니지. 우두머리 열 마리를 무리에 들키기 전에 떨궈.',done:'무리가 흩어졌군. 사수다.',
+ {id:'cta4',cls:'archer',step:4,town:'arden',giver:'j2_archer',req:'cta3',lvl:23,kind:'위계 시험',t:'평원의 우두머리',say:'황금 평원의 초원 늑대 우두머리들은 무리를 이끌고 다니지. 우두머리 열 마리를 무리에 들키기 전에 떨궈.',done:'무리가 흩어졌군. 사수다.',
   goals:[{type:'kill',k:['p_wolf'],n:10,d:'초원 늑대 우두머리 처치'}],rw:{xp:1.2,gold:500,sp:1,badge:4}},
- {id:'cta5',cls:'archer',step:5,town:'willowen',giver:'j2_archer',req:'cta4',lvl:31,kind:'위계 시험',t:'고목 숲의 늑대인간',say:'고목의 숲 늑대인간은 나무 사이로 빠르게 다가오고, 타락한 숲 정령은 나무인 척 서 있어. 다가오기 전에 맞혀야 해. 합쳐서 열.',done:'숲에서 길을 잃지 않았군. 숙련 사수다.',
+ {id:'cta5',cls:'archer',step:5,town:'arden',giver:'j2_archer',req:'cta4',lvl:31,kind:'위계 시험',t:'고목 숲의 늑대인간',say:'고목의 숲 늑대인간은 나무 사이로 빠르게 다가오고, 타락한 숲 정령은 나무인 척 서 있어. 다가오기 전에 맞혀야 해. 합쳐서 열.',done:'숲에서 길을 잃지 않았군. 숙련 사수다.',
   goals:[{type:'kill',k:['f_were','f_dryad'],n:10,d:'늑대인간·타락한 숲 정령 처치'}],rw:{xp:1.5,gold:900,sp:1,badge:5}},
- {id:'cta6',cls:'archer',step:6,town:'willowen',giver:'j2_archer',req:'cta5',lvl:38,kind:'위계 시험',t:'바람 위의 표적',say:'추적자는 보이지 않는 걸 쫓아. 정글의 그림자 표범 열두 마리를 잡고, 시련의 문 너머 바람을 타는 매를 떨궈.',done:'바람까지 읽었군. 추적자다.',
+ {id:'cta6',cls:'archer',step:6,town:'arden',giver:'j2_archer',req:'cta5',lvl:38,kind:'위계 시험',t:'바람 위의 표적',say:'추적자는 보이지 않는 걸 쫓아. 정글의 그림자 표범 열두 마리를 잡고, 시련의 문 너머 바람을 타는 매를 떨궈.',done:'바람까지 읽었군. 추적자다.',
   goals:[{type:'kill',k:['j_panther'],n:12,d:'그림자 표범 처치'},{type:'trial',boss:'ct_arc6',d:'시련의 문: 바람을 타는 매 떨구기'}],rw:{xp:2,gold:1500,sp:3,badge:6}},
- {id:'cta7',cls:'archer',step:7,town:'willowen',giver:'j2_archer',req:'cta6',lvl:45,kind:'위계 시험',t:'불씨 떨구기',say:'불 임프는 작고 빠르고, 용암 골렘은 단단해. 둘 다 합쳐 열다섯. 화살 낭비하지 말고.',done:'화살통이 덜 비었군. 명궁 후보다. 쉰 레벨이 되면 멀리 쏠지 덫을 놓을지 정하러 와.',
+ {id:'cta7',cls:'archer',step:7,town:'arden',giver:'j2_archer',req:'cta6',lvl:45,kind:'위계 시험',t:'불씨 떨구기',say:'불 임프는 작고 빠르고, 용암 골렘은 단단해. 둘 다 합쳐 열다섯. 화살 낭비하지 말고.',done:'화살통이 덜 비었군. 명궁 후보다. 쉰 레벨이 되면 멀리 쏠지 덫을 놓을지 정하러 와.',
   goals:[{type:'kill',k:['l_imp','l_golem'],n:15,d:'불 임프·용암 골렘 떨구기'}],rw:{xp:2.5,gold:2500,sp:4,badge:7}},
 ];
 
@@ -171,13 +171,19 @@ function j2FindSpot(L,t,x0,y0,maxR){const Pt=wxTownParts(L,t),others=[...Pt.folk
   if(good(x0,y0))return{x:x0,y:y0};
   for(let r=12;r<=maxR;r+=12){const n=Math.max(8,Math.round(r*6.283/16));for(let i=0;i<n;i++){const a=i/n*6.283,x=x0+Math.cos(a)*r,y=y0+Math.sin(a)*r;if(good(x,y))return{x,y}}}return null}
 {const T=id=>HOME.towns.find(t=>t.id===id);
-  const PLACE={j2_priest:['arden',-170,-250],j2_warrior:['haven',-250,-140],j2_archer:['willowen',250,-60]};
-  for(const id in PLACE){const [tid,dx,dy]=PLACE[id],t=T(tid);if(!t)continue;const p=j2FindSpot(HOME,t,t.x+dx,t.y+dy,320)||{x:t.x+dx,y:t.y+dy};const d=twFolkObj(id,t,p.x,p.y);if(d)HOME.decor.push(d)}
-  {const t=T('arden');if(t)twFolkObj('elian',t,t.x,t.y,'arden_academy')}
+  // v26: 전직관 넷은 왕도(아르덴) 각 전당 안에 선다 (사용자 2026-10-10 「각 직업들의 전당/사무실」). 같은 사람은 한 곳에만
+  const ROOMS={elian:['arden_academy',[-170,110]],j2_priest:['arden_cathedral',[-120,-80]],j2_warrior:['arden_knights',[-20,-70]],j2_archer:['arden_lodge',[-10,-60]]};
+  {const t=qTw('arden');if(t)for(const id in ROOMS){TWFOLK[id].room=ROOMS[id][1];twFolkObj(id,t,t.x,t.y,ROOMS[id][0])}}
   // 기도처 (의뢰 중일 때만 보이는 제단)
-  const ALT={altar_willowen:['willowen',-120,-230],altar_haven:['haven',-60,-260],altar_arden:['arden',-260,-170]};
+  const ALT={altar_haven:['haven',-60,-260]};
   for(const id in ALT){const [tid,dx,dy]=ALT[id],t=T(tid);if(!t)continue;const p=j2FindSpot(HOME,t,t.x+dx,t.y+dy,320)||{x:t.x+dx,y:t.y+dy};
     HOME.decor.push({x:p.x,y:p.y,k:'altar',pv:0,use:id,qonly:1,tprop:1,s:1,v:0,zl:0});J2SPOT[id]={reg:'home',x:p.x,y:p.y,label:`${t.n} · ${J2_SPOTS[id].at}`}}
+  // v26: 윌로벤 성소 → 은류강 옛 나루 자리의 들판 사당 (옛 마을 자리 TOWN0)
+  {const A=TOWN0.find(t=>t.id==='willowen');if(A){let p={x:A.x,y:A.y};for(let r=0;r<400;r+=20){let ok=null;for(let i=0;i<12&&!ok;i++){const a=i/12*6.283,x=A.x+Math.cos(a)*r,y=A.y+Math.sin(a)*r;if(!HOME.decor.some(d=>Math.hypot(d.x-x,d.y-y)<50)&&roadDist(x,y)>40)ok={x,y}}if(ok){p=ok;break}}
+    HOME.decor.push({x:p.x,y:p.y,k:'altar',pv:0,use:'altar_willowen',qonly:1,tprop:1,s:1,v:0,zl:0});J2SPOT.altar_willowen={reg:'home',x:p.x,y:p.y,label:`${A.n} · ${J2_SPOTS.altar_willowen.at}`}}}
+  // v26: 왕도 대성당 안 제단
+  {const t=qTw('arden'),it=TWROOM.arden_cathedral.items.find(i=>i[5]==='altar_arden');if(t&&it){const b=(TW.blds[t.reg]||[]).find(b=>b.enter==='arden_cathedral');
+    J2SPOT.altar_arden={reg:t.reg,x:t.x+it[1],y:t.y+it[2],room:'arden_cathedral',door:b?b.door:null,label:'왕도 대성당 안 · 제단'}}}
   // 브렌힐 예배당 안 제단
   {const B=T('brenhill'),it=TWROOM.bren_chapel.items.find(i=>i[0]==='altar');if(B&&it){it[3]=it[3]|0;it[4]=it[4]|0;it[5]='altar_brenhill';const b=(TW.blds.home||[]).find(b=>b.enter==='bren_chapel');
     J2SPOT.altar_brenhill={reg:'home',x:B.x+it[1],y:B.y+it[2],room:'bren_chapel',door:b?b.door:null,label:'브렌힐 예배당 안 · 제단'}}}
@@ -197,7 +203,7 @@ const j2Q=()=>P.qsp&&typeof P.qsp==='object'&&!Array.isArray(P.qsp)?P.qsp:(P.qsp
   if(q.pick&&!s.a[q.id]&&!s.d[q.id]&&SQ.some(o=>o.pick&&o!==q&&o.cls===q.cls&&o.req===q.req&&(s.a[o.id]||s.d[o.id])))return 'hidden';// 갈래 시험은 둘 중 하나만
   const v=_a(q);if(v==='ok'&&P.lvl<q.lvl)return 'low';return v}}
 function j2NpcAt(id){const f=sqFolk(id);if(!f)return null;
-  if(f.room){const b=(TW.blds.home||[]).find(b=>b.enter===f.room),o=TWFOLK[id].room||[0,0];return{reg:'home',x:f.town.x+o[0],y:f.town.y+o[1],room:f.room,door:b?b.door:null,label:`${f.town.n} ${TWROOM[f.room].n} 안 · ${f.n}`}}
+  if(f.room){const rg=f.town.reg||'home',b=(TW.blds[rg]||[]).find(b=>b.enter===f.room),o=TWFOLK[id].room||[0,0];return{reg:rg,x:f.town.x+o[0],y:f.town.y+o[1],room:f.room,door:b?b.door:null,label:`${f.town.n} ${TWROOM[f.room].n} 안 · ${f.n}`}}
   return{reg:f.town.reg||'home',x:f.hx,y:f.hy,label:`${f.town.n} · ${f.n}`}}
 {const _t=sqTarget;sqTarget=function(q){if(!j2IsMine(q))return _t(q);const a=sqState().a[q.id];if(!a||sqAllDone(q))return _t(q);
   for(let j=0;j<q.goals.length;j++){if(sqGoalDone(q,j))continue;const g=q.goals[j];

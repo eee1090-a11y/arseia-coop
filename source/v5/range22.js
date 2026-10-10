@@ -11,7 +11,11 @@
      몬스터의 움직임·몸 부딪힘·몬스터의 공격 거리·한 방 상한·알아차리는 거리는 e.r 그대로.
    · 겨눈 곳이 몬스터 몸(그림) 위면 그 몬스터 발밑을 겨눈다(aimAt) — 키 큰 보스의 가슴을 눌러도 땅의 뒤쪽이 아니라 보스를 쏜다.
      이동 기술(순간 이동·도약·돌진 …)은 원래 누른 자리 그대로. */
-const R22={cap:480,arc:540,gnd:560,gen:0,genT:0};
+const R22={cap:480,arc:540,gnd:560,gen:0,genT:0,
+  // v26 (사용자 2026-10-10 12:53 「궁수는 기본적으로 리치가 현재 사거리의 1.5배 … 피어싱과 같이 관통하는 스킬은 2배까지」)
+  // 궁수 공격: 사거리 · 광선 길이 · 휘는 화살 · 별 · 던지기 거리 ×1.5(화살 540 → 810, 먼 시야 더한 값도 같이), 꿰뚫는 기술 ×2(1080), 땅 범위 가운데 560 → 840.
+  // 그대로: 덫 던지는 거리(TRAP_RANGE) · 스캐터 발리(가까운 적 부채꼴 300) · 이동 기술 · 소환수
+  ak:1.5,apk:2};
 // 그림 몸 반폭(월드 단위, 크기 배율 1): 화면 폭(가운데 90% 덩어리와 전체 폭의 평균)/2 ÷ 1.06(월드 → 화면 가로 배율). v22 측정값
 const R22_HW={slime:18,wolf:30,goblin:15,skeleton:16,wraith:20,ogre:21,knight:21,apostle:16,golem:27,panther:28,elemental:19,scorpion:27,serpent:17,yeti:21,imp:18,crab:28};
 // 새 그림(Flare) 몸 반폭. 맞는 크기는 그림 설정과 상관없이 늘 같아야 하므로(같이 하기에서 서로 설정이 달라도 같은 판정) 종류마다 두 그림 중 큰 값을 고정으로 쓴다.
@@ -22,8 +26,14 @@ const R22_TW={};
 function r22TW(k){let v=R22_TW[k];if(v!=null)return v;const t=TYPES[k];if(!t)return 0;const id=FLTYPE[k]||FLDRAW[t.draw];v=Math.max(R22_HW[t.draw]||0,id&&R22_FLHW[id]||0);R22_TW[k]=v;return v}
 const R22_MOVE=new Set(['blink','leap','charge','mleap','sidestep','swap','intervene']);
 const R22_GND=new Set(['field','rain','strike','gale','spchain','brandburst']);
-// 이 마법의 사거리 (궁수 화살은 조금 더 + 먼 시야)
-function r22Cap(s){if(s&&s.cls==='archer'){let rg=0;if(!GHOST&&P&&P.cls==='archer'){try{rg=Math.max(0,passSum('range')||0)}catch(_){rg=0}}return R22.arc+Math.min(120,Math.round(400*rg))}return R22.cap}
+// v26: 궁수의 꿰뚫는 기술 (화살이 일직선의 적을 꿰뚫음: 피어싱 샷 · 풀 드로우 · 윈드 피어서 · 시즈 샷 · 피어싱 블로 · 보우 오브 헤븐 · 리턴 애로우). 짐승 떼(와일드 런)는 아님
+const R22_APX=new Set(['returnarrow']);
+const r22Pierce=s=>!!s&&s.cls==='archer'&&(s.pierce>0||s.kind==='beam'&&s.id!=='wildrun'||R22_APX.has(s.id));
+const r22AK=s=>s&&s.cls==='archer'?(r22Pierce(s)?R22.apk:R22.ak):1;
+// 땅에 까는 범위 마법의 가운데 한계 (궁수 ×1.5)
+const r22Gnd=s=>Math.round(R22.gnd*(s&&s.cls==='archer'?R22.ak:1));
+// 이 마법의 사거리 (궁수 화살은 조금 더 + 먼 시야, v26부터 그 값의 1.5배 · 꿰뚫는 기술 2배)
+function r22Cap(s){if(s&&s.cls==='archer'){let rg=0;if(!GHOST&&P&&P.cls==='archer'){try{rg=Math.max(0,passSum('range')||0)}catch(_){rg=0}}return Math.round((R22.arc+Math.min(120,Math.round(400*rg)))*r22AK(s))}return R22.cap}
 function r22HR(e){let w=0;const t=TYPES[e.k];
   if(t&&!e.mirror){const sc=e.sc||(e.elite?1.25:1);w=r22TW(e.k)*sc}
   return Math.max(e.r||0,Math.round(w))}
@@ -50,16 +60,17 @@ function aimAt(sx,sy){const raw=S2W(sx,sy),e=r22Pick(sx,sy);return e?{x:e.x,y:e.
 // 시전: 이동 기술은 몸에 붙인 겨눔을 풀고, 땅에 까는 마법은 가운데를 560 안으로
 {const _tc=tryCast;tryCast=function(id,t){const s=SPELLS[id];
   if(t&&s){if(t.snap)t=R22_MOVE.has(s.kind)?t.raw:{x:t.x,y:t.y};
-    if(R22_GND.has(s.kind)&&!s.self)t=clampRange(t,R22.gnd)}
+    if(R22_GND.has(s.kind)&&!s.self)t=clampRange(t,r22Gnd(s))}
   return _tc.call(this,id,t)}}
 // 겨눔을 따로 주지 않은 시전(단축키)도 b3의 clsAim을 지나므로 같은 처리
-{const _ca=clsAim;clsAim=function(s,t){if(t&&s){if(t.snap)t=R22_MOVE.has(s.kind)?t.raw:{x:t.x,y:t.y};if(R22_GND.has(s.kind)&&!s.self)t=clampRange(t,R22.gnd)}return _ca(s,t)}}
+{const _ca=clsAim;clsAim=function(s,t){if(t&&s){if(t.snap)t=R22_MOVE.has(s.kind)?t.raw:{x:t.x,y:t.y};if(R22_GND.has(s.kind)&&!s.self)t=clampRange(t,r22Gnd(s))}return _ca(s,t)}}
 // 길이·거리 값: 광선·물벽·천군 돌격 길이, 던지기·일곱 별·휘는 화살·검기 거리
 const R22_LEN=new Set(['beam','wave','sweep']),R22_RNG=new Set(['throw','stars','homing','gale']);
 {const _ef=eff;eff=function(id,L){const e=_ef(id,L);if(!e||!(e.mult>0))return e;
   // 천군의 돌격(sweep)은 시전자 60 뒤에서 출발하므로 +60
-  if(R22_LEN.has(e.kind)&&e.len>0){const C=r22Cap(e)+(e.kind==='sweep'?60:0);if(e.len>C)e.len=C}
-  if(R22_RNG.has(e.kind)&&e.range>0){const C=r22Cap(e);if(e.range>C)e.range=C}
+  const k=r22AK(e);// v26: 궁수는 길이 · 거리도 1.5배(꿰뚫는 기술 2배)한 뒤 사거리로 줄인다
+  if(R22_LEN.has(e.kind)&&e.len>0){const C=r22Cap(e)+(e.kind==='sweep'?60:0);e.len=Math.min(C,Math.round(e.len*k))}
+  if(R22_RNG.has(e.kind)&&e.range>0){const C=r22Cap(e);e.range=Math.min(C,Math.round(e.range*k))}
   return e}}
 // 투사체: 처음 나온 자리에서 사거리를 넘게 날아가면 사라진다 (내 것 · 동료 그림자 · 소환수 것 모두).
 // 시전자 곁에서 나온 것은 시전자 자리에서 잰다. 다음 한 프레임에 사거리를 넘을 것도 미리 없앤다(빠른 화살이 한 프레임만큼 더 닿지 않게)

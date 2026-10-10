@@ -285,7 +285,7 @@ DM21GLOW.push(()=>{const a=DG.a21;if(a.k!=='mz')return;
   if(a.rules.includes('dark')&&!(a._lit>0)&&P._s){const e=mzDarkSpr();if(!e)return;const r=Math.max(W,H)*.62*1.6,s=P._s;ctx.drawImage(e.cv,s.x-r,s.y-20-r*.62,r*2,r*1.24);
     ctx.fillStyle='rgba(2,2,8,.86)';const x0=s.x-r,x1=s.x+r,y0=s.y-20-r*.62,y1=s.y-20+r*.62;if(x0>0)ctx.fillRect(0,0,x0+1,H);if(x1<W)ctx.fillRect(x1-1,0,W-x1+1,H);if(y0>0)ctx.fillRect(0,0,W,y0+1);if(y1<H)ctx.fillRect(0,y1-1,W,H-y1+1)}});
 // 쓰러지면 (혼자) 미궁 밖 천막 앞으로
-setTimeout(()=>{const b=document.getElementById('respawn');if(!b||!b.onclick)return;const _o=b.onclick;b.onclick=function(){const inMz=DG&&DG.a21&&DG.a21.k==='mz'&&!NET.on;const r=_o.apply(this,arguments);
+setTimeout(()=>{const b=document.getElementById('respawn');if(!b||!b.onclick)return;const _o=b.onclick;b.onclick=function(){const inMz=DG&&DG.a21&&DG.a21.k==='mz'&&!dgPartyHere();const r=_o.apply(this,arguments);
   if(inMz&&MZ.gate){if(REG.id!=='home')loadRegion('home');P.x=MZ.gate.x;P.y=MZ.gate.y+90;followCam();msg('오르타 짝문 밖에서 다시 일어섰습니다','#a39d8f');save()}return r}},0);
 
 /* ===== 8) 창: 길잡이 조합 (입장 · 오늘의 규칙 · 열쇠 상점) ===== */

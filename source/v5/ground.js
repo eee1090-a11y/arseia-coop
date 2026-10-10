@@ -114,6 +114,8 @@ const REGION_GROUND={
   lava:th=>({m:{rock:[1,th.pal[0]],ash:[.6,mulc(th.pal[1],[1.25,1.25,1.25])]},road:mulc(th.pal[0],[1.3,1.25,1.2]),tuft:0}),
   beach:th=>({m:{sand:[1,th.pal[0]],grass:[.35,[78,104,58]],rock:[.08,[110,104,92]]},road:mulc(th.pal[0],[1.06,1.02,.98]),flowers:['#f4f0e4','#ff8aa0'],tuft:.5,flower:.3}),
 };
+// v26 왕도: 풀밭 + 하얀 돌길(길은 포장석)
+REGION_GROUND.royal=th=>({m:{grass:[1,mulc(th.pal[0],[1.05,1.1,1.08])],dirt:[.15,[112,98,72]],rock:[.08,[118,116,110]]},road:[158,152,140],roadFlag:1,roadW:60,plaza:[166,160,148],flowers:th.fcol,tuft:.9,flower:.8});
 const RGCACHE={};
 function regionAreas(){const id=REG.id;if(RGCACHE[id])return RGCACHE[id];const th=REG.th,near=REGION_GROUND[th.paint](th),far=JSON.parse(JSON.stringify(near));
   const k=[th.deep[0]/th.pal[0][0],th.deep[1]/th.pal[0][1],th.deep[2]/th.pal[0][2]].map(v=>clamp(v,.5,1));
@@ -293,14 +295,19 @@ function getChunkE(cx,cy){const want=clamp(Math.round(DPR*.9*20)/20,.8,1.4);if(w
   c={cv:cv2,used:frameN,fx:null,ready:false,pv:chunkPreview(cx,cy),cx,cy,ms:0};c.job=paintChunkG(g2,cx*CH,cy*CH);chunks.set(k,c);GJOBS.push(c);
   if(chunks.size>64){let old=null,ou=1e12;for(const [kk,v] of chunks)if(v.used<ou&&v.ready){ou=v.used;old=kk}if(old!=null)chunks.delete(old)}
   return c}
+// [v26 최적화] 땅 무늬 그림이 새로 도착하면(Flare 묶음) 다 구운 조각을 지우지 않고, 새로 다 구울 때까지 예전 그림을 그대로 보여 준다
+// (예전에는 모두 지워 흐린 미리보기로 돌아갔다가 다시 구웠다)
+function chunkStale(){for(const c of chunks.values()){if(c.ready)c.stale=1;else{c.job=null;chunks.delete(c.cx*1000+c.cy)}}for(const c of GJOBS)if(c.par)c.par.rb=null;GJOBS.length=0}
+function chunkRebake(p){const cv2=document.createElement('canvas');cv2.width=cv2.height=Math.round(CH*chunkScale);const g2=cv2.getContext('2d');g2.scale(chunkScale,chunkScale);
+  const c={cv:cv2,used:frameN,fx:null,ready:false,cx:p.cx,cy:p.cy,ms:0,par:p};c.job=paintChunkG(g2,p.cx*CH,p.cy*CH);p.rb=c;GJOBS.push(c);return c}
 function getChunk(cx,cy){const c=getChunkE(cx,cy);return c&&c.ready?c.cv:null}
 // 굽기 일감: 이번 프레임 예산(ms) 안에서 가까운 조각부터 조금씩
 const GWARM=['grass','dirt','road','flag','leaf','mud','sand','ash','rock','snow','water','lava','ice'];
 function runChunkJobs(budget){const t0=performance.now();if(paused&&!GJOBS.length){const n=GWARM.find(n=>!GTX[n]);if(n)gtex(n)} // 멈춘 화면(시작 화면)에서 재질을 미리 굽는다
 const pcx=P.x/CH,pcy=P.y/CH;
-  for(let i=GJOBS.length-1;i>=0;i--)if(GJOBS[i].ready||chunks.get(GJOBS[i].cx*1000+GJOBS[i].cy)!==GJOBS[i])GJOBS.splice(i,1);
+  for(let i=GJOBS.length-1;i>=0;i--)if(GJOBS[i].ready||chunks.get(GJOBS[i].cx*1000+GJOBS[i].cy)!==(GJOBS[i].par||GJOBS[i]))GJOBS.splice(i,1);
   GJOBS.sort((a,b)=>(b.used-a.used)||(Math.hypot(a.cx+.5-pcx,a.cy+.5-pcy)-Math.hypot(b.cx+.5-pcx,b.cy+.5-pcy)));
-  for(const c of GJOBS){while(!c.ready){const t1=performance.now(),r=c.job.next(),dt=performance.now()-t1;c.ms+=dt;GSTAT.sl.push(dt);if(GSTAT.sl.length>4000)GSTAT.sl.shift();if(r.done){isoBusy=frameN;c.ready=true;c.fx=r.value;c.job=null;c.pv=null;GSTAT.n++;GSTAT.ms+=c.ms;GSTAT.last=c.ms}
+  for(const c of GJOBS){while(!c.ready){const t1=performance.now(),r=c.job.next(),dt=performance.now()-t1;c.ms+=dt;GSTAT.sl.push(dt);if(GSTAT.sl.length>4000)GSTAT.sl.shift();if(r.done){isoBusy=frameN;c.ready=true;c.fx=r.value;c.job=null;c.pv=null;GSTAT.n++;GSTAT.ms+=c.ms;GSTAT.last=c.ms;if(c.par){const p=c.par;p.cv=c.cv;p.fx=c.fx;p.iso=null;p.stale=0;p.rb=null}}
       if(performance.now()-t0>budget)return}}}
 // 땅 그리기: 보이는 조각(없으면 미리보기) → 굽기 일감 → 여유가 있으면 화면 밖 한 겹을 미리 일감에 올린다
 const GVIS=[];
@@ -311,6 +318,7 @@ function drawGround(cx0,cx1,cy0,cy1){{const wk=DG||REG;if(wk!==chunkWorld){chunk
   // 걸을 때는 한 프레임 4ms(멈춤 화면 10ms), 순간이동 직후 화면이 비어 있으면 24ms까지
   isoFree=miss>4;runChunkJobs(miss>4?24:paused?10:4);
   for(let cy=cy0;cy<=cy1;cy++)for(let cx=cx0;cx<=cx1;cx++){if(!ok(cx,cy)||!inView(cx,cy))continue;const c=chunks.get(cx*1000+cy);if(!c)continue;
+    if(c.ready&&c.stale){if(!c.rb)chunkRebake(c);c.rb.used=frameN}
     if(c.ready){if(!isoBlit(c,cx,cy))ctx.drawImage(c.cv,cx*CH,cy*CH,CH+1,CH+1);if(c.fx&&c.fx.length)GVIS.push(c)}else ctx.drawImage(c.pv,.5,.5,4,4,cx*CH,cy*CH,CH+1,CH+1)}
   if(!miss&&GJOBS.length<2&&chunks.size<60){outer:for(let cy=cy0-1;cy<=cy1+1;cy++)for(let cx=cx0-1;cx<=cx1+1;cx++){if(!ok(cx,cy)||chunks.has(cx*1000+cy)||!inView(cx,cy,250))continue;getChunkE(cx,cy).used=frameN-1;break outer}}}
 // [최적화] 다 구운 조각을 화면 방향(마름모)으로 한 번 더 구워 두고, 매 프레임에는 회전 없이 그대로 붙인다.
@@ -323,7 +331,7 @@ function isoBlit(c,cx,cy){const s=DPR;
   if(!c.iso||c.iso.s!==s){if(!isoFree&&!paused&&isoBusy===frameN)return false;isoBusy=frameN;let n=0,old=null,ou=1e12;for(const v of chunks.values())if(v.iso&&v!==c){n++;if(v.isoU<ou){ou=v.isoU;old=v}}if(n>=ISO_MAX&&old)old.iso=null;
     const w=Math.ceil((2*CH*KI+ISO_PAD*2)*s),h=Math.ceil((CH*KI+ISO_PAD*2)*s),cv2=document.createElement('canvas');cv2.width=w;cv2.height=h;const g=cv2.getContext('2d');
     g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';g.setTransform(s*KI,s*KI/2,-s*KI,s*KI/2,s*(CH*KI+ISO_PAD),s*ISO_PAD);g.drawImage(c.cv,-.5,-.5,CH+1.5,CH+1.5);
-    decoIdx();const fl=DFLAT.get(cx*1000+cy);if(fl){g.setTransform(s,0,0,s,0,0);const bl=SC.bakeLeft;SC.bakeLeft=1e9;const ox=(cx*CH-cy*CH)*KI-CH*KI-ISO_PAD,oy=(cx*CH+cy*CH)*KI/2-ISO_PAD;for(const d of fl)RD.draw(g,d,(d.x-d.y)*KI-ox,(d.x+d.y)*KI/2-oy,1,0);SC.bakeLeft=bl}
+    decoIdx();const fl=DG?null:DFLAT.get(cx*1000+cy);/* v26: 던전 안에서는 들판 장식(밀 · 꽃 · 덤불)을 굽지 않는다 — 같은 자리 들판 장식이 던전 바닥에 겹쳐 보이던 버그(폭풍 첨탑 · 재의 성소) */if(fl){g.setTransform(s,0,0,s,0,0);const bl=SC.bakeLeft;SC.bakeLeft=1e9;const ox=(cx*CH-cy*CH)*KI-CH*KI-ISO_PAD,oy=(cx*CH+cy*CH)*KI/2-ISO_PAD;for(const d of fl)RD.draw(g,d,(d.x-d.y)*KI-ox,(d.x+d.y)*KI/2-oy,1,0);SC.bakeLeft=bl}
     c.iso={cv:cv2,s}}
   c.isoU=frameN;
   const wx=cx*CH,wy=cy*CH,sx=(wx-wy)*KI-camX+shx-CH*KI-ISO_PAD,sy=(wx+wy)*KI/2-camY+shy-ISO_PAD;
@@ -496,5 +504,46 @@ function drawWall(w){
   const e=wallSprite(DG.d,h,v,pil);ctx.globalAlpha=front?.55:1;if(e)SC.draw(ctx,e,s.x,s.y);
   const t=wallTorch(w);if(t){const st=W2S(t.x,t.y),b=torchSprite();if(b)SC.draw(ctx,b,st.x,st.y-48)}
   ctx.globalAlpha=1}
+// [v26 최적화] 던전 벽 묶어 굽기: 땅 조각(4×4칸)마다 그 안의 벽을 한 장으로 미리 구워, 깊이 순서 목록에 한 장으로 넣는다
+// (벽 하나하나 100번 넘게 그리던 것을 몇 장으로). 그 묶음의 깊이 범위 안에 서서 벽 그림과 겹치는 몬스터·사람이 있거나,
+// 주인공 앞 벽이 반투명이 되어야 하거나, 겹치는 이웃 묶음이 벽마다 그려지면 그 묶음만 예전처럼 벽마다 그린다 → 앞뒤 순서·모양은 예전과 같다.
+// 그림 전용: 벽 위치·충돌·규칙·저장은 그대로.
+const WB={dg:null,n:-1,s:0,ch:new Map(),bytes:0,busy:-1,stat:{baked:0,early:0,fb:0}};
+const WB_CAP=(matchMedia('(pointer:coarse)').matches?16:32)*1048576;
+function wbRect(w){return{x0:(w.x-w.y)*KI-88,x1:(w.x-w.y)*KI+88,y0:(w.x+w.y)*KI/2-w.h-52,y1:(w.x+w.y)*KI/2+48}}
+function wbInit(){WB.dg=DG;WB.n=DG.walls.length;WB.s=DPR;WB.ch.clear();WB.bytes=0;
+  const pil=(w)=>(typeof a3PilAt==='function'&&a3PilAt(w.i,w.j))||(typeof w3PilAt==='function'&&DG.d&&DG.d.arena&&w3PilAt(w.i,w.j));
+  const at=new Map();DG.walls.forEach((w,k)=>{w._k=k;w._r=wbRect(w);at.set(tIdx(w.i,w.j),w);const key=Math.floor(w.x/CH)*1000+Math.floor(w.y/CH);let c=WB.ch.get(key);if(!c)WB.ch.set(key,c={key,walls:[],cv:null,used:0,never:0});c.walls.push(w);w._c=c;if(pil(w))c.never=1});
+  for(const c of WB.ch.values()){c.walls.sort((a,b)=>(a.x+a.y)-(b.x+b.y)||a._k-b._k);let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9,dmin=1e9,dmax=-1e9;
+    for(const w of c.walls){const r=w._r;x0=Math.min(x0,r.x0);x1=Math.max(x1,r.x1);y0=Math.min(y0,r.y0);y1=Math.max(y1,r.y1);dmin=Math.min(dmin,w.x+w.y);dmax=Math.max(dmax,w.x+w.y)}
+    Object.assign(c,{x0:Math.floor(x0)-2,y0:Math.floor(y0)-2,x1:Math.ceil(x1)+2,y1:Math.ceil(y1)+2,dmin,dmax,dep:new Set()})}
+  // 묶음 C는 깊이 C.dmin 자리에서 한 장으로 그려진다. 다른 묶음의 벽 f가 C의 벽 w와 겹치고 깊이가 [C.dmin, w) 사이면
+  // f의 묶음을 벽마다 그릴 때 C도 벽마다 그려야 한다 (f가 w 밑에 깔려야 하므로). 두 묶음이 다 한 장일 때 순서가 어긋날 수 있는 짝(bad)은 늘 벽마다.
+  WB.bad=0;for(const w of DG.walls)for(let a=-3;a<=3;a++)for(let b=-8;b<=8;b++){const i=w.i+a,j=w.j+b;if(i<0||j<0||i>=DN||j>=DN)continue;const f=at.get(tIdx(i,j));if(!f||f._c===w._c)continue;
+    const r=w._r,q=f._r;if(!(r.x1>q.x0&&r.x0<q.x1&&r.y1>q.y0&&r.y0<q.y1))continue;const C=w._c,F=f._c,df=f.x+f.y,dw=w.x+w.y;
+    if(df>=C.dmin&&df<dw){C.dep.add(F);if(F.dmin>C.dmin||(F.dmin===C.dmin&&F.key>C.key)){C.bad=1;F.bad=1;WB.bad++}}}}
+function wbBake(c){const s=DPR,w=Math.ceil((c.x1-c.x0)*s),h=Math.ceil((c.y1-c.y0)*s);if(WB.bytes+w*h*4>WB_CAP){let old=null;for(const o of WB.ch.values())if(o.cv&&(!old||o.used<old.used))old=o;if(!old||old.used>=frameN-1)return false;WB.bytes-=old.cv.width*old.cv.height*4;old.cv=null}
+  const parts=[];for(const wl of c.walls){const hv=hash(wl.i,wl.j),v=(hv*4)|0,pl=(dgFloor(wl.i+1,wl.j)||dgFloor(wl.i,wl.j+1))&&(dgFloor(wl.i+1,wl.j)!==dgFloor(wl.i+1,wl.j+1)||dgFloor(wl.i,wl.j+1)!==dgFloor(wl.i+1,wl.j+1)||hv>.72)?1:0;
+    const e=wallSprite(DG.d,wl.h,v,pl);if(!e)return false;parts.push([wl,e])}
+  const cv2=document.createElement('canvas');cv2.width=w;cv2.height=h;const g=cv2.getContext('2d');g.setTransform(s,0,0,s,-c.x0*s,-c.y0*s);
+  for(const [wl,e] of parts){SC.draw(g,e,(wl.x-wl.y)*KI,(wl.x+wl.y)*KI/2);const t=wallTorch(wl);if(t){const b=torchSprite();if(b)SC.draw(g,b,(t.x-t.y)*KI,(t.x+t.y)*KI/2-48)}}
+  c.cv=cv2;c.s=s;WB.bytes+=w*h*4;WB.stat.baked++;return true}
+// 화면에 보이는 묶음 중 한꺼번에 붙여도 되는 것은 지금 그리고, 아닌 것의 벽은 vis(깊이 정렬 목록)에 넣는다.
+function wbDraw(vis,objs){if(WB.dg!==DG||WB.n!==DG.walls.length)wbInit();if(WB.s!==DPR){for(const c of WB.ch.values())c.cv=null;WB.bytes=0;WB.s=DPR}
+  const ps=P._s||W2S(P.x,P.y),pd=P.x+P.y,ox=-camX+shx,oy=-camY+shy,V=[];
+  for(const c of WB.ch.values()){c.fb=0;c.vis=!(c.x1+ox<-10||c.x0+ox>W+10||c.y1+oy<-10||c.y0+oy>H+10);if(!c.vis)continue;V.push(c);
+    let ok=!c.never&&!c.bad&&!window.__WBOFF;
+    // 묶음이 그려지는 깊이(dmin)와 벽 깊이 사이에 서서 그 벽 그림과 겹치는 것이 있거나, 주인공 앞 벽이 반투명이 되어야 하면 벽마다 그린다
+    if(ok)for(const o of objs){const d=o.zk!=null?o.zk:o.x+o.y;if(d<c.dmin||d>=c.dmax)continue;const s=o._s,hw=Math.max(80,(o.r||20)*3),ht=Math.max(220,(o.r||20)*7);
+      const sx=s.x+camX,sy=s.y+camY;if(sx+hw<c.x0||sx-hw>c.x1||sy+30<c.y0||sy-ht>c.y1)continue;
+      for(const w of c.walls){if(d>=w.x+w.y)continue;const r=w._r;if(sx+hw>r.x0&&sx-hw<r.x1&&sy+30>r.y0&&sy-ht<r.y1){ok=false;break}}if(!ok)break}
+    if(ok)for(const w of c.walls){if(!(w.x+w.y>pd))continue;const s=W2S(w.x,w.y);if(Math.abs(s.x-ps.x)<150&&s.y-ps.y>-30&&s.y-ps.y<280){ok=false;break}}
+    if(ok&&!c.cv){if(WB.busy===frameN||!wbBake(c))ok=false;else WB.busy=frameN}
+    if(!ok)c.fb=1}
+  for(let ch=1;ch;){ch=0;for(const c of V)if(!c.fb){for(const f of c.dep)if(f.fb&&f.vis){c.fb=1;ch=1;break}}}
+  for(const c of V){if(c.fb){WB.stat.fb++;for(const w of c.walls){const s=W2S(w.x,w.y);if(onScreen(s,200)){w._s=s;vis.push(w)}}}else{c.used=frameN;WB.stat.early++;vis.push({wb:c,zk:c.dmin,x:0,y:0})}}
+}
+// vis 목록 안에서 깊이 순서대로 불린다
+function drawWB(o){const c=o.wb;ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=1;ctx.drawImage(c.cv,Math.round((c.x0-camX+shx)*DPR),Math.round((c.y0-camY+shy)*DPR));S()}
 // 디버그/측정용 (그림 전용): 조각 굽기 통계와 캐시 크기
-window.__gfx={GSTAT,get chunks(){return chunks},SC,bake(cx,cy,sc){const c=document.createElement('canvas');c.width=c.height=Math.round(CH*sc);const g=c.getContext('2d');g.scale(sc,sc);const t=performance.now();paintChunk(g,cx*CH,cy*CH);return performance.now()-t}};
+window.__gfx={WB,GSTAT,get chunks(){return chunks},SC,bake(cx,cy,sc){const c=document.createElement('canvas');c.width=c.height=Math.round(CH*sc);const g=c.getContext('2d');g.scale(sc,sc);const t=performance.now();paintChunk(g,cx*CH,cy*CH);return performance.now()-t}};

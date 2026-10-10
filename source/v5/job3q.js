@@ -4,7 +4,7 @@
          → 3 갈래의 시험(100, 재가 내리는 고원의 시험의 방) → 3차 전직(칭호 · 스킬 포인트 4 · 갈래 상징 유니크) → 4 왕도의 문(120) → 5 재의 왕좌(135, 재의 군주 첫 처치 스킬 포인트 2).
    진행은 기존 의뢰 저장(sq)에 쌓이고, 예전 판이 다시 저장해도 되살릴 수 있게 물약 칸(pot._j3.d)에 끝낸 단계를 적어 둔다. 점수는 P.qsp 표로 한 번만. */
 const J3_GIVER={mage:'elian',priest:'j2_priest',warrior:'j2_warrior',archer:'j2_archer'};
-const J3_TOWN={mage:'arden',priest:'arden',warrior:'haven',archer:'willowen'};
+const J3_TOWN={mage:'arden',priest:'arden',warrior:'arden',archer:'arden'};// v26: 전직관 넷 모두 왕도 전당
 const J3_PFX={mage:'m',priest:'p',warrior:'w',archer:'a'};
 // 1단계 숨은 곳 (기존 지역의 지옥판에만)
 const J3_HIDE={

@@ -2,7 +2,7 @@
 /* ---------- 큰 지도 (M): 지금 지역 상세 + 세계 지역 연결도 ---------- */
 const WMAP={tab:'reg',bg:new Map(),t:0};
 // 세계 연결도에서 지역의 자리 (홈을 가운데에 두고 포탈 방향대로)
-const WPOS={home:[0,0],plains:[1,0],desert:[1,1],jungle:[2,1],sea:[2,2],ice:[0,-1],lava:[0,-2],forest:[-1,0]};
+const WPOS={home:[0,0],plains:[1,0],desert:[1,1],jungle:[2,1],sea:[2,2],ice:[0,-2],lava:[0,-3],forest:[-1,0]};
 function wmapBg(){let c=WMAP.bg.get(REG.id);if(c)return c;
   const N=180;c=document.createElement('canvas');c.width=c.height=N;const g=c.getContext('2d'),id=g.createImageData(N,N);
   for(let j=0;j<N;j++)for(let i=0;i<N;i++){const x=(i+.5)/N*WORLD,y=(j+.5)/N*WORLD,k=(j*N+i)*4,col=groundRGB(x,y);id.data[k]=Math.min(255,col[0]*1.5);id.data[k+1]=Math.min(255,col[1]*1.5);id.data[k+2]=Math.min(255,col[2]*1.5);id.data[k+3]=255}

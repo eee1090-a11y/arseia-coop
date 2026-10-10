@@ -16,6 +16,7 @@ function terrFix(o){if(!TGRID||DG||!terrWall(o.x,o.y))return false;const i0=Math
     if(best){o.x=best.x;o.y=best.y;return true}}return false}
 // 테마: 바위 색 · 윗면 색 · 윗면 풀 술 · 윗면에 올릴 나무
 const TTHEME={
+  royal:{rock:[150,140,120],dark:[88,80,66],top:[86,116,58],fringe:[62,96,44],tree:['oak','windtree'],grass:1},
   moss:{rock:[126,114,96],dark:[70,62,54],top:[86,104,58],fringe:[58,84,40],tree:['htree','hpine'],grass:1},
   ash:{rock:[98,90,86],dark:[54,50,50],top:[78,72,64],fringe:null,tree:['hdead','stump']},
   meadow:{rock:[156,132,96],dark:[92,76,56],top:[132,126,64],fringe:[104,104,44],tree:['oak','windtree'],grass:1},
@@ -68,9 +69,11 @@ function terrGrid(id){const S=terrSnap(id);if(!S)return null;const L=S.L,keeps=S
   // 1) 절벽 칸 고르기
   for(let j=-TK;j<N+TK;j++)for(let i=-TK;i<N+TK;i++){const x=(i+.5)*TCS,y=(j+.5)*TCS,k=terrIdx(i,j);
     if(i<0||j<0||i>=N||j>=N){w[k]=1;continue}
-    const e=Math.min(x,y,WORLD-x,WORLD-y),band=220+fbm(x/700,y/700,sd)*380;
+    const e=Math.min(x,y,WORLD-x,WORLD-y),band=220+fbm(x/700,y/700,sd)*380,RD0=REGIONS[id];
     let wall=e<band;
-    if(!wall){const rn=fbm(x/1150,y/1150,sd+5),gate=fbm(x/1700,y/1700,sd+9);if(Math.abs(rn-.5)<.026&&gate>.52)wall=true}
+    // v26 왕도: 작은 지도. 포탈(한가운데에서 1750) 바깥은 모두 언덕으로 막는다. 안쪽 바위 언덕은 두지 않는다
+    if(RD0&&RD0.side){const dx=Math.abs(x-3000),dy=Math.abs(y-3000);wall=Math.max(dx,dy)*.6+Math.hypot(dx,dy)*.4>1840+(fbm(x/500,y/500,sd)-.5)*220}
+    else if(!wall){const rn=fbm(x/1150,y/1150,sd+5),gate=fbm(x/1700,y/1700,sd+9);if(Math.abs(rn-.5)<.026&&gate>.52)wall=true}
     if(!wall&&fbm(x/360,y/360,sd+13)>.83)wall=true;
     if(wall&&kept(x,y))wall=false;
     w[k]=wall?1:0}
@@ -128,7 +131,7 @@ function terrBuild(id){const S=terrSnap(id);if(!S)return null;const L=S.L,keeps=
   // 장식을 놓으면 안 되는 자리 (50 간격 점): 지킬 자리마다 반지름의 0.6 (마을 · 포탈 · 마을 사람 · 의뢰인 · 채집 자리 둘레)
   const NM=WORLD/50+1,nomask=new Uint8Array(NM*NM);for(const k of keeps){const rr=k.r*.6,i0=Math.max(0,Math.floor((k.x-rr)/50)),i1=Math.min(NM-1,Math.ceil((k.x+rr)/50)),j0=Math.max(0,Math.floor((k.y-rr)/50)),j1=Math.min(NM-1,Math.ceil((k.y+rr)/50));
     for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++){const dx=i*50-k.x,dy=j*50-k.y;if(dx*dx+dy*dy<(rr+35)*(rr+35))nomask[j*NM+i]=1}}
-  const clearOf=(x,y)=>{for(const t of L.towns||[])if(Math.hypot(x-t.x,y-t.y)<TOWN_R+90)return false;if(nomask[clamp(Math.round(y/50),0,NM-1)*NM+clamp(Math.round(x/50),0,NM-1)])return false;return roadD(x,y)>52};
+  const clearOf=(x,y)=>{if(REGIONS[id]&&REGIONS[id].clear&&REGIONS[id].clear(x,y))return false;for(const t of L.towns||[])if(Math.hypot(x-t.x,y-t.y)<TOWN_R+90)return false;if(nomask[clamp(Math.round(y/50),0,NM-1)*NM+clamp(Math.round(x/50),0,NM-1)])return false;return roadD(x,y)>52};
   const lq=L.lq||null,wet=k=>k==='coral'||k==='wreck'||k==='searock'||k==='shell',liq=(x,y)=>{if(!lq)return 0;const i=clamp(Math.round(x/LQS),0,LQN-1),j=clamp(Math.round(y/LQS),0,LQN-1);return lq[j*LQN+i]};
   // 예전 동그란 나무 → 가지와 잎 뭉치가 보이는 나무 (활엽수 · 자작나무 · 침엽수 · 마른 나무)
   for(const d of dec){if(terrProt(d))continue;if(d.k==='tree'){const zl=id==='home'?levelAt(d.x,d.y):0;d.k=zl>=14&&d.v<.6?'hdead':fbm(d.x/900,d.y/900,sd+57)>.56?'hpine':d.v<.22?'hbirch':'htree';d.s*=.62}else if(d.k==='bush'){d.k='hbush';d.s*=.8}}

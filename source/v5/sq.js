@@ -3,8 +3,8 @@
 const SQ=[
  {id:'cat',town:'brenhill',giver:'toby',lvl:1,kind:'일상',t:'길 잃은 고양이 보리',say:'우리 고양이 보리가 어제부터 안 보여요… 마을 남서쪽 들판으로 나비를 쫓아갔대요. 찾아 주시면 제 보물을 드릴게요!',done:'보리야! 어디 갔었어! 고마워요, 이건 할아버지가 주신 귀환 두루마리예요. 저보다 형이 더 필요할 것 같아요.',
   goals:[{type:'find',use:'cat',d:'남서쪽 들판에서 고양이 보리 찾기'}],rw:{xp:.6,gold:40,tp:1}},
- {id:'bread',town:'brenhill',giver:'hanna',lvl:2,kind:'배달',t:'갓 구운 빵 배달',say:'윌로벤 나루 주점의 어부 브람이 우리 빵을 그렇게 좋아한단다. 식기 전에 이 바구니를 전해 주겠니? 동쪽 길로 쭉 가면 된단다.',done:'(브람) 오오, 한나네 빵이로군! 이 냄새, 고향 냄새야. 자, 수고비 받게.',
-  goals:[{type:'talk',npc:'bram',item:'갓 구운 빵 바구니',d:'윌로벤 나루 주점의 어부 브람에게 빵 전하기'}],turn:'bram',rw:{xp:.8,gold:90,pot:2}},
+ {id:'bread',town:'brenhill',giver:'hanna',lvl:2,kind:'배달',t:'갓 구운 빵 배달',say:'헤이븐 교차로 나루 주점의 어부 브람이 우리 빵을 그렇게 좋아한단다. 식기 전에 이 바구니를 전해 주겠니? 북동쪽 길로 쭉 가면 된단다.',done:'(브람) 오오, 한나네 빵이로군! 이 냄새, 고향 냄새야. 자, 수고비 받게.',
+  goals:[{type:'talk',npc:'bram',item:'갓 구운 빵 바구니',d:'헤이븐 나루 주점의 어부 브람에게 빵 전하기'}],turn:'bram',rw:{xp:.8,gold:90,pot:2}},
  {id:'bell',town:'brenhill',giver:'yoan',lvl:1,kind:'일상',rep:.5,t:'저녁 종 울리기',say:'들판의 일꾼들에게 하루가 저물었음을 알려야 합니다. 제 손이 묶여 있으니, 종 줄을 대신 당겨 주시겠습니까?',done:'고운 소리였습니다. 빛이 그대의 하루도 지켜 주기를.',
   goals:[{type:'use',use:'bell',d:'예배당 안 종 줄을 당겨 종 울리기'}],rw:{xp:.3,gold:25}},
  {id:'herb',town:'brenhill',giver:'marta',lvl:2,kind:'채집',rep:20,t:'은방울풀 캐기',say:'물약을 달이려면 은방울풀이 다섯 포기 필요하단다. 마을 둘레 들판 가장자리에 흰 꽃이 피어 있을 게다. 늑대 조심하고.',done:'싱싱하구나! 이걸로 물약을 달여 너한테도 나눠 주마.',
@@ -13,14 +13,14 @@ const SQ=[
   goals:[{type:'kill',k:['m_wolfking'],n:1,item:'잿빛 이빨의 송곳니',d:'안개숲 고분의 늑대 우두머리 잿빛 이빨 처치'}],rw:{xp:1,gold:80,item:1}},
  {id:'wolfd',town:'brenhill',giver:'bruno',lvl:2,kind:'매일',rep:20,t:'동쪽 길 순찰',say:'매일 동쪽 길에 늑대와 재 들개가 몰려든다. 열 마리만 쫓아내 주면 오늘 순찰은 끝이다. 내일 또 부탁하지.',done:'수고했다. 오늘 밤은 양치기들이 편히 자겠군.',
   goals:[{type:'kill',k:['wolf','ashhound'],n:10,d:'동쪽 길의 늑대·재 들개 쫓아내기'}],rw:{xp:.8,gold:70,pot:2}},
- {id:'esc1',town:'brenhill',giver:'lina',lvl:3,kind:'호위',t:'행상인 리나 호위',say:'윌로벤까지 양털을 팔러 가야 하는데, 혼자서는 늑대가 무서워요. 같이 가 주시겠어요? 제가 다치면 끝이에요. 잘 지켜 주세요!',done:'무사히 왔네요! 정말 고마워요. 이건 제 몫의 이익이에요.',
-  goals:[{type:'escort',who:'lina',to:'willowen',d:'리나를 윌로벤까지 데려다주기'}],hp:260,rw:{xp:1.4,gold:150,tp:2}},
- {id:'drift',town:'willowen',giver:'jon',lvl:5,kind:'채집',rep:20,t:'강가 표류목',say:'새 배를 짓는데 나무가 모자라. 강 하류 동쪽 기슭에 표류목이 걸려 있을 거야. 네 토막만 주워다 주게.',done:'바닷물 아니 강물에 잘 마른 놈들이군. 좋은 용골이 되겠어.',
-  goals:[{type:'gather',use:'drift',n:4,item:'표류목',d:'강 하류 동쪽 기슭에서 표류목 줍기'}],rw:{xp:.7,gold:60,pot:2}},
- {id:'slime',town:'willowen',giver:'nella',lvl:5,kind:'수집',t:'끈적한 점액',say:'배 틈을 메우는 데 슬라임 점액만 한 게 없어요. 여덟 덩이 모아 주실래요? 가방이 끈적해질 걱정은 마세요, 제 항아리에 담아 드릴게요.',done:'이만하면 배 세 척은 메우겠어요! 고마워요.',
+ {id:'esc1',town:'brenhill',giver:'lina',lvl:3,kind:'호위',t:'행상인 리나 호위',say:'헤이븐 교차로까지 양털을 팔러 가야 하는데, 혼자서는 늑대가 무서워요. 같이 가 주시겠어요? 제가 다치면 끝이에요. 잘 지켜 주세요!',done:'무사히 왔네요! 정말 고마워요. 이건 제 몫의 이익이에요.',
+  goals:[{type:'escort',who:'lina',to:'haven',d:'리나를 헤이븐 교차로까지 데려다주기'}],hp:260,rw:{xp:1.4,gold:150,tp:2}},
+ {id:'drift',town:'haven',giver:'jon',lvl:5,kind:'채집',rep:20,t:'강가 표류목',say:'새 배를 짓는데 나무가 모자라. 남쪽 은류강 옛 나루 하류, 동쪽 기슭에 표류목이 걸려 있을 거야. 네 토막만 주워다 주게.',done:'바닷물 아니 강물에 잘 마른 놈들이군. 좋은 용골이 되겠어.',
+  goals:[{type:'gather',use:'drift',n:4,item:'표류목',d:'은류강 옛 나루 하류 동쪽 기슭에서 표류목 줍기'}],rw:{xp:.7,gold:60,pot:2}},
+ {id:'slime',town:'haven',giver:'nella',lvl:5,kind:'수집',t:'끈적한 점액',say:'배 틈을 메우는 데 슬라임 점액만 한 게 없어요. 여덟 덩이 모아 주실래요? 가방이 끈적해질 걱정은 마세요, 제 항아리에 담아 드릴게요.',done:'이만하면 배 세 척은 메우겠어요! 고마워요.',
   goals:[{type:'collect',k:['slime'],p:.6,n:8,item:'끈적한 점액',d:'늪 슬라임에게서 점액 모으기'}],rw:{xp:1,gold:110,item:1}},
- {id:'esc2',town:'willowen',giver:'ella',lvl:8,kind:'호위',t:'순례자 엘라 호위',say:'헤이븐 교차로의 성소까지 가야 해요. 길에 재 들개가 나온다는데… 함께 가 주세요. 제가 쓰러지면 순례도 끝이에요.',done:'성소의 종소리가 들려요. 덕분에 무사히 왔어요. 빛의 축복을 나눠 드릴게요.',
-  goals:[{type:'escort',who:'ella',to:'haven',d:'엘라를 헤이븐 교차로까지 데려다주기'}],hp:420,rw:{xp:1.5,gold:300,tp:2,item:1}},
+ {id:'esc2',town:'haven',giver:'ella',lvl:8,kind:'호위',t:'순례자 엘라 호위',say:'브렌힐 예배당까지 순례를 가야 해요. 길에 재 들개가 나온다는데… 함께 가 주세요. 제가 쓰러지면 순례도 끝이에요.',done:'예배당 종소리가 들려요. 덕분에 무사히 왔어요. 빛의 축복을 나눠 드릴게요.',
+  goals:[{type:'escort',who:'ella',to:'brenhill',d:'엘라를 브렌힐까지 데려다주기'}],hp:420,rw:{xp:1.5,gold:300,tp:2,item:1}},
  {id:'keg',town:'haven',giver:'toma',lvl:6,kind:'일상',rep:.5,t:'맥주통 나르기',say:'대상 마당에 새 맥주통이 왔는데 제가 계산대를 비울 수가 없어요. 마당의 통 하나만 계산대로 옮겨 주세요!',done:'살았다! 리사 아주머니한테 혼날 뻔했어요. 이거 받으세요.',
   goals:[{type:'use',use:'kegpick',d:'대상 마당(동쪽)에서 맥주통 들기'},{type:'use',use:'kegdrop',d:'여관 계산대에 맥주통 내려놓기'}],seq:1,rw:{xp:.5,gold:70}},
  {id:'cargo',town:'haven',giver:'kasim',lvl:10,kind:'수집',t:'찢긴 짐 꾸러미',say:'재 들개 떼가 짐수레를 덮쳐 비단 꾸러미를 물고 달아났네. 놈들을 잡으면 꾸러미가 나올 걸세. 다섯 개만 되찾아 주게.',done:'내 비단이로군! 이 정도면 손해는 면했네. 약속한 사례일세.',
@@ -80,7 +80,7 @@ function sqProgress(q,j,n,silent){const s=sqState(),a=s.a[q.id];if(!a||sqGoalDon
     if(g.type==='kill')sqProgress(q,j,1,true);else if(g.type==='collect'&&R()<g.p){sqProgress(q,j,1,true);ftext(e.x,e.y,g.item,'#9fe0ff',false,(e.r||14)*2+30)}})}}}
 // 들판의 채집 자리 · 고양이 · 맥주통
 const SQSPOT={herb:[],drift:[],cat:[]};
-{const B=HOME.towns.find(t=>t.id==='brenhill'),Wl=HOME.towns.find(t=>t.id==='willowen'),H=HOME.towns.find(t=>t.id==='haven');
+{const B=HOME.towns.find(t=>t.id==='brenhill'),Wl=TOWN0.find(t=>t.id==='willowen'),H=HOME.towns.find(t=>t.id==='haven');
   for(let i=0;i<8;i++){const a=2.0+i*.42,r=540+(i%3)*45;SQSPOT.herb.push({x:B.x+Math.cos(a)*r,y:B.y+Math.sin(a)*r})}
   for(let i=0;i<6;i++)SQSPOT.drift.push({x:Wl.x+640+i*55,y:Wl.y+215+((i*37)%90)});
   SQSPOT.cat.push({x:B.x-470,y:B.y+330});
@@ -182,7 +182,7 @@ let sqHudT=0;
 /* ---------- 목표 자리: 미니맵 · 큰 지도 · 알림판 ---------- */
 // 의뢰 하나의 목표 자리 (월드 기준: reg, x, y, room?, label)
 function sqTarget(q){const s=sqState(),a=s.a[q.id];if(!a)return null;const tw=id=>ALLTOWNS.find(t=>t.id===id);
-  const npcAt=id=>{const f=sqFolk(id);if(!f)return null;if(f.room){const b=(TW.blds.home||[]).find(b=>b.enter===f.room);const rc=f.town;const o=TWFOLK[id].room||[0,0];return{reg:'home',x:rc.x+o[0],y:rc.y+o[1],room:f.room,door:b?b.door:null,label:`${f.town.n} ${TWROOM[f.room].n} 안 · ${f.n}`}}return{reg:f.town.reg||'home',x:f.hx,y:f.hy,label:`${f.town.n} · ${f.n}`}};
+  const npcAt=id=>{const f=sqFolk(id);if(!f)return null;if(f.room){const rg=f.town.reg||'home',b=(TW.blds[rg]||[]).find(b=>b.enter===f.room);const rc=f.town;const o=TWFOLK[id].room||[0,0];return{reg:rg,x:rc.x+o[0],y:rc.y+o[1],room:f.room,door:b?b.door:null,label:`${f.town.n} ${TWROOM[f.room].n} 안 · ${f.n}`}}return{reg:f.town.reg||'home',x:f.hx,y:f.hy,label:`${f.town.n} · ${f.n}`}};
   if(sqAllDone(q))return npcAt(sqTurn(q));
   for(let j=0;j<q.goals.length;j++){if(sqGoalDone(q,j))continue;const g=q.goals[j];
     if(g.type==='talk')return npcAt(g.npc);
@@ -209,7 +209,7 @@ function sqMarks(world){const out=[],s=sqState(),wp=t=>{if((t.reg||'home')===REG
   for(const f of fl){if(f.k!=='tfolk'||f.esc)continue;const m=sqMark(f);if(m)out.push({x:f.x,y:f.y,kind:m,col:m==='!'?'#ffd34d':'#9fe0ff'})}
   if(!IN&&!DG)for(const t of TOWNS){if(!t.npc)continue;const q=qCur(),st=qState().st;if(!q)continue;let m='';if(st===0&&q.town===t.id)m='!';else if(st===2&&qTurnTown(q)===t.id)m='?';else if(st===1&&q.goals.some((g,j)=>g.type==='talk'&&g.town===t.id&&!qGoalDone(q,j)))m='?';if(m)out.push({x:t.npc.x,y:t.npc.y,kind:m,col:m==='!'?'#ffd34d':'#9fe0ff'})}
   // 받을 수 있는 의뢰가 실내 사람에게 있으면 그 건물 문에 !
-  if(!IN&&!DG&&REG.id==='home')for(const b of TW.blds.home||[]){if(!b.enter)continue;let m='';for(const f of TW.folk)if(f.room===b.enter){const k=sqMark(f);if(k==='?'){m='?';break}if(k==='!')m='!'}if(m)out.push({x:b.door.x,y:b.door.y,kind:m,col:m==='!'?'#ffd34d':'#9fe0ff'})}
+  if(!IN&&!DG)for(const b of TW.blds[REG.id]||[]){if(!b.enter)continue;let m='';for(const f of TW.folk)if(f.room===b.enter){const k=sqMark(f);if(k==='?'){m='?';break}if(k==='!')m='!'}if(m)out.push({x:b.door.x,y:b.door.y,kind:m,col:m==='!'?'#ffd34d':'#9fe0ff'})}
   return out}
 {const _dm=drawMinimap;drawMinimap=function(){_dm();if(DG&&!DG.d)return;const S0=mm.width,m=S0/2600,ms=sqMarks(false);if(!ms.length)return;
   const px=(P.x-P.y)*KI,py=(P.x+P.y)*KI/2,mk=DG?m*1.4:m,ik=IN?S0*.8/Math.max(IN.R.w*1.4,IN.R.h*1.4)*1.3:0,

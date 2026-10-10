@@ -12,9 +12,9 @@ const REP_DAY_CAP=600;
 const FACTIONS={
   dawn:{n:'여명교단',d:'아우렐을 섬기는 에르난의 국교. 치유와 희망.',col:'#ffe39a',hall:{town:'arden',npc:'priestess'},towns:['brenhill','arden'],aff:['aurel','mordin','nella'],
     sell:[{t:1,id:'dawn_pot',n:'축성된 생명력 물약 5개',d:'상점보다 20% 싸다'},{t:2,id:'tp3',n:'귀환 두루마리 3장',d:'상점보다 20% 싸다'},{t:3,id:'dawn_buff',n:'여명의 가호',d:'30분 동안 받는 피해 5% 감소'},{t:4,id:'title:dawn',n:'칭호 「여명의 벗」'}]},
-  academy:{n:'왕립 마법원',d:'일곱 첨탑의 마법원. 위계와 기록.',col:'#9fb8ff',hall:{town:'arden',npc:'oswin'},towns:['arden','willowen'],aff:['academy','ceres','redtower'],
+  academy:{n:'왕립 마법원',d:'일곱 첨탑의 마법원. 위계와 기록.',col:'#9fb8ff',hall:{town:'arden',npc:'oswin'},towns:['arden','haven'],aff:['academy','ceres','redtower'],
     sell:[{t:1,id:'aca_pot',n:'마나 결정 물약 5개',d:'상점보다 20% 싸다'},{t:2,id:'forget',n:'망각의 물약',d:'스킬·능력치 다시 찍기, 30% 싸게'},{t:3,id:'aca_buff',n:'서고의 촛불',d:'30분 동안 재사용 대기 5% 감소'},{t:4,id:'title:academy',n:'칭호 「서고의 손님」'}]},
-  knights:{n:'에르난 기사단',d:'에르난 왕국의 기사들. 맹세와 방패.',col:'#8ab0e0',hall:{town:'haven',npc:'j2_warrior'},towns:['haven','goldmere'],aff:['knights','steel','patrol'],
+  knights:{n:'에르난 기사단',d:'에르난 왕국의 기사들. 맹세와 방패.',col:'#8ab0e0',hall:{town:'arden',npc:'j2_warrior'},towns:['haven','arden','goldmere'],aff:['knights','steel','patrol'],
     sell:[{t:1,id:'kn_pot',n:'기사단 물약 꾸러미',d:'생명력 · 마나 물약 3개씩, 20% 싸게'},{t:2,id:'kn_buff',n:'기사단 갑옷 기름',d:'30분 동안 받는 피해 5% 감소'},{t:3,id:'perk:horse',n:'군마 휘파람',d:'마을 밖 들판에서 싸우지 않을 때 이동 속도 +10% (한 번 사면 계속)'},{t:4,id:'title:knights',n:'칭호 「왕국의 방패」'}]},
   kazdun:{n:'카즈둔 드워프',d:'회색 산맥 지하 왕국. 망치말과 룬.',col:'#e0a060',hall:{town:'emberhold',npc:'eh_tilla'},towns:['emberhold','dustgate','windcrag'],aff:['kazdun'],
     sell:[{t:1,id:'kz_whet',n:'룬 숫돌',d:'30분 동안 주는 피해 5% 증가'},{t:2,id:'kz_oil',n:'룬 갑옷 기름',d:'30분 동안 받는 피해 5% 감소'},{t:3,id:'kz_deep',n:'깊은 룬 숫돌',d:'30분 동안 주는 피해 8% 증가'},{t:4,id:'title:kazdun',n:'칭호 「쇠의 귀를 가진 자」'}]},

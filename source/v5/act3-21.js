@@ -47,7 +47,7 @@ if(typeof WX21_EL!=='undefined')Object.assign(WX21_EL,A3_EL);for(const k in A3_E
 
 /* ===== 2) 던전 7곳 (+ 침묵의 탑 위층). gate: 그 마을 둘레 「봉인된 문」 · via: 문 없이 다른 던전 끝에서 들어감 ===== */
 const A3_DG=[
-  {id:'a3_archive',town:'arden',at:'마법원 뒤뜰 지하 계단',a0:2.5,n:'봉인 서고',lvl:63,floor:[40,36,50],wall:['#3a3446','#1e1a26','#524a66'],torch:'#9ab8ff',mobs:['a3_inkwraith','a3_bookgolem','a3_sealkeeper'],w:[3,1,1],minis:['am_archivist'],boss:'ab_hollowelder',q:'a3q1'},
+  {id:'a3_archive',town:'arden',at:'마법원 옆뜰 지하 계단',a0:2.5,n:'봉인 서고',lvl:63,floor:[40,36,50],wall:['#3a3446','#1e1a26','#524a66'],torch:'#9ab8ff',mobs:['a3_inkwraith','a3_bookgolem','a3_sealkeeper'],w:[3,1,1],minis:['am_archivist'],boss:'ab_hollowelder',q:'a3q1'},
   {id:'a3_pass',town:'frostheim',at:'북쪽 얼음 문',a0:-2.2,n:'서리 고개',lvl:68,floor:[200,212,226],wall:['#9ab8d8','#5a7898','#c8d8e8'],torch:'#cfeeff',mobs:['a3_frostfang','a3_icegiant','i_yeti'],w:[4,1,1],minis:['am_fallward'],boss:null,next:'a3_falls',q:'a3q4'},
   {id:'a3_falls',via:'a3_pass',n:'멈춘 폭포 아래',lvl:72,floor:[170,190,210],wall:['#7aa8c8','#3a5878','#a8c8e8'],torch:'#e8f8ff',mobs:['a3_stillwraith','a3_frostfang','a3_icegiant'],w:[3,1,1],minis:[],boss:'ab_stillking',q:'a3q5'},
   {id:'a3_tower',town:'windcrag',at:'북쪽 산길 검은 문',a0:-2.4,n:'침묵의 탑',lvl:78,floor:[30,28,36],wall:['#2a2a32','#121218','#3e3e4a'],torch:'#b07aff',mobs:['a3_runepillar','a3_ashacolyte','a3_towerknight'],w:[1,2,2],minis:['am_ninth'],boss:null,next:'a3_tower2',q:'a3q7'},
@@ -167,7 +167,7 @@ function a3MarkOf(f){if(!f||!A3_FOLK.has(f.id)||!P)return '';const s=sqState();
 // 목표 자리: 처치 · 깨우기 → 그 던전의 봉인된 문 / 두 길 → 아직 안 한 쪽 의뢰인
 function a3GateOf(qid){const d=A3_DG.find(d=>d.q===qid);if(!d)return null;const g=d.via?A3_DGBY[d.via]:d;return DM21G[g.id]||null}
 function a3GateWhere(g){const T=ALLTOWNS.find(t=>t.id===g.town);return `${REGIONS[g.reg]?REGIONS[g.reg].n:''} · ${T?T.n:''} 둘레 「봉인된 문」`}
-function a3GateTarget(D){if(!D)return null;const gd=D.via?A3_DGBY[D.via]:D,G=DM21G[gd.id];if(!G||!G.d)return null;const T=ALLTOWNS.find(t=>t.id===G.town);return{reg:G.reg,x:G.d.x,y:G.d.y,cave:D.ci,label:`${T?T.n:''} 둘레 「봉인된 문」 → ${D.n} (Lv${D.lvl})`}}
+function a3GateTarget(D){if(!D)return null;const gd=D.via?A3_DGBY[D.via]:D,G=DM21G[gd.id];if(!G||!G.d)return null;const T=ALLTOWNS.find(t=>t.id===G.town);return{reg:G.reg,x:G.d.x,y:G.d.y,cave:D.ci,label:`${T?T.n:''} ${G.reg==='royal'?'마법원 옆뜰':'둘레'} 「봉인된 문」 → ${D.n} (Lv${D.lvl})`}}
 function a3NpcAt(id){const f=sqFolk(id);if(!f||!f.town)return null;return{reg:f.town.reg||'home',x:f.hx!=null?f.hx:f.x,y:f.hy!=null?f.hy:f.y,label:`${f.town.n} · ${f.n}`}}
 {const _t=sqTarget;sqTarget=function(q){if(!q||!q.a3)return _t.apply(this,arguments);const s=sqState(),a=s.a[q.id];if(!a)return null;if(sqAllDone(q))return _t.apply(this,arguments);
   for(let j=0;j<q.goals.length;j++){if(sqGoalDone(q,j))continue;const g=q.goals[j];if(g.type==='talk')return _t.apply(this,arguments);
@@ -195,7 +195,8 @@ for(const D of A3_DG){if(D.via)continue;const T=ALLTOWNS.find(t=>t.id===D.town);
     hostGo:()=>{if(!a3Open(D.id)){msg(`동료가 「${D.n}」으로 가자고 하지만, 내 의뢰로는 아직 문이 닫혀 있습니다`,'#a39d8f');return}a3Enter(D.id)},
     glow:s=>{if(!a3Open(D.id))return;ctx.globalCompositeOperation='lighter';ctx.globalAlpha=.4+.15*Math.sin(time*2.4);const p=isoP(0,0,46);glow(s.x+p.x,s.y+p.y,34,'#ff8a2e');ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over'}};
   const L=dm21Layer(reg),used=DM21GATES.filter(o=>o.reg===reg&&o.d);let p=null;
-  for(const r1 of [SAFE+700,SAFE+1000,SAFE+1400]){p=dm21FindSpot(reg,T,D.a0,{r0:SAFE+220,r1});if(p&&used.every(o=>Math.hypot(o.d.x-p.x,o.d.y-p.y)>360))break;p=null}
+  if(D.id==='a3_archive'&&reg==='royal')p={x:T.x+610,y:T.y-330};// v26: 왕도 성안, 왕립 마법원과 사냥꾼 회관 사이 뜰
+  else for(const r1 of [SAFE+700,SAFE+1000,SAFE+1400]){p=dm21FindSpot(reg,T,D.a0,{r0:SAFE+220,r1});if(p&&used.every(o=>Math.hypot(o.d.x-p.x,o.d.y-p.y)>360))break;p=null}
   if(!p)p={x:Math.round(T.x+Math.cos(D.a0)*(SAFE+300)),y:Math.round(T.y+Math.sin(D.a0)*(SAFE+300))};dm21AddGate(g,p.x,p.y);void L}
 // 문 그림: 열렸는지에 따라 (0.5초마다)
 let a3PvT=0;V20.tick.push(dt=>{if((a3PvT-=dt)>0||!P)return;a3PvT=.5;for(const g of DM21GATES)if(g.D&&g.d){const v=a3Open(g.id)?1:0;if(g.d.pv!==v)g.d.pv=v}});

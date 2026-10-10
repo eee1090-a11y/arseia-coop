@@ -43,7 +43,7 @@ function updateHud(){
   const bs=bl.map(b=>`<span>${b}</span>`).join('');if(bs!==lastBuffs){lastBuffs=bs;el.buffs.innerHTML=bs}
   pickHover();
   let hv=hover;if(!hv){let bd=760;for(const e of enemies)if(e.big&&e.aggroed&&!e.dead){const d=dist(e,P);if(d<bd){bd=d;hv=e}}}
-  if(hv){const t=TYPES[hv.k];el.target.hidden=false;el.tname.textContent=`${hv.elite?'정예 ':''}${t.boss?'보스 · ':t.mini?'준보스 · ':''}${t.n}`;el.tname.style.color=t.boss?'#ff8a3a':t.mini?'#ffb07a':hv.elite?'#9bb8ff':'#efe2c0';el.tfill.style.width=clamp(hv.hp/hv.max*100,0,100)+'%';
+  if(hv){const t=TYPES[hv.k];el.target.hidden=false;el.tname.textContent=`${hv.elite?'정예 ':''}${t.boss?'보스 · ':t.mini?'준보스 · ':''}${t.n}${typeof ag26Tag==='function'?ag26Tag(hv):''}`;el.tname.style.color=t.boss?'#ff8a3a':t.mini?'#ffb07a':hv.elite?'#9bb8ff':'#efe2c0';el.tfill.style.width=clamp(hv.hp/hv.max*100,0,100)+'%';
     el.tsub.textContent=`레벨 ${hv.lvl}${t.undead?' · 언데드 (신성·빛 두 배)':''}${t.ranged?' · 원거리':''}${hv.rage?' · 분노':''}`}else el.target.hidden=true;
   let potReb=0;
   for(const row of barEl.children)for(const b of row.children){
@@ -152,10 +152,8 @@ function shopHtml(){const t=actTown,type=SHOP_SLOTS[actShop]?actShop:'general',s
   return h}
 function gateHtml(){let h='<h2 style="margin-top:0">난이도</h2><div class="diffs">';
   DIFF.forEach((d,i)=>{const ok=P.lvl>=d.req;h+=`<button type="button" data-diff="${i}" aria-pressed="${P.diff===i}" ${ok?'':'disabled'}>${d.n}${ok?'':` (레벨 ${d.req})`}</button>`});
-  h+=`</div><p class="muted">악몽은 몬스터 레벨 +20, 지옥은 +40. 더 강하고 더 많은 경험치와 높은 레벨의 장비를 줍니다.</p><h2>짝문</h2><p class="muted">짝 룬이 새겨진 두 문 사이를 잇습니다. 한 번 가 본 마을이면 어디서든 바로 건너갈 수 있습니다.</p>`;
-  let rg='';for(const t of ALLTOWNS){const known=P.towns.includes(t.id),here=actTown===t;
-    if(t.reg!==rg){rg=t.reg;const D=REGIONS[rg];h+=`<h3 style="margin:.8em 0 .2em;color:${D.col}">${D.n}${rg!=='home'?` <span class="muted">· 맵 끝 포탈로 처음 가 보세요</span>`:''}</h3>`}
-    h+=`<div class="town"><div><b>${known?t.n:'???'}</b> <span class="muted">· ${REGIONS[t.reg]&&REGIONS[t.reg].hell?'지옥 전용 · ':''}주변 몬스터 레벨 ${t.base+w3Add(REGIONS[t.reg])}부터</span><div class="d">${known?t.desc:'아직 가 보지 않은 마을. 길을 따라 걸어가면 짝문이 이어집니다.'}</div></div><div>${here?'<button type="button" disabled>지금 여기</button>':`<button type="button" data-travel="${t.id}" ${known?'':'disabled'}>건너가기</button>`}</div></div>`}
+  h+=`</div><p class="muted">악몽은 몬스터 레벨 +20, 지옥은 +40. 더 강하고 더 많은 경험치와 높은 레벨의 장비를 줍니다.</p><h2>짝문</h2><p class="muted">짝 룬이 새겨진 두 문 사이를 잇습니다. 세계 지도에서 갈 마을을 누르세요.</p>`;
+  h+=gate26Map();// v26: 세계 지도 배치 (gate26.js)
   return h}
 function renderPanel(){
   const st=pbody.scrollTop,ps=pbody.parentElement.scrollTop;
@@ -194,13 +192,16 @@ $('#treeBtn').onclick=()=>openPanel('tree');$('#charBtn').onclick=()=>openPanel(
 if(window.COOP_SERVER){$('#coopBtn').hidden=false;$('#coopBtn').onclick=netOpen;$('#chatBtn').hidden=false;$('#chatBtn').onclick=chatOpen;chatBox();netOpenWs();cloudInit()}
 $('#codexBtn').onclick=()=>{if(!panel.hidden)closePanel();openCodex(!$('#intro').hidden)};
 $('#helpBtn').onclick=()=>{save();$('#intro').hidden=false;paused=true;introButtons(true)};
+/* v26: 던전 안에서 다시 일어나는 것은 같은 던전에 살아 있는 동료가 있을 때뿐(사용자 13:14). 같이 하기 방에 혼자 있거나 동료가 다른 곳 · 모두 쓰러졌으면 마을에서 */
+function dgPartyHere(){if(!DG||!NET.on)return false;for(const r of NET.peers.values())if(!r.dead&&netSame(r))return true;return false}
 $('#respawn').onclick=()=>{
   // 같이 하는 던전에서는 파티를 두고 나가지 않도록 던전 입구 방에서 다시 일어난다
-  if(DG&&NET.on){const lost=Math.floor(P.gold*.1);P.gold-=lost;P.dead=false;const p0=tc(DG.start.cx,DG.start.cy);P.x=p0.x+rnd(-30,30);P.y=p0.y+rnd(-30,30);
+  if(dgPartyHere()){const lost=Math.floor(P.gold*.1);P.gold-=lost;P.dead=false;const p0=tc(DG.start.cx,DG.start.cy);P.x=p0.x+rnd(-30,30);P.y=p0.y+rnd(-30,30);
     P.hp=maxHp();P.mp=maxMp();P.shield=0;P.hot=null;P.storm=null;P.buffs={};P.ward=null;P.invT=2;for(const a of allies){a.x=P.x+rnd(-40,40);a.y=P.y+rnd(-40,40)}
     projs=projs.filter(p=>p.owner!=='p');$('#death').hidden=true;paused=false;followCam();msg(lost?`금화 ${lost}을(를) 잃고 던전 입구에서 다시 일어섰습니다`:'던전 입구에서 다시 일어섰습니다','#a39d8f');save();return}
+  if(DG&&typeof k22Keep==='function')k22Keep();/* v26: 쓰러져 나와도 던전을 기억(보스는 다시 들어갈 때 체력이 가득 찬 상태로) */
   DG=null;allies=[];warns=[];const lost=Math.floor(P.gold*.1);P.gold-=lost;P.dead=false;const ht=ALLTOWNS.find(t=>t.id===P.home)||TOWN;if(ht.reg!==REG.id){loadRegion(ht.reg);loot=[]}P.x=ht.x;P.y=ht.y+110;P.hp=maxHp();P.mp=maxMp();P.shield=0;P.hot=null;P.storm=null;P.buffs={};P.ward=null;
-  enemies=[];projs=[];fields=[];pend=[];rains=[];$('#death').hidden=true;paused=false;followCam();msg(lost?`금화 ${lost}을(를) 잃었습니다`:`${ht.n}에서 다시 일어섰습니다`,'#a39d8f');save()};
+  enemies=[];projs=[];fields=[];pend=[];rains=[];$('#death').hidden=true;paused=false;followCam();msg(lost?`금화 ${lost}을(를) 잃었습니다`:`${ht.n}에서 다시 일어섰습니다`,'#a39d8f');if(NET.on){try{if(NET.host)netAreaNow();else netSendState()}catch(_){}}save()};
 
 /* ---------- input ---------- */
 addEventListener('keydown',e=>{

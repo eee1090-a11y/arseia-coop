@@ -30,15 +30,16 @@ function render(){
   for(const l of loot){const s=W2S(l.x,l.y);if(onScreen(s,40))drawLoot(l,s,false)}
   if(typeof FXP!=='undefined')FXP.ground(ctx,W2S);// v18 덫·깃발
   const vis=[];
-  const DVIS=DG?DG.walls:decoVisible(cx0,cx1,cy0,cy1,[]);for(const d of DVIS){const s=W2S(d.x,d.y);if(onScreen(s,200)){if(d.zh){if(d.cell&&d.cell._front)continue;s.y-=d.zh}d._s=s;vis.push(d)}}
+  const DVIS=DG?[]:decoVisible(cx0,cx1,cy0,cy1,[]);for(const d of DVIS){const s=W2S(d.x,d.y);if(onScreen(s,200)){if(d.zh){if(d.cell&&d.cell._front)continue;s.y-=d.zh}d._s=s;vis.push(d)}}
   if(!DG)terrVis(vis);// v18 절벽 칸: 화면에 걸친 칸만 (terrain.js)
   for(const e of enemies){e._s=W2S(e.x,e.y);vis.push(e)}
   for(const a of allies){a._s=W2S(a.x,a.y);vis.push(a)}
   if(!P.dead){P._s=W2S(P.x,P.y);vis.push(P)}
   if(NET.on&&!IN)for(const r of NET.peers.values())if(!r.dead&&netSame(r)){r._s=W2S(r.x,r.y);vis.push(r)}
+  if(DG){const ents=vis.slice();vis.length=0;wbDraw(vis,ents);for(const o of ents)vis.push(o)}
   vis.sort((a,b)=>(a.zk!=null?a.zk:a.x+a.y)-(b.zk!=null?b.zk:b.x+b.y));
   drawCorpses();
-  for(const o of vis){if(o===P)drawHero();else if(o.remote)drawRemote(o);else if(o.ally)drawAlly(o);else if(o.wall)drawWall(o);else if(o.cliff)drawCliff(o);else if(o.k==='cave')drawCave(o);else if(o.k in TYPES)drawEnemy(o);else drawDecor(o)}
+  for(const o of vis){if(o===P)drawHero();else if(o.remote)drawRemote(o);else if(o.ally)drawAlly(o);else if(o.wb)drawWB(o);else if(o.wall)drawWall(o);else if(o.cliff)drawCliff(o);else if(o.k==='cave')drawCave(o);else if(o.k in TYPES)drawEnemy(o);else drawDecor(o)}
   /* 어둠과 빛 */
   const zl=DG?DG.lvl:zoneLevel(P.x,P.y),dark=DG?.84:zl===0?.26:Math.min(.75,.4+zl*.007+P.diff*.05);
   lctx.setTransform(1,0,0,1,0,0);lctx.globalCompositeOperation='source-over';lctx.globalAlpha=1;lctx.clearRect(0,0,lc.width,lc.height);

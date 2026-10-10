@@ -2,6 +2,11 @@
 // 마을마다 의뢰인이 있다. 받은 의뢰만 센다. 진행은 캐릭터 저장의 q 필드({i:몇 번째 의뢰, st:0 안 받음/1 진행/2 보고만 남음, c:{목표:수}}).
 // 목표 종류: kill(k: 몬스터 종류들, n), get(k: 그 몬스터에게서 p 확률로 얻는 물건, n), talk(town: 그 마을 의뢰인과 이야기), reach(cave: 그 던전 입구에 닿기 · v22 quest22.js)
 const QNPC={brenhill:{n:'마렌 촌장',cls:'priest',rar:1,face:.6},willowen:{n:'뱃사공 오드릭',cls:'mage',rar:0,face:.9},haven:{n:'여관 주인 리사',cls:'priest',rar:2,face:.3},arden:{n:'대마법사 엘리안',cls:'mage',rar:4,face:.8}};
+// v26: 윌로벤 사람들은 헤이븐 나루로 옮겼다. 「윌로벤」 의뢰는 헤이븐 나루의 뱃사공 오드릭(town22.js TW22_QM)이 그대로 맡는다.
+// QPOST: 마을 목록(TOWNS · ALLTOWNS)에는 없지만 의뢰를 주는 자리. qTw(id)는 마을 또는 그 자리를 돌려준다
+const QPOST={willowen:{id:'willowen',n:'헤이븐 나루',area:'은류강 나루',base:5,reg:'home',post:'haven',x:0,y:0,npc:null}};
+{const H=TOWNS.find(t=>t.id==='haven');if(H){QPOST.willowen.x=H.x;QPOST.willowen.y=H.y}}
+const qTw=id=>ALLTOWNS.find(t=>t.id===id)||QPOST[id]||null;
 const QUESTS=[
  {town:'brenhill',lvl:2,t:'들판의 늑대',say:'어서 오게, 젊은이. 요즘 들판의 회색 늑대들이 양 우리까지 내려온다네. 여덟 마리만 쫓아내 주겠나?',done:'고맙네! 이제 양치기들이 한숨 돌리겠어. 그런데 늑대들이 무언가에 쫓겨 내려온 것 같단 말이지…',
   goals:[{type:'kill',k:['wolf'],n:8,d:'회색 늑대 처치'}],rw:{xp:1,gold:60,pot:3}},
@@ -9,13 +14,13 @@ const QUESTS=[
   goals:[{type:'reach',cave:'barrow',d:'안개숲 옛 고분 입구 살펴보기'}],rw:{xp:1.2,gold:150,item:1}},// v22: 던전은 다음 의뢰에서 한 번만 들어간다 (볼그는 「고분의 왕」으로)
  {town:'brenhill',lvl:7,t:'고분의 왕',say:'볼그가 깨어났다면 고분 가장 깊은 곳에 잠든 옛 왕 아르실도 깨어난 걸세. 그 왕이 일어서면 브렌힐은 끝장이야. 한 번에 들어가서 볼그를 쓰러뜨리고, 그 길로 아르실까지 다시 잠재워 주게.',done:'자네가 마을을 구했네! 이 축복받은 반지를 받게. 그리고… 아르실의 관에서 나온 이 재 묻은 편지를 보게. "은류강의 수로에서 기다린다." 윌로벤으로 가 보게나.',
   goals:[{type:'kill',k:['m_bolg'],n:1,d:'안개숲 고분의 고분지기 볼그 처치'},{type:'kill',k:['b_arsil'],n:1,d:'고분의 왕 아르실 처치'}],rw:{xp:1.6,gold:300,item:2,sp:1}},
- {town:'brenhill',lvl:5,t:'은류강 나루로',say:'편지를 윌로벤의 뱃사공 오드릭에게 보여 주게. 그 친구는 강의 일을 모르는 게 없다네. 동쪽 길을 따라가면 된다네.',done:'(오드릭) 브렌힐 촌장이 보냈다고? 그 편지… 이 재 냄새는 수로 깊은 곳의 것이 맞아.',
-  goals:[{type:'talk',town:'willowen',d:'윌로벤의 뱃사공 오드릭과 이야기'}],rw:{xp:.6,gold:80}},
+ {town:'brenhill',lvl:5,t:'은류강 나루로',say:'편지를 헤이븐 교차로 나루의 뱃사공 오드릭에게 보여 주게. 윌로벤 사람들이 그리로 옮겨 갔지. 그 친구는 강의 일을 모르는 게 없다네. 북동쪽 길을 따라가면 된다네.',done:'(오드릭) 브렌힐 촌장이 보냈다고? 그 편지… 이 재 냄새는 수로 깊은 곳의 것이 맞아.',
+  goals:[{type:'talk',town:'willowen',d:'헤이븐 나루의 뱃사공 오드릭과 이야기'}],rw:{xp:.6,gold:80}},
  {town:'willowen',lvl:8,t:'강가의 주술사',say:'요즘 고블린 주술사들이 강가에 이상한 부적을 묻고 다니네. 부적이 묻힌 곳마다 물이 검게 썩어. 놈들을 쓰러뜨리고 부적을 여섯 장 모아 와 주게.',done:'이 부적… 재의 문양이군. 누군가 고블린들을 부리고 있어.',
   goals:[{type:'get',k:['goblin'],p:.5,n:6,item:'재 문양 부적',d:'고블린 주술사를 쓰러뜨려 재 문양 부적 모으기'}],rw:{xp:1.2,gold:220,item:1}},
  {town:'willowen',lvl:11,t:'수로 아래의 것',say:'부적이 흘러가는 곳은 하나뿐이네. 은류강 지하 수로. 그 아래에서 무언가가 물을 삼키며 자라고 있어. 그것을 끝내 주게.',done:'삼키는 자가 쓰러졌다니! 강물이 다시 맑아지고 있어. 그 녀석 뱃속에서 나온 이 지도를 보게. 헤이븐 교차로에 붉은 표시가 있군.',
   goals:[{type:'kill',k:['m_grol','m_drowned'],n:2,d:'늪거인 그롤과 익사한 사제 처치'},{type:'kill',k:['b_devourer'],n:1,d:'삼키는 자 처치'}],rw:{xp:1.6,gold:450,item:2,ap:5}},
- {town:'willowen',lvl:10,t:'교차로의 소문',say:'헤이븐 교차로의 여관 주인 리사는 온갖 소문을 다 듣는 사람이야. 그 지도를 보여 주게. 북동쪽 대로를 따라가면 되네.',done:'(리사) 이 지도라면… 동쪽 잿빛 요새를 가리키고 있어요. 군대가 버리고 떠난 그곳에서 요즘 불빛이 보인다는 소문이 돌아요.',
+ {town:'willowen',lvl:10,t:'교차로의 소문',say:'이 마을 황금 마차 여관의 주인 리사는 온갖 소문을 다 듣는 사람이야. 그 지도를 보여 주게. 나루에서 여관까지는 몇 걸음이면 되네.',done:'(리사) 이 지도라면… 동쪽 잿빛 요새를 가리키고 있어요. 군대가 버리고 떠난 그곳에서 요즘 불빛이 보인다는 소문이 돌아요.',
   goals:[{type:'talk',town:'haven',d:'헤이븐 교차로의 여관 주인 리사와 이야기'}],rw:{xp:.6,gold:120}},
  {town:'haven',lvl:14,t:'잿빛 행군',say:'요새 쪽에서 재 들개와 잿빛 병사들이 대로까지 내려와요. 상인들이 다 끊겼어요. 길을 열어 주세요.',done:'대로가 다시 열렸어요! 그런데 병사들 갑옷에 왕국 기사단 문장이 있었다고요? 설마…',
   goals:[{type:'kill',k:['ashhound','ashsoldier'],n:15,d:'대로의 재 들개·잿빛 병사 처치'}],rw:{xp:1.3,gold:380,item:1}},
@@ -23,7 +28,7 @@ const QUESTS=[
   goals:[{type:'kill',k:['m_herdin'],n:1,d:'배신자 헤르딘 처치'},{type:'kill',k:['b_baldrak'],n:1,d:'잿빛 군주 발드라크 처치'}],rw:{xp:1.6,gold:700,item:2,sp:1}},
  {town:'haven',lvl:16,t:'왕도로',say:'북쪽 왕도 아르덴의 왕립 마법원에 대마법사 엘리안님이 계세요. 이 검의 글을 보여 드리세요.',done:'(엘리안) 재의 사도… 백 년 전 봉인했던 이름이로군. 잘 왔네.',
   goals:[{type:'talk',town:'arden',d:'아르덴의 대마법사 엘리안과 이야기'}],rw:{xp:.6,gold:200}},
- {town:'arden',lvl:22,t:'망령의 밤',say:'왕도 둘레에 망령이 들끓네. 사도가 깨어나며 흩어진 영혼들이지. 망령과 그 곁을 지키는 잿빛 기사를 쓰러뜨리고, 그들이 남기는 재를 여섯 줌 모아 오게. 봉인을 다시 세우는 데 쓰겠네.',done:'충분하네. 이 재로 봉인의 원을 그릴 수 있겠어.',
+ {town:'arden',lvl:22,t:'망령의 밤',say:'왕도 남쪽 성문 밖, 남부 북쪽 들판에 망령이 들끓네. 사도가 깨어나며 흩어진 영혼들이지. 망령과 그 곁을 지키는 잿빛 기사를 쓰러뜨리고, 그들이 남기는 재를 여섯 줌 모아 오게. 봉인을 다시 세우는 데 쓰겠네.',done:'충분하네. 이 재로 봉인의 원을 그릴 수 있겠어.',
   goals:[{type:'get',k:['wraith','ashknight'],p:.45,n:6,item:'망령의 재',d:'망령·잿빛 기사를 쓰러뜨려 망령의 재 모으기'}],rw:{xp:1.3,gold:600,item:1}},
  {town:'arden',lvl:25,t:'재의 사도',say:'북서쪽 재의 성소. 사도 모르가스가 그곳에서 마지막 문을 열려 하네. 타락한 세렌과 재의 대주교가 그를 지키고 있지. 이 싸움이 끝나면 세상은 자네 이름을 기억할 걸세.',done:'해냈군! 사도의 재가 바람에 흩어졌네. 하지만 그가 연 문틈으로 먼 땅의 기운이 흘러들고 있어… 그 이야기는 다음에 하세. 이 상을 받게.',
   goals:[{type:'kill',k:['m_seren','m_archbishop'],n:2,d:'타락한 세렌과 재의 대주교 처치'},{type:'kill',k:['b_morgath'],n:1,d:'재의 사도 모르가스 처치'}],rw:{xp:2,gold:1500,item:3,sp:1,ap:5}},
@@ -38,7 +43,7 @@ function questKill(e){const st=qState(),q=qCur();if(!q||st.st!==1)return;let ch=
   q.goals.forEach((g,j)=>{if(!g.k||!g.k.includes(e.k)||qGoalDone(q,j))return;
     if(g.type==='kill'){st.c[qKey(g,j)]=(st.c[qKey(g,j)]||0)+1;ch=true}
     else if(g.type==='get'&&R()<g.p){st.c[qKey(g,j)]=(st.c[qKey(g,j)]||0)+1;ch=true;ftext(e.x,e.y,g.item,'#ffd98a',false,e.r*2+30)}});
-  if(ch){questHud();if(qAllDone(q)){st.st=2;const tw=ALLTOWNS.find(t=>t.id===qTurnTown(q));msg(`의뢰 「${q.t}」 목표를 모두 이뤘습니다. ${tw?tw.n:''}의 ${QNPC[qTurnTown(q)].n}에게 알리세요`,'#ffd98a');save()}}}
+  if(ch){questHud();if(qAllDone(q)){st.st=2;const tw=qTw(qTurnTown(q));msg(`의뢰 「${q.t}」 목표를 모두 이뤘습니다. ${tw?tw.n:''}의 ${QNPC[qTurnTown(q)].n}에게 알리세요`,'#ffd98a');save()}}}
 const qTurnTown=q=>{const t=q.goals.find(g=>g.type==='talk');return t?t.town:q.town};
 // 의뢰인 위치와 그림
 TOWNS.forEach(t=>{t.npc={x:t.x-125,y:t.y-45}});
@@ -60,7 +65,7 @@ function questHtml(){const t=qTown,N=QNPC[t.id],q=qCur(),st=qState();
   if(!q){h+='<p class="qsay">「재의 사도가 쓰러진 뒤로 세상이 조금 조용해졌네. 다음 이야기는 먼 땅에서 들려올 걸세.」</p><p class="muted">1막의 의뢰를 모두 마쳤습니다.</p>';return h}
   if(st.st===0&&q.town===t.id){h+=`<h2>${q.t} <span class="muted">권장 레벨 ${q.lvl}</span></h2><p class="qsay">「${q.say}」</p>${qGoalsHtml(q)}${qRewardHtml(q)}<div class="row"><button class="primary" type="button" data-qacc="1">의뢰 받기</button></div>`}
   else if(st.st===2&&qTurnTown(q)===t.id){h+=`<h2>${q.t}</h2><p class="qsay">「${q.done}」</p>${qRewardHtml(q)}<div class="row"><button class="primary" type="button" data-qdone="1">보상 받기</button></div>`}
-  else if(st.st===0){const tw=ALLTOWNS.find(x=>x.id===q.town);h+=`<p class="qsay">「지금은 부탁할 일이 없다네. ${tw.n}의 ${QNPC[q.town].n}에게 가 보게.」</p>`}
+  else if(st.st===0){const tw=qTw(q.town)||{n:''};h+=`<p class="qsay">「지금은 부탁할 일이 없다네. ${tw.n}의 ${QNPC[q.town].n}에게 가 보게.」</p>`}
   else{h+=`<h2>${q.t} <span class="muted">진행 중</span></h2><p class="qsay">「아직 할 일이 남았네. 힘내게.」</p>${qGoalsHtml(q)}`}
   return h}
 function qGoalsHtml(q){return '<ul class="qgoals">'+q.goals.map((g,j)=>{const ok=qGoalDone(q,j),c=P.q.c[qKey(g,j)]||0;
@@ -118,14 +123,14 @@ function qRoute(tg){if(!tg)return null;
   if((tg.reg||'home')!==REG.id){const h=regHop(REG.id,tg.reg||'home');return EDGES.find(e=>e.to===h)||EDGES[0]||null}
   if(tg.room&&tg.door)return tg.door;return tg}
 // 남부(홈) 땅의 몬스터 레벨 (지금 어느 지역에 있든 홈 마을 기준)
-function qHomeLvl(x,y){let l=99,n=null,nd=1e9;for(const t of HOME.towns){const d=Math.hypot(x-t.x,y-t.y);if(d<nd){nd=d;n=t}l=Math.min(l,t.base+Math.max(0,d-SAFE)/ZSTEP)}return{l,n,nd}}
+function qHomeLvl(x,y){let l=99,n=null,nd=1e9;for(const t of TOWN0){const d=Math.hypot(x-t.x,y-t.y);if(d<nd){nd=d;n=t}l=Math.min(l,t.base+Math.max(0,d-SAFE)/ZSTEP)}return{l,n,nd}}
 function qHomeZone(h){const l=h.l,t=h.n;if(l<t.base+3)return t.area;return l>=30?'재의 심연':l>=24?'재의 황야':l>=18?'노르반 폐허':l>=12?'잿빛 폐허':l>=7?'속삭이는 갈대 늪':l>=4?'안개숲':t.area}
 const QDIR=['동','남동','남','남서','서','북서','북','북동'];
 function qPlace(x,y){const h=qHomeLvl(x,y),t=h.n;if(h.nd<SAFE)return t.n;const dx=x-t.x,dy=y-t.y,a=Math.atan2((dx+dy)/2,dx-dy),i=((Math.round(a/(Math.PI/4))%8)+8)%8;return `${t.n} ${QDIR[i]}쪽 ${qHomeZone(h)}`}
 // 그 몬스터가 나오는 들판 자리: 의뢰 마을에서 가장 가까운, 레벨이 맞는 곳 (한 번 구해 두고 쓴다)
 const QZC={};
 function qZone(kinds,townId){const k=(kinds||[]).find(k=>TYPES[k]&&!TYPES[k].mini&&!TYPES[k].boss);const T=k&&TYPES[k];if(!T)return null;const key=k+'/'+townId;if(QZC[key])return QZC[key];
-  const L=T.min+1,t0=HOME.towns.find(t=>t.id===townId)||HOME.towns[0];let best=null,bs=1e9;
+  const L=T.min+1,t0=TOWN0.find(t=>t.id===townId)||TOWN0[0];let best=null,bs=1e9;
   for(let a=0;a<48;a++){const an=a/48*6.283;for(let d=SAFE+80;d<3000;d+=60){const x=t0.x+Math.cos(an)*d,y=t0.y+Math.sin(an)*d;if(x<250||y<250||x>WORLD-250||y>WORLD-250)break;const h=qHomeLvl(x,y);if(h.nd<tSafe(h.n)+60)continue;
     if(h.l>=L){const sc=d+300*Math.max(0,h.l-(L+2));if(sc<bs){bs=sc;best={x,y}}break}}}
   if(!best)return null;return QZC[key]={x:best.x,y:best.y,label:`${qPlace(best.x,best.y)} · ${T.n} 출몰`,zone:1}}

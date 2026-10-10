@@ -1,12 +1,12 @@
 /* ---------- v20 W1 기록 수집 · 책 30권 (설계: rpg/v20-ideas/code/lore-books.js) ----------
    책은 가방에 들어가지 않고 「읽음」만 남는다 (P.books). 얻는 순간 읽기 쪽지가 뜨고, 도감(J)의 「서고」 칸에서 다시 읽는다.
-   얻는 곳: shop(아르덴·윌로벤·브렌힐·헤이븐 잡화점) · dg(그 던전 보스를 쓰러뜨릴 때 하나씩) · boss(처음 쓰러뜨릴 때) · region(그 지역 들판 몬스터 0.4%).
+   얻는 곳: shop(아르덴·브렌힐·헤이븐 잡화점) · dg(그 던전 보스를 쓰러뜨릴 때 하나씩) · boss(처음 쓰러뜨릴 때) · region(그 지역 들판 몬스터 0.4%).
    처음 읽을 때 경험치(지금 레벨 필요 경험치의 1%). 묶음을 다 읽으면 칭호(세력 평판의 칭호 칸과 같이 고른다). */
 const BOOKS=[
  {id:'g1',grp:'gods',n:'여명의 아우렐',src:{shop:'arden'},price:200,t:'아우렐은 밤이 가장 깊을 때 뜨는 첫 빛이다. 여명교단의 성표는 여덟 빛살이 뻗은 원이며, 에르난 왕국의 국교다. 교단의 사제는 소리 큰 기도보다 깊은 마음이 먼저 닿는다고 가르친다. 그래서 아우렐의 사제는 지친 사람 곁에서 조용히 기도한다.'},
  {id:'g2',grp:'gods',n:'황혼의 모르딘',src:{dg:'sewer'},t:'모르딘은 하루를 닫는 신, 죽음과 안식을 맡는다. 안식회 사제들은 검은 옷을 입고 장례를 치르며, 떠나지 못한 영혼을 보낸다. 사람들은 그 옷을 꺼리지만 망령이 나오는 밤이면 가장 먼저 그들을 찾는다.'},
  {id:'g3',grp:'gods',n:'대지의 테라미아',src:{region:'plains'},t:'테라미아의 사제는 교회 대신 들판에서 기도한다. 씨를 뿌리는 날과 거두는 날, 그리고 아이가 태어나는 날. 초원의 켄타우로스도 이 신을 섬기며, 그들은 테라미아를 「발굽 아래의 어머니」라 부른다.'},
- {id:'g4',grp:'gods',n:'바다와 운명의 넬라',src:{shop:'willowen'},price:200,t:'뱃사람은 출항 전에 넬라에게 동전을 던진다. 동전이 앞면이면 바람이, 뒷면이면 운명이 그들을 데려간다고 한다. 파도 사제들은 바람의 방향과 사람의 앞날이 같은 물결 위에 있다고 믿는다.'},
+ {id:'g4',grp:'gods',n:'바다와 운명의 넬라',src:{shop:'haven'},price:200,t:'뱃사람은 출항 전에 넬라에게 동전을 던진다. 동전이 앞면이면 바람이, 뒷면이면 운명이 그들을 데려간다고 한다. 파도 사제들은 바람의 방향과 사람의 앞날이 같은 물결 위에 있다고 믿는다.'},
  {id:'g5',grp:'gods',n:'강철의 발카르',src:{dg:'fort'},t:'발카르는 전쟁과 맹세의 신이다. 동쪽 발케르 제국의 국교이며, 강철 사제단의 사제는 곧 전사다. 그들은 맹세를 어긴 자에게 은총이 끊긴다고 말한다. 맹세를 지키다 쓰러진 자에게는 쇠 종이 한 번 울린다.'},
  {id:'a1',grp:'ash',n:'재의 군주 — 마을 노래',src:{shop:'brenhill'},price:120,t:'「불 없는 밤엔 문을 닫아라, 재가 이름을 부르러 온다.」 브렌힐 아이들이 줄넘기하며 부르는 노래다. 어른들은 사백 년 전 북쪽 왕국 하나가 하룻밤에 재가 되었다는 이야기에서 나온 노래라고만 말한다.'},
  {id:'a2',grp:'ash',n:'침묵의 탑',src:{dg:'sanctum'},t:'서리이빨 산맥 가장 높은 어깨에 검은 탑이 서 있다. 아홉 룬 기둥이 탑 아래의 무언가를 붙들고 있다고 한다. 탑을 세운 사람은 스물일곱이었고, 그중 누구도 늙어서 죽지 않았다.'},
@@ -28,7 +28,7 @@ const BOOKS=[
  {id:'w7',grp:'wonders',n:'반딧불 습지',src:{region:'home'},t:'은류강 서쪽 습지에는 겨울에도 반딧불 같은 빛이 떠다닌다. 떠나지 못한 영혼이라고도, 늪의 물이 기억하는 옛 등불이라고도 한다. 윌로벤 뱃사공들은 그 빛을 따라 노를 젓지 않는다.'},
  {id:'w8',grp:'wonders',n:'밤마다 골목이 바뀌는 도시',src:{shop:'arden'},price:400,t:'동쪽 오르타는 공간 학파 마법사들이 세운 연구 도시였다. 골목마다 새긴 짝문 룬이 주인을 잃고 제멋대로 깨어나, 밤마다 거리의 이음새가 바뀐다. 주민들은 아침마다 길을 새로 묻는다. 도시 한가운데 탑에는 아직 아무도 닿지 못했다.'},
  {id:'t1',grp:'towns',n:'브렌힐 방앗간 일지',src:{shop:'brenhill'},price:60,t:'올해 밀은 좋았다. 다만 강물이 예년보다 낮아 물레가 느리다. 바르톨 영감이 「물이 아니라 물 밑의 무언가가 낮아진 것」이라며 웃었다. 영감 말은 늘 반쯤만 알아듣겠다.'},
- {id:'t2',grp:'towns',n:'윌로벤 나루 노래',src:{shop:'willowen'},price:60,t:'「은류강 물은 아르덴을 지나, 바다까지 가는 데 사흘. 돌아오는 데는 평생.」 나루터 주점에서 부르는 노래다. 노래가 끝나면 다들 잔을 강 쪽으로 한 번 기울인다.'},
+ {id:'t2',grp:'towns',n:'윌로벤 나루 노래',src:{shop:'haven'},price:60,t:'「은류강 물은 아르덴을 지나, 바다까지 가는 데 사흘. 돌아오는 데는 평생.」 나루터 주점에서 부르는 노래다. 노래가 끝나면 다들 잔을 강 쪽으로 한 번 기울인다.'},
  {id:'t3',grp:'towns',n:'헤이븐 교차로 여관 장부',src:{shop:'haven'},price:80,t:'(장부 여백의 낙서) 동쪽에서 온 손님은 팔에 문신이 있었다. 맥주 대신 물을 시켰고, 손목의 쇠고리를 한 번도 풀지 않았다. 셈은 정확했다. 다음 날 아침엔 아무도 그를 보지 못했다.'},
  {id:'t4',grp:'towns',n:'왕립 마법원 입학 안내',src:{shop:'arden'},price:100,t:'마법원은 일곱 첨탑으로 되어 있으며, 두 위계를 묶어 한 급수로 부른다. 견습은 단어 하나를 온전히 부르는 것부터 배운다. 제 위계를 넘는 마법도 억지로 부를 수는 있으나, 넘은 만큼 몸이 값을 치른다. 마법원은 그 값을 대신 치러 주지 않는다.'},
  {id:'t5',grp:'towns',n:'마지막 등불 순찰 일지',src:{region:'abyss'},t:'균열이 숨을 쉰다. 들이쉴 때 등불이 흔들리고, 내쉴 때 보랏빛 먼지가 쏟아진다. 오늘은 들이쉬는 시간이 어제보다 길었다. 무언가 저 너머에서 이쪽의 마나를 마시고 있다.'},
@@ -60,7 +60,7 @@ function bookGain(id,how){const b=BOOKBY[id];if(!b||!P)return false;if(!Array.is
   {const b=BOOKS.find(b=>b.src.boss===e.k&&!bkHave(b.id));if(b)bookGain(b.id,t.n)}
   if(!DG&&!IN&&!t.boss&&!t.mini&&R()<.004){const c=BOOKS.filter(b=>b.src.region===REG.id&&!bkHave(b.id));if(c.length)bookGain(pick(c).id,REGIONS[REG.id].n)}}}
 // 잡화점에서 사기
-const BK_SHOP=['arden','willowen','brenhill','haven'];
+const BK_SHOP=['arden','brenhill','haven'];
 {const _sh=shopHtml;shopHtml=function(){let h=_sh();const t=actTown;if(!t||!BK_SHOP.includes(t.id)||(SHOP_SLOTS[actShop]?actShop:'general')!=='general')return h;
   const L=BOOKS.filter(b=>b.src.shop===t.id);if(!L.length)return h;const rows=L.map(b=>{const have=bkHave(b.id);return `<div class="shoprow"><div>📖 ${b.n} <span class="muted">· ${BOOK_SETS[b.grp].n}${have?' · 읽음':''}</span></div><div class="btns">${have?'<button type="button" disabled>읽음</button>':v20Btn('bookbuy',b.id,`사기 ${b.price}`,{dis:P.gold<b.price})}</div></div>`}).join('');
   const sec=`<h2>책 <span class="muted">가방을 차지하지 않음 · 처음 읽으면 경험치</span></h2>${rows}`;const i=h.indexOf('<h2>반지와 목걸이');return i>=0?h.slice(0,i)+sec+h.slice(i):h+sec}}

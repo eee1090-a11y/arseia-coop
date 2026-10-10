@@ -34,8 +34,7 @@ J3NET.w3m=m=>{if(typeof m.s==='string'&&m.s)msg(m.s.slice(0,180),typeof m.c==='s
 {const _gh=gateHtml;gateHtml=function(){let h=_gh();
   if(w3Hell(REG.id)&&!W3.qaOpen){h=h.replace(/<button type="button" data-diff="([01])"[^>]*>([^<]*)<\/button>/g,(a,i,t)=>`<button type="button" data-diff="${i}" disabled title="지옥 전용 지역">${t}</button>`);
     h=h.replace('</div><p class="muted">','</div><p class="muted" style="color:#ffb07a">지옥 전용 지역에서는 난이도를 바꿀 수 없습니다.</p><p class="muted">')}
-  if(!NET.guest)for(const id of ['plateau','capital','starsea','thunder','roots','eclipse']){const t=RCACHE[id]&&RCACHE[id].town;if(!t||t.reg===REG.id)continue;const b=w3BlockReg(id);if(!b)continue;
-    h=h.replace(new RegExp(`<button type="button" data-travel="${t.id}"[^>]*>건너가기</button>`),`<button type="button" disabled title="${b}">봉인됨</button>`)}
+  // v26: 봉인된 야영지 단추는 짝문 지도(gate26.js g26Seal)가 바로 「봉인됨」으로 그린다
   return h}}
 // 지옥 전용 지역에 지옥이 아닌 채로 있으면(옛 저장 · 시험 중 바꿈) 심연의 균열 마을로 돌려보낸다
 function w3Safety(){if(DG||IN||NET.guest||W3.qaOpen||!w3Hell(REG.id)||P.diff===2)return false;

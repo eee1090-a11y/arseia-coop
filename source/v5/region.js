@@ -8,7 +8,7 @@ function vnoise(x,y,sd){const i=Math.floor(x),j=Math.floor(y),fx=x-i,fy=y-j,u=fx
   const a=hash(i+sd,j),b=hash(i+1+sd,j),c=hash(i+sd,j+1),d=hash(i+1+sd,j+1);return a+(b-a)*u+(c-a)*v+(a-b-c+d)*u*v}
 const fbm=(x,y,sd)=>vnoise(x,y,sd)*.65+vnoise(x*2.3,y*2.3,sd+71)*.35;
 const REGIONS={
-  home:{id:'home',n:'아르세이아 남부',base:1,col:'#d6b262',edges:{E:'plains',W:'forest',N:'ice'}},
+  home:{id:'home',n:'아르세이아 남부',base:1,col:'#d6b262',edges:{E:'plains',W:'forest',N:'royal'}},
   plains:{id:'plains',n:'황금 평원',base:24,col:'#ffd76a',entry:'W',edges:{W:'home',S:'desert'},seed:11,
     town:{id:'goldmere',n:'골드미어',area:'황금 밀밭',desc:'끝없는 밀밭 사이의 풍차 마을. 들판 너머 폭풍이 자주 몰려옵니다.',roof:['#7a5a22','#6a3a22','#5a5a2a','#7a4a2a']},
     th:{pal:[[92,88,40],[74,72,34]],deep:[70,60,40],liq:{col:[40,70,96],th:.79,kind:'water'},grass:340,gm:[1.45,1.4,.8],flow:1,fcol:['#e8c04a','#e86a4a','#f0e0a0','#a8c0e8'],tile:.45,paint:'meadow'},
@@ -24,7 +24,7 @@ const REGIONS={
     th:{pal:[[150,104,62],[128,84,50]],deep:[110,62,40],liq:{col:[40,96,104],th:.86,kind:'water'},grass:0,flow:0,tile:.12,paint:'sand'},
     mix:[['cactus',12],['bones',8],['sandrock',14],['ruinpillar',5],['palm',3]],
     mobs:['d_scorp','d_mummy','d_sand','d_viper'],boss:'r_sakra'},
-  ice:{id:'ice',n:'북부 빙원',base:36,col:'#9fe0ff',entry:'S',edges:{S:'home',N:'lava'},seed:41,
+  ice:{id:'ice',n:'북부 빙원',base:36,col:'#9fe0ff',entry:'S',edges:{S:'royal',N:'lava'},seed:41,
     town:{id:'frostheim',n:'프로스트헤임',area:'얼어붙은 항구',desc:'눈보라를 견디는 북방인의 성채 마을. 늘 장작 냄새가 납니다.',roof:['#2a405a','#3a4a5a','#4a3a3a','#2a3a4a']},
     th:{pal:[[176,184,196],[150,160,178]],deep:[110,120,146],liq:{col:[40,66,96],th:.8,kind:'ice'},grass:40,gm:[.9,.95,1.05],flow:0,tile:.1,paint:'snow'},
     mix:[['snowpine',24],['icespike',8],['iceboulder',10],['frozenbones',4],['rock',4]],
@@ -47,7 +47,17 @@ const REGIONS={
 };
 // v18 월드 확장: 새 지역은 끝에 덧붙인다(순서를 바꾸면 같이 하기의 지역 번호 regArea가 어긋난다) · 기존 지역 새 포탈 · 2막 의뢰인
 Object.assign(REGIONS,WX_REGIONS,W3_REGIONS,WX21_REGIONS);for(const id in WX_EDGE_ADD)Object.assign(REGIONS[id].edges,WX_EDGE_ADD[id]);Object.assign(QNPC,WX_QNPC);
+// v26 왕도 (사용자 2026-10-10): 남부 바로 북쪽의 작은 지도. 하얀 성벽 도시 하나가 한가운데 있고, 사방 고갯길 끝 포탈이 남부 · 빙원 · 고원 · 협곡으로 이어진다.
+// 몬스터는 나오지 않는다(왕도 전체가 안전 지대 · royal26.js). 같이 하기 지역 번호가 밀리지 않게 맨 뒤에 붙인다.
+// side: 이 지도만 포탈이 맵 끝이 아니라 한가운데에서 1750 떨어진 곳에 선다 (작은 지도). at: 마을 자리. clear: 자연 장식을 두지 않는 성안.
+REGIONS.royal={id:'royal',n:'왕도 아르덴',base:16,col:'#f0e2b0',entry:'S',edges:{S:'home',N:'ice',W:'highland',E:'canyon'},seed:131,royal:1,
+  at:[3000,3000],straight:1,noLair:1,side:{W:{x:1250,y:3000},E:{x:4750,y:3000},N:{x:3000,y:1250},S:{x:3000,y:4750}},
+  town:{id:'arden',n:'아르덴',area:'왕도',desc:'하얀 성벽의 왕도. 왕궁과 네 직업의 전당(왕립 마법원 · 대성당 · 기사단 전당 · 사냥꾼 회관)이 있습니다.',roof:['#24325c','#32244e','#24404e','#40325c'],white:true},
+  th:{pal:[[92,118,62],[80,100,56]],deep:[70,88,52],liq:{col:[50,80,100],th:9,kind:'water'},grass:150,gm:[1,1.06,1],flow:1,fcol:['#f4f0e4','#b0a0f0','#ffd76a','#e07a96'],tile:.3,paint:'royal'},
+  mix:[['oak',12],['windtree',3],['bush',6],['mossrock',2],['rock',1]],
+  clear:(x,y)=>Math.max(Math.abs(x-3000),Math.abs(y-3000))<1000};
 const REG_IDS=Object.keys(REGIONS).filter(k=>k!=='home');
+const sideOf=(id,sd)=>((REGIONS[id]&&REGIONS[id].side)||SIDE)[sd];
 // 지역 몬스터: 들판 몬스터보다 단단하고 아프다
 const RTYPES={
   p_wolf:{n:'초원 늑대 우두머리',min:24,hp:70,dmg:12,spd:170,r:16,xp:40,aggro:380,atk:.9,col:'#a8946a',draw:'wolf',eye:'#ffcc4a'},
@@ -101,23 +111,23 @@ const blockedAt=(x,y)=>(LQ!==null&&liqAt(x,y)>.5)||terrWall(x,y);
 const HOME={id:'home',towns:[...TOWNS],roads:ROADS.map(r=>r),decor:[...decor],lights:[...LIGHTS],caves:[...CAVES]};
 const ALLTOWNS=[...TOWNS];TOWNS.forEach(t=>t.reg='home');
 const RCACHE={};
-function edgeDecor(side,to){const p=SIDE[side],R2=REGIONS[to],lv=R2.base;
+function edgeDecor(side,to,from){const p=sideOf(from||'home',side),R2=REGIONS[to],lv=R2.base;
   return{x:p.x,y:p.y,k:'edgeportal',s:1,v:0,light:170,side,to,col:R2.col,label:to==='home'?`${R2.n}로 (${SIDEN[side]})`:`${R2.n}로 · 몬스터 Lv${lv}~`}}
 // 지역 땅 만들기 (같은 씨앗이면 늘 같은 땅)
 function buildRegion(id){
   const D=REGIONS[id],s=mulberry(D.seed*9973),th=D.th;
-  const ent=SIDE[D.entry],iv=INW[D.entry],T={...D.town,x:ent.x+iv[0]*820,y:ent.y+iv[1]*820,base:D.base,reg:id};
+  const ent=sideOf(id,D.entry),iv=INW[D.entry],T={...D.town,x:D.at?D.at[0]:ent.x+iv[0]*820,y:D.at?D.at[1]:ent.y+iv[1]*820,base:D.base,reg:id};
   T.shop={x:T.x+110,y:T.y-40};T.gate={x:T.x-60,y:T.y+120};T.stash={x:T.x+75,y:T.y+175};
   if(!ALLTOWNS.includes(T))ALLTOWNS.push(T);
   // 길: 모든 포탈에서 전초 마을까지
   const roads=[];
-  for(const sd in D.edges){const A=SIDE[sd],B=T,mx=(A.x+B.x)/2,my=(A.y+B.y)/2,dx=B.x-A.x,dy=B.y-A.y,l=Math.hypot(dx,dy)||1,off=(s()-.5)*l*.3,cx=mx-dy/l*off,cy=my+dx/l*off,pts=[];
+  for(const sd in D.edges){const A=sideOf(id,sd),B=T,mx=(A.x+B.x)/2,my=(A.y+B.y)/2,dx=B.x-A.x,dy=B.y-A.y,l=Math.hypot(dx,dy)||1,r0=s(),off=D.straight?0:(r0-.5)*l*.3,cx=mx-dy/l*off,cy=my+dx/l*off,pts=[];
     for(let i=0;i<=40;i++){const u=i/40;pts.push({x:(1-u)*(1-u)*A.x+2*(1-u)*u*cx+u*u*B.x,y:(1-u)*(1-u)*A.y+2*(1-u)*u*cy+u*u*B.y})}roads.push(pts)}
   // v18 지역 던전: 마을에서 동굴마다 길을 하나씩
   const caves=wxCaves(id).concat(w3Caves(id));for(const c of caves)roads.push(wxRoad(T,c,s));
   // 우두머리 둥지: 들어온 쪽에서 가장 먼 구석
-  const pv=[-iv[1],iv[0]],lair={x:3000+iv[0]*1750+pv[0]*1350,y:3000+iv[1]*1750+pv[1]*1350};
-  const edges=Object.keys(D.edges).map(sd=>edgeDecor(sd,D.edges[sd]));
+  const pv=[-iv[1],iv[0]],lair=D.noLair?{x:-9e3,y:-9e3}:{x:3000+iv[0]*1750+pv[0]*1350,y:3000+iv[1]*1750+pv[1]*1350};
+  const edges=Object.keys(D.edges).map(sd=>edgeDecor(sd,D.edges[sd],id));
   // 물/용암 격자
   // rd(x,y,cap): 길까지 거리 (cap보다 먼 길은 상자 검사로 건너뛰고 cap을 돌려준다 — cap 안쪽 결과는 같다)
   const rbb=roads.map(r=>{let a=1e9,b=1e9,c=-1e9,d=-1e9;for(const p of r){a=Math.min(a,p.x);b=Math.min(b,p.y);c=Math.max(c,p.x);d=Math.max(d,p.y)}return[a,b,c,d]});
@@ -132,19 +142,19 @@ function buildRegion(id){
     let k=D.mix[0][0],acc=0;for(const [kk,w] of D.mix){acc+=w;if(t<acc){k=kk;break}}
     const wet=k==='coral'||k==='wreck'||k==='searock'||k==='shell',lv=liqAt(x,y);
     if(wet?lv>.92:lv>.15)continue;if(!wet&&k==='palm'&&id==='desert'&&s()<.5)continue;
-    if(Math.hypot(x-T.x,y-T.y)<TOWN_R+90||rd(x,y,52)<52||Math.hypot(x-lair.x,y-lair.y)<180||edges.some(e=>Math.hypot(x-e.x,y-e.y)<200)||caves.some(c=>Math.hypot(x-c.x,y-c.y)<160))continue;
+    if(D.clear&&D.clear(x,y)||Math.hypot(x-T.x,y-T.y)<TOWN_R+90||rd(x,y,52)<52||Math.hypot(x-lair.x,y-lair.y)<180||edges.some(e=>Math.hypot(x-e.x,y-e.y)<200)||caves.some(c=>Math.hypot(x-c.x,y-c.y)<160))continue;
     const d={x,y,k,s:sc,v,zl:0};if(k==='vent')d.light=90;dec.push(d)}
   // 둥지 둘레의 옛 기둥
-  for(let i=0;i<8;i++){const a=i/8*6.283;dec.push({x:lair.x+Math.cos(a)*240,y:lair.y+Math.sin(a)*170,k:'ruinpillar',s:1.1,v:i/8,zl:0,light:i%2?0:80})}
+  if(!D.noLair)for(let i=0;i<8;i++){const a=i/8*6.283;dec.push({x:lair.x+Math.cos(a)*240,y:lair.y+Math.sin(a)*170,k:'ruinpillar',s:1.1,v:i/8,zl:0,light:i%2?0:80})}
   for(let i=0;i<7;i++){const a=i/7*Math.PI*2+.4;const hx=T.x+Math.cos(a)*215,hy=T.y+Math.sin(a)*205;
     if(Math.hypot(hx-T.shop.x,hy-T.shop.y)<175||Math.hypot(hx-T.gate.x,hy-T.gate.y)<175)continue;dec.push({x:hx,y:hy,k:'house',v:i,s:1,town:T,light:70})}
   for(let i=0;i<8;i++){const a=i/8*Math.PI*2+.2;dec.push({x:T.x+Math.cos(a)*285,y:T.y+Math.sin(a)*285,k:'lamp',s:1,v:0,light:170})}
   dec.push({x:T.x,y:T.y,k:'fountain',s:1,v:0,light:190},{x:T.shop.x,y:T.shop.y,k:'shop',s:1,v:0,town:T,light:150},{x:T.gate.x,y:T.gate.y,k:'gate',s:1,v:0,town:T,light:140},{x:T.stash.x,y:T.stash.y,k:'stash',s:1,v:0,town:T,light:110});
   dec.push(...edges);dec.push(...caves);const spots=wxRegionExtras(id,T,dec,lair,caves,edges,lq);
   LQ=prevLQ;
-  return{id,towns:[T],roads,decor:dec,lights:dec.filter(d=>d.light),caves,edges,lq,lair,town:T,spots}}
+  return{id,towns:[T],roads,decor:dec,lights:dec.filter(d=>d.light),caves,edges,lq,lair:D.noLair?null:lair,town:T,spots}}
 // 홈의 포탈
-HOME.edges=Object.keys(REGIONS.home.edges).map(sd=>edgeDecor(sd,REGIONS.home.edges[sd]));
+HOME.edges=Object.keys(REGIONS.home.edges).map(sd=>edgeDecor(sd,REGIONS.home.edges[sd],'home'));
 for(let i=HOME.decor.length-1;i>=0;i--)if(HOME.edges.some(e=>Math.hypot(HOME.decor[i].x-e.x,HOME.decor[i].y-e.y)<200))HOME.decor.splice(i,1);
 HOME.decor.push(...HOME.edges);HOME.lights.push(...HOME.edges);
 const setArr=(a,b)=>{a.length=0;a.push(...b)};
@@ -159,7 +169,7 @@ for(const id of REG_IDS)RCACHE[id]=buildRegion(id); // 짝문 목록에 모든 �
 const regOf=a=>a===-1?'home':a<=-10?REG_IDS[-a-10]:null;
 const regArea=()=>REG.id==='home'?-1:-(10+REG_IDS.indexOf(REG.id));
 const nearEdge=()=>DG?null:EDGES.find(e=>dist(P,e)<95);
-function arrivalOf(side){const p=SIDE[OPP[side]],iv=INW[OPP[side]];return{x:p.x+iv[0]*170,y:p.y+iv[1]*170}}
+function arrivalOf(side,to){const p=sideOf(to||'home',OPP[side]),iv=INW[OPP[side]];return{x:p.x+iv[0]*170,y:p.y+iv[1]*170}}
 // 다른 지역으로 건너가기 (방장/혼자일 때). x,y가 없으면 그 지역 마을 짝문 앞
 function switchRegion(id,x,y,quiet){
   if(DG)leaveDungeon();
@@ -173,7 +183,7 @@ function switchRegion(id,x,y,quiet){
     banner={t:D.n,sub:id==='home'?'익숙한 땅으로 돌아왔습니다':`몬스터 레벨 ${D.base+DIFF[P.diff].add}부터 · 깊이 들어갈수록 강해집니다`,col:D.col,life:2.6,max:2.6};flash={col:D.col,a:.25}}
   if(NET.host)netSend({t:'reg',id,x:Math.round(P.x),y:Math.round(P.y)});
   save()}
-function useEdge(ep){const a=arrivalOf(ep.side);
+function useEdge(ep){const a=arrivalOf(ep.side,ep.to);
   if(NET.guest){netSend({t:'req',to:NET.hostId,a:'reg',id:ep.to,x:a.x,y:a.y});msg('파티와 함께 넘어가는 중입니다','#9fe0ff');return}
   switchRegion(ep.to,a.x,a.y)}
 // 짝문으로 다른 지역 마을에 가기

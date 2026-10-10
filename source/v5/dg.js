@@ -60,7 +60,7 @@ Object.assign(TYPES,{
   b_baldrak:{n:'잿빛 군주 발드라크',hp:1250,dmg:36,spd:95,r:34,xp:400,aggro:520,atk:1.4,col:'#7a7468',undead:true,draw:'knight',sc:2.5,boss:1,skills:['slam','charge','volley','summon'],summon:'ashsoldier',pcol:'#ff7a3a',aura:'rgba(255,90,60,.3)'},
   m_seren:{n:'타락한 세렌',hp:380,dmg:34,spd:90,r:22,xp:170,aggro:480,atk:1.6,col:'#a05ac0',ranged:true,pcol:'#d07aff',undead:true,draw:'apostle',sc:1.8,mini:1,skills:['volley','summon'],summon:'wraith',aura:'rgba(255,170,80,.25)'},
   m_archbishop:{n:'재의 대주교',hp:440,dmg:38,spd:85,r:24,xp:170,aggro:480,atk:1.7,col:'#c0603a',ranged:true,pcol:'#ff6a2a',undead:true,draw:'apostle',sc:2,mini:1,skills:['volley','slam'],aura:'rgba(255,170,80,.25)'},
-  b_morgath:{n:'재의 사도 모르가스',hp:1450,dmg:42,spd:90,r:34,xp:450,aggro:560,atk:1.6,col:'#e0502a',ranged:true,pcol:'#ff4a1a',undead:true,draw:'apostle',sc:2.8,boss:1,skills:['volley','slam','charge','summon'],summon:'apostle',aura:'rgba(255,90,60,.35)'},
+  b_morgath:{n:'재의 사도 모르가스',hp:1450,dmg:42,spd:90,r:34,xp:450,aggro:560,atk:1.6,col:'#e0502a',ranged:true,pcol:'#ff4a1a',undead:true,draw:'apostle',sc:2.8,boss:1,skills:['volley','slam','charge','summon'],summon:'apostle',sumCd:30,sumN:2,vol:[8,10],aura:'rgba(255,90,60,.35)'},// v26(사용자 12:56 「모르가스 난이도가 너무 높아 … 분신들도 너무 많이 자주」): 부하(재의 사도) 30초에 둘(처음은 20초 뒤) · 화살 부채 10/14 → 8/10 · 분신은 부하를 안 부르고 덜 자주 · 부채 5
 });
 // 일반 몬스터 무작위 등장 목록에서 보스는 뺀다
 const FIELD_TYPES=Object.keys(TYPES).filter(k=>!TYPES[k].mini&&!TYPES[k].boss);
@@ -133,11 +133,11 @@ function bossThink(e,dt,tg,d){
   if(e.cast>0){e.cast-=dt;return}
   if(t.sumCd){if(e.sumT==null)e.sumT=t.sumCd*2/3;e.sumT-=dt}
   e.skT-=dt;if(e.skT>0)return;
-  const ok=t.skills.filter(s=>s==='slam'?d<230:s==='charge'?d>140&&d<600:s==='summon'?enemies.length<45&&!(e.sumT>0):true);if(!ok.length)return;
-  const s=pick(ok);if(s==='summon'&&t.sumCd)e.sumT=t.sumCd;e.skT=rnd(2.6,4)*(e.rage?.6:1)*(t.mini?1.2:1);
+  const ok=t.skills.filter(s=>s==='slam'?d<230:s==='charge'?d>140&&d<600:s==='summon'?enemies.length<45&&!(e.sumT>0)&&!(e.clone&&t.vol):true);/* v26: 모르가스 분신은 부하를 부르지 않음 */if(!ok.length)return;
+  const s=pick(ok);if(s==='summon'&&t.sumCd)e.sumT=t.sumCd;e.skT=rnd(2.6,4)*(e.rage?.6:1)*(t.mini?1.2:1)*(e.clone&&t.vol?1.7:1);
   if(s==='slam'){const rad=t.boss?170:130;warns.push({x:e.x,y:e.y,rad,t:.95,max:.95,dmg:e.dmg*2.2,col:'#ff5a3a',src:e});e.cast=.95}
-  else if(s==='volley'){const n=t.boss?(e.rage?14:10):7,a0=Math.atan2(tg.y-e.y,tg.x-e.x);for(let i=0;i<n;i++){const a=a0+(i-(n-1)/2)*.16;projs.push({x:e.x,y:e.y,z:30,vx:Math.cos(a)*270,vy:Math.sin(a)*270,r:7,dmg:e.dmg*.7,owner:'e',life:2.2,col:t.pcol||'#ff7a3a'})}e.cast=.4}
-  else if(s==='summon'){const n=t.boss?3:2;for(let i=0;i<n;i++){const a=R()*6.283,x=e.x+Math.cos(a)*70,y=e.y+Math.sin(a)*70;if(!dgFree(x,y,14))continue;const m=dgMob(t.summon,x,y,Math.max(1,e.lvl-2));m.aggroed=true;rings.push({x,y,r:4,max:40,life:.4,col:'#b49cff'})}msg(`${t.n}이(가) 부하를 부릅니다`,'#c9b4ff');e.cast=.6}
+  else if(s==='volley'){const n=t.vol?e.clone?5:t.vol[e.rage?1:0]:t.boss?(e.rage?14:10):7,a0=Math.atan2(tg.y-e.y,tg.x-e.x);for(let i=0;i<n;i++){const a=a0+(i-(n-1)/2)*.16;projs.push({x:e.x,y:e.y,z:30,vx:Math.cos(a)*270,vy:Math.sin(a)*270,r:7,dmg:e.dmg*.7,owner:'e',life:2.2,col:t.pcol||'#ff7a3a'})}e.cast=.4}
+  else if(s==='summon'){const n=t.sumN||(t.boss?3:2);for(let i=0;i<n;i++){const a=R()*6.283,x=e.x+Math.cos(a)*70,y=e.y+Math.sin(a)*70;if(!dgFree(x,y,14))continue;const m=dgMob(t.summon,x,y,Math.max(1,e.lvl-2));m.aggroed=true;rings.push({x,y,r:4,max:40,life:.4,col:'#b49cff'})}msg(`${t.n}이(가) 부하를 부릅니다`,'#c9b4ff');e.cast=.6}
   else if(s==='charge'){const a=Math.atan2(tg.y-e.y,tg.x-e.x);e.dvx=Math.cos(a);e.dvy=Math.sin(a);e.dash=.5;e.dashHit=0;warns.push({x:e.x,y:e.y,rad:40,t:.25,max:.25,dmg:0,col:'#ffb05a'})}
 }
 function dgUpdate(dt){

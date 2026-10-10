@@ -42,25 +42,31 @@ const P3=(p)=>{const s=W2S(p.x,p.y);return{x:s.x,y:s.y-(p.z||0)}};
 /* ---------- world: 브렌힐에서 아르덴까지 ---------- */
 const WORLD=6000,TOWN_R=260,SAFE=470,ZSTEP=160;
 let REG={id:'home',th:null,zs:0};
-const TOWNS=[
+// v26: 왕도 아르덴은 북쪽 새 지도(왕도, region.js REGIONS.royal)로 옮기고, 윌로벤 사람들은 헤이븐으로 옮겼다(사용자 2026-10-10 「두 곳」).
+// TOWN0 = 옛 네 마을 자리. 남부 들판의 몬스터 레벨 · 길 · 지역 이름은 예전과 같게 이 자리로 센다(빈 자리는 이름만 남은 표지).
+const TOWN0=[
   {id:'brenhill',n:'브렌힐',x:1500,y:4700,base:1,area:'방앗간 들판',desc:'안개숲 가장자리의 방앗간 마을. 이야기가 시작된 곳.',roof:['#6a2c22','#3e4a26','#6a4c22','#5a3250']},
-  {id:'willowen',n:'윌로벤',x:3500,y:4450,base:5,area:'은류강 나루',desc:'은류강 나루터 마을. 상인과 뱃사람이 쉬어 갑니다.',roof:['#2a405a','#32505a','#4e4032','#2a4e40']},
+  {id:'willowen',n:'은류강 옛 나루',x:3500,y:4450,base:5,area:'은류강 나루',ghost:1},
   {id:'haven',n:'헤이븐 교차로',x:4500,y:2650,base:10,area:'남부 대로',desc:'남부와 수도를 잇는 교차로. 소문이 모이는 여관 마을.',roof:['#5c4024','#4e2424','#40404e','#5c4e32']},
-  {id:'arden',n:'아르덴',x:2500,y:1300,base:16,area:'왕도 외곽',desc:'하얀 성벽의 수도. 일곱 첨탑의 왕립 마법원이 있습니다.',roof:['#24325c','#32244e','#24404e','#40325c'],white:true},
+  {id:'arden',n:'왕도 남쪽 들판',x:2500,y:1300,base:16,area:'왕도 외곽',ghost:1},
 ];
+const TOWNS=TOWN0.filter(t=>!t.ghost);
 const TOWN=TOWNS[0];
 TOWNS.forEach(t=>{t.shop={x:t.x+110,y:t.y-40};t.gate={x:t.x-60,y:t.y+120};t.stash={x:t.x+75,y:t.y+175}});
+// 레벨을 셀 자리: 남부는 옛 네 마을 자리, 다른 지역은 그 지역 마을
+const lvAnch=()=>REG.id==='home'?TOWN0:TOWNS;
+function nearestAnch(x,y){let b=null,bd=1e9;for(const t of lvAnch()){const d=Math.hypot(x-t.x,y-t.y);if(d<bd){bd=d;b=t}}return{t:b,d:bd}}
 function nearestTown(x,y){let b=TOWNS[0],bd=1e9;for(const t of TOWNS){const d=Math.hypot(x-t.x,y-t.y);if(d<bd){bd=d;b=t}}return{t:b,d:bd}}
-function levelAt(x,y){let l=99;for(const t of TOWNS){const d=Math.hypot(x-t.x,y-t.y);l=Math.min(l,t.base+Math.min(REG.zc||99,Math.max(0,d-SAFE)/(REG.zs||ZSTEP)))}return l}
+function levelAt(x,y){let l=99;for(const t of lvAnch()){const d=Math.hypot(x-t.x,y-t.y);l=Math.min(l,t.base+Math.min(REG.zc||99,Math.max(0,d-SAFE)/(REG.zs||ZSTEP)))}return l}
 const tSafe=t=>t.safe||SAFE;// v22 TOWN: 넓힌 마을은 안전 지대도 넓다 (town22.js)
 const zoneLevel=(x,y)=>{const n=nearestTown(x,y);return n.d<tSafe(n.t)?0:Math.max(1,Math.floor(levelAt(x,y)))};
 const inSafe=(x,y,pad)=>TOWNS.some(t=>Math.hypot(x-t.x,y-t.y)<tSafe(t)-(pad||0));
-function zoneName(x,y){const n=nearestTown(x,y);if(n.d<tSafe(n.t))return n.t.n;const l=levelAt(x,y);
+function zoneName(x,y){const n0=nearestTown(x,y);if(n0.t&&n0.d<tSafe(n0.t))return n0.t.n;const n=REG.th?n0:nearestAnch(x,y),l=levelAt(x,y);
   if(REG.th)return l<n.t.base+3?n.t.area:l<n.t.base+8?REG.n:`${REG.n} 깊은 곳`;
   if(l<n.t.base+3)return n.t.area;return l>=30?'재의 심연':l>=24?'재의 황야':l>=18?'노르반 폐허':l>=12?'잿빛 폐허':l>=7?'속삭이는 갈대 늪':l>=4?'안개숲':n.t.area}
 const ROADS=[];
 (()=>{const s=mulberry(77);
-  for(const [a,b] of [[0,1],[1,2],[2,3],[0,3]]){const A=TOWNS[a],B=TOWNS[b],mx=(A.x+B.x)/2,my=(A.y+B.y)/2,dx=B.x-A.x,dy=B.y-A.y,l=Math.hypot(dx,dy),off=(s()-.5)*l*.35;
+  for(const [a,b] of [[0,1],[1,2],[2,3],[0,3],[3,4]]){const A=TOWN0[a],B=TOWN0[b]||{x:3000,y:260},mx=(A.x+B.x)/2,my=(A.y+B.y)/2,dx=B.x-A.x,dy=B.y-A.y,l=Math.hypot(dx,dy),off=(s()-.5)*l*.35;
     const cx=mx-dy/l*off,cy=my+dx/l*off,pts=[];for(let i=0;i<=40;i++){const u=i/40;pts.push({x:(1-u)*(1-u)*A.x+2*(1-u)*u*cx+u*u*B.x,y:(1-u)*(1-u)*A.y+2*(1-u)*u*cy+u*u*B.y})}ROADS.push(pts)}})();
 function roadDist(x,y){let m=1e9;for(const r of ROADS)for(let i=1;i<r.length;i++){const d=segDist(x,y,r[i-1].x,r[i-1].y,r[i].x,r[i].y);if(d<m)m=d}return m}
 // 디아블로2 1막 같은 어둡고 탁한 땅 색: 들판 → 숲 → 늪 → 폐허 → 재의 황야

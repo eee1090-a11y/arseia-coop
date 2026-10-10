@@ -27,13 +27,13 @@ const AFF=AFF20;
 const AFF_CHANGE_GOLD=lv=>2000+lv*150;
 // 대표(새 마을 사람 8명). 자리는 v20AddFolk가 겹치지 않게 고른다.
 const AFF20_FOLK={
-  aff_idel:{town:'arden',at:[-100,-140],n:'세레스 사절 이델',role:'세레스의 탑 사절',L:{body:'#5a8aa8',cape:'#2e4a6a',hair:'#e0d4b8',hs:2,hat:5,hatC:'#3a5a7a',prop:'staff',gem:'#bfe8ff',dress:1},lines:['서쪽 곶의 바람이 그립군요.','세레스의 탑은 언제나 문이 열려 있습니다.']},
+  aff_idel:{town:'arden',at:[330,-120],n:'세레스 사절 이델',role:'세레스의 탑 사절',L:{body:'#5a8aa8',cape:'#2e4a6a',hair:'#e0d4b8',hs:2,hat:5,hatC:'#3a5a7a',prop:'staff',gem:'#bfe8ff',dress:1},lines:['서쪽 곶의 바람이 그립군요.','세레스의 탑은 언제나 문이 열려 있습니다.']},
   aff_kadel:{town:'haven',at:[-110,-120],n:'붉은 탑의 카델',role:'붉은 탑을 떠난 마법사',L:{body:'#5a2420',cape:'#8a2a24',hair:'#2a1a1a',hs:3,hat:0,prop:'staff',gem:'#ff8a5a'},lines:['발케르의 붉은 탑… 이제는 돌아갈 수 없지.','빠른 주문엔 값이 따르는 법이야.']},
   aff_rok:{town:'haven',at:[-40,-210],n:'강철 사제 로크',role:'떠돌이 강철 사제',L:{armor:1,body:'#6a6a72',legs:'#3a3a42',tabard:'#5a5a62',hair:'#4a3a2a',hs:4,hat:4,prop:'sword'},lines:['강철은 두들겨 맞을수록 단단해진다.','발카르는 쓰러지지 않는 자를 굽어본다.']},
   aff_hargan:{town:'haven',at:[240,250],n:'켄타우로스 사절 하르간',role:'바람의 초원 사절',L:{body:'#8a6a3a',legs:'#5a4020',cape:'#a8843a',hair:'#3a2a1a',hs:4,hat:3,hatC:'#a8843a',prop:'spear'},lines:['초원은 넓고 바람은 빠르다.','대상 마당은 시끄럽군. 초원이 그립다.']},
-  aff_odo:{town:'willowen',at:[-250,40],n:'장의사 오도',role:'모르딘 안식회',L:{body:'#3a3446',cape:'#2a2432',hair:'#8a8a8a',hs:3,hat:7,hatC:'#3a3446',prop:'book'},lines:['죽은 자는 조용하지. 산 자가 시끄러울 뿐.','안식회는 무덤과 나루를 함께 지킨다네.']},
-  aff_sira:{town:'willowen',at:[160,230],n:'파도 사제 시라',role:'넬라의 사제',L:{body:'#3a7a8a',legs:'#2a5a6a',cape:'#2a5a6a',hair:'#e8d0a0',hs:1,hat:3,hatC:'#3a7a8a',dress:1,prop:'staff',gem:'#9fe8ff'},lines:['물때가 바뀌면 운명도 바뀌어요.','넬라의 축복이 그대의 걸음에 함께하기를.']},
-  aff_riel:{town:'willowen',at:[-110,-60],n:'엘프 노래꾼 리엘',role:'실바렌 노래꾼',L:{body:'#7aa8a0',legs:'#3a5a50',cape:'#4a7a6a',hair:'#f0e8c8',hs:2,hat:3,hatC:'#5a8a70',prop:'spear'},lines:['라— 라라— 숲은 노래로 숨을 쉬어요.','활시위도 악기랍니다.']},
+  aff_odo:{town:'haven',at:[-420,200],n:'장의사 오도',role:'모르딘 안식회',L:{body:'#3a3446',cape:'#2a2432',hair:'#8a8a8a',hs:3,hat:7,hatC:'#3a3446',prop:'book'},lines:['죽은 자는 조용하지. 산 자가 시끄러울 뿐.','안식회는 무덤과 나루를 함께 지킨다네.']},
+  aff_sira:{town:'haven',at:[240,330],n:'파도 사제 시라',role:'넬라의 사제',L:{body:'#3a7a8a',legs:'#2a5a6a',cape:'#2a5a6a',hair:'#e8d0a0',hs:1,hat:3,hatC:'#3a7a8a',dress:1,prop:'staff',gem:'#9fe8ff'},lines:['물때가 바뀌면 운명도 바뀌어요.','넬라의 축복이 그대의 걸음에 함께하기를.']},
+  aff_riel:{town:'haven',at:[-260,-300],n:'엘프 노래꾼 리엘',role:'실바렌 노래꾼',L:{body:'#7aa8a0',legs:'#3a5a50',cape:'#4a7a6a',hair:'#f0e8c8',hs:2,hat:3,hatC:'#5a8a70',prop:'spear'},lines:['라— 라라— 숲은 노래로 숨을 쉬어요.','활시위도 악기랍니다.']},
   aff_durin:{town:'brenhill',at:[300,130],n:'드워프 대장장이 두린',role:'카즈둔 룬 대장간',L:{armor:1,body:'#7a5a2a',legs:'#4a3a2a',tabard:'#7a5a2a',hair:'#c86a2a',hs:4,hat:4,prop:'sword',child:0},lines:['룬은 망치로 새기는 게야.','브렌힐 쇠는 나쁘지 않군. 카즈둔만은 못해도.']}};
 for(const id in AFF20_FOLK){const F=AFF20_FOLK[id];TWFOLK[id]={n:F.n,role:F.role,L:F.L,lines:F.lines.slice()}}
 {for(const id in AFF20_FOLK){const F=AFF20_FOLK[id];v20AddFolk(id,F.town,F.at[0],F.at[1])}v20SyncDecor()}
@@ -47,9 +47,9 @@ const AFF20_Q=[
   goals:[{type:'pick',grp:'aff',d:'소속 대표 셋과 이야기하고 하나 고르기'}],rw:{xp:1,gold:300}},
  {id:'affp',cls:'priest',town:'arden',giver:'j2_priest',req:'ctp3',lvl:16,kind:'소속',t:'어느 신의 등불을 들 것인가',say:'사제는 한 신만을 섬긴다. 여명의 아우렐, 안식의 모르딘, 바다와 운명의 넬라. 세 분을 섬기는 이들을 만나 보고 마음이 가는 곳을 고르거라.',done:'네 성표에 그 신의 빛이 깃들었구나.',
   goals:[{type:'pick',grp:'aff',d:'세 교단의 사제와 이야기하고 하나 고르기'}],rw:{xp:1,gold:300}},
- {id:'affw',cls:'warrior',town:'haven',giver:'j2_warrior',req:'ctw3',lvl:16,kind:'소속',t:'누구의 깃발 아래',say:'싸우는 자는 깃발이 있어야 한다. 에르난 기사단, 발카르의 강철 사제단, 카즈둔 드워프 대장간. 셋 다 만나 보고 골라라.',done:'좋아, 그 색을 부끄럽게 하지 마라.',
+ {id:'affw',cls:'warrior',town:'arden',giver:'j2_warrior',req:'ctw3',lvl:16,kind:'소속',t:'누구의 깃발 아래',say:'싸우는 자는 깃발이 있어야 한다. 에르난 기사단, 발카르의 강철 사제단, 카즈둔 드워프 대장간. 셋 다 만나 보고 골라라.',done:'좋아, 그 색을 부끄럽게 하지 마라.',
   goals:[{type:'pick',grp:'aff',d:'세 깃발의 대표와 이야기하고 하나 고르기'}],rw:{xp:1,gold:300}},
- {id:'affa',cls:'archer',town:'willowen',giver:'j2_archer',req:'cta3',lvl:16,kind:'소속',t:'누구와 함께 쏠 것인가',say:'활 쏘는 법은 하나가 아니야. 우리 순찰대, 초원의 켄타우로스, 숲의 엘프 노래꾼. 셋 다 만나 보고 골라.',done:'그 색 망토는 멀리서도 알아보겠어.',
+ {id:'affa',cls:'archer',town:'arden',giver:'j2_archer',req:'cta3',lvl:16,kind:'소속',t:'누구와 함께 쏠 것인가',say:'활 쏘는 법은 하나가 아니야. 우리 순찰대, 초원의 켄타우로스, 숲의 엘프 노래꾼. 셋 다 만나 보고 골라.',done:'그 색 망토는 멀리서도 알아보겠어.',
   goals:[{type:'pick',grp:'aff',d:'세 무리의 대표와 이야기하고 하나 고르기'}],rw:{xp:1,gold:300}}];
 for(const q of AFF20_Q){q.affq=1;SQ.push(q);SQBY[q.id]=q}
 const AFF_QUESTS=AFF20_Q;

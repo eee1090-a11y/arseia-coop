@@ -69,7 +69,7 @@ function q22Cave(g){return HOME.caves.findIndex(c=>c.cave&&c.cave.id===g.cave)}
 function q22ReachTick(){if(!P||!P.q)return;const st=qState(),q=qCur();if(!q||st.st!==1||REG.id!=='home')return;
   q.goals.forEach((g,j)=>{if(g.type!=='reach'||qGoalDone(q,j))return;const ci=q22Cave(g),c=HOME.caves[ci];if(!c)return;
     const ok=DG?DG.ci===ci:!IN&&Math.hypot(P.x-c.x,P.y-c.y)<Q22.R;if(!ok)return;st.c['g'+j]=1;burst(P.x,P.y,'#ffd98a',18,100,3,30);msg(`${g.d}: 끝`,'#ffd98a');
-    if(qAllDone(q)){st.st=2;const tw=ALLTOWNS.find(t=>t.id===qTurnTown(q));msg(`의뢰 「${q.t}」 목표를 모두 이뤘습니다. ${tw?tw.n:''}의 ${QNPC[qTurnTown(q)].n}에게 알리세요`,'#ffd98a')}questHud();save()})}
+    if(qAllDone(q)){st.st=2;const tw=qTw(qTurnTown(q));msg(`의뢰 「${q.t}」 목표를 모두 이뤘습니다. ${tw?tw.n:''}의 ${QNPC[qTurnTown(q)].n}에게 알리세요`,'#ffd98a')}questHud();save()})}
 {const _u=update;update=function(dt){const r=_u(dt);try{if((Q22.t-=dt)<=0){Q22.t=.25;q22ReachTick()}}catch(err){if(window.__QA)throw err}return r}}
 {const _mt=qMainTargetW;qMainTargetW=function(){const q=qCur(),st=qState();
   if(q&&st.st===1)for(let j=0;j<q.goals.length;j++){if(qGoalDone(q,j))continue;const g=q.goals[j];if(g.type!=='reach')break;const ci=q22Cave(g),c=HOME.caves[ci];

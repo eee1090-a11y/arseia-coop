@@ -102,7 +102,7 @@ const SFX={
 
 /* ===== 배경음악 ===== */
 // 지역 → 곡. 같은 성격의 지역은 한 곡을 함께 쓴다. MUSIC_INDEX에 없는 곡은 reuse(대신 쓸 곡)를 따른다.
-const BGM_REG={home:'field',plains:'field',moor:'field',forest:'forest',jungle:'forest',ice:'snow',highland:'snow',desert:'desert',canyon:'desert',sea:'sea',cliffs:'sea',lava:'dark',abyss:'dark'};
+const BGM_REG={royal:'field',home:'field',plains:'field',moor:'field',forest:'forest',jungle:'forest',ice:'snow',highland:'snow',desert:'desert',canyon:'desert',sea:'sea',cliffs:'sea',lava:'dark',abyss:'dark'};
 // 풀어 둔 곡은 많아야 2개 (곡 하나가 풀면 40~50MB라 메모리 절약 · v18 최적화 B1)
 const BGM_KEEP=2;
 const BGM={cur:null,want:null,src:null,gain:null,buf:new Map(),load:new Map(),miss:new Set(),bossOn:false,

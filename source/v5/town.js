@@ -31,45 +31,52 @@ const TWLAY={
    ['oak',-470,60],['oak',380,190],['oak',140,-360],['lamp',125,135],['lamp',-160,-70],['lamp',-10,-230],['lamp',190,-30],['lamp',-200,160],['signpost',300,-60],['barrel',-235,-95],['crate',-215,-100]],
   folk:[['toby',30,95],['marta',-200,60],['garret',-70,210],['lina',230,250],['bruno',300,-25],['farmer',-360,-240],['shepherd',-250,320],['miller',-250,95],['smith',145,170],['armorer',-75,-170],['grocer',115,-62],['oldman',100,-100],['kid1',-30,70],
    ['hanna',0,0,'bren_home'],['yoan',0,0,'bren_chapel'],['nun',0,0,'bren_chapel'],['appr',0,0,'bren_smithy'],['millwife',0,0,'bren_home']]},
- willowen:{gate:[-70,115],stash:[125,115],npc:[10,150],
-  shops:[['general',115,-45,'나루 잡화점'],['weapon',-150,-20,'뱃사람 무기점'],['armor',55,-140,'방수 가죽 갑옷집']],
-  river:{x0:-560,x1:600,y0:195,y1:340},docks:[[-175,-125,175,305],[55,105,175,300],[215,280,175,240]],
-  blds:[{id:'will_tavern',enter:'will_tavern',st:'will',dx:-205,dy:-165,W:130,D:82,big:1,door:{face:'x',f:.5},lamp:1,v:0,sign:'나루 주점',label:'나루 주점'},
-   {id:'will_home',enter:'will_home',st:'will',dx:185,dy:-185,W:92,D:70,door:{face:'y',f:.5},v:1,box:1,label:'뱃사공네 오두막'},
-   {st:'will',dx:-330,dy:40,W:80,D:70,ridge:'y',door:{face:'x',f:.5},v:2},
-   {st:'will',dx:20,dy:-320,W:96,D:72,door:{face:'y',f:.5},v:2,box:1},
-   {st:'will',dx:300,dy:50,W:100,D:84,ridge:'y',door:{face:'y',f:.5},v:0,chim:0,label:'배 만드는 곳'},
-   {st:'will',dx:-360,dy:-260,W:90,D:70,door:{face:'x',f:.5},v:1}],
-  props:[['boat',-60,265,0],['boat',175,278,1],['boat',-270,255,2],['boat',345,262,0],['boat',440,300,1],['pier',-150,240],['pier',80,240],
-   ['nets',-40,160],['nets',150,152],['barrel',-110,170],['barrel',-95,182,1],['crate',125,175],['crate',138,165,2],['kegs',250,140],['sacks',-200,150],
-   ['drift',-320,175],['lamp',-150,165],['lamp',100,165],['lamp',-110,-90],['lamp',170,-70],['lamp',-260,-40],['bench',-20,-90],['flowerbed',150,-130],['oak',-460,-120],['oak',420,-120],['signpost',-260,110]],
-  folk:[['jon',250,110],['nella',-130,140],['ella',-60,-120],['fisher',-150,285],['sailor',200,150],['kid2',40,60],['kid3',-20,20],['weaponer',-150,-45],['tanner',55,-162],['grocer2',118,-66],
-   ['bram',0,0,'will_tavern'],['magda',0,0,'will_tavern'],['bard',0,0,'will_tavern'],['elsa',0,0,'will_home']]},
+ // v26: 윌로벤은 헤이븐으로 합쳤다 (나루 주점 · 뱃사공 오두막 · 강가 나루는 헤이븐 남쪽 「헤이븐 나루」로)
  haven:{gate:[-60,120],stash:[80,175],npc:[-110,-95],
+  river:{x0:-560,x1:600,y0:340,y1:470},docks:[[-175,-125,315,445],[55,105,315,440],[215,280,315,380]],// v26: 넓힌 마을(×1.8)에서 강이 마을 끝(720) 안쪽에 오도록 가깝게
   shops:[['general',110,-40,'교차로 잡화점'],['weapon',-135,40,'용병 무기점'],['armor',40,-135,'대상 갑옷점']],
   blds:[{id:'haven_inn',enter:'haven_inn',st:'haven',dx:-205,dy:-215,W:170,D:100,h:66,tall:1,big:1,door:{face:'y',f:.55},lamp:1,v:0,sign:'황금 마차 여관',label:'황금 마차 여관'},
    {id:'haven_store',enter:'haven_store',st:'haven',dx:235,dy:-160,W:110,D:80,ridge:'y',door:{face:'y',f:.5},v:1,chim:0,label:'대상 창고'},
    {st:'haven',dx:-330,dy:80,W:90,D:72,ridge:'y',door:{face:'x',f:.5},v:2,box:1},
    {st:'haven',dx:60,dy:-340,W:96,D:72,door:{face:'y',f:.5},v:1},
-   {st:'haven',dx:-120,dy:300,W:84,D:70,door:{face:'x',f:.5},v:0}],
+   {st:'haven',dx:-120,dy:300,W:84,D:70,door:{face:'x',f:.5},v:0},
+   {id:'will_tavern',enter:'will_tavern',st:'will',dx:-330,dy:285,W:130,D:82,big:1,door:{face:'x',f:.5},lamp:1,v:0,sign:'나루 주점',label:'나루 주점'},
+   {id:'will_home',enter:'will_home',st:'will',dx:440,dy:290,W:92,D:70,door:{face:'y',f:.5},v:1,box:1,label:'뱃사공네 오두막'}],
   props:[['wagon',250,120,0],['wagon',345,215,1],['tent',215,285,0],['tent',390,90,2],['campfire',300,170],['kegs',175,215],['crate',210,195],['crate',225,205,2],['sacks',380,170],['barrel',150,240],
    ['trough',-260,150],['fence',170,60,0],['fence',226,60,0],['fence',420,150,1],['fence',420,206,1],['signpost',30,90],['bench',80,-90],
-   ['lamp',-120,-120],['lamp',150,-120],['lamp',-200,0],['lamp',130,60],['lamp',-60,200],['flowerbed',-110,-150],['oak',-430,-120],['oak',-90,430],['banner',-80,-150,0],['banner',60,-170,1]],
+   ['lamp',-120,-120],['lamp',150,-120],['lamp',-200,0],['lamp',130,60],['lamp',-60,200],['flowerbed',-110,-150],['oak',-430,-120],['oak',-470,330],['banner',-80,-150,0],['banner',60,-170,1],
+   ['boat',-60,410,0],['boat',175,423,1],['boat',-270,400,2],['boat',345,407,0],['boat',440,445,1],['pier',-150,385],['pier',80,385],['nets',-40,305],['nets',150,297],['lamp',-150,310],['lamp',100,310],['signpost',-230,320]],
   folk:[['kasim',270,180],['guard1',30,140],['guard2',-180,60],['trader',140,90],['traveler',-30,-160],['kid4',-20,60],['weaponer2',-150,22],['armorer2',38,-158],['grocer3',118,-62],['cook',320,190],
-   ['toma',0,0,'haven_inn'],['bard2',0,0,'haven_inn'],['patron',0,0,'haven_inn'],['clerk',0,0,'haven_store']]},
- arden:{gate:[-55,125],stash:[85,170],npc:[-150,-115],
-  shops:[['general',110,-40,'왕도 잡화점'],['weapon',-140,40,'왕실 무기고'],['armor',40,-150,'은빛 갑옷점']],
-  blds:[{id:'arden_academy',enter:'arden_academy',st:'arden',dx:-245,dy:-245,W:180,D:110,h:62,big:1,tall:1,door:{face:'y',f:.62},lamp:1,v:0,cold:1,
-     towers:[{x:-112,y:-30,sz:34,h:150,rh:70,cold:1,flag:'#24325c'},{x:30,y:-78,sz:28,h:120,rh:56,cold:1},{x:112,y:-20,sz:30,h:136,rh:62,cold:1,flag:'#5a3a8a'}],towerC:'#2e3e66',sign:'왕립 마법원',label:'왕립 마법원'},
-   {id:'arden_bakery',enter:'arden_bakery',st:'arden',dx:205,dy:-185,W:100,D:76,door:{face:'y',f:.45},v:1,lamp:1,sign:'백합 빵집',label:'백합 빵집'},
-   {st:'arden',dx:-340,dy:70,W:110,D:80,ridge:'y',door:{face:'x',f:.5},v:2,tall:1,h:58},
-   {st:'arden',dx:40,dy:-345,W:100,D:76,door:{face:'y',f:.5},v:1,tall:1,h:58},
-   {st:'arden',dx:-130,dy:300,W:90,D:72,door:{face:'x',f:.5},v:0}],
-  props:[['statue2',0,150],['planter',-90,-60],['planter',90,-60],['planter',-60,90],['planter',150,140],['banner',-100,-190,1],['banner',120,-230,1],['banner',-260,-90,1],['bench',95,-95],['flowerbed',-160,-150],['flowerbed',150,-110],
-   ['lamp',-120,-30],['lamp',140,10],['lamp',-30,-200],['lamp',-200,170],['lamp',200,200],['oak',300,-330],['oak',-460,180],
-   ['cwall',-350,-470,0],['cwall',-210,-470,0],['cwall',-70,-470,0],['cwall',70,-470,0],['cwall',210,-470,0],['cwall',350,-470,0],
-   ['cwall',-470,-350,1],['cwall',-470,-210,1],['cwall',-470,-70,1],['cwall',-470,70,1],['cwall',-470,210,1],['cwall',-470,350,1],['gatetower',-470,-470],['gatetower',430,-470],['gatetower',-470,430]],
-  folk:[['guardA',120,250],['guardB',260,90],['guardC',-300,-120],['noble',60,-100],['scholar',-120,0],['priestess',-40,-250],['kid5',30,40],['weaponer3',-140,18],['armorer3',38,-172],['grocer4',118,-62],
+   ['toma',0,0,'haven_inn'],['bard2',0,0,'haven_inn'],['patron',0,0,'haven_inn'],['clerk',0,0,'haven_store'],
+   ['odric',120,305],['jon',300,315],['nella',-130,300],['ella',30,250],['fisher',-150,420],['sailor',90,360],
+   ['bram',0,0,'will_tavern'],['magda',0,0,'will_tavern'],['bard',0,0,'will_tavern'],['elsa',0,0,'will_home']]},
+ // v26 왕도 아르덴 (사용자 2026-10-10 「왕도만 있는 맵 … 화려하게 … 각 직업들의 전당 … 주요한 편의기능」): 왕도 지도(REGIONS.royal) 한가운데.
+ // 하얀 성벽(가로세로 1520) · 사방 성문 · 가운데 광장(분수 · 짝문 · 창고 · 노점 셋). 북서 왕궁, 북동 왕립 마법원(마법사 전당) · 사냥꾼 회관(궁수 전당) · 빵집,
+ // 남서 대성당(사제 전당) · 기사단 전당(전사 전당), 남동 정원. 전직관 넷은 각 전당 안에 있다(job2q.js). fixed: 사람 수로 배치를 넓히지 않는다(wx-base.js).
+ arden:{fixed:1,gate:[-170,-150],stash:[-80,-235],npc:[-240,-40],
+  shops:[['general',190,-150,'왕도 잡화점'],['weapon',-190,150,'왕실 무기고'],['armor',150,190,'은빛 갑옷점']],
+  blds:[{id:'arden_palace',st:'arden',dx:-470,dy:-470,W:320,D:200,h:92,big:1,tall:1,door:{face:'y',f:.5},lamp:1,v:0,cold:1,
+     towers:[{x:-160,y:-100,sz:46,h:200,rh:80,cold:1,flag:'#24325c'},{x:160,y:-100,sz:46,h:200,rh:80,cold:1,flag:'#8a2a3a'},{x:-160,y:100,sz:40,h:160,rh:66,cold:1},{x:0,y:-100,sz:60,h:250,rh:96,cold:1,flag:'#d8b860'}],towerC:'#2e3e66',sign:'왕궁',label:'왕궁'},
+   {id:'arden_academy',enter:'arden_academy',st:'arden',dx:480,dy:-480,W:220,D:130,h:66,big:1,tall:1,door:{face:'y',f:.4},lamp:1,v:0,cold:1,
+     towers:[{x:-130,y:-34,sz:36,h:160,rh:72,cold:1,flag:'#24325c'},{x:30,y:-88,sz:30,h:130,rh:58,cold:1},{x:130,y:-24,sz:32,h:146,rh:64,cold:1,flag:'#5a3a8a'}],towerC:'#2e3e66',sign:'왕립 마법원',label:'왕립 마법원 · 마법사 전당'},
+   {id:'arden_bakery',enter:'arden_bakery',st:'arden',dx:200,dy:-340,W:100,D:76,door:{face:'y',f:.45},v:1,lamp:1,sign:'백합 빵집',label:'백합 빵집'},
+   {id:'arden_lodge',enter:'arden_lodge',st:'arden',dx:530,dy:-190,W:170,D:96,h:56,door:{face:'y',f:.5},v:2,lamp:1,towers:[{x:70,y:-20,sz:26,h:110,rh:44,flag:'#3e5a2e'}],towerC:'#3e4a2e',sign:'사냥꾼 회관',label:'사냥꾼 회관 · 궁수 전당'},
+   {id:'arden_cathedral',enter:'arden_cathedral',st:'arden',dx:-480,dy:480,W:230,D:130,h:72,big:1,tall:1,ridge:'x',door:{face:'y',f:.5},lamp:1,v:0,
+     towers:[{x:-125,y:0,sz:38,h:190,rh:72,bell:1,cross:1},{x:125,y:-40,sz:28,h:132,rh:54,cross:1}],towerC:'#6a3a3a',sign:'대성당',label:'대성당 · 사제 전당'},
+   {id:'arden_knights',enter:'arden_knights',st:'arden',dx:-190,dy:530,W:190,D:110,h:62,big:1,door:{face:'x',f:.5},lamp:1,v:1,
+     towers:[{x:-80,y:-40,sz:30,h:124,rh:50,flag:'#8a2a3a'}],towerC:'#4a3a3a',sign:'기사단 전당',label:'기사단 전당 · 전사 전당'},
+   {st:'arden',dx:-580,dy:200,W:100,D:76,ridge:'y',door:{face:'x',f:.5},v:2,tall:1,h:58},
+   {st:'arden',dx:340,dy:580,W:110,D:80,door:{face:'y',f:.5},v:1,tall:1,h:58},
+   {st:'arden',dx:590,dy:330,W:100,D:76,ridge:'y',door:{face:'x',f:.5},v:0}],
+  props:[['statue2',420,420],['well',260,330],['planter',-250,-250],['planter',250,250],['planter',250,-260],['planter',-260,250],
+   ['banner',-300,-330,1],['banner',-330,-300,1],['banner',-620,-330,0],['banner',-330,-620,0],['banner',320,-370,1],['banner',-330,370,0],['banner',-90,440,0],
+   ['bench',300,140,0],['bench',140,300,0,1],['bench',-300,120,0],['flowerbed',-140,-300],['flowerbed',140,-300],['flowerbed',300,-110],['flowerbed',-310,170],['flowerbed',470,470],['flowerbed',380,520],
+   ['oak',620,620],['oak',230,650],['oak',650,200],['oak',-680,-200],['oak',-200,-680],['oak',-660,660],['oak',640,-660],
+   ['tent',-420,680,0],['tent',-560,640,2],['campfire',-470,640],['crate',-320,640],['barrel',-300,660],
+   ['lamp',-70,-380],['lamp',70,-380],['lamp',-380,-70],['lamp',-380,70],['lamp',-70,380],['lamp',70,380],['lamp',380,-70],['lamp',380,70],['lamp',-70,-560],['lamp',70,-560],['lamp',-560,-70],['lamp',-560,70],['lamp',-70,560],['lamp',70,560],['lamp',560,-70],['lamp',560,70],
+   ['cwall',-140,-760,0],['cwall',-140,760,0],['cwall',-760,-140,1],['cwall',760,-140,1],['cwall',140,-760,0],['cwall',140,760,0],['cwall',-760,140,1],['cwall',760,140,1],['cwall',-280,-760,0],['cwall',-280,760,0],['cwall',-760,-280,1],['cwall',760,-280,1],['cwall',280,-760,0],['cwall',280,760,0],['cwall',-760,280,1],['cwall',760,280,1],['cwall',-420,-760,0],['cwall',-420,760,0],['cwall',-760,-420,1],['cwall',760,-420,1],['cwall',420,-760,0],['cwall',420,760,0],['cwall',-760,420,1],['cwall',760,420,1],['cwall',-560,-760,0],['cwall',-560,760,0],['cwall',-760,-560,1],['cwall',760,-560,1],['cwall',560,-760,0],['cwall',560,760,0],['cwall',-760,560,1],['cwall',760,560,1],['cwall',-700,-760,0],['cwall',-700,760,0],['cwall',-760,-700,1],['cwall',760,-700,1],['cwall',700,-760,0],['cwall',700,760,0],['cwall',-760,700,1],['cwall',760,700,1],
+   ['gatetower',-760,-760],['gatetower',760,-760],['gatetower',-760,760],['gatetower',760,760],['gatetower',-100,-760],['gatetower',100,-760],['gatetower',-100,760],['gatetower',100,760],['gatetower',-760,-100],['gatetower',-760,100],['gatetower',760,-100],['gatetower',760,100]],
+  folk:[['guardA',-60,690],['guardB',260,90],['guardC',690,60],['noble',60,-100],['scholar',-120,0],['priestess',-300,410],['kid5',30,40],['weaponer3',-215,110],['armorer3',110,215],['grocer4',215,-110],
    ['mira',0,0,'arden_academy'],['oswin',0,0,'arden_academy'],['student',0,0,'arden_academy'],['baker',0,0,'arden_bakery']]},
 };
 // 마을 사람 생김새와 말. role은 이름 앞에 붙는 직업
@@ -77,7 +84,7 @@ const TWFOLK={
  toby:{n:'꼬마 토비',role:'아이',L:{child:1,body:'#5a7a3a',legs:'#5a4a3a',hair:'#8a5a2a',hs:0,hat:2,hatC:'#a84a3a'},walk:[[30,95],[70,60],[40,30],[-10,60]],lines:['우리 고양이 보리 못 봤어요?','동상 코가 왜 저렇게 높은지 아세요? 저도 몰라요!']},
  marta:{n:'약초꾼 마르타',role:'약초꾼',L:{body:'#5a6a3e',apron:'#c8b890',hair:'#c8c0b0',hs:2,hat:6,hatC:'#7a5a8a',prop:'basket',dress:1},lines:['은방울풀은 들판 가장자리에 흰 꽃을 피운단다.','약초는 아침 이슬이 마르기 전에 캐야 향이 살아.']},
  garret:{n:'사냥꾼 가렛',role:'사냥꾼',L:{body:'#4a5a3a',legs:'#3a3020',cape:'#3e4a2a',hair:'#3a2a1a',hs:3,hat:3,hatC:'#4a5a3a',prop:'spear'},lines:['늑대들이 요즘 유난히 사나워.','송곳니로 부적을 만들면 액운을 막는다지.']},
- lina:{n:'행상인 리나',role:'떠돌이 상인',L:{body:'#8a4a6a',apron:'#e8d8b0',hair:'#3a2418',hs:4,hat:1,hatC:'#d8b878',prop:'basket',dress:1},lines:['윌로벤까지 짐을 옮겨야 하는데 길이 무서워서요.','브렌힐 양털은 어디서나 비싸게 팔려요.']},
+ lina:{n:'행상인 리나',role:'떠돌이 상인',L:{body:'#8a4a6a',apron:'#e8d8b0',hair:'#3a2418',hs:4,hat:1,hatC:'#d8b878',prop:'basket',dress:1},lines:['헤이븐까지 짐을 옮겨야 하는데 길이 무서워서요.','브렌힐 양털은 어디서나 비싸게 팔려요.']},
  bruno:{n:'경비대장 브루노',role:'경비대장',L:{armor:1,body:'#8a8a92',legs:'#4a4a52',tabard:'#6a2a2a',hair:'#5a3a2a',hs:3,hat:4,prop:'sword'},walk:[[300,-25],[330,40],[270,60]],lines:['동쪽 길은 내가 지킨다. 늑대 따위는 얼씬도 못 해.','촌장님 말씀은 길어도 틀린 적이 없지.']},
  farmer:{n:'농부 해럴드',role:'농부',L:{body:'#8a6a3a',legs:'#5a4a30',hair:'#6a4a2a',hs:0,hat:1,hatC:'#d8b878',prop:'pitchfork'},walk:[[-360,-240],[-300,-200],[-280,-280],[-380,-300]],lines:['올해 밀은 알이 꽉 찼어.','방앗간 날개가 돌면 마을이 숨을 쉬는 거야.']},
  shepherd:{n:'양치기 소녀 엘리',role:'양치기',L:{child:1,body:'#c8b890',legs:'#5a4a3a',hair:'#d8a860',hs:4,hat:6,hatC:'#c84a4a',dress:1},walk:[[-250,320],[-260,260],[-250,380]],lines:['양들이 오늘은 말을 잘 들어요.','늑대가 오면 가렛 아저씨를 불러요!']},
@@ -93,11 +100,12 @@ const TWFOLK={
  nun:{n:'수녀 클라라',role:'수녀',room:[20,-90],L:{body:'#3a3a4a',hair:'#3a2a1a',hs:1,hat:3,hatC:'#2a2a3a',dress:1,prop:'book'},lines:['고분의 일 이후로 기도하러 오는 이가 늘었어요.']},
  appr:{n:'견습 대장장이 핀',role:'견습생',room:[40,30],L:{body:'#6a5a4a',apron:'#3a2a1e',hair:'#a85a2a',hs:0,prop:'hammer'},lines:['그롬 아저씨는 망치질 소리만 듣고도 잘못을 알아채요.']},
  // 윌로벤
+ odric:{n:'뱃사공 오드릭',role:'뱃사공',L:{body:'#3a4a6a',cape:'#2a3a4a',legs:'#3a3a4a',hair:'#d8d4cc',hs:3,hat:6,hatC:'#3a5a6a',prop:'staff',gem:'#8fd8ff'},lines:['강물이 불어 옛 나루가 잠긴 뒤로, 윌로벤 사람들은 다 이 헤이븐 나루로 옮겨 왔지.','은류강 굽이는 내 손금 같다네.']},
  jon:{n:'배목수 욘',role:'배목수',L:{body:'#5a6a7a',apron:'#8a6a4a',legs:'#3a3a4a',hair:'#8a6a4a',hs:3,hat:2,hatC:'#3a4a5a',prop:'hammer'},lines:['좋은 배는 좋은 나무에서 나오지.','강물이 실어 오는 나무도 쓸 만해.']},
- nella:{n:'어부 아내 넬라',role:'어부 아내',L:{body:'#4a6a7a',apron:'#c8c0a8',hair:'#3a2418',hs:2,hat:6,hatC:'#4a7a8a',dress:1,prop:'basket'},walk:[[-130,140],[-80,150],[-150,170]],lines:['슬라임 점액을 배 틈에 바르면 물이 안 새요.','오늘은 은어가 많이 잡혔어요.']},
- ella:{n:'순례자 엘라',role:'순례자',L:{body:'#c8b8a0',cape:'#6a5a4a',hair:'#d8c090',hs:1,hat:3,hatC:'#8a7a6a',prop:'staff',gem:'#ffe39a',dress:1},lines:['헤이븐 교차로의 성소에 가려는 중이에요.','혼자 길을 나서기엔 늑대 울음이 너무 가까워요.']},
+ nella:{n:'어부 아내 넬라',role:'어부 아내',L:{body:'#4a6a7a',apron:'#c8c0a8',hair:'#3a2418',hs:2,hat:6,hatC:'#4a7a8a',dress:1,prop:'basket'},walk:[[-130,380],[-80,390],[-160,400]],lines:['슬라임 점액을 배 틈에 바르면 물이 안 새요.','오늘은 은어가 많이 잡혔어요.']},
+ ella:{n:'순례자 엘라',role:'순례자',L:{body:'#c8b8a0',cape:'#6a5a4a',hair:'#d8c090',hs:1,hat:3,hatC:'#8a7a6a',prop:'staff',gem:'#ffe39a',dress:1},lines:['브렌힐 예배당까지 순례를 가려는 중이에요.','혼자 길을 나서기엔 늑대 울음이 너무 가까워요.']},
  fisher:{n:'낚시꾼 노아',role:'낚시꾼',L:{body:'#6a5a3a',legs:'#3a3a3a',hair:'#5a4a3a',hs:3,hat:1,hatC:'#a89060',prop:'rod'},lines:['쉿, 물고기 도망가.','강 건너 갈대숲엔 들어가지 마.']},
- sailor:{n:'뱃사람 타릭',role:'뱃사람',L:{body:'#e8e2d2',legs:'#2a3a5a',hair:'#2a1a10',hs:0,hat:6,hatC:'#c83a3a',skin:'#b8845a'},walk:[[90,215],[80,280],[110,190]],lines:['나루에서 헤이븐까지 짐배가 오가지.','오드릭 영감은 강의 모든 굽이를 알아.']},
+ sailor:{n:'뱃사람 타릭',role:'뱃사람',L:{body:'#e8e2d2',legs:'#2a3a5a',hair:'#2a1a10',hs:0,hat:6,hatC:'#c83a3a',skin:'#b8845a'},walk:[[90,440],[80,500],[100,420]],lines:['강 하류 옛 나루까지 짐배가 오가지.','오드릭 영감은 강의 모든 굽이를 알아.']},
  kid2:{n:'꼬마 핍',role:'아이',L:{child:1,body:'#3a6a8a',legs:'#5a4a3a',hair:'#8a5a2a',hs:0},walk:[[40,60],[0,100],[-40,40],[20,0]],spd:75,lines:['물수제비 다섯 번 떴어요!']},
  kid3:{n:'꼬마 솔',role:'아이',L:{child:1,body:'#c8a040',legs:'#5a4a3a',hair:'#3a2418',hs:4,dress:1},walk:[[-20,20],[40,-20],[-40,-30]],spd:60,lines:['핍이 거짓말해요. 세 번이었어요.']},
  weaponer:{n:'무기상 도린',role:'무기상',shopk:'weapon',L:{body:'#4a4a5a',apron:'#5a3a22',hair:'#2a1a10',hs:3,prop:'sword'},lines:['강도 떼에겐 긴 지팡이가 제일이야.']},
@@ -197,7 +205,7 @@ function twBuildTown(L,t,lay,style){
   L.lights.length=0;for(const d of L.decor)if(d.light)L.lights.push(d);
 }
 for(const t of HOME.towns)twBuildTown(HOME,t,TWLAY[t.id],{brenhill:'bren',willowen:'will',haven:'haven',arden:'arden'}[t.id]);
-for(const id of REG_IDS){const L=RCACHE[id];if(L&&L.town)twBuildTown(L,L.town,null,(TWOUT[id]||{}).st)}
+for(const id of REG_IDS){const L=RCACHE[id];if(L&&L.town)twBuildTown(L,L.town,TWLAY[L.town.id]||null,TWLAY[L.town.id]?L.town.id:(TWOUT[id]||{}).st)}// v26: 왕도(아르덴)는 배치표대로
 // 새 장식과 겹치는 나무 · 바위를 치운다
 for(const L of [HOME,...REG_IDS.map(twL)]){if(!L)continue;const B=TW.blds[L.id]||[],Wt=TW.water[L.id]||[];
   for(let i=L.decor.length-1;i>=0;i--){const d=L.decor[i];if(d.town||d.tprop||d.k==='bld'||d.k==='tfolk'||d.k==='lamp'||d.k==='wheat'||d.k==='haystack'||d.k==='oak')continue;
@@ -230,9 +238,10 @@ function twFlatField(x,y,w,h){const cv=document.createElement('canvas');cv.width
   g.strokeStyle='rgba(20,14,8,.5)';g.lineWidth=2;g.strokeRect(1,1,w-2,h-2);return{cv,x,y,w,h}}
 function twFlats(id){if(TW.flats[id])return TW.flats[id];const out=[];
   for(const w of TW.water[id]||[])out.push(twFlatRiver(w));
-  if(id==='home'){const A=HOME.towns.find(t=>t.id==='arden'),H=HOME.towns.find(t=>t.id==='haven'),B=HOME.towns.find(t=>t.id==='brenhill');
-    const ka=wxTk(A),kh=wxTk(H),kb=wxTk(B);// v18: 넓힌 마을에 맞춘다
-    out.push(twFlatDisc(A,Math.round(170*ka),'#c8c2b4','flag'));out.push(twFlatDisc({x:H.x+290*kh,y:H.y+180*kh},Math.round(150*kh),'#7a6448','dirt'));
+  if(id==='royal'){const A=RCACHE.royal&&RCACHE.royal.town;if(A)out.push(twFlatDisc(A,250,'#c8c2b4','flag'))}// v26: 왕도 광장
+  if(id==='home'){const H=HOME.towns.find(t=>t.id==='haven'),B=HOME.towns.find(t=>t.id==='brenhill');
+    const kh=wxTk(H),kb=wxTk(B);// v18: 넓힌 마을에 맞춘다
+    out.push(twFlatDisc({x:H.x+290*kh,y:H.y+180*kh},Math.round(150*kh),'#7a6448','dirt'));
     out.push(twFlatField(B.x+150*kb,B.y-300*kb,110,70));out.push(twFlatField(B.x-470*kb,B.y+60*kb,80,90));}
   return TW.flats[id]=out}
 {const _ddf=drawDecalsFields;drawDecalsFields=function(){if(!IN&&!DG){for(const f of twFlats(REG.id)){const s=W2S(f.x+f.w/2,f.y+f.h/2);if(!onScreen(s,Math.max(f.w,f.h)))continue;ctx.drawImage(f.cv,f.x,f.y,f.w,f.h)}
@@ -365,6 +374,13 @@ const TWROOM={
   items:[['crate',-120,-90],['crate',-100,-100,2],['crate',-80,-80,1],['sacks',-130,40],['sacks',-110,70],['kegs',100,-90],['barrel',130,-40],['barrel',140,-20,1],['desk',20,-60],['crate',120,60,2],['crate',100,80]]},
  arden_academy:{n:'왕립 마법원 강당',w:480,h:340,floor:'marble',wall:'#e6e1d6',wallK:'ashlar',ex:140,deco:'academy',
   items:[['orrery',0,-10],['shelf',-180,-150,1],['shelf',-110,-150,1],['shelf',110,-150,1],['shelf',180,-150,1],['shelf',-225,-60,1,1],['shelf',-225,40,1,1],['lectern',-120,30],['lectern',-60,80],['desk',100,60],['desk',170,-20],['cauldron',-150,-60],['candle',60,-120],['candle',-60,-120],['candle',200,110]]},
+ // v26 왕도 전당 셋 (전직관은 job2q.js에서 TWFOLK[id].room 자리에 선다)
+ arden_cathedral:{n:'왕도 대성당',w:460,h:310,floor:'marble',wall:'#e6e1d6',wallK:'ashlar',ex:150,deco:'chapel',
+  items:[['altar',-180,0,0,0,'altar_arden'],['candle',-190,-90],['candle',-190,90],['lectern',-130,50],['pew',-60,-60,0,1],['pew',-60,60,0,1],['pew',20,-60,0,1],['pew',20,60,0,1],['pew',100,-60,0,1],['pew',100,60,0,1],['candle',180,-120],['candle',180,120],['flowerbed',-205,-40,1,1],['flowerbed',-205,40,1,1]]},
+ arden_knights:{n:'기사단 전당',w:440,h:300,floor:'stone',wall:'#cfc8b8',wallK:'ashlar',ex:-140,deco:'smithy',
+  items:[['rack',-120,-125],['rack',0,-125,1],['rack',120,-125],['mannequin',190,-60],['mannequin',190,40],['table',-20,20,0],['stool',-60,40],['stool',20,50],['stool',-30,-15],['anvil',-170,40],['barrel',180,110],['crate',150,120,1],['crate',-190,-60]]},
+ arden_lodge:{n:'사냥꾼 회관',w:400,h:280,floor:'wood',wall:'#8a6c4e',wallK:'plank',ex:120,deco:'tavern',
+  items:[['hearth',-178,20,0,1],['table',30,10,1],['stool',0,40],['stool',60,-20],['stool',70,40],['rack',-60,-118],['rack',80,-118,1],['nets',170,-110],['barrel',170,100],['crate',-150,100],['sacks',-120,110],['kegs',150,40]]},
  arden_bakery:{n:'백합 빵집',w:300,h:230,floor:'marble',wall:'#e6e1d6',wallK:'ashlar',ex:50,deco:'bakery',
   items:[['counter',-20,-90],['hearth',-130,-20,0,1],['shelf',80,-102],['table',60,40,1],['stool',30,60],['stool',90,20],['sacks',-120,80],['barrel',120,80]]},
 };

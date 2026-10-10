@@ -211,6 +211,8 @@ function spawnEnemy(){
 }
 function enemyTarget(e){let tg=P,bd=P.dead?1e9:dist(e,P);if(NET.host)for(const r of NET.peers.values()){if(r.dead||!netSame(r))continue;const d=dist(e,r);if(d<bd){bd=d;tg=r}}for(const a of allies){const d=dist(e,a);if(d<bd-30){bd=d;tg=a}}return{tg,d:bd}}
 const EGRID=new Map();
+// 몬스터가 알아채는 거리 (v26 aggro26.js가 선공 · 비선공으로 바꾼다)
+let aggroOf=(e,t)=>t.aggro*(e.boss?1.4:1);
 function updateEnemies(dt){
   const pInTown=!DG&&inSafe(P.x,P.y,10);
   for(const e of enemies){
@@ -221,7 +223,7 @@ function updateEnemies(dt){
     const held=e.freezeT>0||e.stunT>0||e.cast>0,sf=held?0:e.slowT>0?.45:1;
     const {tg,d}=enemyTarget(e);
     if(!DG&&netFar(e)){e.gone=true;continue}
-    const chase=(NET.on?!tg.dead&&d<1e8&&!(!DG&&(tg===P||tg.remote)&&inSafe(tg.x,tg.y,10)):!P.dead&&!pInTown)&&(d<t.aggro*(e.boss?1.4:1)||e.aggroed)&&(!DG||dgSees(e,tg));
+    const chase=(NET.on?!tg.dead&&d<1e8&&!(!DG&&(tg===P||tg.remote)&&inSafe(tg.x,tg.y,10)):!P.dead&&!pInTown)&&(d<aggroOf(e,t)||e.aggroed)&&(!DG||dgSees(e,tg));
     if(chase)e.aggroed=true;
     let mx=0,my=0;
     if(e.boss&&chase)bossThink(e,dt,tg,d);

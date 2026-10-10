@@ -34,11 +34,11 @@ function wxKillTarget(kinds,townId){if(!kinds||!kinds.length)return null;const k
   // 던전 안에서만 나오는 졸개(예: 2막 문 조각을 주는 몬스터가 던전에만 있을 때)
   if(!r){const d=WX_DUNGEONS.find(d=>d.mobs.some(k=>kinds.includes(k)));if(d){const L=RCACHE[d.reg],ci=L?L.caves.findIndex(c=>c.cave===d):-1;if(ci>=0){const c=L.caves[ci];r={reg:d.reg,x:c.x,y:c.y,cave:ci,label:`${REGIONS[d.reg].n} · 던전 「${d.n}」`}}}}
   return WXZ[key]=r}
-{const _qz=qZone;qZone=function(kinds,townId){const tw=ALLTOWNS.find(t=>t.id===townId),home=!tw||(tw.reg||'home')==='home';
+{const _qz=qZone;qZone=function(kinds,townId){const tw=ALLTOWNS.find(t=>t.id===townId),home=!tw||(tw.reg||'home')==='home'||TOWN0.some(a=>a.id===townId);// v26: 왕도로 옮긴 아르덴의 의뢰도 남부 들판(옛 자리 둘레)을 먼저 본다
   if(home){const z=_qz(kinds,townId);if(z)return z}return wxKillTarget(kinds,townId)}}
 // 1막·2막 목표 자리: 의뢰인이 지역 마을에 있어도 찾는다
 qMainTargetW=function(){const q=qCur(),st=qState();if(!q)return null;
-  const npc=id=>{const t=ALLTOWNS.find(t=>t.id===id);return t&&t.npc?{reg:t.reg||'home',x:t.npc.x,y:t.npc.y,label:`${t.n} · ${QNPC[id].n}`}:null};
+  const npc=id=>{const t=qTw(id);return t&&t.npc?{reg:t.reg||'home',x:t.npc.x,y:t.npc.y,label:`${t.n} · ${QNPC[id].n}`}:null};
   if(st.st===0)return npc(q.town);if(st.st===2)return npc(qTurnTown(q));
   for(let j=0;j<q.goals.length;j++){if(qGoalDone(q,j))continue;const g=q.goals[j];if(g.type==='talk')return npc(g.town);
     const hc=HOME.caves.findIndex(c=>[...c.cave.minis,c.cave.boss].some(k=>g.k.includes(k)));

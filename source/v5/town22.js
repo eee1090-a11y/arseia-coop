@@ -14,7 +14,7 @@
      1막·2막 의뢰도 그 사람에게서 받는다(목표 표시 · 지도 고리 · ! ? 모두 마법원 안을 가리킨다). 이름만 같던 다른 사람 둘은 이름을 바꾼다.
    · 저장: 새 값 없음. 옛 저장이 마을 안에서 건물 · 소품 위에 서 있으면 불러올 때 가장 가까운 빈자리로 옮긴다. */
 const TK22={// 마을별 넓힘 배율 (v21 마을에서 "누를 수 있는 것" 사이 거리의 가운데값 nnMed: 64 → 1.5 · 112 → 1.2, 0.05 단위)
- brenhill:1.35,willowen:1.5,haven:1.5,arden:1.5,
+ brenhill:1.35,willowen:1.5,haven:1.5,arden:1,// v26: 왕도는 처음부터 넓게 그렸다
  goldmere:1.45,elderhold:1.4,sahar:1.25,frostheim:1.4,tamal:1.35,emberhold:1.3,pearlport:1.45,rookwell:1.4,windcrag:1.2,dustgate:1.35,gullhaven:1.4,lastlight:1.35,
  pilgrimtent:1.35,keeperhouse:1.35,mistford:1.4,charkiln:1.4,frostlamp:1.4,stormcloister:1.4,rootwatch:1.4,lastvigil:1.4};
 const TK22_DEF=1.3;
@@ -99,7 +99,7 @@ function tw22Walls(L,t,k){const old=L.decor.filter(d=>(d.k==='cwall'||d.k==='gat
   if(gt){mk(gt,Lw,Lw,0);mk(gt,end+10,Lw,0);mk(gt,Lw,end+10,0)}}
 // 넓어진 마을에 걸린 들판 풍경(나무 · 바위 …)은 치우고, 채집 자리 · 이름 붙은 표지는 바깥으로 민다
 function tw22Clear(L,t,moved){const cx=t.x,cy=t.y,B=(TW.blds[L.id]||[]).filter(b=>Math.hypot(b.x-cx,b.y-cy)<1100),objs=[...moved].filter(d=>d.k!=='bld'&&d.k!=='lamp'),
-    MAP=T22.map[L.id],key=(x,y)=>Math.round(x)+','+Math.round(y);let gone=0;
+    MAP=T22.map[L.id]||(T22.map[L.id]=new Map()),key=(x,y)=>Math.round(x)+','+Math.round(y);let gone=0;
   const hitAt=(x,y,pad)=>B.some(b=>b.foot&&b.foot.some(f=>x>f[0]-pad&&x<f[2]+pad&&y>f[1]-pad&&y<f[3]+pad))||objs.some(o=>Math.abs(o.x-x)<pad+4&&Math.abs(o.y-y)<pad+4&&Math.hypot(o.x-x,o.y-y)<pad+4);
   const ext=tw22Ext(L,t,tw22CoreOf(L,t))+120;
   for(let i=L.decor.length-1;i>=0;i--){const d=L.decor[i];if(moved.has(d)||d.town||d.k==='tfolk'||d.k==='npc'||d.k==='bld'||d.k==='cwall'||d.k==='gatetower'||TW22_PROT.has(d.k))continue;
@@ -112,7 +112,7 @@ function tw22Clear(L,t,moved){const cx=t.x,cy=t.y,B=(TW.blds[L.id]||[]).filter(b
     if(nat&&hitAt(d.x,d.y,d.k==='flowers'||d.k==='fern'||d.k==='mushroom'?18:30)){L.decor.splice(i,1);gone++}}
   T22.gone[t.id]=gone}
 // 노점 · 짝문 · 창고(제자리 물건)끼리 화면 상자가 겹치면 노점을 바깥으로 비킨다 (노점 주인도 같이)
-function tw22Fixed(L,t,moved){const cx=t.x,cy=t.y,MAP=T22.map[L.id],key=(x,y)=>Math.round(x)+','+Math.round(y),log=[];
+function tw22Fixed(L,t,moved){const cx=t.x,cy=t.y,MAP=T22.map[L.id]||(T22.map[L.id]=new Map()),key=(x,y)=>Math.round(x)+','+Math.round(y),log=[];
   const B=(TW.blds[L.id]||[]).filter(b=>Math.hypot(b.x-cx,b.y-cy)<1100),lq=L.id==='home'?null:L.lq,ok=lq?L.okT:null;
   const prot=L.decor.filter(d=>TW22_PROT.has(d.k)&&Math.hypot(d.x-cx,d.y-cy)<1400);
   const F=()=>L.decor.filter(d=>!d.room&&(d.town===t||!d.town&&Math.hypot(d.x-cx,d.y-cy)<1000)&&d.k!=='tfolk'&&d.k!=='npc'&&(d.k==='statue'||d.k==='fountain'||tw22Box(d,false)));
@@ -225,17 +225,17 @@ function tw22Unhide(L,t){const log=[],B=()=>(TW.blds[L.id]||[]).filter(b=>Math.h
 
 /* ===== 2) 같은 사람은 한 곳에만 ===== */
 // 마을 의뢰인(QNPC, 바깥에 선 그림)과 같은 사람이 마을 사람(TWFOLK)으로도 있으면 마을 사람 쪽만 남기고, 메인 의뢰도 그 사람이 맡는다
-const TW22_QM={arden:'elian'},TW22_QMR={elian:'arden'};
+const TW22_QM={arden:'elian',willowen:'odric'},TW22_QMR={elian:'arden',odric:'willowen'};// v26: 윌로벤 의뢰인 오드릭은 헤이븐 나루에
 function tw22MainMk(tid){const q=qCur();if(!q)return '';const st=qState().st;if(st===0&&q.town===tid)return '!';if(st===2&&qTurnTown(q)===tid)return '?';
   if(st===1&&q.goals.some((g,j)=>g.type==='talk'&&g.town===tid&&!qGoalDone(q,j)))return '?';return ''}
 const tw22MainHere=tid=>{const q=qCur();return !!(tw22MainMk(tid)||q&&qState().st===1&&q.town===tid)};
-const tw22QT=tid=>HOME.towns.find(t=>t.id===tid);
+const tw22QT=tid=>qTw(tid);const tw22Reg=f=>f&&f.town&&f.town.reg||'home';// v26: 왕도 · 헤이븐 나루
 for(const tid in TW22_QM){const t=tw22QT(tid),f=sqFolk(TW22_QM[tid]);if(!t||!f||!QNPC[tid]||QNPC[tid].n!==f.n)continue;
-  for(const arr of [HOME.decor,HOME.lights]){for(let i=arr.length-1;i>=0;i--){const d=arr[i];if(d.k==='npc'&&d.town===t)arr.splice(i,1)}}
+  {const L0=twL(t.reg||'home');if(L0)for(const arr of [L0.decor,L0.lights]){for(let i=arr.length-1;i>=0;i--){const d=arr[i];if(d.k==='npc'&&d.town===t)arr.splice(i,1)}}}
   t.npc=null;T22.dups.push(`${f.n}: 바깥 의뢰인 그림을 치우고 ${f.room?TWROOM[f.room].n+' 안':t.n} 한 명만 남김`)}
 const tw22MainTarget=tid=>{const t=tw22QT(tid),f=sqFolk(TW22_QM[tid]);if(!t||!f)return null;
-  if(f.room){const o=(TWFOLK[f.id].room)||[0,0],b=(TW.blds.home||[]).find(b=>b.enter===f.room);return{reg:'home',x:t.x+o[0],y:t.y+o[1],room:f.room,door:b?b.door:null,label:`${t.n} ${TWROOM[f.room].n} 안 · ${f.n}`}}
-  return{reg:t.reg||'home',x:f.hx,y:f.hy,label:`${t.n} · ${f.n}`}};
+  if(f.room){const o=(TWFOLK[f.id].room)||[0,0],rg=tw22Reg(f),b=(TW.blds[rg]||[]).find(b=>b.enter===f.room);return{reg:rg,x:t.x+o[0],y:t.y+o[1],room:f.room,door:b?b.door:null,label:`${t.n} ${TWROOM[f.room].n} 안 · ${f.n}`}}
+  return{reg:tw22Reg(f),x:f.hx,y:f.hy,label:`${t.n} · ${f.n}`}};
 {const _q=qMainTargetW;qMainTargetW=function(){let fx=null;
   for(const tid in TW22_QM){const t=tw22QT(tid);if(t&&!t.npc){const g=tw22MainTarget(tid);if(g){t.npc={x:g.x,y:g.y};(fx||(fx=[])).push([t,g])}}}
   let r;try{r=_q()}finally{if(fx)for(const [t] of fx)t.npc=null}
@@ -247,8 +247,8 @@ const tw22MainTarget=tid=>{const t=tw22QT(tid),f=sqFolk(TW22_QM[tid]);if(!t||!f)
   const t=tw22QT(tid),q0=qTown;let mh='';SQV.mode=null;qTown=t;try{mh=_h()}finally{SQV.mode='npc';SQV.npc=f;qTown=q0}
   const nh=_h().replace(/^<p class="qsay"><b>[^<]*<\/b>[^]*?<\/p>/,'');return mh+(nh.trim()?'<hr class="tw22sep">'+nh:'')}}
 {const _ms=sqMarks;sqMarks=function(world){const out=_ms(world);
-  for(const tid in TW22_QM){const m=tw22MainMk(tid);if(!m)continue;const f=sqFolk(TW22_QM[tid]);if(!f)continue;const b=f.room?(TW.blds.home||[]).find(b=>b.enter===f.room):null;
-    const spots=IN?(IN.rid===f.room?[f]:[]):(!DG&&REG.id==='home'?[b?b.door:{x:f.hx,y:f.hy}]:[]);
+  for(const tid in TW22_QM){const m=tw22MainMk(tid);if(!m)continue;const f=sqFolk(TW22_QM[tid]);if(!f)continue;const b=f.room?(TW.blds[tw22Reg(f)]||[]).find(b=>b.enter===f.room):null;
+    const spots=IN?(IN.rid===f.room?[f]:[]):(!DG&&REG.id===tw22Reg(f)?[b?b.door:{x:f.hx,y:f.hy}]:[]);
     for(const p of spots){const k=out.find(k=>(k.kind==='!'||k.kind==='?')&&Math.abs(k.x-p.x)<1&&Math.abs(k.y-p.y)<1);if(k){k.kind=m;k.col=WX_QCOL.main;k.mq=1}else out.push({x:p.x,y:p.y,kind:m,col:WX_QCOL.main,mq:1})}}
   return out}}
 // 이름만 같던 다른 사람: 한쪽 이름을 바꿔 같은 사람이 두 곳에 있는 것처럼 보이지 않게
