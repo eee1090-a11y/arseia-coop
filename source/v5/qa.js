@@ -1924,14 +1924,14 @@ qT('스킬 정리 v19','3차 대비 조정: 화염 화살 10레벨부터 두 발
 /* ===== v20 IDEAS: 소속 · 책 · 현상금 · 고르는 의뢰 · 연계 · 세계의 신비 · 세력 평판 (aff20 … faction20.js) ===== */
 const qV20Talk=id=>{const f=sqFolk(id);qOk(f,`${id} 마을 사람이 없음`);sqTalk(f);qClosePanels();return f};
 const qV20Spell=(cls,f)=>Object.keys(SPELLS).find(id=>{const s=SPELLS[id];return s.cls===cls&&!s.job2&&!s.job3&&f(s)});
-qT('소속 v20','셋째 위계 시험 뒤 소속 의뢰: 대표 셋과 이야기해야 고르기 단추가 켜짐 · 고르면 P.aff · 의뢰 완료 · 다른 직업 의뢰 안 보임 · 대표 8명이 마을에 서 있음',()=>{qPrep('mage',{lvl:20});loadRegion('home');const s=sqState(),q=SQBY.affm;
+qT('소속 v20','셋째 위계 시험 뒤 소속 의뢰: 대표 셋과 이야기해야 고르기 단추가 생김 · 고르면 P.aff · 의뢰 완료 · 다른 직업 의뢰 안 보임 · 대표 8명이 마을에 서 있음',()=>{qPrep('mage',{lvl:20});loadRegion('home');const s=sqState(),q=SQBY.affm;
   for(const id in AFF20_FOLK){const f=TW.folk.find(f=>f.id===id);qOk(f,`대표 ${id}가 마을에 없음`);qOk(f.town&&f.town.id===AFF20_FOLK[id].town,`${id} 마을 ${f.town&&f.town.id}`)}
   qOk(sqAvail(q)==='locked',`셋째 시험 전 ${sqAvail(q)}`);qOk(sqAvail(SQBY.affp)==='hidden'&&sqAvail(SQBY.affw)==='hidden','다른 직업 소속 의뢰가 보임');s.d.ctm3=1;qOk(sqAvail(q)==='ok',`셋째 시험 뒤 ${sqAvail(q)}`);
   sqAccept('affm');qOk(s.a.affm,'받지 못함');V20A.affpick('ceres');qOk(!P.aff,'대표를 만나기 전에 골라짐');
-  SQV.mode='npc';SQV.npc=sqFolk('elian');let h=sqNpcHtml();qOk((h.match(/data-v20a="affpick"/g)||[]).length===3,'스승 창에 고르기 단추 셋이 없음');qOk(/data-v20a="affpick"[^>]*disabled/.test(h),'만나기 전 단추가 켜져 있음');
+  SQV.mode='npc';SQV.npc=sqFolk('elian');let h=sqNpcHtml();qOk((h.match(/data-v20a="aff(pick|go)"/g)||[]).length===3,'스승 창에 소속 단추 셋이 없음');qOk(!/data-v20a="affpick"/.test(h)&&(h.match(/data-v20a="affgo"/g)||[]).length===3,'만나기 전에는 「대표 찾아가기」 셋');
   const t0=sqTarget(q);qOk(t0&&/이델|오스윈|카델/.test(TWFOLK[AFF20.mage.find(a=>!affMet(q,a.id)).npc].n),'목표 표시 없음');
   for(const a of AFF20.mage)qV20Talk(a.npc);qOk(AFF20.mage.every(a=>affMet(q,a.id)),'대표와 이야기해도 만남이 안 남음');qOk(/만난 대표 3\/3/.test(sqGoalText(q,0)),sqGoalText(q,0));
-  SQV.mode='npc';SQV.npc=sqFolk('elian');h=sqNpcHtml();qOk(!/data-v20a="affpick"[^>]*disabled/.test(h),'만난 뒤에도 단추가 꺼져 있음');
+  SQV.mode='npc';SQV.npc=sqFolk('elian');h=sqNpcHtml();qOk((h.match(/data-v20a="affpick"/g)||[]).length===3&&!/data-v20a="affpick"[^>]*disabled/.test(h),'만난 뒤에도 단추가 꺼져 있음');
   const c0=stat('cdr');V20A.affpick('ceres');qOk(P.aff==='ceres','고르지 못함');qOk(!s.a.affm&&s.d.affm===1,'의뢰가 끝나지 않음');qOk(Math.abs(stat('cdr')-c0-6)<.01,`재사용 대기 ${c0}→${stat('cdr')}`);
   qOk(sqAvail(q)==='done','끝난 의뢰가 다시 열림');qOk(/소속 · 세레스의 탑/.test(charHtml()),'캐릭터 창에 소속 줄 없음');qClosePanels();return `세레스의 탑 · 재사용 대기 +6`});
 qT('소속 v20','특성 12개는 덧셈(기존 상한 그대로): 마나 소모 · 재사용 · 시전 시간+생명력 · 치유 · 언데드 · 이동+축복 · 막기 · 낮은 생명력 · 물리 · 명중(97%) · 채널링 걷기 · 마나 회복',()=>{const out=[];
@@ -3384,7 +3384,7 @@ qT('v22 마을','누르는 상자: 사람 · 의뢰인 · 노점 · 짝문 · �
   qOk(!bad.length,bad.slice(0,6).join(' / '));return `상자 ${n}개`});
 // 누르기: 그 사람의 보이는 몸 가운데 · 네 귀퉁이 안쪽을 눌러 고른다 (PC 마우스 · 휴대폰 손가락 여유)
 qT('v22 마을','누르면 그 사람: 모든 마을의 모든 사람 · 의뢰인 · 노점 · 짝문 · 창고를 몸 위에서 누르면 바로 그것이 골라짐 (PC · 휴대폰)',()=>{qPrep('mage');const bad=[];let n=0;
-  for(const [L0,t] of wxTowns()){const L=q22To(t);for(const d of L.decor){if(d.room||Math.hypot(d.x-t.x,d.y-t.y)>900||!(d.town===t||!d.town)||!tw22Box(d,true))continue;
+  for(const [L0,t] of wxTowns()){const L=q22To(t);/* 걷는 사람은 모두 제자리에서 (앞 시험에서 걷다 노점 앞에 선 사람 때문에 흔들림) */for(const f of L.decor)if(f.k==='tfolk'&&f.hx!=null){f.x=f.hx;f.y=f.hy}for(const d of L.decor){if(d.room||Math.hypot(d.x-t.x,d.y-t.y)>900||!(d.town===t||!d.town)||!tw22Box(d,true))continue;
       if(d.k==='tfolk'){d.x=d.hx;d.y=d.hy}P.x=d.x+30;P.y=d.y+40;followCam();const b=tw22Box(d,true),s=W2S(d.x,d.y);
       for(const [u,v] of [[.5,.5],[.15,.15],[.85,.15],[.15,.85],[.85,.85]]){const px=s.x+b[0]+(b[2]-b[0])*u,py=s.y+b[1]+(b[3]-b[1])*v;
         for(const touch of [false,true]){const g=tw22Pick(px,py,touch);if(g!==d&&!(g&&tw22Same(d,g)))bad.push(`${t.id}: ${d.n||d.k} (${u},${v}${touch?' 휴대폰':''}) → ${g?g.n||g.k:'없음'}`)}}n++}}
@@ -3595,7 +3595,7 @@ qT(QM22,'가로 844×390: ☰·귀환 · 캐릭터 칸 · 지역·미니맵 · �
       const R={};for(const k in E)if(E[k])R[k]=qmR(E[k]);const ks=Object.keys(R),bad=[];
       for(const k of ks){const r=R[k];if(!(r.width>0))bad.push(k+' 안 보임');else if(r.left<-.5||r.top<-.5||r.right>w+.5||r.bottom>h+.5)bad.push(`${k} 화면 밖 ${Math.round(r.left)},${Math.round(r.top)},${Math.round(r.right)},${Math.round(r.bottom)}`)}
       for(let i=0;i<ks.length;i++)for(let j=i+1;j<ks.length;j++){if(m==='P'&&[ks[i],ks[j]].every(k=>['who','row','right','quest'].includes(k)))continue;if(qmOv(R[ks[i]],R[ks[j]])){const f=r=>[r.left,r.top,r.right,r.bottom].map(Math.round).join(',');bad.push(ks[i]+'↔'+ks[j]+` [${f(R[ks[i]])}] [${f(R[ks[j]])}]`)}}
-      qOk(!bad.length,`${m}(${n}칸): ${bad.join(' · ')}`);out.push(`${m}${n} ${ks.length}개`)})}
+      qOk(!bad.length,`${m}(${n}칸): ${bad.join(' · ')}${bad.length&&q?' · 의뢰 칸 「'+q.textContent.replace(/\s+/g,' ').slice(0,160)+'」':''}`);out.push(`${m}${n} ${ks.length}개`)})}
   finally{actBtn.hidden=true;actBtn.textContent='';if(!had)ch.remove();else{lg.innerHTML=lg0;if(wasOpen)ch.classList.add('open')}}
   return out.join(' · ')});
 qT(QM22,'PC 1280은 그대로: 휴대폰 표시 없음 · 단축칸 21 + 물약 3 다 보임(빈 칸 포함) · 칸 53px · 버튼 줄이 접히지 않음 · 귀환 단추·가로 안내 없음 · 카메라 배율 = 화면 설정',()=>{qPrep('mage',{lvl:40});qM22Bar(3);
@@ -3643,7 +3643,7 @@ qT(QG22,'목표 자리: 사람(의뢰인 · 지금 서 있는 자리를 따라�
     const nq=SQ.find(q=>!q.cls&&sqAvail(q)==='ok'&&(()=>{const t=j2NpcAt(q.giver);return t&&!t.room&&(t.reg||'home')==='home'})());qOk(nq,'바깥 의뢰인 의뢰 없음');
     qOk(qgSet('sq:'+nq.id,true)&&P.qg==='sq:'+nq.id,'켜기');const t0=j2NpcAt(nq.giver);let tg=qgTargetW(P.qg),L=qgLocal(P.qg);
     qOk(tg&&tg.x===t0.x&&tg.y===t0.y&&tg.label.includes('의뢰인'),'의뢰인 자리 '+JSON.stringify(tg));qOk(L&&L.kind==='npc'&&Math.hypot(L.x-t0.x,L.y-t0.y)<200,'사람 '+JSON.stringify(L));
-    const f=decor.find(d=>d.x===L.x&&d.y===L.y&&(d.k==='tfolk'||d.k==='npc'));qOk(f,'서 있는 사람 없음');const fx=f.x,fy=f.y;f.x+=50;f.y-=30;
+    const f=decor.find(d=>d.x===L.x&&d.y===L.y&&(d.k==='tfolk'||d.k==='npc'));qOk(f,'서 있는 사람 없음');const fx=f.x,fy=f.y;f.x=tg.x+6;f.y=tg.y-4;
     try{L=qgLocal(P.qg);qOk(L.x===f.x&&L.y===f.y,'자리를 옮긴 사람을 안 따라감')}finally{f.x=fx;f.y=fy}r.push('사람');
     // 메인을 받기 전: 그 의뢰인(건물 안이면 문)
     P.q={i:1,st:0,c:{}};qgSet('main:1',true);tg=qgTargetW('main:1');L=qgLocal('main:1');qOk(tg&&(tg.reg||'home')==='home'&&L&&(L.kind==='npc'&&Math.hypot(L.x-tg.x,L.y-tg.y)<200||L.kind==='door'&&L.x===tg.door.x),'메인 의뢰인 '+JSON.stringify(L));r.push('메인 의뢰인 '+L.kind);
@@ -3673,9 +3673,9 @@ qT(QG22,'목표 자리: 사람(의뢰인 · 지금 서 있는 자리를 따라�
     return r.join(' · ')}
   finally{if(typeof IN!=='undefined'&&IN)twLeave(true);if(DG)leaveDungeon();qG22Off()}});
 qT(QG22,'화살표가 목표 쪽을 가리킴: 동서남북 네 자리에서 화살표 각도 = 화면 위 목표 방향 · 화살표가 캐릭터 둘레(반지름 72px, 휴대폰은 54px)에 · 큰 지도를 열면 숨김',()=>{qPrep('mage',{lvl:30});qG22Off();const r=[];
-  try{P.q={i:1,st:1,c:{}};qgSet('main:1',true);const tg=qgTargetW('main:1'),el=QG.el||qgEl();
+  try{P.q={i:1,st:1,c:{}};qgSet('main:1',true);qStep(2,{render:false});qgTick(true);/* 마을 사람이 자리 잡은 뒤의 목표 */const tg=qgTargetW('main:1'),el=QG.el||qgEl();
     for(const [dx,dy,nm] of [[600,0,'동'],[-450,0,'서'],[0,600,'남'],[0,-450,'북'],[420,420,'남동']]){P.x=tg.x+dx;P.y=tg.y+dy;followCam();qStep(2,{render:false});qgTick(true);qStep(1,{render:false});
-      const c=QG.cur;qOk(c&&c.x===tg.x&&c.y===tg.y,`${nm} 목표 ${JSON.stringify(c)} · 나 ${Math.round(P.x)},${Math.round(P.y)} · ${REG.id}${DG?' 던전':''}${IN?' 건물':''}`);const a=W2S(P.x,P.y),b=W2S(c.x,c.y),want=Math.atan2((b.y-20)-(a.y-30),b.x-a.x);
+      const c=QG.cur,tgN=qgTargetW('main:1');qOk(c&&tgN&&Math.hypot(c.x-tgN.x,c.y-tgN.y)<=200&&c.label&&tgN.label.includes(c.label.split(' · ').pop()),`${nm} 목표 (지금 목표 ${tgN&&Math.round(tgN.x)},${tgN&&Math.round(tgN.y)} ${tgN&&tgN.label}) ${JSON.stringify(c)} · 나 ${Math.round(P.x)},${Math.round(P.y)} · ${REG.id}${DG?' 던전':''}${IN?' 건물':''}`);const a=W2S(P.x,P.y),b=W2S(c.x,c.y),want=Math.atan2((b.y-20)-(a.y-30),b.x-a.x);
       const iso=Math.atan2((c.x-P.x+c.y-P.y)/2,(c.x-P.x)-(c.y-P.y)),da=x=>Math.abs(Math.atan2(Math.sin(x),Math.cos(x)));
       qOk(da(QG.ang-want)<.01,`${nm} 각도 ${QG.ang.toFixed(3)} (기대 ${want.toFixed(3)})`);qOk(da(QG.ang-iso)<.12,`${nm} 쿼터뷰 방향과 다름 ${QG.ang.toFixed(2)} vs ${iso.toFixed(2)}`);
       qOk(!el.hidden,nm+' 숨음');const A=el.children[0].getBoundingClientRect(),cr=cv.getBoundingClientRect(),k=cr.width/W,px=cr.left+a.x*k,py=cr.top+(a.y-30)*k,ax=A.left+A.width/2,ay=A.top+A.height/2;
@@ -3736,6 +3736,69 @@ qT(QM22,'가로 휴대폰 스킬 창: 아래 단축칸 줄(끌어 놓기)은 한
       d.querySelector('.dk-t').click();const d2=pbody.querySelector('.dock20');qOk(getComputedStyle(d2.querySelector('.dk-g')).display==='none','접히지 않음');d2.querySelector('.dk-t').click();qOk(getComputedStyle(pbody.querySelector('.dock20 .dk-g')).display!=='none','펴지지 않음');
       return `문양 ${n}칸 · 아래 줄 ${Math.round(dr.height)}px / 창 ${Math.round(cr.height)}px`}finally{document.body.classList.remove('m22dk');closePanel()}})}
   finally{P.bar=old;buildBar()}});
+/* ===== v22.1 휴대폰에서 소속을 못 고름: 잠긴 단추가 켜진 것처럼 보이고 이유(마우스 툴팁)가 안 보였다 ===== */
+qT('소속 휴대폰 v22.1','4직업 소속 창을 휴대폰 가로 화면에서 손가락으로: 안 만난 대표는 「대표 찾아가기」(누르면 누구 · 어디 안내 + 길 안내 켜짐 + 창 닫힘, 고르지는 않음) · 마을에서 대표를 눌러 이야기하면 만남 · 그 뒤 「이 소속 고르기」로 골라짐 · 꺼진 v20 단추는 흐리게 + 이유 글',()=>{const out=[];
+  const tap=sel=>{const el=pbody.querySelector(sel);qOk(el,`단추 없음: ${sel}`);if(!el)return null;const o={pointerType:'touch',pointerId:9,button:0,buttons:1,bubbles:true,cancelable:true};
+    el.dispatchEvent(new PointerEvent('pointerdown',o));el.dispatchEvent(new PointerEvent('pointerup',Object.assign({},o,{buttons:0})));el.click();return el};
+  const logT=()=>logEl.lastElementChild?logEl.lastElementChild.textContent:'';
+  for(const cls of ['mage','priest','warrior','archer']){qPrep(cls,{lvl:20});loadRegion('home');const q=affQ(),s=sqState(),reps=affMine();qOk(q&&reps.length===3,cls+' 소속 의뢰');
+    s.d[q.req]=1;sqAccept(q.id);qOk(s.a[q.id],cls+' 의뢰를 못 받음');delete P.qg;
+    qM22('L',844,390,()=>{SQV.mode='npc';SQV.npc=sqFolk(q.giver);openPanel('quest');
+      qOk(pbody.querySelectorAll('[data-v20a="affgo"]').length===3&&!pbody.querySelector('[data-v20a="affpick"]'),cls+': 만나기 전 「대표 찾아가기」 셋');
+      qOk(!pbody.querySelector('[data-v20a^="aff"]:disabled'),cls+': 꺼진 소속 단추가 있음');qOk(/먼저 이야기해야/.test(pbody.textContent),cls+': 안내 글');
+      const a=reps[2],nm=TWFOLK[a.npc].n,sel=`[data-v20a="affgo"][data-v20b="${a.id}"]`,r0=pbody.querySelector(sel)&&pbody.querySelector(sel).getBoundingClientRect();
+      qOk(r0&&r0.width>=44&&r0.height>=28,`${cls}: 단추가 너무 작음 ${r0&&Math.round(r0.width)}x${r0&&Math.round(r0.height)}`);tap(sel);
+      qOk(!P.aff,cls+': 안 만났는데 골라짐');qOk(panel.hidden,cls+': 창이 안 닫힘');qOk(logT().includes(nm)&&logT().includes(a.n),`${cls}: 안내 글 「${logT()}」`);
+      qOk(P.qg==='sq:'+q.id,cls+': 길 안내가 안 켜짐 '+P.qg);const t=sqTarget(q);qOk(t&&t.label.includes(a.n),`${cls}: 길 안내가 고른 대표를 안 가리킴 ${t&&t.label}`)});
+    for(const r of reps){const f=TW.folk.find(f=>f.id===r.npc);qOk(f,r.npc+' 없음');if(!f)continue;closePanel();TW.act=f;act='tw_talk';doAct();qClosePanels();qOk(affMet(q,r.id),`${cls}: ${f.n}와 이야기해도 만남이 안 남음`)}
+    qM22('L',844,390,()=>{SQV.mode='npc';SQV.npc=sqFolk(q.giver);openPanel('quest');qOk(pbody.querySelectorAll('[data-v20a="affpick"]').length===3,cls+': 만난 뒤 고르기 셋');
+      tap(`[data-v20a="affpick"][data-v20b="${reps[1].id}"]`);qOk(P.aff===reps[1].id,`${cls}: 손가락으로 못 고름 ${P.aff}`);qOk(s.d[q.id]===1&&!s.a[q.id],cls+': 의뢰가 안 끝남')});
+    qClosePanels();out.push(`${cls} ${reps[1].n}`)}
+  // 꺼진 v20 단추(금화 모자람 등)는 흐리게 보이고, 이유가 있으면 글로 보인다
+  {const d=document.createElement('div');d.className='v20box';d.innerHTML=`<div class="v20row"><div>x</div><div class="btns">${v20Btn('qa_x',1,'받기',{cls:'primary',dis:1,title:'동시에 3개까지'})}</div></div>`;document.body.appendChild(d);
+   const bt=d.querySelector('button');qOk(+getComputedStyle(bt).opacity<.6,'꺼진 단추가 흐리지 않음 '+getComputedStyle(bt).opacity);qOk(d.querySelector('.v20why')&&d.querySelector('.v20why').textContent==='동시에 3개까지','이유 글이 안 보임');d.remove()}
+  return out.join(' · ')});
+/* ===== v23 스킬 창: 모든 탭의 「+」 · 설명 띄우기 (사용자 15:09 「+를 넣으랬는데 왜 반영이 안됐어」 — v18 「+」가 1차 트리에만 있었음) ===== */
+const qSk23Tabs=()=>['',  'adv','j2','j3'];
+const qSk23Open=t=>{J2UI.tab=t||null;if(!t)treeSel=0;openPanel('tree');renderPanel();return J2UI.tab===(t||null)};
+const qSk23Plus=id=>pbody.querySelector(`.nodeplus[data-learn="${id}"]`);
+const qSk23Vis=b=>{b.scrollIntoView({block:'center'});const ov=document.getElementById('qaOverlay'),od=ov&&ov.style.display;if(ov)ov.style.display='none';try{return qSk23Vis0(b)}finally{if(ov)ov.style.display=od||''}};
+const qSk23Vis0=b=>{const r=b.getBoundingClientRect();if(r.width<20||r.height<20)return false;const e=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);return e===b||b.contains(e)};
+qT('스킬 창 v23','4직업 · 1차 트리 · 상위 기술 · 2차 · 3차 탭 모두: 아이콘을 누르면 옆에 「+」(보이고 눌림) · 찍을 수 있으면 1점 오름 · 못 찍으면(레벨 · 선행 · 포인트 · 최대 · 전직 전) 막히고 눌러도 안 오르며 까닭을 알려 줌',()=>{const out=[];
+  for(const cls of ['mage','priest','warrior','archer']){qPrep(cls,{lvl:140});const br=Object.keys(JOB2[cls])[0];P.job2=br;P.job3=JOB3_OF[br];P.sp=60;const seen={};
+    for(const t of qSk23Tabs()){qOk(qSk23Open(t),`${cls} ${t||'1차'} 탭 못 엶`);const ids=[...pbody.querySelectorAll('[data-node]')].map(b=>b.dataset.node);qOk(ids.length>=4,`${cls} ${t||'1차'} 아이콘 ${ids.length}`);
+      let up=0,lock=0;
+      for(const id of ids.slice(0,6)){qClick(`#pbody [data-node="${id}"]`);const b=qSk23Plus(id);qOk(b,`${cls} ${t||'1차'} ${id}: + 없음`);if(!b)continue;qOk(qSk23Vis(b),`${cls} ${t||'1차'} ${id}: + 가 가려지거나 너무 작음`);
+        const ok=canLearn(id),k=P.sk[id]||0,sp=P.sp;qOk((b.getAttribute('aria-disabled')==='true')===!ok,`${cls} ${id}: 막힘 표시 ${b.getAttribute('aria-disabled')} · 찍기 ${ok}`);
+        b.click();if(ok){qOk((P.sk[id]||0)===k+1&&P.sp<sp,`${cls} ${id}: + 로 안 오름 ${k}→${P.sk[id]} sp ${sp}→${P.sp}`);up++}else{qOk((P.sk[id]||0)===k&&P.sp===sp,`${cls} ${id}: 막혔는데 오름`);qOk(/\S/.test(b.dataset.why||''),`${cls} ${id}: 까닭 없음`);lock++}}
+      seen[t||'1차']=`${up}/${lock}`}
+    // 3차 탭: 레벨이 모자란 스킬은 막힘
+    qSk23Open('j3');const j3=[...pbody.querySelectorAll('[data-node]')].map(b=>b.dataset.node);P.lvl=100;renderPanel();const hi=j3.find(id=>!P.sk[id]&&!canLearn(id));qOk(hi,cls+': 레벨 100에 막힌 3차 스킬 없음');
+    if(hi){qClick(`#pbody [data-node="${hi}"]`);const b=qSk23Plus(hi),k=P.sk[hi]||0;qOk(b&&b.getAttribute('aria-disabled')==='true',cls+': 막힌 3차 스킬 + 가 켜짐');b.click();qOk((P.sk[hi]||0)===k,cls+': 막힌 3차 스킬이 오름');const lt=logEl.lastElementChild&&logEl.lastElementChild.textContent;qOk(lt&&lt===b.dataset.why,`${cls}: 까닭 글 「${lt}」 · 「${b.dataset.why}」`)}
+    // 최대 · 포인트 없음
+    P.lvl=140;qSk23Open('');const f=[...pbody.querySelectorAll('[data-node]')].map(b=>b.dataset.node)[0];P.sk[f]=MAXSK;renderPanel();qClick(`#pbody [data-node="${f}"]`);qOk(/최대/.test(qSk23Plus(f).dataset.why),cls+': 최대 까닭');
+    P.sp=0;qSk23Open('j2');const g=pbody.querySelector('[data-node]').dataset.node;qClick(`#pbody [data-node="${g}"]`);qOk(/포인트/.test(qSk23Plus(g).dataset.why),`${cls}: 포인트 까닭 「${qSk23Plus(g).dataset.why}」`);
+    // 2차 전직 전에는 상위 기술이 막힘
+    P.sp=5;P.job2=null;P.job3=null;qSk23Open('adv');const a=pbody.querySelector('[data-node]');if(a){qClick(`#pbody [data-node="${a.dataset.node}"]`);const b=qSk23Plus(a.dataset.node);qOk(b&&b.getAttribute('aria-disabled')==='true',cls+': 전직 전 상위 기술 + 가 켜짐');const k=P.sk[a.dataset.node]||0;b.click();qOk((P.sk[a.dataset.node]||0)===k,cls+': 전직 전 상위 기술이 오름')}
+    qClosePanels();J2UI.tab=null;out.push(`${cls} ${Object.entries(seen).map(([k,v])=>k+' '+v).join(',')}`)}
+  return out.join(' · ')});
+qT('스킬 창 v23','설명 상자: 마우스를 아이콘 · 아래 단축칸에 올리면 이름 · 설명 · 레벨 · 수치가 뜨고 벗어나면 닫힘 · 휴대폰은 누르면 뜨고(고르기도 됨) 「+」를 가리지 않음 · 4초 뒤 닫힘 · 창 닫으면 닫힘',()=>{
+  qPrep('mage',{lvl:30});P.sp=5;P.sk.firebolt=3;P.bar[0]='firebolt';const tip=()=>document.getElementById('sktip');qSk23Open('');
+  const over=(el,pt)=>el.dispatchEvent(new PointerEvent('pointerover',{bubbles:true,pointerType:pt||'mouse'}));
+  let n=pbody.querySelector('[data-node="firebolt"]');over(n);qOk(tip()&&!tip().hidden,'마우스: 안 뜸');const s=SPELLS.firebolt;
+  qOk(tip().textContent.includes(s.n)&&tip().textContent.includes(s.desc.slice(0,12))&&/스킬 레벨 3/.test(tip().textContent),'내용 '+tip().textContent.slice(0,80));
+  qOk(getComputedStyle(tip()).pointerEvents==='none','설명 상자가 누르기를 막음');
+  const r=tip().getBoundingClientRect();qOk(r.left>=0&&r.top>=0&&r.right<=innerWidth+1&&r.bottom<=innerHeight+1,'화면 밖');
+  over(pbody.querySelector('.detail'));qOk(tip().hidden,'벗어나도 안 닫힘');
+  const d=pbody.querySelector('[data-dock="0"]');qOk(d,'단축칸 없음');over(d);qOk(!tip().hidden&&tip().textContent.includes(s.n),'단축칸: 안 뜸');over(pbody.querySelector('[data-dock="5"]'));qOk(tip().hidden,'빈 칸인데 뜸');
+  // 휴대폰: 누르면 고르고 설명도 뜨며 「+」는 그대로 눌림
+  qM22('L',844,390,()=>{qSk23Open('');const id='spark';n=pbody.querySelector(`[data-node="${id}"]`);const o={pointerType:'touch',pointerId:5,bubbles:true,cancelable:true};
+    n.dispatchEvent(new PointerEvent('pointerdown',o));n.dispatchEvent(new PointerEvent('pointerup',o));n.click();
+    qOk(nodeSel===id,'누르기: 안 골라짐');qOk(!tip().hidden&&tip().textContent.includes(SPELLS[id].n),'누르기: 설명 안 뜸');const b=qSk23Plus(id);qOk(b&&qSk23Vis(b),'설명이 + 를 가림 '+(b&&(()=>{const r=b.getBoundingClientRect(),e=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);return `${Math.round(r.left)},${Math.round(r.top)} ${Math.round(r.width)} → ${e&&(e.id||e.className||e.tagName)}`})()));
+    const k=P.sk[id]||0;b.dispatchEvent(new PointerEvent('pointerdown',o));b.click();qOk((P.sk[id]||0)===k+1,'설명이 뜬 채로 + 가 안 눌림');qOk(tip().hidden,'다른 곳을 눌러도 안 닫힘');
+    n=pbody.querySelector(`[data-node="${id}"]`);n.dispatchEvent(new PointerEvent('pointerdown',o));n.click();qOk(!tip().hidden,'다시 누르기');SK23.hideT&&clearTimeout(SK23.hideT);
+    closePanel();qOk(tip().hidden,'창 닫아도 남음')});
+  SK23.pt='mouse';qClosePanels();return '마우스 · 단축칸 · 휴대폰'});
 function qaOverlay(res,sum,done){let el=document.getElementById('qaOverlay');
   if(!el){el=document.createElement('div');el.id='qaOverlay';el.setAttribute('role','region');el.setAttribute('aria-label','자가 점검 결과');document.body.appendChild(el);
     const st=document.createElement('style');st.textContent=`#qaOverlay{position:fixed;inset:12px;z-index:99999;background:rgba(10,9,8,.96);border:1px solid #5c4a2e;border-radius:6px;color:#ece4d0;font:12px/1.35 "Gowun Dodum",sans-serif;overflow:auto;padding:10px 14px;box-shadow:0 8px 40px #000}
@@ -3791,7 +3854,7 @@ qT('3차 전직 v20','3차 기술: 그 3차 갈래로 전직해야 배우고 씀
     const L0=skLv(id);P.gear.amulet=QA_ITEM(991,'amulet',4,'시험 목걸이',100,{all:3},{cls:c});qOk(skLv(id)===L0&&skShow(id)===10,'모든 스킬 +이 붙음');
     P.gear.amulet=QA_ITEM(992,'amulet',4,'시험 목걸이',100,{['tr_j3_'+br3]:1},{cls:c});qOk(skShow(id)===11&&Math.abs(skLv(id)-(1+10*k))<1e-9,'3차 계열 +1이 안 붙음 '+skShow(id));qOk(/3차/.test(statName('tr_j3_'+br3)),'옵션 이름 '+statName('tr_j3_'+br3));P.gear.amulet=null;
     P.mp=maxMp();P.cd={};P.noMpT=0;qRecWait();tryCast(id,qAt(0,100));qOk(P.cd[id]>0,'전직 뒤 못 씀');
-    openPanel('tree');J2UI.tab='j3';nodeSel=id;renderPanel();qOk(/10<\/b> \/ 10/.test(pbody.innerHTML)&&pbody.querySelector(`[data-learn="${id}"]`).disabled,'자세히: 10 / 10');closePanel();
+    openPanel('tree');J2UI.tab='j3';nodeSel=id;renderPanel();qOk(/10<\/b> \/ 10/.test(pbody.innerHTML)&&pbody.querySelector(`.detail [data-learn="${id}"]`).disabled,'자세히: 10 / 10');closePanel();
     const ld=skLoad({[id]:14},c,140);qOk(ld.sk[id]===10&&ld.back>=4,`불러오기 ${ld.sk[id]} · 돌려받음 ${ld.back}`);r.push(`${QCN[c]} 한 점 ${J3K(c)}레벨`)}
   return r.join(' · ')}));
 qT('3차 전직 v20','모으기 채널링(charge): 누를 때 마나·재사용 한 번 · 모을수록 ×1→×mul · 새로 다시 누르면 모은 만큼 쏨(v20: 손을 떼도 계속 모음) · 다 차면 저절로 · 움직이면 쏨 · 다른 기술을 누르면 쏨 · 채널링 무늬·한 줄 설명 · 시작/모으는 중/끝 갈고리 · 그림',()=>qJ3Off(()=>{
@@ -3829,7 +3892,7 @@ qT('3차 전직 v20','파티 장치: 무적·부활·버티기·치유를 나와
 qT('3차 전직 v20','스킬 창: 2차 전직 뒤 「3차」 탭(전직 전 잠김 · 배울 기술은 보임) · 3차 전직 뒤 갈래 이름 탭 · 칸에 점수/10 · 자세히에서 찍기 · 휴대폰 폭에 맞는 칸(auto-fill)',()=>qJ3Off(()=>{const r=[];
   for(const c of QCLS){const br3=JOB3_IDS[c][1];qPrep(c,{lvl:105});const id=qJ3Fake(c,br3);P.sp=5;openPanel('tree');qOk(!pbody.querySelector('[data-j2tab="j3"]'),'2차 전에 3차 탭');closePanel();P.job2=JOB2_OF3[br3];
     openPanel('tree');let b=pbody.querySelector('[data-j2tab="j3"]');qOk(b&&b.classList.contains('lk'),'잠긴 3차 탭 없음');b.click();qOk(J2UI.tab==='j3','탭');qOk(pbody.querySelector(`[data-node="${id}"]`),'기술 칸 없음');qOk(/3차 전직\(레벨 100/.test(pbody.textContent),'잠김 안내');
-    qOk(pbody.querySelector(`[data-learn="${id}"]`).disabled,'전직 전 찍힘');P.job3=br3;renderPanel();b=pbody.querySelector('[data-j2tab="j3"]');qOk(b&&!b.classList.contains('lk')&&b.textContent.includes(JOB3[c][br3].tree),'탭 이름 '+(b&&b.textContent));
+    qOk(pbody.querySelector(`.detail [data-learn="${id}"]`).disabled,'전직 전 찍힘');P.job3=br3;renderPanel();b=pbody.querySelector('[data-j2tab="j3"]');qOk(b&&!b.classList.contains('lk')&&b.textContent.includes(JOB3[c][br3].tree),'탭 이름 '+(b&&b.textContent));
     qClick(`#pbody [data-node="${id}"]`);qClick(`#pbody [data-learn="${id}"]`);qOk(P.sk[id]===1&&J2UI.tab==='j3','못 찍음');qOk(/1\/10/.test(pbody.querySelector(`[data-node="${id}"]`).textContent),'점수/10');
     qOk(getComputedStyle(pbody.querySelector('.j3rows')).gridTemplateColumns.split(' ').length>=1,'칸 배치');closePanel();qJ3Drop();r.push(JOB3[c][br3].tree)}
   const css=[...document.querySelectorAll('style')].map(x=>x.textContent).join('');qOk(/\.j3rows\{grid-template-columns:repeat\(auto-fill/.test(css),'휴대폰 폭 칸 CSS');return r.join(' · ')}));

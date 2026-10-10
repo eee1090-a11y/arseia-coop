@@ -61,27 +61,32 @@ const affMet=(q,id)=>{const a=sqState().a[q.id];return !!(a&&a.c&&a.c['t_'+id])}
   if(!s.a[q.id]&&!s.d[q.id]&&affCur())return 'hidden';const v=_a(q);if(v==='ok'&&P.lvl<q.lvl)return 'low';return v}}
 {const _g=sqGoalText;sqGoalText=function(q,j){const g=q.goals[j];if(!g||g.type!=='pick'||g.grp!=='aff')return _g(q,j);if(sqGoalDone(q,j))return g.d;
   const n=affMine().filter(a=>affMet(q,a.id)).length;return `${g.d} · 만난 대표 ${n}/3`}}
+let AFF22W=null; // v22.1: 「대표 찾아가기」로 고른 대표를 길 안내가 먼저 가리킨다
 {const _t=sqTarget;sqTarget=function(q){if(!q||!q.affq)return _t(q);const a=sqState().a[q.id];if(!a||sqAllDone(q))return _t(q);
-  for(const f of affMine())if(!affMet(q,f.id)){const t=j2NpcAt(f.npc);if(t)return Object.assign({},t,{label:`${t.label} (${f.n})`})}
+  const w=AFF20_BY[AFF22W];for(const f of (w&&w.cls===P.cls?[w]:[]).concat(affMine()))if(!affMet(q,f.id)){const t=j2NpcAt(f.npc);if(t)return Object.assign({},t,{label:`${t.label} (${f.n})`})}
   const t=j2NpcAt(q.giver);return t?Object.assign({},t,{label:`${t.label} · 소속 고르기`}):null}}
 // 대표와 이야기하기: 의뢰 중이면 「만남」을 남긴다
 V20.onTalk.push(f=>{const q=affQ();if(!q||!sqState().a[q.id])return;for(const a of AFF20_REP[f.id]||[]){if(a.cls!==P.cls||affMet(q,a.id))continue;
   sqState().a[q.id].c['t_'+a.id]=1;msg(`${a.n}의 이야기를 들었습니다 (${affMine().filter(x=>affMet(q,x.id)).length}/3)`,'#9fe0ff');f.say=a.pitch;f.sayT=time+5;questHud();save()}});
 function affCard(a,q,o){const cur=affCur(),met=q&&affMet(q,a.id),mine=cur&&cur.id===a.id;
-  let btn='';if(o.pick)btn=v20Btn('affpick',a.id,'이 소속 고르기',{cls:'primary',dis:!met,title:met?'':'먼저 대표와 이야기하세요'});
+  let btn='';if(o.pick)btn=met?v20Btn('affpick',a.id,'이 소속 고르기',{cls:'primary'}):v20Btn('affgo',a.id,'대표 찾아가기',{cls:'ghost'});
   else if(o.chg&&!mine){const pr=AFF_CHANGE_GOLD(P.lvl);btn=v20Btn('affchg',a.id,`바꾸기 · 금화 ${pr.toLocaleString()}`,{dis:P.gold<pr})}
   return `<div class="v20row"><div><span class="v20chip" style="background:${a.cloak}"></span><b>${a.n}</b>${mine?' <i class="v20tag" style="background:#c9a24a;color:#000">내 소속</i>':''}${o.pick?(met?' <span class="ok">✓ 만남</span>':' <span class="muted">· 아직 안 만남</span>'):''}
     <div class="muted" style="font-size:12px">${a.fx}</div>${o.where?`<div class="muted" style="font-size:12px">대표: ${TWFOLK[a.npc]?TWFOLK[a.npc].n:''} · ${affWhere(a)}</div>`:''}</div><div class="btns">${btn}</div></div>`}
 // 스승 창: 고르기 · 바꾸기 / 대표 창: 이 소속 설명 (+ 의뢰 중이면 고르기)
 V20.npcBox.push(f=>{if(!P)return '';const q=affQ();if(!q)return '';const s=sqState(),act=!!s.a[q.id],cur=affCur();
-  if(f.id===q.giver){if(act)return `<div class="v20box"><h3>소속 고르기</h3><p class="muted" style="margin:0">셋 다 만나 보면 단추가 켜집니다. 나중에 스승에게 금화를 내고 바꿀 수 있습니다.</p>${affMine().map(a=>affCard(a,q,{pick:1,where:1})).join('')}</div>`;
+  if(f.id===q.giver){if(act)return `<div class="v20box"><h3>소속 고르기</h3><p class="muted" style="margin:0">각 소속의 대표와 먼저 이야기해야 그 소속을 고를 수 있어요. 「대표 찾아가기」를 누르면 길 안내가 켜집니다. 나중에 스승에게 금화를 내고 바꿀 수 있습니다.</p>${affMine().map(a=>affCard(a,q,{pick:1,where:1})).join('')}</div>`;
     if(cur)return `<div class="v20box"><h3>소속 · ${cur.n}</h3><p class="muted" style="margin:0">바꾸면 바로 새 특성이 적용됩니다. 값: 금화 ${AFF_CHANGE_GOLD(P.lvl).toLocaleString()} (레벨에 따라)${P.affN?` · 지금까지 ${P.affN}번 바꿈`:''}</p>${affMine().map(a=>affCard(a,q,{chg:1})).join('')}</div>`;return ''}
   const mine=(AFF20_REP[f.id]||[]).filter(a=>a.cls===P.cls);if(!mine.length)return '';
   return `<div class="v20box"><h3>소속 안내</h3>${mine.map(a=>`<p class="qsay" style="margin:2px 0">「${a.pitch}」</p>`+affCard(a,q,{pick:act})).join('')}${!act&&!cur?`<p class="muted" style="margin:4px 0 0">셋째 위계 시험을 마친 뒤 16레벨부터 ${TWFOLK[q.giver].n}에게 소속 의뢰를 받을 수 있습니다.</p>`:''}</div>`});
 function affSet(id,how){const a=AFF20_BY[id];if(!a||a.cls!==P.cls)return false;P.aff=id;P._affRaw=null;v20GsBump();
   rings.push({x:P.x,y:P.y,r:10,max:160,life:.9,col:a.cloak});rings.push({x:P.x,y:P.y,r:6,max:90,life:.6,col:'#ffe9a8'});burst(P.x,P.y,a.cloak,36,150,3,30);
   banner={t:`소속 · ${a.n}`,sub:a.fx,col:'#ffd76a',life:3,max:3};msg(`${how}: ${a.n} — ${a.fx}`,'#ffd76a');return true}
-V20A.affpick=id=>{const q=affQ(),s=sqState();if(!q||!s.a[q.id]||!affMet(q,id)||!affSet(id,'소속을 골랐습니다'))return;
+// 아직 안 만난 대표: 누구를 어디서 만날지 알려 주고, 그 대표로 길 안내를 켠다 (창을 닫아 화살표가 보이게)
+V20A.affgo=id=>{const q=affQ(),a=AFF20_BY[id];if(!q||!a||a.cls!==P.cls||!sqState().a[q.id])return;if(affMet(q,id))return V20A.affpick(id);
+  AFF22W=id;const nm=TWFOLK[a.npc]?TWFOLK[a.npc].n:'대표',wh=affWhere(a);let on=false;if(typeof qgSet==='function'){const g='sq:'+q.id;if(P.qg===g){QG.t=0;qgTick(true)}else qgSet(g,true);on=P.qg===g}
+  msg(`「${a.n}」 소속을 고르려면 먼저 ${wh?wh+'의 ':''}${nm}에게 말을 걸어 주세요${on?' · 길 안내를 켰어요':''}`,'#ffd98a');if(typeof closePanel==='function'&&!panel.hidden)closePanel()};
+V20A.affpick=id=>{const q=affQ(),s=sqState();if(q&&s.a[q.id]&&!affMet(q,id))return V20A.affgo(id);if(!q||!s.a[q.id]||!affMet(q,id)||!affSet(id,'소속을 골랐습니다'))return;
   sqProgress(q,0,1,true);const b=banner;sqFinish(q.id);banner=b;if(banner)banner.sub+=` · 의뢰 「${q.t}」 완료`;const g=sqFolk(q.giver);if(g){g.say=q.done;g.sayT=time+5}msg(`${g?g.n:''}: 「${q.done}」`,'#e8dcc0');save()};
 V20A.affchg=id=>{const q=affQ(),cur=affCur(),pr=AFF_CHANGE_GOLD(P.lvl);if(!q||!cur||cur.id===id||P.gold<pr)return;if(!AFF20_BY[id]||AFF20_BY[id].cls!==P.cls)return;
   P.gold-=pr;affSet(id,`소속을 바꿨습니다 (금화 ${pr.toLocaleString()})`);P.affN=(P.affN|0)+1;save()};

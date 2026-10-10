@@ -42,14 +42,14 @@ function v20Open(kind,arg){V20.panel={kind,arg};SQV.mode='v20';SQV.npc=null;pbod
 {const _qh=questHtml;questHtml=function(){if(SQV.mode==='v20'&&V20.panel&&V20P[V20.panel.kind])return V20P[V20.panel.kind].html(V20.panel.arg);return _qh()}}
 {const _qc=questClick;questClick=function(b){const d=b.dataset;if(d.v20a&&V20A[d.v20a]){V20A[d.v20a](d.v20b,b);if(!panel.hidden)renderPanel();return true}return _qc(b)}}
 {const _rp=renderPanel;renderPanel=function(){_rp();if(tab==='quest'&&SQV.mode==='v20'&&V20.panel&&V20P[V20.panel.kind]){const t=$('#ptitle');if(t)t.textContent=V20P[V20.panel.kind].title(V20.panel.arg)}}}
-const v20Btn=(a,b,label,o)=>`<button type="button" class="${o&&o.cls||''}" data-v20a="${a}" data-v20b="${v20Esc(b==null?'':b)}"${o&&o.dis?' disabled':''}${o&&o.title?` title="${v20Esc(o.title)}"`:''}>${label}</button>`;
+const v20Btn=(a,b,label,o)=>`<button type="button" class="${o&&o.cls||''}" data-v20a="${a}" data-v20b="${v20Esc(b==null?'':b)}"${o&&o.dis?' disabled':''}${o&&o.title?` title="${v20Esc(o.title)}"`:''}>${label}</button>${o&&o.dis&&o.title?`<small class="v20why">${v20Esc(o.title)}</small>`:''}`;
 // 마을 사람 창에 덧붙이는 칸 (소속 대표 · 세력 상인 …): fn(f) → html 또는 ''
 {const _nh=sqNpcHtml;sqNpcHtml=function(){let h=_nh();const f=SQV.npc;if(!f)return h;let add='';for(const fn of V20.npcBox){try{add+=fn(f)||''}catch(e){if(window.__QA)throw e}}
   if(!add)return h;const i=h.indexOf('</p>');return i>=0?h.slice(0,i+4)+add+h.slice(i+4):add+h}}
 {const _st=sqTalk;sqTalk=function(f){for(const fn of V20.onTalk){try{fn(f)}catch(e){if(window.__QA)throw e}}const r=_st(f);if(r||!f)return r;
   if(V20.npcBox.some(fn=>{try{return !!fn(f)}catch(_){return false}})){SQV.mode='npc';SQV.npc=f;qTown=f.town||qTown;openPanel('quest');return true}return r}}
 const v20Css=css=>{const st=document.createElement('style');st.textContent=css;document.head.appendChild(st)};
-v20Css('.v20box{border:1px solid #4a3e2a;border-radius:6px;padding:6px 8px;margin:8px 0;background:#15120e}.v20box h3{margin:0 0 4px;font-size:14px;color:#f0dca8}.v20box .row{margin-top:6px;flex-wrap:wrap;gap:6px}'+
+v20Css('.v20box button:disabled,.v20row button:disabled{opacity:.4;filter:grayscale(.7);cursor:default}.v20why{flex-basis:100%;text-align:right;font-size:11px;color:#c9b07a}.v20box{border:1px solid #4a3e2a;border-radius:6px;padding:6px 8px;margin:8px 0;background:#15120e}.v20box h3{margin:0 0 4px;font-size:14px;color:#f0dca8}.v20box .row{margin-top:6px;flex-wrap:wrap;gap:6px}'+
   '.v20row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:5px 0;border-bottom:1px solid #2e2820;flex-wrap:wrap}.v20row>div:first-child{min-width:0;flex:1 1 180px}.v20row .btns{display:flex;gap:4px;flex-wrap:wrap}'+
   '.v20chip{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px;border:1px solid #0008}.v20tag{display:inline-block;font-size:11px;padding:0 5px;border-radius:3px;margin-right:4px;font-style:normal}'+
   '.v20bar{height:6px;background:#2a241c;border-radius:3px;overflow:hidden;margin-top:3px}.v20bar i{display:block;height:100%;background:#c9a24a}.v20txt{white-space:pre-wrap;line-height:1.55;font-size:13px}');
