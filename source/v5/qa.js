@@ -4862,6 +4862,64 @@ qT('던전','v26 던전 바닥에 들판 장식이 겹쳐 보이지 않음(사�
     qOk(n>=4,'들어간 던전 '+n);qOk(seen>0,'같은 자리에 들판 장식이 있는 조각이 없음(시험이 겨누지 못함)');qOk(!out.length,'던전 바닥에 들판 장식: '+out.join(' · '))}
   finally{RD.draw=d0;paused=p0;if(DG)leaveDungeon();K22.m.clear();if(REG.id!=='home')loadRegion('home')}
   return `던전 ${n}곳 · 들판 장식과 겹치는 조각 ${seen}개 · 그려진 들판 장식 0`});
+/* ---- v27: 스킬 이름 정리 · 궁수 원소 사격 3갈래 · 사제 심판/퇴마 나누기 (사용자 2026-10-10 16:10, 5·6·7번 · skill27*.js) ---- */
+const qAoe27=s=>!!(s&&isDmg(s)&&(s.aoe||s.pierce||['rain','field','strike','storm','nova','cone','beam','chain','orbit'].includes(s.kind)));
+qT('스킬 정리 v27','궁수 원소 사격: 1레벨에 화염 · 냉기 · 바람 셋 · 갈래마다 위로 이어지고 범위기 2개 이상 · 공통 패시브 · 두 발 쏘기 → 파워 샷 · 팬 샷 → 멀티플 샷',()=>{
+  const T1=qSpells('archer',s=>TREE[s.id]===1&&!s.tab),r1=T1.filter(s=>s.rank===1);
+  qOk(r1.length===3&&['fire','ice','wind'].every(el=>r1.some(s=>s.el===el&&isDmg(s)&&!PRE[s.id])),'1위계 '+r1.map(s=>s.id+':'+s.el).join(','));
+  const out=[];for(const root of r1){const br=[root.id];let cur=root.id;for(let k=0;k<6;k++){const nx=T1.find(s=>(PRE[s.id]||[]).includes(cur));if(!nx)break;br.push(nx.id);cur=nx.id}
+    const ss=br.map(id=>SPELLS[id]);qOk(br.length>=4,`${root.el} 갈래가 짧음 ${br}`);qOk(ss.every(s=>s.el===root.el||(root.el==='wind'&&s.el==='storm')),`${root.el} 갈래에 다른 원소 ${br}`);
+    qOk(ss.filter(qAoe27).length>=2,`${root.el} 갈래 범위기 ${ss.filter(qAoe27).map(s=>s.id)}`);qOk(Math.max(...ss.map(s=>s.rank))>=7,`${root.el} 갈래 끝 위계`);out.push(br.map(id=>SPELLS[id].n).join('→'))}
+  const pv=T1.filter(s=>s.kind==='passive');qOk(pv.length===1&&pv[0].id==='elementquiver'&&!PRE.elementquiver,'공통 패시브 '+pv.map(s=>s.id));
+  qOk((PRE.trinityarrow||[]).join()==='elementquiver','트리니티 선행 '+PRE.trinityarrow);
+  qOk(!SPELLS.doubleshot&&SPELLS.powershot&&mapGoneV19('doubleshot')==='powershot'&&GONE_SK.doubleshot==='powershot','두 발 쏘기 → 파워 샷');
+  qOk(SPELLS.powershot.rank===2&&(PRE.powershot||[]).join()==='quickshot'&&SPELLS.powershot.mult>SPELLS.quickshot.mult*1.5,'파워 샷 위계 · 선행 · 배율');
+  qOk(SPELLS.fanshot.n==='멀티플 샷'&&CLASSES.archer.trees[1]==='원소 사격','이름 '+SPELLS.fanshot.n+' / '+CLASSES.archer.trees[1]);
+  const T1p=T1.filter(s=>s.kind!=='passive').map(s=>TREEPOS[s.id].row+':'+TREEPOS[s.id].col);qOk(new Set(T1p).size===T1p.length,'트리 칸이 겹침');
+  return out.join(' · ')});
+qT('스킬 정리 v27','사제 심판 · 퇴마: 어느 한쪽만 올려도 기본기(1레벨) · 10레벨 안의 범위기 · 묶기/멈칫 · 8위계 큰 한 방이 있음 · 퇴마 공격은 모두 언데드 2배 이상 · 겹치던 빛의 회오리 → 턴 언데드',()=>{const out=[];
+  for(const t of [0,1]){const L=qSpells('priest',s=>TREE[s.id]===t&&!s.tab&&isDmg(s)),nm=CLASSES.priest.trees[t];
+    qOk(L.some(s=>s.rank===1&&s.cd<=1&&s.cost<=8),nm+' 1레벨 기본기');qOk(L.some(s=>s.rank<=3&&qAoe27(s)&&s.kind!=='bolt'),nm+' 10레벨 안의 범위기');
+    qOk(L.some(s=>s.stun>=1||s.root),nm+' 묶기/멈칫');qOk(L.some(s=>s.rank===8&&qAoe27(s)),nm+' 8위계 큰 범위기');qOk(L.length>=9,nm+' 공격 기술 '+L.length);out.push(`${nm} ${L.length}`)}
+  const ex=qSpells('priest',s=>TREE[s.id]===1&&isDmg(s));qOk(ex.every(s=>(s.ud||0)>=2),'퇴마인데 언데드 배율 없음 '+ex.filter(s=>!(s.ud>=2)).map(s=>s.id));
+  qOk(['holycross','holyfire','consecration','blessedhammer','turnundead'].every(id=>TREE[id]===1)&&['smite','javelin','chainoflight','godspear','grandcross'].every(id=>TREE[id]===0),'계열 배치');
+  qOk(!SPELLS.divinestorm&&mapGoneV19('divinestorm')==='turnundead'&&SPELLS.greatjudgment&&SPELLS.grandcross,'빛의 회오리 합치기');
+  for(const id in SPELLS){const s=SPELLS[id];if(s.cls!=='priest'||(TREE[id]!==0&&TREE[id]!==1))continue;for(const p of PRE[id]||[])qOk(TREE[p]===TREE[id]&&SPELLS[p].rank<s.rank,`선행 ${p}>${id}`)}
+  return out.join(' · ')});
+qT('스킬 정리 v27','흔한 이름: 낮은 위계는 기본 이름(블레싱 · 실드 배시 · 파이어 볼트) · 한 직업 안에서 같은 화면 이름 없음',()=>{
+  qOk(SPELLS.blessing.n==='블레싱'&&SPELLS.shieldbash.n==='실드 배시'&&SPELLS.spark.n==='파이어 볼트'&&SPELLS.minorheal.n==='힐','이름');
+  for(const id in RENAME27)qOk(!SPELLS[id]||SPELLS[id].n===RENAME27[id],id+' 이름이 덮어써짐 '+(SPELLS[id]&&SPELLS[id].n));
+  const dup=[];for(const c of ['mage','priest','warrior','archer']){const seen={};for(const s of qSpells(c)){if(seen[s.n])dup.push(`${c} ${s.n}(${seen[s.n]},${s.id})`);seen[s.n]=s.id}}
+  qOk(!dup.length,'같은 이름 '+dup.join(', '));return Object.keys(RENAME27).length+'개 이름'});
+qT('저장','v27 궁수 원소 사격: 예전 저장의 바뀐 원소 화살 점수는 처음 한 번만 돌려받음(원래 값 rs27.old) · 두 발 쏘기 점수 → 파워 샷 · 공통 패시브 점수 그대로 · 다시 불러와도 또 돌려받지 않음',()=>{
+  const F={v:5,slot:0,cls:'archer',lvl:30,xp:10,gold:777,towns:['brenhill','willowen'],home:'brenhill',x:1500,y:3900,reg:'home',hp:200,mp:80,pot:{hp:2,mp:2},gear:{},bag:[],
+    sk:{quickshot:6,doubleshot:4,flamearrow:5,glacialarrow:3,thunderarrow:1,elementquiver:2,snaretrap:1},sp:3,st:{int:0,vit:20,spi:20},ap:0,diff:0,
+    bar:['quickshot','doubleshot','flamearrow','glacialarrow'].concat(Array(17).fill(null)),uid:90,q:{i:0,st:0,c:{}}};
+  const raw=JSON.stringify(F);qOk(load(JSON.parse(raw),QA_SLOT),'불러오기 실패');
+  qOk(!P.sk.flamearrow&&!P.sk.glacialarrow&&!P.sk.thunderarrow&&!P.sk.doubleshot,'돌려받을 점수가 남음 '+JSON.stringify(P.sk));
+  qOk(P.sk.powershot===4&&P.sk.quickshot===6&&P.sk.elementquiver===2&&P.sk.snaretrap===1,'남은 점수 '+JSON.stringify(P.sk));
+  qOk(P.sp===F.sp+9,`sp ${P.sp} (기대 ${F.sp+9})`);const sum=o=>Object.values(o).reduce((a,b)=>a+b,0);qOk(sum(P.sk)+P.sp===sum(F.sk)+F.sp,'전체 점수가 바뀜');
+  qOk(P.bar[0]==='quickshot'&&P.bar[1]==='powershot'&&P.bar[2]==='flamearrow','단축칸 '+P.bar.slice(0,4));qOk(P.lvl===30&&P.gold===777,'레벨 · 금화');
+  const d=JSON.parse(JSON.stringify(saveData()));qOk(d.rs27&&d.rs27.v===1&&d.rs27.old&&d.rs27.old.flamearrow===5&&d.rs27.old.glacialarrow===3,'rs27 '+JSON.stringify(d.rs27));
+  d.sk.flamearrow=2;d.sp-=2;qOk(load(d,QA_SLOT)&&P.sk.flamearrow===2&&P.sp===d.sp,'다시 불러올 때 또 돌려받음');
+  qOk(JSON.stringify(JSON.parse(raw))===raw,'불러온 원본 저장이 바뀜');
+  qPrep('mage');const m=JSON.parse(JSON.stringify(saveData()));delete m.rs27;qOk(load(m,QA_SLOT)&&saveData().rs27.v===1&&!saveData().rs27.old,'다른 직업 rs27');
+  const bad=Object.assign(JSON.parse(raw),{rs27:'<x>'});qOk(load(bad,QA_SLOT)&&P.sk.flamearrow===5&&JSON.stringify(saveData().rs27)==='{"v":1}','손상된 rs27을 돌려받기 표시로 보고 그대로 둠');
+  return `돌려받음 9점 · 파워 샷 4`});
+qT('저장','v27 사제: 심판 · 퇴마 사이에서 자리만 옮긴 스킬의 점수는 그대로 · 빛의 회오리 점수는 턴 언데드로',()=>{
+  const F={v:5,slot:0,cls:'priest',lvl:40,xp:10,gold:50,towns:['brenhill'],home:'brenhill',x:1500,y:3900,reg:'home',hp:200,mp:80,pot:{hp:2,mp:2},gear:{},bag:[],
+    sk:{smite:8,holycross:3,holyfire:4,consecration:2,turnundead:2,divinestorm:3,grandcross:1,greatjudgment:1,symbolflash:2},sp:0,st:{int:30,vit:20,spi:20},ap:0,diff:0,
+    bar:['smite','divinestorm','turnundead'].concat(Array(18).fill(null)),uid:91,q:{i:0,st:0,c:{}}};
+  qOk(load(JSON.parse(JSON.stringify(F)),QA_SLOT),'불러오기 실패');
+  qOk(P.sk.smite===8&&P.sk.holycross===3&&P.sk.holyfire===4&&P.sk.consecration===2&&P.sk.grandcross===1&&P.sk.greatjudgment===1&&P.sk.symbolflash===2,'점수 '+JSON.stringify(P.sk));
+  qOk(P.sk.turnundead===5&&!P.sk.divinestorm&&P.sp===0,`턴 언데드 ${P.sk.turnundead} · sp ${P.sp}`);qOk(P.bar[1]===null&&P.bar[2]==='turnundead','단축칸 '+P.bar.slice(0,3));
+  return '점수 그대로 · 빛의 회오리 3 → 턴 언데드'});
+qT('스킬 트리','v27 원소 사격 · 심판 · 퇴마 트리 화면: 모든 스킬 칸이 보이고 서로 겹치지 않음 · 새 스킬 아이콘',()=>{const out=[];
+  for(const [c,t] of [['archer',1],['archer',0],['priest',0],['priest',1]]){qPrep(c,{lvl:45});openPanel('tree');treeSel=t;nodeSel=null;renderPanel();
+    const want=qSpells(c,s=>TREE[s.id]===t&&!s.tab),nodes=[...pbody.querySelectorAll('.tree [data-node]')],pos=nodes.map(n=>n.style.left+','+n.style.top);
+    qOk(want.every(s=>pbody.querySelector(`.tree [data-node="${s.id}"]`)),`${c} ${t} 칸 없음`);qOk(new Set(pos).size===pos.length,`${c} ${t} 칸이 겹침`);out.push(`${CLASSES[c].trees[t]} ${nodes.length}`);closePanel()}
+  for(const id of ['powershot','firerain','volcanoshot','blizzardshot','glacialspike','galearrow','cyclonearrow'])qOk(ICP[id]&&/<path|<circle|<g/.test(spellSvg(SPELLS[id])),id+' 아이콘');
+  return out.join(' · ')});
 window.__QA_RUN=qaRun;
 setTimeout(()=>{qaRun().catch(e=>{window.__QA_RESULT={fatal:String(e&&e.stack||e),results:[],summary:{total:0,pass:0,fail:1}}})},120);
 }
