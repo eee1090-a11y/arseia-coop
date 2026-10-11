@@ -251,11 +251,11 @@ const scale=()=>Math.min(2.4,Math.max(1,DPR)*1.35);
 function spr(k,vi,gl){const df=D[k];return SC.get('rd/'+k+'/'+vi+(gl?'/g':''),df.w,df.h,df.ax,df.ay,g=>{g.translate(df.ax,df.ay);(gl?df.gp:df.p)(g,mulberry(k.length*131+k.charCodeAt(0)*7+vi*1013),vi)},{scale:scale()})}
 // 매 프레임 덧그림 (가산 합성, 몇 개의 호·점만)
 function anim(c,d,vi,t){const k=d.k,ph=d.v*9;
-  if(D[k].glow){const e=spr(k,vi,1);if(e){c.globalCompositeOperation='lighter';c.globalAlpha=k==='icespike'?.35+.25*Math.sin(t*1.3+ph):k==='vent'?.75+.25*Math.sin(t*5+ph):.6+.35*Math.sin(t*(k==='mushroom'?1.6:2.4)+ph);SC.draw(c,e,0,0);c.globalAlpha=1;c.globalCompositeOperation='source-over'}}
+  if(D[k].glow){const e=spr(k,vi,1);if(e){c.globalCompositeOperation='lighter';/* [v27] 빛 맥박을 약하고 느리게 (깜빡여 보이지 않게) */c.globalAlpha=k==='icespike'?.42+.08*Math.sin(t*.8+ph):k==='vent'?.8+.1*Math.sin(t*1.6+ph):.62+.12*Math.sin(t*(k==='mushroom'?.9:1.2)+ph);SC.draw(c,e,0,0);c.globalAlpha=1;c.globalCompositeOperation='source-over'}}
   if(k==='vent'){c.globalCompositeOperation='lighter';for(let i=0;i<7;i++){const p=(t*.55+i/7+d.v)%1,x=Math.sin(i*7.3)*9+Math.sin(t*2+i)*4*p,y=-2-p*58,s=1.8*(1-p)+.4;c.fillStyle=i%2?'rgba(255,200,90,'+(1-p)+')':'rgba(255,110,30,'+(1-p)+')';c.fillRect(x-s/2,y-s/2,s,s)}c.globalCompositeOperation='source-over'}
   else if(k==='mushroom'){c.globalCompositeOperation='lighter';c.fillStyle=['#7affe8','#d0a0ff','#90c8ff'][vi];for(let i=0;i<4;i++){const p=(t*.18+i/4+d.v)%1;c.globalAlpha=Math.sin(p*PI)*.8;c.beginPath();c.arc(Math.sin(i*5.1+t*.8)*16,-14-p*50,1.1,0,TAU);c.fill()}c.globalAlpha=1;c.globalCompositeOperation='source-over'}
-  else if(k==='icespike'){const p=(t*.5+d.v*3)%3;if(p<.6){const a=Math.sin(p/.6*PI),x=[2,-6,0][vi],y=[-50,-40,-56][vi];c.globalCompositeOperation='lighter';c.fillStyle='rgba(255,255,255,'+a+')';c.fillRect(x-.5,y-5*a,1,10*a);c.fillRect(x-5*a,y-.5,10*a,1);c.globalCompositeOperation='source-over'}}
-  else if(k==='searock'){const p=(t*.4+d.v)%1;c.strokeStyle='rgba(240,250,255,'+(.5*(1-p))+')';c.lineWidth=1.2;c.beginPath();c.ellipse(0,2,26+p*10,6+p*3,0,0,TAU);c.stroke()}
+  // [v27] 얼음 기둥의 반짝 십자(3초마다 번쩍)는 깜빡여 보여서 뺐다
+  else if(k==='searock'&&d.v<.2){const p=(t*.4+d.v)%1;c.strokeStyle='rgba(240,250,255,'+(.5*(1-p))+')';c.lineWidth=1.2;c.beginPath();c.ellipse(0,2,26+p*10,6+p*3,0,0,TAU);c.stroke()}
   else if(k==='edgeportal'){const col=d.col||'#9ad8ff',cy=-48;c.globalCompositeOperation='lighter';c.globalAlpha=.55+.15*Math.sin(t*2);c.drawImage(Kit.glowCv(col),-30,cy-54,60,108);c.globalAlpha=1;
     for(let i=0;i<4;i++){const sp=t*(1.6+i*.5)*(i%2?-1:1)+i*1.7;c.strokeStyle=col;c.globalAlpha=.75-i*.13;c.lineWidth=2.4-i*.4;c.beginPath();c.ellipse(0,cy,22-i*4.5,44-i*9,0,sp,sp+3.6);c.stroke()}
     c.fillStyle='#fff';for(let i=0;i<6;i++){const a=t*1.2+i/6*TAU;c.globalAlpha=.6+.4*Math.sin(t*3+i);c.fillRect(Math.cos(a)*16-1,cy+Math.sin(a)*34-1,2,2)}

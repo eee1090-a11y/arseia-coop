@@ -11,7 +11,7 @@
         참가자 화면에는 「○○님이 ○○에 들어갔어요 · 함께 들어가기」 알림(한 번 누르면 들어감).
    4) 옛 판 게임(새로 고침 안 한 창)과는 던전 자료가 맞지 않을 수 있다 → 판 번호를 주고받아(co22v) 알려 준다.
    메시지는 모두 'v20x'(옛 판은 모르는 k를 무시) + 기존 'req'·'dg'. 서버는 그대로. 저장 형식 그대로(캐릭터 저장소는 건드리지 않음). */
-const CO22={V:22,RJ:'arseia-coop-rj',RJMS:5*60e3,rj:null,rjT:-1e9,rjSaveT:0,ver:new Map(),stAt:new Map(),peerAt:new Map(),fail:new Map(),bye:new Set(),oldTold:new Set(),
+const CO22={V:22,RJ:'arseia-coop-rj',RJMS:30*60e3/* v27: 5분 → 30분 (무료 서버가 잠들었다 깨어나도 파티로 돌아오게) */,rj:null,rjT:-1e9,rjSaveT:0,ver:new Map(),stAt:new Map(),peerAt:new Map(),fail:new Map(),bye:new Set(),oldTold:new Set(),
   fol:null,hostDg:null,hA:-9,hAt:-1e9,miss:0,ask:null,why:'',pr:null,prMute:-1e9,cap:null,qa:false,lastA:-9,FOLMS:5000,ASKMS:6000};
 const co22Now=()=>performance.now();
 function co22Store(){if(window.__QA)return;try{sessionStorage.setItem(CO22.RJ,JSON.stringify(CO22.rj||{}))}catch(_){}}

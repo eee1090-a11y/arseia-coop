@@ -289,7 +289,7 @@ let chunkScale=0,chunkWorld=null;const GJOBS=[];
 // 아직 다 굽지 못한 조각은 5×5 색 미리보기를 부드럽게 늘려 둔다 (점들이 월드 격자에 맞아 이웃 조각과 이어진다)
 function chunkPreview(cx,cy){const cv=document.createElement('canvas');cv.width=cv.height=5;const g=cv.getContext('2d'),id=g.createImageData(5,5);
   for(let j=0;j<5;j++)for(let i=0;i<5;i++){const c=DG?[12,11,10]:groundRGB(cx*CH+i*100,cy*CH+j*100).map(v=>v/.75),k=(j*5+i)*4;id.data[k]=c[0];id.data[k+1]=c[1];id.data[k+2]=c[2];id.data[k+3]=255}g.putImageData(id,0,0);return cv}
-function getChunkE(cx,cy){const want=clamp(Math.round(DPR*.9*20)/20,.8,1.4);if(want!==chunkScale){chunkScale=want;chunks.clear();GJOBS.length=0}
+function getChunkE(cx,cy){const want=clamp(Math.round(DPR*.9*20)/20,.8,1.4);if(want!==chunkScale){const first=!chunkScale;chunkScale=want;if(first){chunks.clear();GJOBS.length=0}else chunkStale()}// [v27] 해상도·확대가 바뀌어도 땅을 지우지 않고 새로 구울 때까지 예전 그림을 쓴다 (흐려졌다 다시 그려지던 깜빡임)
   const k=cx*1000+cy;let c=chunks.get(k);if(c){c.used=frameN;return c}
   const cv2=document.createElement('canvas');cv2.width=cv2.height=Math.round(CH*chunkScale);const g2=cv2.getContext('2d');g2.scale(chunkScale,chunkScale);
   c={cv:cv2,used:frameN,fx:null,ready:false,pv:chunkPreview(cx,cy),cx,cy,ms:0};c.job=paintChunkG(g2,cx*CH,cy*CH);chunks.set(k,c);GJOBS.push(c);
@@ -319,16 +319,17 @@ function drawGround(cx0,cx1,cy0,cy1){{const wk=DG||REG;if(wk!==chunkWorld){chunk
   isoFree=miss>4;runChunkJobs(miss>4?24:paused?10:4);
   for(let cy=cy0;cy<=cy1;cy++)for(let cx=cx0;cx<=cx1;cx++){if(!ok(cx,cy)||!inView(cx,cy))continue;const c=chunks.get(cx*1000+cy);if(!c)continue;
     if(c.ready&&c.stale){if(!c.rb)chunkRebake(c);c.rb.used=frameN}
-    if(c.ready){if(!isoBlit(c,cx,cy))ctx.drawImage(c.cv,cx*CH,cy*CH,CH+1,CH+1);if(c.fx&&c.fx.length)GVIS.push(c)}else ctx.drawImage(c.pv,.5,.5,4,4,cx*CH,cy*CH,CH+1,CH+1)}
+    if(c.ready){if(!isoBlit(c,cx,cy))isoFallback(c,cx,cy);if(c.fx&&c.fx.length)GVIS.push(c)}else ctx.drawImage(c.pv,.5,.5,4,4,cx*CH,cy*CH,CH+1,CH+1)}
   if(!miss&&GJOBS.length<2&&chunks.size<60){outer:for(let cy=cy0-1;cy<=cy1+1;cy++)for(let cx=cx0-1;cx<=cx1+1;cx++){if(!ok(cx,cy)||chunks.has(cx*1000+cy)||!inView(cx,cy,250))continue;getChunkE(cx,cy).used=frameN-1;break outer}}}
 // [최적화] 다 구운 조각을 화면 방향(마름모)으로 한 번 더 구워 두고, 매 프레임에는 회전 없이 그대로 붙인다.
 // 회전·기울인 큰 그림을 매 프레임 그리는 비용이 프레임의 절반 가까이였다. 그림 내용은 같다.
 const ISO_PAD=2,ISO_MAX=28;
 // [v24 최적화] 화면 방향 굽기는 한 프레임에 한 조각만, 그리고 땅 조각을 막 다 구운 프레임에는 하지 않는다 (걸을 때 가끔 끊기던 것).
 // 못 구운 조각은 이번 프레임만 예전 방식(돌려 그리기)으로 그린다. 멈춘 화면이나 순간이동 직후(빈 조각 많음)는 제한 없음.
-let isoBusy=-1,isoFree=false;
+let isoBusy=-1,isoFree=false,ISO_HOLD=false;// ISO_HOLD: 점검용(새 화면 방향 그림을 굽지 않음)
 function isoBlit(c,cx,cy){const s=DPR;
-  if(!c.iso||c.iso.s!==s){if(!isoFree&&!paused&&isoBusy===frameN)return false;isoBusy=frameN;let n=0,old=null,ou=1e12;for(const v of chunks.values())if(v.iso&&v!==c){n++;if(v.isoU<ou){ou=v.isoU;old=v}}if(n>=ISO_MAX&&old)old.iso=null;
+  if(!c.iso||c.iso.s!==s){if(ISO_HOLD||!isoFree&&!paused&&isoBusy===frameN){if(!c.iso)return false;/* [v27] 해상도만 바뀐 조각: 새로 구울 때까지 예전 그림을 늘려 붙인다 */const k=s/c.iso.s,wx=cx*CH,wy=cy*CH,sx=(wx-wy)*KI-camX+shx-CH*KI-ISO_PAD,sy=(wx+wy)*KI/2-camY+shy-ISO_PAD;
+      ctx.setTransform(1,0,0,1,0,0);ctx.drawImage(c.iso.cv,Math.round(sx*s),Math.round(sy*s),c.iso.cv.width*k,c.iso.cv.height*k);G();c.isoU=frameN;return true}isoBusy=frameN;let n=0,old=null,ou=1e12;for(const v of chunks.values())if(v.iso&&v!==c){n++;if(v.isoU<ou){ou=v.isoU;old=v}}if(n>=ISO_MAX&&old)old.iso=null;
     const w=Math.ceil((2*CH*KI+ISO_PAD*2)*s),h=Math.ceil((CH*KI+ISO_PAD*2)*s),cv2=document.createElement('canvas');cv2.width=w;cv2.height=h;const g=cv2.getContext('2d');
     g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';g.setTransform(s*KI,s*KI/2,-s*KI,s*KI/2,s*(CH*KI+ISO_PAD),s*ISO_PAD);g.drawImage(c.cv,-.5,-.5,CH+1.5,CH+1.5);
     decoIdx();const fl=DG?null:DFLAT.get(cx*1000+cy);/* v26: 던전 안에서는 들판 장식(밀 · 꽃 · 덤불)을 굽지 않는다 — 같은 자리 들판 장식이 던전 바닥에 겹쳐 보이던 버그(폭풍 첨탑 · 재의 성소) */if(fl){g.setTransform(s,0,0,s,0,0);const bl=SC.bakeLeft;SC.bakeLeft=1e9;const ox=(cx*CH-cy*CH)*KI-CH*KI-ISO_PAD,oy=(cx*CH+cy*CH)*KI/2-ISO_PAD;for(const d of fl)RD.draw(g,d,(d.x-d.y)*KI-ox,(d.x+d.y)*KI/2-oy,1,0);SC.bakeLeft=bl}
@@ -336,13 +337,17 @@ function isoBlit(c,cx,cy){const s=DPR;
   c.isoU=frameN;
   const wx=cx*CH,wy=cy*CH,sx=(wx-wy)*KI-camX+shx-CH*KI-ISO_PAD,sy=(wx+wy)*KI/2-camY+shy-ISO_PAD;
   ctx.setTransform(1,0,0,1,0,0);ctx.drawImage(c.iso.cv,Math.round(sx*s),Math.round(sy*s));G();return true}
+// [v27] 화면 방향 그림이 아직 없는 조각(새로 보인 조각 · 장식이 바뀐 조각): 땅을 돌려 그리고, 그 조각에 구워 넣을 낮은 장식(밀 · 꽃 · 돌 …)도
+// 이번 프레임에 조각 안쪽만 잘라 직접 그린다 → 화면 가장자리나 다시 굽는 동안 작은 장식이 사라졌다 나타나는 깜빡임이 없다.
+function isoFallback(c,cx,cy){ctx.drawImage(c.cv,cx*CH,cy*CH,CH+1,CH+1);if(DG)return;decoIdx();const fl=DFLAT.get(cx*1000+cy);if(!fl||!fl.length)return;
+  ctx.save();ctx.beginPath();ctx.rect(cx*CH,cy*CH,CH,CH);ctx.clip();S();const bl=SC.bakeLeft;SC.bakeLeft=1e9;for(const d of fl)RD.draw(ctx,d,(d.x-d.y)*KI-camX,(d.x+d.y)*KI/2-camY,1,0);SC.bakeLeft=bl;ctx.restore();G()}
 // [최적화 v19] 장식 칸 나누기: 장식을 땅 조각(400칸)별로 묶어, 화면에 보이는 조각의 장식만 살핀다.
 // 낮고 움직이지 않는 지역 장식(밀·꽃·고사리·이끼 바위 …)은 땅 조각 그림에 함께 구워 매 프레임 따로 그리지 않는다.
 const DBUCK=new Map(),DFLAT=new Map(),DMOB=[];let decoKey='';
 function isFlatDecor(d){const df=RD.D[d.k];return !!df&&!df.glow&&df.h<=60&&!d.zh&&!d.cell&&!d.label&&!/vent|mushroom|icespike|searock|edgeportal/.test(d.k)}
-function decoIdx(){const k=REG.id+'/'+decor.length+'/'+(decor[0]&&decor[0].x)+'/'+(decor.length&&decor[decor.length-1].x);if(k===decoKey)return;decoKey=k;DBUCK.clear();DFLAT.clear();DMOB.length=0;
+function decoIdx(){const k=REG.id+'/'+decor.length+'/'+(decor[0]&&decor[0].x)+'/'+(decor.length&&decor[decor.length-1].x);if(k===decoKey)return;decoKey=k;DBUCK.clear();DFLAT.clear();DMOB.length=0;DECO_Q=Q.lvl>=2?0:Q.lvl===1?.15:.3;
   for(const c of chunks.values())c.iso=null;
-  for(const d of decor){d._flat=isFlatDecor(d);if(d.k==='tfolk'||d.k==='npc'||d.walkT!=null||d.hx!=null){d._flat=false;DMOB.push(d);continue}if(!d._flat){const key=Math.floor(d.x/CH)*1000+Math.floor(d.y/CH);let b=DBUCK.get(key);if(!b)DBUCK.set(key,b=[]);b.push(d);continue}
+  for(const d of decor){if(decoThin(d))continue;d._flat=isFlatDecor(d);if(d.k==='tfolk'||d.k==='npc'||d.walkT!=null||d.hx!=null){d._flat=false;DMOB.push(d);continue}if(!d._flat){const key=Math.floor(d.x/CH)*1000+Math.floor(d.y/CH);let b=DBUCK.get(key);if(!b)DBUCK.set(key,b=[]);b.push(d);continue}
     const df=RD.D[d.k],sc=d.s||1,sx=(d.x-d.y)*KI,sy=(d.x+d.y)*KI/2,x0=sx-df.ax*sc,x1=x0+df.w*sc,y0=sy-df.ay*sc,y1=y0+df.h*sc;
     // 그림이 걸치는 모든 조각에 넣는다 (조각 경계에서 잘리지 않게)
     const cxa=Math.floor((d.x-90)/CH),cxb=Math.floor((d.x+90)/CH),cya=Math.floor((d.y-90)/CH),cyb=Math.floor((d.y+90)/CH);
@@ -353,8 +358,12 @@ function decoIdx(){const k=REG.id+'/'+decor.length+'/'+(decor[0]&&decor[0].x)+'/
 // [v20] 자동 품질이 내려가면(프레임이 계속 느리면) 꾸밈 장식(나무·덤불 등, 이동을 막지 않음)을 일부만 그린다: 품질 1단계 25%, 0단계 45% 덜 그림.
 // 어느 장식을 뺄지는 위치로 고정(깜빡이지 않음). 이름표·불빛·마을 건물·사람·절벽은 늘 그린다.
 const DTHIN=/^(htree|hpine|hbirch|hdead|hbush|oak|fern|mushroom|mossrock|bigleaf|jungletree|palm|snowpine|cactus|windtree|wheat|flowers|haystack|rock|stump|tree|bush)$/;
-function decoVisible(cx0,cx1,cy0,cy1,out){decoIdx();for(const d of DMOB)out.push(d);const th=Q.lvl>=2?0:Q.lvl===1?.25:.45;
-  for(let cy=cy0-1;cy<=cy1+1;cy++)for(let cx=cx0-1;cx<=cx1+1;cx++){const b=DBUCK.get(cx*1000+cy);if(b)for(const d of b){if(th&&d._thin==null)d._thin=DTHIN.test(d.k)&&!d.label&&!d.light&&!d.cell?hash((d.x*7)|0,(d.y*13)|0):1;if(th&&d._thin<th)continue;out.push(d)}}return out}
+// [v27] 꾸밈 장식(나무 · 덤불 · 꽃 · 돌 …, 이동을 막지 않음)은 늘 30%를 덜 그린다 (사용자: 장식이 너무 빽빽함). 자동 품질이 낮으면 지역에 들어갈 때 15~30%를 더 뺀다.
+// 어느 장식을 뺄지는 위치로 고정, 정하는 때도 지역을 불러올 때뿐이라 놀다가 갑자기 나무가 사라지거나 생기지 않는다. 마을 소품 · 이름표 · 불빛 · 절벽 위 장식은 늘 그린다.
+const DECO_BASE=.3;let DECO_Q=0;
+function decoThin(d){if(!DTHIN.test(d.k)||d.label||d.light||d.cell||d.tprop||d.town)return false;if(d._thin==null)d._thin=hash((d.x*7)|0,(d.y*13)|0);return d._thin<DECO_BASE+DECO_Q}
+function decoVisible(cx0,cx1,cy0,cy1,out){decoIdx();for(const d of DMOB)out.push(d);
+  for(let cy=cy0-1;cy<=cy1+1;cy++)for(let cx=cx0-1;cx<=cx1+1;cx++){const b=DBUCK.get(cx*1000+cy);if(b)for(const d of b)out.push(d)}return out}
 // 물결/얼음/용암 반짝임: 미리 구운 4장을 번갈아 붙인다
 const GLINT={};
 function glintCv(kind,f){const key=kind+f;if(GLINT[key])return GLINT[key];const cv=document.createElement('canvas');cv.width=64;cv.height=24;const g=cv.getContext('2d');
@@ -364,8 +373,9 @@ function glintCv(kind,f){const key=kind+f;if(GLINT[key])return GLINT[key];const 
   else for(let i=0;i<3;i++){const y=8+i*4+s()*2,x=10+s()*20,l=14+s()*18,a=[.15,.5,.8,.4][f]*(1-i*.25);g.strokeStyle=`rgba(${col[0]},${col[1]},${col[2]},${a})`;g.lineWidth=1.3;g.beginPath();g.moveTo(x+f*3,y);g.quadraticCurveTo(x+l/2+f*3,y-2,x+l+f*3,y);g.stroke()}
   return GLINT[key]=cv}
 function drawGroundFx(){if(!GVIS.length)return;const po=ctx.globalCompositeOperation;ctx.globalCompositeOperation='lighter';
-  for(const c of GVIS)for(const p of c.fx){const s=W2S(p.x,p.y);if(s.x<-40||s.x>W+40||s.y<-20||s.y>H+20)continue;const ph=time*(p.k==='lava'?.9:1.3)+p.ph,f=Math.floor(ph)%4;
-    ctx.globalAlpha=p.k==='ice'?.55:.8*(.5+.5*Math.sin(ph*1.57));ctx.drawImage(glintCv(p.k,f),s.x-32,s.y-12)}
+  // [v27] 물 · 얼음 반짝임은 6곳 중 1곳만, 그림을 0.8초마다 바꿔 끼우지 않고(뚝뚝 바뀌어 깜빡여 보였다) 한 장을 천천히 밝아졌다 어두워지게. 용암은 다 두되 같은 방식.
+  for(const c of GVIS)for(const p of c.fx){if(p.k!=='lava'&&((p.ph*7.31)%1)>.17)continue;const s=W2S(p.x,p.y);if(s.x<-40||s.x>W+40||s.y<-20||s.y>H+20)continue;const ph=time*(p.k==='lava'?.6:.5)+p.ph,f=(p.ph|0)%4;
+    ctx.globalAlpha=(p.k==='ice'?.45:.7)*(.35+.65*(.5+.5*Math.sin(ph)));ctx.drawImage(glintCv(p.k,f===0?2:f),s.x-32,s.y-12)}
   ctx.globalAlpha=1;ctx.globalCompositeOperation=po}
 function groundLights(Lt){let n=0;for(const c of GVIS)for(const p of c.fx){if(p.k!=='lava'||(p.ph*10|0)%3)continue;const s=W2S(p.x,p.y);Lt(s.x,s.y,150,.45);if(++n>40)return}}
 

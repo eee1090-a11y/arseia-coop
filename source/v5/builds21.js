@@ -152,7 +152,7 @@ function core21OnHit(e,id,amt,crit,hs){if(!id||!SPELLS[id]||!e)return;e._c21k=id
     if(typeof rings!=='undefined')rings.push({x:e.x,y:e.y,r:6,max:100,life:.45,col:'#ffe9a8'})}
   if(core21Has('boil')&&core21Tag(CORE21_BY.c_ragemail.tag,id)){const d=c21Budget('boil',.15,.6);if(d)c21CutCd(d,k=>k!==id&&core21Tag(CORE21_BY.c_ragemail.tag,k))}
   if(core21Has('reload')&&c21Basic(s)){const d=c21Budget('reload',.1,.6);if(d)c21CutCd(d,k=>k!==id&&core21Tag(CORE21_BY.c_windcoat.tag,k))}
-  if(core21Has('cycle')&&core21Tag(CORE21_BY.c_threesky.tag,id)&&['fire','ice','storm'].includes(sel)){const c=C21.cycle;if(c.last&&c.last!==sel)c.free=time+4;c.last=sel}
+  if(core21Has('cycle')&&core21Tag(CORE21_BY.c_threesky.tag,id)&&['fire','ice','storm','wind'].includes(sel)){const c=C21.cycle;if(c.last&&c.last!==sel)c.free=time+4;c.last=sel}
   // 겹친 덫: 덫이 터져 맞은 적을 묶음(같은 적은 3초에 한 번)
   if(core21Has('traps')&&core21Tag(CORE21_BY.c_huntlord.tag,id)&&!e.dead)c21Root(e);
   // 이번 시전이 맞힌 수 (울리는 종 · 휩쓰는 기세): 시전 뒤 1.5초 안의 같은 기술

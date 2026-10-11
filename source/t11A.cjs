@@ -3,7 +3,7 @@ const {chromium}=require(require('child_process').execSync('npm root -g').toStri
 for(const cls of [process.argv[2]]){const p=await b.newPage({viewport:{width:1400,height:860}});p.on('pageerror',e=>errs.push(cls+': '+e.message));p.on('console',m=>{if(m.type()==='error')errs.push(cls+' console: '+m.text())});
 const html=require('fs').readFileSync(process.env.G||'game-v5.html','utf8');
 await p.route('http://t11.test/',r=>r.fulfill({contentType:'text/html; charset=utf-8',body:'<!doctype html><html><head><meta charset="utf-8"></head><body>'+html+'</body></html>'}));await p.goto('http://t11.test/');
-await p.waitForTimeout(300);await p.click(`[data-cls="${cls}"]`);await p.waitForTimeout(300);
+await p.waitForTimeout(300);await p.click(`[data-cls="${cls}"]`);await p.click('#n27ok',{timeout:1500}).catch(()=>{});await p.waitForTimeout(300);
 const r=await p.evaluate((cls)=>{const g=window.__game,P=g.P;P.lvl=40;const bad=[];let n=0;
  for(const id in g.SPELLS){const s=g.SPELLS[id];P.sk[id]=1;if(s.cls!==cls||!(s.mult>0)||['heal','hot','shield'].includes(s.kind))continue;let ok=0;n++;if(g.clsGearFor){g.clsGearFor(id);if(P.st.dex!=null&&P.st.str!=null)P.st.dex=Math.max(P.st.dex,600)}/* 전사·궁수: 무기를 쥐여 주고 명중률을 상한(97%)으로 — 이 점검은 '닿는가'를 본다 */
   for(let k=0;k<3;k++){P.x=1500;P.y=3600;P.mp=9999;P.cd={};P.dead=false;P.hp=9999;g.enemies.length=0;

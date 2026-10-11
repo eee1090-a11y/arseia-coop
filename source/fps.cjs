@@ -27,7 +27,7 @@ const SECS=+(opt.secs||6),RUNS=+(opt.runs||1),scenes=(opt.scenes||'town,fight,r9
  await ctx.route('**/*',r=>{const u=r.request().url();if(u.startsWith(`http://127.0.0.1:${port}/`))return r.continue();return r.fulfill({status:200,body:''})});
  const errs=[];pg.on('pageerror',e=>errs.push(e.message));
  await pg.goto(`http://127.0.0.1:${port}/`,{waitUntil:'load'});await pg.waitForTimeout(800);
- await pg.click('[data-cls="mage"]');await pg.waitForTimeout(300);
+ await pg.click('[data-cls="mage"]');await pg.click('#n27ok',{timeout:1500}).catch(()=>{});await pg.waitForTimeout(300);
  await pg.evaluate(sc=>{const g=window.__game,P=g.P;P.lvl=60;
    const keep=()=>{P.hp=1e6;P.mp=1e6;P.cd={}};const mhp=Object.getOwnPropertyDescriptor(P,'hp');
    setInterval(()=>{P.hp=99999;P.mp=99999;P.dead=false},50);

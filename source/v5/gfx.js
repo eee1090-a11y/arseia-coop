@@ -7,6 +7,11 @@ const Q={lvl:2,ema:16.7,lowT:0,highT:0,pcap:900,burstK:1,
     if(this.highT>8000&&this.lvl<2){this.lvl++;this.highT=0;this.apply()}},
   apply(){this.pcap=[350,600,900][this.lvl];this.burstK=[.45,.7,1][this.lvl]}};
 
+// [v27] 이펙트 가벼움 도우미 (이펙트 고도화 때 쓰기): 한 프레임에 그릴 이펙트 조각 수 예산과 그리기 단계.
+//  FXL.lod(sx,sy,r,mine) → 0 그리지 않음(화면 밖) · 1 간단히(예산 초과 · 남의 이펙트를 낮은 품질에서) · 2 다 그림.  FXL.spend(n)으로 그린 조각 수를 더한다.
+const FXL={n:0,f:-1,budget(){return[160,300,480][Q.lvl]},
+  lod(sx,sy,r,mine){if(this.f!==frameN){this.f=frameN;this.n=0}r=r||0;if(sx+r<-20||sx-r>W+20||sy+r<-40||sy-r>H+40)return 0;if(this.n>this.budget())return 1;if(mine===false&&Q.lvl<2)return 1;return 2},
+  spend(n){if(this.f!==frameN){this.f=frameN;this.n=0}this.n+=n||1}};
 // 스프라이트 캐시: 키마다 오프스크린 캔버스를 한 번 굽고 재사용한다. 화소 비율로 굽고, 앵커(발밑)를 함께 둔다.
 const SC={map:new Map(),bytes:0,cap:(matchMedia('(pointer:coarse)').matches?64:96)*1048576,bakeLeft:8,
   get(key,w,h,ax,ay,paint,o){let e=this.map.get(key);if(e){e.used=frameN;return e}

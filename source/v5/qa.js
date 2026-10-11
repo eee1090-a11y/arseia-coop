@@ -102,7 +102,7 @@ let qaMigr=null;
 const QCN={mage:'마법사',priest:'사제',warrior:'전사',archer:'궁수'},QCLS=['mage','priest','warrior','archer'];// v18: 전사·궁수
 for(const cls of QCLS)qT('시작',`새 캐릭터(${QCN[cls]}) 만들고 3초 진행`,()=>{
   if(cls!=='mage'){$('#helpBtn').click();qOk(!$('#intro').hidden,'도움말(시작 화면)이 열리지 않음')}
-  const b=document.querySelector(`#introBody [data-cls="${cls}"]`);qOk(b,'새 캐릭터 버튼 없음');const slot=+b.dataset.slot;b.click();
+  const b=document.querySelector(`#introBody [data-cls="${cls}"]`);qOk(b,'새 캐릭터 버튼 없음');const slot=+b.dataset.slot;qN27(b,'시험'+QCN[cls]);qOk(P.name==='시험'+QCN[cls],'이름 '+P.name);
   qOk($('#intro').hidden,'시작 화면이 닫히지 않음');qOk(P.cls===cls,`직업이 ${P.cls}`);qOk(curSlot===slot,`저장 칸 ${curSlot}≠${slot}`);qOk(!paused,'일시정지 상태');
   qOk(localStorage.getItem(SLOTKEY(slot)),'새 캐릭터가 저장되지 않음');
   const x0=P.x;keys.add('KeyD');qStep(90,{renderEvery:3,spawn:true});keys.delete('KeyD');qStep(90,{renderEvery:3,spawn:true});
@@ -782,7 +782,7 @@ qT('저장','깨진 JSON 칸이 섞여도 다른 칸은 멀쩡함',()=>{qResetSt
   qOk(cards.join()==='0,2',`카드 ${cards}`);qClick('#introBody [data-play="2"]');qOk(P.lvl===41&&curSlot===2,'2번 칸 불러오기 실패');saveNow();qStep(5);saveNow();
   for(const i of [0,1,3])qOk(qRaw('arseia-char-'+i)===raw[i],`${i}번 칸이 바뀜`);qOk(JSON.parse(qRaw('arseia-char-2')).lvl===41,'2번 칸 저장');loadRegion('home')});
 qT('저장','새 캐릭터를 만들 때 읽을 수 없는 칸(깨진 JSON·미래 버전)을 덮어쓰지 않음',()=>{qResetStore();qPut('arseia-char-0',QA_FIX.v4);const bad='{"v":5,"cls":"mage",lvl:';qPut('arseia-char-1',bad);qPut('arseia-char-2',QA_FIX.v6future);
-  introButtons(false);const b=document.querySelector('#introBody [data-cls="mage"]');qOk(b,'새 캐릭터 버튼 없음');const slot=+b.dataset.slot;b.click();
+  introButtons(false);const b=document.querySelector('#introBody [data-cls="mage"]');qOk(b,'새 캐릭터 버튼 없음');const slot=+b.dataset.slot;qN27(b,'시험');
   const ok1=qRaw('arseia-char-1')===bad,ok2=qRaw('arseia-char-2')===JSON.stringify(QA_FIX.v6future);qOk(ok1&&ok2,`새 캐릭터가 ${slot}번 칸에 저장되어 ${!ok1?'깨진 JSON(1번)':''}${!ok2?' 미래 버전(2번)':''} 저장을 덮어씀`);return `새 칸 ${slot}`});
 qT('저장','8칸이 다 찬 경우',()=>{qResetStore();const F=[QA_FIX.v1old,QA_FIX.v2,QA_FIX.v4,QA_FIX.v5,QA_FIX.v4,QA_FIX.v2,QA_FIX.v5,QA_FIX.v1old];F.forEach((d,i)=>qPut('arseia-char-'+i,Object.assign({},d,{slot:i})));
   introButtons(false);const cards=document.querySelectorAll('#introBody [data-play]').length,nw=document.querySelectorAll('#introBody [data-cls]').length;
@@ -790,7 +790,7 @@ qT('저장','8칸이 다 찬 경우',()=>{qResetStore();const F=[QA_FIX.v1old,QA
   for(let i=0;i<8;i++){const d=readSlot(i);qOk(d&&load(d,i)&&curSlot===i&&P.cls===F[i].cls,`${i}번 칸 불러오기 실패`)}loadRegion('home');return '8/8'});
 qT('저장','띄엄띄엄 찬 경우 (0·3·7번) — 새 캐릭터는 1번 칸, 다른 칸은 그대로',()=>{qResetStore();qPut('arseia-char-0',QA_FIX.v4);qPut('arseia-char-3',QA_FIX.v2);qPut('arseia-char-7',QA_FIX.v5);
   const raw=[0,3,7].map(i=>qRaw('arseia-char-'+i));introButtons(false);const cards=[...document.querySelectorAll('#introBody [data-play]')].map(b=>+b.dataset.play);qOk(cards.join()==='0,3,7',`카드 ${cards}`);
-  const b=document.querySelector('#introBody [data-cls="priest"]');qOk(b&&b.dataset.slot==='1',`새 칸 ${b&&b.dataset.slot}`);b.click();qOk(curSlot===1&&qRaw('arseia-char-1'),'1번에 저장 안 됨');
+  const b=document.querySelector('#introBody [data-cls="priest"]');qOk(b&&b.dataset.slot==='1',`새 칸 ${b&&b.dataset.slot}`);qN27(b,'시험');qOk(curSlot===1&&qRaw('arseia-char-1'),'1번에 저장 안 됨');
   [0,3,7].forEach((i,j)=>qOk(qRaw('arseia-char-'+i)===raw[j],`${i}번 칸이 바뀜`));qStep(5);saveNow();[0,3,7].forEach((i,j)=>qOk(qRaw('arseia-char-'+i)===raw[j],`${i}번 칸이 바뀜(저장 후)`));loadRegion('home')});
 qT('저장','저장소가 가득 차서 저장이 실패해도 게임이 멈추지 않음',()=>{qPrep('mage');QA.quota=10;try{saveNow();save();qStep(10);gainXp(xpNeed(P.lvl))}finally{QA.quota=0}});
 
@@ -4005,12 +4005,12 @@ qT('물약 v25','물약 단계 수는 5개 그대로 · 단계마다 최대 생�
 /* ===== v25 마우스 휠 단축키 (사용자 09:08) ===== */
 qT('단축키 v25','단축키 창에서 칸을 고르고 휠을 굴리면 그 칸이 「휠 ↑/↓」 · 게임 화면에서 휠 한 칸 = 한 번 시전 · 잘게 오는 휠은 모아서 한 칸 · 창이 열려 있으면 시전 안 함 · 휠에 넣은 것이 없으면 휠을 막지 않음 · 저장 keys에 남고 다시 읽힘',()=>{qPrep('mage');const bad=[];
   const W=(dy,o)=>{const ev=new WheelEvent('wheel',Object.assign({deltaY:dy,deltaMode:0,bubbles:true,cancelable:true},o||{}));cv.dispatchEvent(ev);return ev};
-  try{P.sk.spark=1;P.bar[2]='spark';buildBar();kbReset();
+  try{P.sk.firebolt=1;P.bar[2]='firebolt';P.mp=maxMp();/* v27: 첫 기술(파이어 볼트=spark)은 마나 0 → 마나를 쓰는 기술로 잼 */buildBar();kbReset();
     let ev=W(-120);if(ev.defaultPrevented)bad.push('넣은 것 없는데 휠을 막음');
     kbOpen();KB.cap='s2';const we=new WheelEvent('wheel',{deltaY:-120,bubbles:true,cancelable:true});window.dispatchEvent(we);
     if(KB.bind.s2!=='WheelUp')bad.push('잡기 '+KB.bind.s2);if(!/휠 ↑/.test(SLOTS[2].k))bad.push('칸 글자 '+SLOTS[2].k);
     KB.cap='s3';window.dispatchEvent(new WheelEvent('wheel',{deltaY:100,shiftKey:true,bubbles:true,cancelable:true}));if(KB.bind.s3!=='S+WheelDown')bad.push('Shift 잡기 '+KB.bind.s3);kbClose();
-    const cast=()=>{const m=P.mp;P.cd={};WHEEL25.last=0;return ()=>P.mp<m};
+    const cast=()=>{P.mp=maxMp();const m=P.mp;P.cd={};REC.t=0;REC.q=null;WHEEL25.last=0;return ()=>P.mp<m};
     let c=cast();ev=W(-120);if(!c())bad.push('휠 위로 시전 안 됨');if(!ev.defaultPrevented)bad.push('넣었는데 페이지가 스크롤됨');
     c=cast();W(-15);W(-15);const mid=c();W(-15);if(mid||!c())bad.push(`잘게 오는 휠: 중간 ${mid} · 끝 ${c()}`);
     c=cast();P.cd={};W(-120);const t2=c();P.cd={};P.mp=maxMp();const m2=P.mp;W(-120);if(P.mp<m2)bad.push('0.12초 안에 두 번');
@@ -4099,7 +4099,7 @@ qT('화면','v26 짝문 = 세계 지도: 지역 칸이 지도 자리대로, 가 
   // 칸이 서로 겹치지 않음
   for(let i=0;i<cells.length;i++)for(let j=i+1;j<cells.length;j++){const a=cells[i].getBoundingClientRect(),b=cells[j].getBoundingClientRect();qOk(!(a.left<b.right-1&&a.right>b.left+1&&a.top<b.bottom-1&&a.bottom>b.top+1),'칸 겹침 '+ids[i]+'/'+ids[j])}
   P.towns.push('haven','arden');renderPanel();const tr=[...pbody.querySelectorAll('[data-travel]')].map(b=>b.dataset.travel).sort().join();qOk(tr==='arden,haven','눌리는 마을 '+tr);
-  for(const b of pbody.querySelectorAll('.g26t'))qOk(b.getBoundingClientRect().height>=40,'단추가 40px보다 낮음');
+  {const mh=M22.phone()?40:28;/* v27: PC는 한 화면에 맞추려고 칸을 낮춤(마우스) · 휴대폰은 40px 그대로 */for(const b of pbody.querySelectorAll('.g26t'))qOk(b.getBoundingClientRect().height>=mh,`단추가 ${mh}px보다 낮음`)}
   pbody.querySelector('[data-travel="arden"]').click();await qSleep();qOk(REG.id==='royal'&&nearestTown(P.x,P.y).t.id==='arden','짝문으로 왕도에 가지 않음 '+REG.id);
   qClosePanels();loadRegion('home');return `칸 ${cells.length}`});
 qT('전투','v26 선공 · 비선공: 비선공은 맞기 전까지 안 옴, 선공은 예전 거리의 70%, 보스 · 정예 · 던전은 그대로, 지역마다 섞임',()=>{qPrep('warrior',{lvl:60});const T=TOWNS[0];P.x=T.x+1500;P.y=T.y;P.invT=1e9;
@@ -4124,18 +4124,21 @@ qT('전투','v26 궁수 사거리 1.5배 · 꿰뚫는 기술 2배: 퀵 샷 760 �
   // 자동 겨누기도 810까지
   touchMode=true;mouse.active=false;let e=qDummy(P.x+780,P.y);let t=aimPoint();qOk(Math.hypot(t.x-e.x,t.y-e.y)<1,'자동 겨누기가 780을 못 고름');qClear();touchMode=false;
   return out.join(' · ')});
-qT('보스 v26','모르가스 쉽게: 부하(재의 사도)는 30초에 둘(처음 20초 뒤) · 분신은 부하를 안 부르고 화살 부채 5 · 보스 부채 8(분노 10) · 군주의 메아리 쌍둥이 · 다른 보스는 그대로',()=>{const out=[];
+qT('보스 v26','모르가스 쉽게: 부하(재의 사도)는 30초에 둘(처음 20초 뒤) · 분신은 부하를 안 부르고 화살 부채 5 · 보스 부채 8(분노 10) · 군주의 메아리 쌍둥이 · 다른 보스는 그대로',()=>{const out=[],think0=bossThink;
   try{const T=TYPES.b_morgath;qOk(T.sumCd===30&&T.sumN===2&&String(T.vol)==='8,10','값');qOk(!TYPES.b_arsil.vol&&!TYPES.b4_morgath2.vol&&TYPES.b_arsil.sumN==null,'다른 보스도 바뀜');
-    let {e}=qBossAt(3,0);qOk(e.k==='b_morgath','4번째 던전 보스가 모르가스가 아님 '+e.k);enemies=[e];const sum=[],vol=[];let nA=0;
+    let {e}=qBossAt(3,0);qOk(e.k==='b_morgath','4번째 던전 보스가 모르가스가 아님 '+e.k);enemies=[e];const sum=[],vol=[],cloneVol=[];let nA=0;
+    // 부채를 쏘는 함수 한 번마다 센다. 같은 프레임의 보통 공격과 다른 시전자 부채는 섞지 않는다.
+    bossThink=function(actor){const before=new Set(projs),r=think0.apply(this,arguments);
+      if(actor===e||actor.clone&&actor.mg===e.mg){const count=projs.filter(p=>p.owner==='e'&&!before.has(p)).length;if(count)(actor===e?vol:cloneVol).push(count)}return r};
     const watch=i=>{P.invT=1e9;P.hp=maxHp();const a=enemies.filter(o=>o.k==='apostle'&&!o._s26);for(const o of a)o._s26=1;if(a.length){sum.push([i/30,a.length]);nA+=a.length}
-      const ps=projs.filter(p=>p.owner==='e'&&!p._s26);for(const p of ps)p._s26=1;if(ps.length)vol.push(ps.length);for(const o of enemies)if(o.k==='apostle'){o.hp=0;o.dead=true}};
+      const ps=projs.filter(p=>p.owner==='e'&&!p._s26);for(const p of ps)p._s26=1;for(const o of enemies)if(o.k==='apostle'){o.hp=0;o.dead=true}};
     qStep(30*120,{dt:1/30,render:false,each:watch});
     qOk(sum.length>=2,'부하를 안 부름 '+sum.length);qOk(sum[0][0]>=19.5,'처음 부름 '+sum[0][0]);for(let i=1;i<sum.length;i++)qOk(sum[i][0]-sum[i-1][0]>=29.5,'부르는 간격 '+(sum[i][0]-sum[i-1][0]).toFixed(1));
     qOk(sum.every(x=>x[1]<=2),'한 번에 '+sum.map(x=>x[1]));qOk(vol.length&&Math.max(...vol)<=8,'부채 '+Math.max(...vol));out.push(`120초 부름 ${sum.length}번 · 부채 ${Math.max(...vol)}`);
     // 50%: 분신 하나. 분신은 부하를 부르지 않고 부채 5 · 보스는 분노 부채 10
-    e.hp=Math.round(e.max*.45);qStep(1,{render:false,each:()=>{P.invT=1e9}});const c=enemies.find(o=>o.clone&&o.mg===e.mg);qOk(c,'분신 없음');e.sumT=1e9;sum.length=0;vol.length=0;
+    e.hp=Math.round(e.max*.45);qStep(1,{render:false,each:()=>{P.invT=1e9}});const c=enemies.find(o=>o.clone&&o.mg===e.mg);qOk(c,'분신 없음');e.sumT=1e9;sum.length=0;vol.length=0;cloneVol.length=0;
     qStep(30*60,{dt:1/30,render:false,each:i=>{watch(i);e.hp=Math.max(e.hp,1);c.hp=Math.max(c.hp,1)}});qOk(!sum.length,'분신이 부하를 부름 '+sum.length);
-    qOk(vol.length&&Math.max(...vol)<=10&&vol.includes(5),'분노 · 분신 부채 '+[...new Set(vol)]);out.push('분신 부채 '+[...new Set(vol)].sort((a,b)=>a-b).join('/'))}finally{if(DG)leaveDungeon()}
+    qOk(vol.length&&Math.max(...vol)<=10,'분노 부채 '+[...new Set(vol)]);qOk(cloneVol.length&&cloneVol.every(n=>n===5),'분신 부채 '+cloneVol);out.push('보스 부채 '+[...new Set(vol)].join('/')+' · 분신 부채 5')}finally{bossThink=think0;if(DG)leaveDungeon()}
   return out.join(' · ')});
 qT('보스 v26','보스방 3배: 모든 지역의 모든 동굴 던전에서 보스방이 v24 넓이(원래 방의 2.25배 · 큰 보스 2.6배)의 3배 이상 · 보스가 가운데 · 남은 방과 떨어짐 · 걸어서 감 · 방 8개 이상',()=>{let n=0,mn=99,eat=0;const bad=[];qPrep('mage',{lvl:60});P.invT=1e9;
   for(const id of Object.keys(REGIONS)){if(DG)leaveDungeon();loadRegion(id);for(const c of CAVES.slice()){if(!c.cave||c.cave.trial||c.cave.arena||c.cave.w3k==='trial')continue;if(DG)leaveDungeon();K22.m.clear();enterDungeon(c);qOk(!DG||DG.d===c.cave,'다른 던전이 열림 '+c.cave.n);if(!DG||!DG.boss){bad.push(c.cave.n+' 못 들어감');continue}
@@ -4791,7 +4794,7 @@ qT('성능','v26 던전 벽 묶어 그리기: 묶어 그린 화면이 벽마다 
     for(const r of DG.rooms.slice(0,4)){qClear();const c=tc(r.cx,r.cy);P.x=c.x;P.y=c.y;
       // 방 가장자리(벽 바로 앞)와 가운데에 몬스터
       for(const [i,j] of [[r.i,r.j],[r.i+r.w-1,r.j],[r.i,r.j+r.h-1],[r.i+r.w-1,r.j+r.h-1],[r.cx+1,r.cy]]){const q=tc(i,j);const e=dgMob(k,q.x,q.y,10);if(e){e.atkCd=99;e.spd=0}}
-      for(let f=0;f<3;f++)render();window.__WBOFF=1;const a=shot();window.__WBOFF=0;const e0=WB.stat.early;for(let f=0;f<60;f++)render();const b=shot();early+=WB.stat.early-e0;
+      /* v27: 앞 점검이 남긴 화면 흔들림을 끈다 (묶음은 화소 단위로 붙여 흔들릴 때 반 화소쯤 다를 수 있다) */shake=0;shx=0;shy=0;for(let f=0;f<3;f++)render();window.__WBOFF=1;const a=shot();window.__WBOFF=0;const e0=WB.stat.early;for(let f=0;f<60;f++)render();const b=shot();early+=WB.stat.early-e0;
       let bad=0;for(let p=0;p<a.length;p+=4)if(Math.abs(a[p]-b[p])>24||Math.abs(a[p+1]-b[p+1])>24||Math.abs(a[p+2]-b[p+2])>24)bad++;worst=Math.max(worst,bad/(a.length/4));n++}
     qOk(early>0,'묶음을 한 번도 안 씀');qOk(worst<.002,`다른 점 ${(worst*100).toFixed(2)}%`);return `방 ${n}곳 · 묶어 그린 횟수 ${early} · 가장 많이 다른 점 ${(worst*100).toFixed(3)}%`}finally{window.__WBOFF=0;qClear();if(DG)leaveDungeon()}});
 qT('성능','v26 땅 무늬 그림이 새로 와도 다 구운 땅을 지우지 않고, 새로 다 구우면 바꿔 끼움',()=>{qPrep('mage');
@@ -4862,6 +4865,171 @@ qT('던전','v26 던전 바닥에 들판 장식이 겹쳐 보이지 않음(사�
     qOk(n>=4,'들어간 던전 '+n);qOk(seen>0,'같은 자리에 들판 장식이 있는 조각이 없음(시험이 겨누지 못함)');qOk(!out.length,'던전 바닥에 들판 장식: '+out.join(' · '))}
   finally{RD.draw=d0;paused=p0;if(DG)leaveDungeon();K22.m.clear();if(REG.id!=='home')loadRegion('home')}
   return `던전 ${n}곳 · 들판 장식과 겹치는 조각 ${seen}개 · 그려진 들판 장식 0`});
+qT('그래픽','v27 꾸밈 장식 30% 덜 그리기: 위치로 고정 · 놀던 중 품질이 바뀌어도 그대로 · 마을 소품은 그대로',()=>{qPrep('mage');const q0=Q.lvl;
+  try{loadRegion('forest');decoKey='';Q.lvl=2;decoIdx();const all=decor.filter(d=>DTHIN.test(d.k)&&!d.label&&!d.light&&!d.cell&&!d.tprop&&!d.town),kept=all.filter(d=>!decoThin(d));const r=kept.length/Math.max(1,all.length);
+    qOk(all.length>50&&r>.62&&r<.78,`남은 비율 ${(r*100).toFixed(0)}% (${kept.length}/${all.length})`);const vis0=decoVisible(0,40,0,40,[]).length;Q.lvl=0;Q.apply();const vis1=decoVisible(0,40,0,40,[]).length;
+    qOk(vis0===vis1,`놀던 중 품질이 바뀌자 장식 수가 바뀜 ${vis0}→${vis1}`);const tp=decor.filter(d=>d.tprop||d.town);qOk(tp.every(d=>!decoThin(d)),'마을 소품이 빠짐');
+    return `숲 꾸밈 장식 ${all.length}개 중 ${kept.length}개(${(r*100).toFixed(0)}%) 그림 · 품질 바뀌어도 ${vis1}개 그대로`}finally{Q.lvl=q0;Q.apply();decoKey='';qClear()}});
+qT('그래픽','v27 화면 방향 그림이 없는 땅 조각도 낮은 장식(밀 · 꽃 · 돌)을 같이 그림 (가장자리 깜빡임)',()=>{qPrep('mage');
+  try{loadRegion('plains');P.x=2600;P.y=2600;for(let f=0;f<300;f++){render();runChunkJobs(50);if(chunks.size&&[...chunks.values()].every(c=>c.ready&&(c.iso||c.used<frameN-1)))break}for(let f=0;f<5;f++)render();
+    const a=ctx.getImageData(0,0,cv.width,cv.height).data;const keep=new Map();for(const c of chunks.values()){keep.set(c,c.iso);c.iso=null}ISO_HOLD=true;render();const b=ctx.getImageData(0,0,cv.width,cv.height).data;ISO_HOLD=false;for(const [c,i] of keep)c.iso=i;
+    let bad=0;for(let p=0;p<a.length;p+=4)if(Math.abs(a[p]-b[p])+Math.abs(a[p+1]-b[p+1])+Math.abs(a[p+2]-b[p+2])>90)bad++;const r=bad/(a.length/4);qOk(r<.01,`다른 점 ${(r*100).toFixed(2)}%`);
+    return `조각 ${keep.size}개를 돌려 그리기로만 그려도 다른 점 ${(r*100).toFixed(2)}%`}finally{ISO_HOLD=false;qClear()}});
+qT('그래픽','v27 해상도가 바뀌어도 다 구운 땅을 지우지 않음 (흐려졌다 다시 그려지던 깜빡임)',()=>{qPrep('mage');const z0=GFX.zoom;
+  try{loadRegion('plains');P.x=2600;P.y=2600;for(let f=0;f<300;f++){render();runChunkJobs(50);if(chunks.size&&[...chunks.values()].every(c=>c.ready))break}const n0=[...chunks.values()].filter(c=>c.ready).length;
+    const s0=chunkScale;GFX.zoom=1.4;resize();render();const n1=[...chunks.values()].filter(c=>c.ready).length,pv=[...chunks.values()].filter(c=>!c.ready&&c.used>=frameN).length;
+    qOk(chunkScale!==s0,`배율이 안 바뀜 ${s0}`);qOk(n1>=n0&&pv===0,`해상도 바뀐 뒤 구운 조각 ${n0}→${n1} · 흐린 조각 ${pv}`);return `구운 조각 ${n0} → ${n1}개 (조각 배율 ${s0}→${chunkScale})`}finally{GFX.zoom=z0;resize();qClear()}});
+qT('성능','v27 입자: 동그라미 그림으로 그리기 · 다 된 입자만 제자리에서 지움',()=>{qPrep('mage');
+  try{parts.length=0;for(let i=0;i<50;i++)parts.push({x:P.x+i,y:P.y,z:10,vx:0,vy:0,vz:0,life:i%2?1:-1,max:1,col:'#ff8800',sz:3});const ref=parts;update(.01);qOk(parts===ref,'입자 배열을 새로 만듦');qOk(parts.length===25,`남은 입자 ${parts.length}`);
+    render();const d=dotCv('#ff8800');qOk(d.width===64&&DOTS.get('#ff8800')===d,'동그라미 그림');return `50개 중 ${parts.length}개 남김 · 같은 배열`}finally{qClear()}});
+
+qT('외부 B1','모르가스 부채는 보통 8 · 분노 10 · 분신 5발을 각각 정확히 쏜다',()=>{
+  const T=TYPES.b_morgath,skills=T.skills;let e;
+  try{e=qBossAt(3,0).e;T.skills=['volley'];const out=[];
+    for(const [rage,clone,want] of [[0,0,8],[1,0,10],[1,1,5]]){
+      e.rage=rage;e.clone=clone;e.hp=clone||rage?e.max*.45:e.max;e.freezeT=0;e.stunT=0;e.cast=0;e.skT=0;
+      const before=new Set(projs);bossThink(e,0,P,300);const n=projs.filter(p=>p.owner==='e'&&!before.has(p)).length;
+      qOk(n===want,'정확한 발 수 '+n+'/'+want);out.push(n)}return out.join('/');
+  }finally{T.skills=skills;if(DG)leaveDungeon()}});
+
+
+qT('외부 B2','입구 자리 찾기 결과: 모든 지역의 도달 칸과 탐색 부모가 예전 계산과 같다',()=>{
+  function oldReach(L,w,x,y,par){const N=LQN,lq=L.lq&&L.id!=='home'?L.lq:null,ok=new Uint8Array(N*N);
+  const free=n=>{if(lq&&lq[n]>.5)return false;if(!w)return true;const i=n%N,j=(n/N)|0,ci=Math.floor(i*LQS/TCS),cj=Math.floor(j*LQS/TCS);return !(ci<-TK||cj<-TK||ci>=TNC+TK||cj>=TNC+TK)&&!w[terrIdx(ci,cj)]};
+  const i0=clamp(Math.round(x/LQS),0,N-1),j0=clamp(Math.round(y/LQS),0,N-1),s0=j0*N+i0,q=[s0];ok[s0]=1;if(par)par[s0]=-1;
+  for(let h=0;h<q.length;h++){const k=q[h],i=k%N,j=(k/N)|0;for(const [a,b] of [[1,0],[-1,0],[0,1],[0,-1]]){const X=i+a,Y=j+b;if(X<0||Y<0||X>=N||Y>=N)continue;const n=Y*N+X;if(ok[n]||!free(n))continue;ok[n]=1;if(par)par[n]=k;q.push(n)}}return ok}
+
+  let count=0;
+  for(const id of ['home',...REG_IDS]){const L=terrLayer(id),T=terrEnsure(id),t=(L.towns&&L.towns[0])||{x:3000,y:3000};
+    const p0=new Int32Array(LQN*LQN),p1=new Int32Array(LQN*LQN);
+    const a=oldReach(L,T&&T.w,t.x,t.y,p0),b=terrReachLQ(L,T&&T.w,t.x,t.y,p1);
+    qOk(a.length===b.length,'격자 크기 '+id);for(let i=0;i<a.length;i++)qOk(a[i]===b[i]&&p0[i]===p1[i],'도달/부모 불일치 '+id+':'+i);count++}
+  return count+'지역 · 도달 칸/부모 모두 동일'});
+
+/* ---- v27: 스킬 이름 정리 · 궁수 원소 사격 3갈래 · 사제 심판/퇴마 나누기 (사용자 2026-10-10 16:10, 5·6·7번 · skill27*.js) ---- */
+const qAoe27=s=>!!(s&&isDmg(s)&&(s.aoe||s.pierce||['rain','field','strike','storm','nova','cone','beam','chain','orbit'].includes(s.kind)));
+qT('스킬 정리 v27','궁수 원소 사격: 1레벨에 화염 · 냉기 · 바람 셋 · 갈래마다 위로 이어지고 범위기 2개 이상 · 공통 패시브 · 두 발 쏘기 → 파워 샷 · 팬 샷 → 멀티플 샷',()=>{
+  const T1=qSpells('archer',s=>TREE[s.id]===1&&!s.tab),r1=T1.filter(s=>s.rank===1);
+  qOk(r1.length===3&&['fire','ice','wind'].every(el=>r1.some(s=>s.el===el&&isDmg(s)&&!PRE[s.id])),'1위계 '+r1.map(s=>s.id+':'+s.el).join(','));
+  const out=[];for(const root of r1){const br=[root.id];let cur=root.id;for(let k=0;k<6;k++){const nx=T1.find(s=>(PRE[s.id]||[]).includes(cur));if(!nx)break;br.push(nx.id);cur=nx.id}
+    const ss=br.map(id=>SPELLS[id]);qOk(br.length>=4,`${root.el} 갈래가 짧음 ${br}`);qOk(ss.every(s=>s.el===root.el||(root.el==='wind'&&s.el==='storm')),`${root.el} 갈래에 다른 원소 ${br}`);
+    qOk(ss.filter(qAoe27).length>=2,`${root.el} 갈래 범위기 ${ss.filter(qAoe27).map(s=>s.id)}`);qOk(Math.max(...ss.map(s=>s.rank))>=7,`${root.el} 갈래 끝 위계`);out.push(br.map(id=>SPELLS[id].n).join('→'))}
+  const pv=T1.filter(s=>s.kind==='passive');qOk(pv.length===1&&pv[0].id==='elementquiver'&&!PRE.elementquiver,'공통 패시브 '+pv.map(s=>s.id));
+  qOk((PRE.trinityarrow||[]).join()==='elementquiver','트리니티 선행 '+PRE.trinityarrow);
+  qOk(!SPELLS.doubleshot&&SPELLS.powershot&&mapGoneV19('doubleshot')==='powershot'&&GONE_SK.doubleshot==='powershot','두 발 쏘기 → 파워 샷');
+  qOk(SPELLS.powershot.rank===2&&(PRE.powershot||[]).join()==='quickshot'&&SPELLS.powershot.mult>SPELLS.quickshot.mult*1.5,'파워 샷 위계 · 선행 · 배율');
+  qOk(SPELLS.fanshot.n==='멀티플 샷'&&CLASSES.archer.trees[1]==='원소 사격','이름 '+SPELLS.fanshot.n+' / '+CLASSES.archer.trees[1]);
+  const T1p=T1.filter(s=>s.kind!=='passive').map(s=>TREEPOS[s.id].row+':'+TREEPOS[s.id].col);qOk(new Set(T1p).size===T1p.length,'트리 칸이 겹침');
+  return out.join(' · ')});
+qT('스킬 정리 v27','사제 심판 · 퇴마: 어느 한쪽만 올려도 기본기(1레벨) · 10레벨 안의 범위기 · 묶기/멈칫 · 8위계 큰 한 방이 있음 · 퇴마 공격은 모두 언데드 2배 이상 · 겹치던 빛의 회오리 → 턴 언데드',()=>{const out=[];
+  for(const t of [0,1]){const L=qSpells('priest',s=>TREE[s.id]===t&&!s.tab&&isDmg(s)),nm=CLASSES.priest.trees[t];
+    qOk(L.some(s=>s.rank===1&&s.cd<=1&&s.cost<=8),nm+' 1레벨 기본기');qOk(L.some(s=>s.rank<=3&&qAoe27(s)&&s.kind!=='bolt'),nm+' 10레벨 안의 범위기');
+    qOk(L.some(s=>s.stun>=1||s.root),nm+' 묶기/멈칫');qOk(L.some(s=>s.rank===8&&qAoe27(s)),nm+' 8위계 큰 범위기');qOk(L.length>=9,nm+' 공격 기술 '+L.length);out.push(`${nm} ${L.length}`)}
+  const ex=qSpells('priest',s=>TREE[s.id]===1&&isDmg(s));qOk(ex.every(s=>(s.ud||0)>=2),'퇴마인데 언데드 배율 없음 '+ex.filter(s=>!(s.ud>=2)).map(s=>s.id));
+  qOk(['holycross','holyfire','consecration','blessedhammer','turnundead'].every(id=>TREE[id]===1)&&['smite','javelin','chainoflight','godspear','grandcross'].every(id=>TREE[id]===0),'계열 배치');
+  qOk(!SPELLS.divinestorm&&mapGoneV19('divinestorm')==='turnundead'&&SPELLS.greatjudgment&&SPELLS.grandcross,'빛의 회오리 합치기');
+  for(const id in SPELLS){const s=SPELLS[id];if(s.cls!=='priest'||(TREE[id]!==0&&TREE[id]!==1))continue;for(const p of PRE[id]||[])qOk(TREE[p]===TREE[id]&&SPELLS[p].rank<s.rank,`선행 ${p}>${id}`)}
+  return out.join(' · ')});
+qT('스킬 정리 v27','흔한 이름: 낮은 위계는 기본 이름(블레싱 · 실드 배시 · 파이어 볼트) · 한 직업 안에서 같은 화면 이름 없음',()=>{
+  qOk(SPELLS.blessing.n==='블레싱'&&SPELLS.shieldbash.n==='실드 배시'&&SPELLS.spark.n==='파이어 볼트'&&SPELLS.minorheal.n==='힐','이름');
+  for(const id in RENAME27)qOk(!SPELLS[id]||SPELLS[id].n===RENAME27[id],id+' 이름이 덮어써짐 '+(SPELLS[id]&&SPELLS[id].n));
+  const dup=[];for(const c of ['mage','priest','warrior','archer']){const seen={};for(const s of qSpells(c)){if(seen[s.n])dup.push(`${c} ${s.n}(${seen[s.n]},${s.id})`);seen[s.n]=s.id}}
+  qOk(!dup.length,'같은 이름 '+dup.join(', '));return Object.keys(RENAME27).length+'개 이름'});
+qT('저장','v27 궁수 원소 사격: 예전 저장의 바뀐 원소 화살 점수는 처음 한 번만 돌려받음(원래 값 rs27.old) · 두 발 쏘기 점수 → 파워 샷 · 공통 패시브 점수 그대로 · 다시 불러와도 또 돌려받지 않음',()=>{
+  const F={v:5,slot:0,cls:'archer',lvl:30,xp:10,gold:777,towns:['brenhill','willowen'],home:'brenhill',x:1500,y:3900,reg:'home',hp:200,mp:80,pot:{hp:2,mp:2},gear:{},bag:[],
+    sk:{quickshot:6,doubleshot:4,flamearrow:5,glacialarrow:3,thunderarrow:1,elementquiver:2,snaretrap:1},sp:3,st:{int:0,vit:20,spi:20},ap:0,diff:0,
+    bar:['quickshot','doubleshot','flamearrow','glacialarrow'].concat(Array(17).fill(null)),uid:90,q:{i:0,st:0,c:{}}};
+  const raw=JSON.stringify(F);qOk(load(JSON.parse(raw),QA_SLOT),'불러오기 실패');
+  qOk(!P.sk.flamearrow&&!P.sk.glacialarrow&&!P.sk.thunderarrow&&!P.sk.doubleshot,'돌려받을 점수가 남음 '+JSON.stringify(P.sk));
+  qOk(P.sk.powershot===4&&P.sk.quickshot===6&&P.sk.elementquiver===2&&P.sk.snaretrap===1,'남은 점수 '+JSON.stringify(P.sk));
+  qOk(P.sp===F.sp+9,`sp ${P.sp} (기대 ${F.sp+9})`);const sum=o=>Object.values(o).reduce((a,b)=>a+b,0);qOk(sum(P.sk)+P.sp===sum(F.sk)+F.sp,'전체 점수가 바뀜');
+  qOk(P.bar[0]==='quickshot'&&P.bar[1]==='powershot'&&P.bar[2]==='flamearrow','단축칸 '+P.bar.slice(0,4));qOk(P.lvl===30&&P.gold===777,'레벨 · 금화');
+  const d=JSON.parse(JSON.stringify(saveData()));qOk(d.rs27&&d.rs27.v===1&&d.rs27.old&&d.rs27.old.flamearrow===5&&d.rs27.old.glacialarrow===3,'rs27 '+JSON.stringify(d.rs27));
+  d.sk.flamearrow=2;d.sp-=2;qOk(load(d,QA_SLOT)&&P.sk.flamearrow===2&&P.sp===d.sp,'다시 불러올 때 또 돌려받음');
+  qOk(JSON.stringify(JSON.parse(raw))===raw,'불러온 원본 저장이 바뀜');
+  qPrep('mage');const m=JSON.parse(JSON.stringify(saveData()));delete m.rs27;qOk(load(m,QA_SLOT)&&saveData().rs27.v===1&&!saveData().rs27.old,'다른 직업 rs27');
+  const bad=Object.assign(JSON.parse(raw),{rs27:'<x>'});qOk(load(bad,QA_SLOT)&&P.sk.flamearrow===5&&JSON.stringify(saveData().rs27)==='{"v":1}','손상된 rs27을 돌려받기 표시로 보고 그대로 둠');
+  return `돌려받음 9점 · 파워 샷 4`});
+qT('저장','v27 사제: 심판 · 퇴마 사이에서 자리만 옮긴 스킬의 점수는 그대로 · 빛의 회오리 점수는 턴 언데드로',()=>{
+  const F={v:5,slot:0,cls:'priest',lvl:40,xp:10,gold:50,towns:['brenhill'],home:'brenhill',x:1500,y:3900,reg:'home',hp:200,mp:80,pot:{hp:2,mp:2},gear:{},bag:[],
+    sk:{smite:8,holycross:3,holyfire:4,consecration:2,turnundead:2,divinestorm:3,grandcross:1,greatjudgment:1,symbolflash:2},sp:0,st:{int:30,vit:20,spi:20},ap:0,diff:0,
+    bar:['smite','divinestorm','turnundead'].concat(Array(18).fill(null)),uid:91,q:{i:0,st:0,c:{}}};
+  qOk(load(JSON.parse(JSON.stringify(F)),QA_SLOT),'불러오기 실패');
+  qOk(P.sk.smite===8&&P.sk.holycross===3&&P.sk.holyfire===4&&P.sk.consecration===2&&P.sk.grandcross===1&&P.sk.greatjudgment===1&&P.sk.symbolflash===2,'점수 '+JSON.stringify(P.sk));
+  qOk(P.sk.turnundead===5&&!P.sk.divinestorm&&P.sp===0,`턴 언데드 ${P.sk.turnundead} · sp ${P.sp}`);qOk(P.bar[1]===null&&P.bar[2]==='turnundead','단축칸 '+P.bar.slice(0,3));
+  return '점수 그대로 · 빛의 회오리 3 → 턴 언데드'});
+qT('스킬 트리','v27 원소 사격 · 심판 · 퇴마 트리 화면: 모든 스킬 칸이 보이고 서로 겹치지 않음 · 새 스킬 아이콘',()=>{const out=[];
+  for(const [c,t] of [['archer',1],['archer',0],['priest',0],['priest',1]]){qPrep(c,{lvl:45});openPanel('tree');treeSel=t;nodeSel=null;renderPanel();
+    const want=qSpells(c,s=>TREE[s.id]===t&&!s.tab),nodes=[...pbody.querySelectorAll('.tree [data-node]')],pos=nodes.map(n=>n.style.left+','+n.style.top);
+    qOk(want.every(s=>pbody.querySelector(`.tree [data-node="${s.id}"]`)),`${c} ${t} 칸 없음`);qOk(new Set(pos).size===pos.length,`${c} ${t} 칸이 겹침`);out.push(`${CLASSES[c].trees[t]} ${nodes.length}`);closePanel()}
+  for(const id of ['powershot','firerain','volcanoshot','blizzardshot','glacialspike','galearrow','cyclonearrow'])qOk(ICP[id]&&/<path|<circle|<g/.test(spellSvg(SPELLS[id])),id+' 아이콘');
+  return out.join(' · ')});
+/* ===== v27 (사용자 2026-10-10 16:10 목록 1 · 2 · 3 · 4 · 8번) ===== */
+qT('마나','v27 첫 기술은 마나 0(사용자 16:10 1번): 네 직업 첫 기술이 레벨 · 스킬 레벨과 상관없이 0 · 마나 0에서도 나감 · 단축칸이 「마나 부족」으로 어두워지지 않음 · 다른 기술은 그대로 마나를 씀',()=>{const out=[];
+  for(const cls of QCLS){qPrep(cls,{lvl:1});const id=CLASSES[cls].start[0],L0=skLv(id);qOk(L0>0,`${QCN[cls]}: 첫 기술을 모름`);qOk(costOf(id)===0,`${QCN[cls]} ${SPELLS[id].n}: 마나 ${costOf(id)}`);
+    P.lvl=120;P.sk[id]=20;qOk(costOf(id)===0&&costAt(id,20)===0,`${QCN[cls]} 120레벨 · 스킬 20: 마나 ${costOf(id)}`);P.sk[id]=L0;P.lvl=1;
+    const e=qDummy(P.x+120,P.y);enemies.push(e);P.mp=0;P.cd={};castReset();tryCast(id,e);
+    qOk(P.cd[id]>0||(CAST.cur&&CAST.cur.id===id),`${QCN[cls]}: 마나 0에서 ${SPELLS[id].n}이(가) 안 나감`);qOk(P.mp>=0,`${QCN[cls]}: 마나를 씀 ${P.mp}`);
+    P.bar[0]=id;buildBar();P.mp=0;updateHud();const b=document.querySelector('#bar .sk[data-slot="0"]');qOk(b&&!b.classList.contains('nomana'),`${QCN[cls]}: 단축칸이 마나 부족으로 보임`);
+    const other=Object.keys(SPELLS).find(k=>SPELLS[k].cls===cls&&SPELLS[k].kind!=='passive'&&!CLASSES[cls].start.includes(k)&&SPELLS[k].cost>0);if(other){P.sk[other]=1;qOk(costOf(other)>0,`${QCN[cls]} ${SPELLS[other].n}: 다른 기술도 마나 0`)}
+    out.push(`${QCN[cls]} ${SPELLS[id].n} 0`)}
+  qOk(FREE27.includes('spark')&&FREE27.includes(CLASSES.priest.start[0]),'마법사 · 사제 첫 기술이 바뀐 목록에 없음 '+FREE27);return out.join(' · ')});
+qT('짝문','v27 PC에서 짝문 창이 스크롤 없이 한 화면에(사용자 16:10 2번): 1024~1920 화면에서 지도 · 창 모두 스크롤 없음 · 모든 마을 단추가 화면 안 · 누르면 건너감 · 휴대폰은 예전 그대로(밀어 보기)',()=>{qPrep('mage',{lvl:99});
+  P.towns=ALLTOWNS.map(t=>t.id);const out=[];
+  try{for(const [w,h] of [[1920,1080],[1366,768],[1280,800],[1280,720],[1024,700]])qM22('',w,h,()=>{openPanel('gate');try{const g=$('#g26w'),c=panel.querySelector('.card');
+      qOk(g&&g.closest('.g27row'),`${w}×${h}: PC 배치가 아님`);qOk(g.scrollWidth<=g.clientWidth+1&&g.scrollHeight<=g.clientHeight+1,`${w}×${h}: 지도 스크롤 ${g.scrollWidth}/${g.clientWidth} × ${g.scrollHeight}/${g.clientHeight}`);
+      qOk(c.scrollHeight<=c.clientHeight+1,`${w}×${h}: 창 스크롤 ${c.scrollHeight}/${c.clientHeight}`);const cr=qmR(c),gr=qmR(g);qOk(cr.bottom<=h+.5&&cr.right<=w+.5,`${w}×${h}: 창이 화면 밖`);
+      const bs=[...g.querySelectorAll('.g26t')];qOk(bs.length>=20,'마을 단추 '+bs.length);for(const b of bs){const r=qmR(b);if(!(r.top>=gr.top-.5&&r.bottom<=gr.bottom+.5&&r.left>=gr.left-.5&&r.right<=gr.right+.5&&r.bottom<=h)){qOk(false,`${w}×${h}: ${b.textContent} 단추가 지도 밖`);break}}
+      qOk(W27.s>=(w>=1280?.75:.6),`${w}×${h}: 너무 작게 줄임 ${W27.s}`);out.push(`${w}×${h} ${Math.round(W27.s*100)}%`)}finally{closePanel()}});
+    qM22('',1366,768,()=>{openPanel('gate');const t=ALLTOWNS.find(t=>t.reg==='plains'),b=$(`#g26w [data-travel="${t.id}"]`);qOk(b,'황금 평원 단추 없음');b.click();qOk(REG.id==='plains','눌러도 안 건너감 '+REG.id);if(!panel.hidden)closePanel()});
+    for(const [m,w,h] of [['L',844,390],['P',390,844]])qM22(m,w,h,()=>{openPanel('gate');try{const g=$('#g26w');qOk(g&&!g.closest('.g27row')&&!panel.querySelector('.card.g27'),`${m}: 휴대폰에 PC 배치`);qOk(getComputedStyle(g).overflow==='auto'&&!g.querySelector('.g26m').style.zoom,`${m}: 휴대폰 지도가 밀어 보기가 아님`)}finally{closePanel()}})}
+  finally{if(!panel.hidden)closePanel();if(REG.id!=='home')loadRegion('home')}
+  return out.join(' · ')});
+qT('스킬 트리','v27 스킬 설명이 트리 옆에(사용자 16:10 3번): PC · 가로 휴대폰은 설명이 트리 오른쪽(같은 줄 · 화면 안) · 다른 마법을 눌러도 옆 · 세로 휴대폰은 자리가 없어 아래',()=>{const out=[];
+  for(const cls of ['mage','archer']){qPrep(cls,{lvl:60});
+    for(const [m,w,h] of [['',1280,800],['',1920,1080],['',1024,700],['L',844,390],['P',390,844]])qM22(m,w,h,()=>{openPanel('tree');try{
+      const chk=tag=>{const t=qmR(pbody.querySelector('.treescroll')),d=qmR(pbody.querySelector('.detail'));
+        if(m==='P'){qOk(d.top>=t.bottom-.5,`${cls} ${m}: 설명이 아래가 아님`);return}
+        qOk(d.left>=t.right-.5&&d.top<t.bottom&&Math.abs(d.top-t.top)<40,`${cls} ${w}×${h} ${tag}: 설명이 옆이 아님 (트리 ${Math.round(t.left)}~${Math.round(t.right)}/${Math.round(t.top)} · 설명 ${Math.round(d.left)}/${Math.round(d.top)})`);
+        qOk(d.right<=w+.5&&d.width>=240,`${cls} ${w}×${h}: 설명이 화면 밖이거나 좁음 ${Math.round(d.right)} ${Math.round(d.width)}`)};
+      chk('처음');const n=[...pbody.querySelectorAll('.node')].pop();n.click();qOk(nodeSel===n.dataset.node,'눌러도 안 고름');qOk(pbody.querySelector('.detail .t').textContent.includes(SPELLS[nodeSel].n),'설명이 안 바뀜');chk('다른 마법')}
+      finally{closePanel()}});out.push(cls)}
+  return out.join(' · ')});
+qT('이름','v27 캐릭터 이름(사용자 16:10 4번): 한글 · 영문만 · 한글 8 / 영문 16글자까지 · 띄어쓰기 · 숫자 · 특수문자 · 덜 쓴 한글 안 됨',()=>{
+  const ok=['아리엔','Arien','가나다라마바사아','abcdefghijklmnop','리아Lee','A'],no=['','아 리','ㄱㄴ','리ㅇ','루1','<b>','a_b','가나다라마바사아자','abcdefghijklmnopq','리아Leeeeeeeeeeeee','名前','é','😀'];
+  for(const s of ok)qOk(n27Why(s)==='',`「${s}」이(가) 안 됨: ${n27Why(s)}`);for(const s of no)qOk(n27Why(s)!=='',`「${s}」이(가) 됨`);
+  qOk(n27W('가나다')===6&&n27W('abc')===3,'글자 칸 셈');return `됨 ${ok.length} · 안 됨 ${no.length}`});
+function qN27(b,name){b.click();const d=document.getElementById('n27');qOk(d,'이름 창이 안 뜸');if(!d)return;const i=$('#n27v');i.value=name;i.dispatchEvent(new Event('input'));$('#n27ok').click()}
+qT('이름','v27 새 캐릭터 이름 짓기 · 저장 · 바꾸기 · 예전 저장(사용자 16:10 4번): 새 캐릭터 단추 → 이름 창(취소하면 그대로) · 정한 이름이 저장 · 화면 왼쪽 위 · 캐릭터 고르기 카드 · 같이 하기 이름 · 캐릭터 창에서 바꾸기 · 이름 없는 예전 저장도 그대로 열림 · 잘못된 이름은 버림',()=>{qResetStore();
+  qPut('arseia-char-0',QA_FIX.v5);const raw0=qRaw('arseia-char-0');introButtons(false);
+  const b=document.querySelector('#introBody [data-cls="archer"]'),slot=+b.dataset.slot,p0=P;b.click();qOk($('#n27'),'이름 창이 안 뜸');qOk(P===p0,'이름을 정하기 전에 캐릭터가 생김');
+  const i=$('#n27v');i.value='리 아';i.dispatchEvent(new Event('input'));qOk($('#n27ok').disabled&&/띄어쓰기/.test($('#n27m').textContent),'띄어쓰기가 막히지 않음');
+  $('#n27no').click();qOk(!$('#n27')&&P===p0&&!qRaw('arseia-char-'+slot),'취소했는데 캐릭터가 생김');
+  qN27(b,'리아');qOk(P!==p0&&P.cls==='archer'&&P.name==='리아'&&curSlot===slot,`새 캐릭터 ${P.cls} ${P.name}`);qOk($('#intro').hidden&&!paused,'시작 화면이 닫히지 않음');
+  qOk(JSON.parse(qRaw('arseia-char-'+slot)).name==='리아','이름이 저장되지 않음');qOk($('#pn27').textContent==='리아'&&!$('#pn27').hidden,'화면 왼쪽 위에 이름 없음');
+  qOk(netName()==='리아','같이 하기 이름 '+netName());
+  introButtons(true);const card=$(`#introBody [data-exp="${slot}"]`).closest('.cls');qOk(card.querySelector('.n27c').textContent==='리아','캐릭터 카드에 이름 없음');$('#intro').hidden=true;paused=false;
+  openPanel('char');qOk(pbody.querySelector('.n27row').textContent.includes('리아'),'캐릭터 창에 이름 없음');pbody.querySelector('[data-n27ren]').click();qOk($('#n27v').value==='리아','바꾸기 창에 지금 이름이 없음');
+  $('#n27v').value='Lia';$('#n27v').dispatchEvent(new Event('input'));$('#n27ok').click();qOk(P.name==='Lia'&&JSON.parse(qRaw('arseia-char-'+slot)).name==='Lia','바꾼 이름이 저장되지 않음');qOk(pbody.querySelector('.n27row b').textContent==='Lia','창이 안 바뀜');closePanel();
+  // 예전 저장 · 잘못된 이름
+  qOk(qRaw('arseia-char-0')===raw0,'다른 칸이 바뀜');const d0=readSlot(0);qOk(!('name' in d0),'시험 저장에 이름이 있음');qOk(load(d0,0),'예전 저장 불러오기 실패');
+  qOk(!P.name&&$('#pn27').hidden&&el.title.textContent.length>0,'예전 저장: 이름 칸이 보임');qOk(!('name' in saveData()),'예전 저장에 이름이 생김');qOk(P.lvl===d0.lvl,'레벨이 바뀜');
+  for(const bad of ['<img src=x>','가나다라마바사아자차',42,'ㄱ'])qOk(load(Object.assign({},d0,{name:bad}),0)&&!P.name,'잘못된 이름을 받음 '+bad);
+  qOk(load(Object.assign({},d0,{name:'세린'}),0)&&P.name==='세린'&&saveData().name==='세린','이름 왕복');loadRegion('home');return '취소 · 짓기 · 바꾸기 · 예전 저장 · 잘못된 값'});
+qT('같이 하기','v27 친구 접속 알림(사용자 16:10 8번): 접속자 목록에 새 사람이 생기면 「OO님이 접속했습니다」 + 쪽지 · 혼자인 친구면 「파티에 초대」 단추 · 처음 받은 목록 · 나 자신 · 이미 있던 사람은 알리지 않음 · 다시 이어지면 처음부터 · (9번) 파티 다시 묶는 시간 30분',()=>{qPrep('mage');
+  const id0=NET.id,lob0=NET.lobby,h0=NET.roomHost,n0=F27.log.length,L=()=>F27.log.slice(n0);
+  try{netOnMsg({t:'hello',id:501});netOnMsg({t:'who',host:0,list:[{id:501,n:'나',c:'mage',l:3,r:0},{id:502,n:'먼저온친구',c:'priest',l:10,r:0}]});qOk(!L().length,'처음 목록을 알림 '+L());
+    netOnMsg({t:'who',host:0,list:[{id:501,n:'나',c:'mage',l:3,r:0},{id:502,n:'먼저온친구',c:'priest',l:10,r:0},{id:503,n:'새친구',c:'archer',l:7,r:0}]});
+    qOk(L().length===1&&/^새친구님이 접속했습니다/.test(L()[0]),'새 사람 알림 '+L());qOk([...logEl.children].some(x=>x.textContent.startsWith('새친구님이 접속했습니다')),'화면에 알림이 안 뜸');
+    {const t=$('#f27t'),b=t&&t.querySelector('[data-f27inv]');qOk(t&&!t.hidden&&t.textContent.includes('새친구님이 접속했습니다'),'쪽지가 안 뜸');qOk(b,'혼자인 친구인데 「파티에 초대」 단추가 없음');
+      const ni=netInvite,got=[];netInvite=id=>got.push(id);try{b.click()}finally{netInvite=ni}qOk(got.join()==='503'&&t.hidden,'초대 단추가 초대하지 않음 '+got)}
+    netOnMsg({t:'who',host:0,list:[{id:501,n:'나',c:'mage',l:4,r:0},{id:503,n:'새친구',c:'archer',l:7,r:1}]});qOk(L().length===1,'이미 있던 사람을 또 알림');
+    netOnMsg({t:'who',host:0,list:[{id:501,n:'나',c:'mage',l:4,r:0},{id:503,n:'새친구',c:'archer',l:7,r:1},{id:504,n:'',c:'mage',l:1,r:0}]});qOk(L().length===2,'이름 없는 사람 알림');
+    netOnMsg({t:'who',host:506,list:[{id:501,n:'나',c:'mage',l:4,r:0},{id:503,n:'새친구',c:'archer',l:7,r:1},{id:504,n:'',c:'mage',l:1,r:0},{id:506,n:'파티중',c:'mage',l:9,r:1}]});
+    qOk(L().length===3&&!$('#f27t').querySelector('[data-f27inv]'),'이미 파티 중인 친구에게 초대 단추');
+    netOnMsg({t:'hello',id:601});netOnMsg({t:'who',host:0,list:[{id:601,n:'나',c:'mage',l:4,r:0},{id:503,n:'새친구',c:'archer',l:7,r:0},{id:505,n:'또',c:'mage',l:1,r:0}]});qOk(L().length===3,'다시 이어진 뒤 처음 목록을 알림');qOk(CO22.RJMS>=30*60e3,'파티 다시 묶는 시간 '+CO22.RJMS)}
+  finally{NET.id=id0;NET.lobby=lob0||[];NET.roomHost=h0;F27.seen=null;const t=$('#f27t');if(t)t.hidden=true}
+  return L().join(' · ')});
 window.__QA_RUN=qaRun;
 setTimeout(()=>{qaRun().catch(e=>{window.__QA_RESULT={fatal:String(e&&e.stack||e),results:[],summary:{total:0,pass:0,fail:1}}})},120);
 }

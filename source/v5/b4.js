@@ -2,6 +2,8 @@
 /* ---------- rendering ---------- */
 function ell(x,y,rx,ry){ctx.beginPath();ctx.ellipse(x,y,rx,ry,0,0,6.283);ctx.fill()}
 function circ(x,y,r){ctx.beginPath();ctx.arc(x,y,r,0,6.283);ctx.fill()}
+// [v27] 색마다 한 번 굽는 동그라미 (입자 · 이펙트용). 64칸 안에 반지름 31 원 → 늘리거나 줄여 붙인다
+const DOTS=new Map();function dotCv(col){let c=DOTS.get(col);if(c)return c;c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d');g.fillStyle=col;g.beginPath();g.arc(32,32,31,0,6.283);g.fill();if(DOTS.size>256)DOTS.clear();DOTS.set(col,c);return c}
 function poly(pts,fill){ctx.fillStyle=fill;ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.closePath();ctx.fill()}
 const up=(p,h)=>({x:p.x,y:p.y-h});
 // 빛 번짐은 색마다 한 번 구운 그림을 붙인다 (매 프레임 그라디언트를 만들지 않음)
@@ -84,7 +86,8 @@ function render(){
   for(const b of pillars){const a=clamp(b.life/b.max,0,1),s=W2S(b.x,b.y),w=b.w*1.1;const pe=SC.get('fx/pillar/'+b.col,16,128,8,128,g=>{const gr=g.createLinearGradient(0,0,0,128);gr.addColorStop(0,'rgba(0,0,0,0)');gr.addColorStop(1,b.col);g.fillStyle=gr;g.fillRect(0,0,16,128)},{force:1,scale:1});ctx.globalAlpha=a;ctx.drawImage(pe.cv,s.x-w/2,s.y-460,w,460);ctx.fillStyle='#fff';ctx.fillRect(s.x-w/6,s.y-460,w/3,460);ctx.globalAlpha=a*.6;ctx.fillStyle=b.col;ell(s.x,s.y,w*.9,w*.45)}
   ctx.globalAlpha=1;
   for(const b of beams)drawBeam(b);
-  for(const p of parts){const s=P3(p);ctx.globalAlpha=clamp(p.life/p.max,0,1);ctx.fillStyle=p.col;circ(s.x,s.y,p.sz)}
+  // [v27 최적화] 입자: 매번 원 경로를 만들어 칠하던 것을, 색마다 한 번 구운 동그라미 그림을 붙이는 것으로 (같은 그림이라 한꺼번에 처리된다). 화면 밖 입자는 건너뛴다.
+  for(const p of parts){const sx=(p.x-p.y)*KI-camX,sy=(p.x+p.y)*KI/2-camY-(p.z||0),r=p.sz;if(sx<-r||sx>W+r||sy<-r||sy>H+r)continue;ctx.globalAlpha=clamp(p.life/p.max,0,1);ctx.drawImage(dotCv(p.col),sx-r,sy-r,r*2,r*2)}
   ctx.globalAlpha=1;
   for(const b of bolts)drawBolt(b);
   ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';

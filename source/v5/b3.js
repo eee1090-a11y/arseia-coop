@@ -389,7 +389,7 @@ function update(dt){
   for(const l of loot){l.t+=dt;if(P.dead)continue;const d=Math.hypot(P.x-l.x,P.y-l.y);if(l.kind!=='item'&&d<110&&d>1){const k=Math.min(1,dt*(260/d));l.x+=(P.x-l.x)*k;l.y+=(P.y-l.y)*k}if(d<34)pickup(l)}
   loot=loot.filter(l=>!l.taken&&!loot25Gone(l));/* v25: 90초 (loot25.js) */
   for(const p of parts){p.x+=p.vx*dt;p.y+=p.vy*dt;p.z=(p.z||0)+(p.vz||0)*dt;if(p.g){p.vz-=520*dt;if(p.z<0){p.z=0;p.vz=0}}p.vx*=.94;p.vy*=.94;if(!p.g)p.vz=(p.vz||0)*.94;p.life-=dt}
-  parts=parts.filter(p=>p.life>0);if(parts.length>Q.pcap)parts.splice(0,parts.length-Q.pcap);
+  {let n=0;for(let i=0;i<parts.length;i++){const p=parts[i];if(p.life>0)parts[n++]=p}parts.length=n}if(parts.length>Q.pcap)parts.splice(0,parts.length-Q.pcap);// [v27] 새 배열을 만들지 않고 제자리에서 지운다
   for(const t of texts){t.z+=34*dt;t.life-=dt*.9}
   texts=texts.filter(t=>t.life>0);
   for(const b of bolts){if(b.delay>0){b.delay-=dt;continue}b.life-=dt}bolts=bolts.filter(b=>b.life>0);

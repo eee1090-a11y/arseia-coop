@@ -471,6 +471,11 @@ const Q={lvl:2,ema:16.7,lowT:0,highT:0,pcap:900,burstK:1,
     if(this.highT>8000&&this.lvl<2){this.lvl++;this.highT=0;this.apply()}},
   apply(){this.pcap=[350,600,900][this.lvl];this.burstK=[.45,.7,1][this.lvl]}};
 
+// [v27] 이펙트 가벼움 도우미 (이펙트 고도화 때 쓰기): 한 프레임에 그릴 이펙트 조각 수 예산과 그리기 단계.
+//  FXL.lod(sx,sy,r,mine) → 0 그리지 않음(화면 밖) · 1 간단히(예산 초과 · 남의 이펙트를 낮은 품질에서) · 2 다 그림.  FXL.spend(n)으로 그린 조각 수를 더한다.
+const FXL={n:0,f:-1,budget(){return[160,300,480][Q.lvl]},
+  lod(sx,sy,r,mine){if(this.f!==frameN){this.f=frameN;this.n=0}r=r||0;if(sx+r<-20||sx-r>W+20||sy+r<-40||sy-r>H+40)return 0;if(this.n>this.budget())return 1;if(mine===false&&Q.lvl<2)return 1;return 2},
+  spend(n){if(this.f!==frameN){this.f=frameN;this.n=0}this.n+=n||1}};
 // 스프라이트 캐시: 키마다 오프스크린 캔버스를 한 번 굽고 재사용한다. 화소 비율로 굽고, 앵커(발밑)를 함께 둔다.
 const SC={map:new Map(),bytes:0,cap:(matchMedia('(pointer:coarse)').matches?64:96)*1048576,bakeLeft:8,
   get(key,w,h,ax,ay,paint,o){let e=this.map.get(key);if(e){e.used=frameN;return e}
@@ -2777,11 +2782,11 @@ const scale=()=>Math.min(2.4,Math.max(1,DPR)*1.35);
 function spr(k,vi,gl){const df=D[k];return SC.get('rd/'+k+'/'+vi+(gl?'/g':''),df.w,df.h,df.ax,df.ay,g=>{g.translate(df.ax,df.ay);(gl?df.gp:df.p)(g,mulberry(k.length*131+k.charCodeAt(0)*7+vi*1013),vi)},{scale:scale()})}
 // 매 프레임 덧그림 (가산 합성, 몇 개의 호·점만)
 function anim(c,d,vi,t){const k=d.k,ph=d.v*9;
-  if(D[k].glow){const e=spr(k,vi,1);if(e){c.globalCompositeOperation='lighter';c.globalAlpha=k==='icespike'?.35+.25*Math.sin(t*1.3+ph):k==='vent'?.75+.25*Math.sin(t*5+ph):.6+.35*Math.sin(t*(k==='mushroom'?1.6:2.4)+ph);SC.draw(c,e,0,0);c.globalAlpha=1;c.globalCompositeOperation='source-over'}}
+  if(D[k].glow){const e=spr(k,vi,1);if(e){c.globalCompositeOperation='lighter';/* [v27] 빛 맥박을 약하고 느리게 (깜빡여 보이지 않게) */c.globalAlpha=k==='icespike'?.42+.08*Math.sin(t*.8+ph):k==='vent'?.8+.1*Math.sin(t*1.6+ph):.62+.12*Math.sin(t*(k==='mushroom'?.9:1.2)+ph);SC.draw(c,e,0,0);c.globalAlpha=1;c.globalCompositeOperation='source-over'}}
   if(k==='vent'){c.globalCompositeOperation='lighter';for(let i=0;i<7;i++){const p=(t*.55+i/7+d.v)%1,x=Math.sin(i*7.3)*9+Math.sin(t*2+i)*4*p,y=-2-p*58,s=1.8*(1-p)+.4;c.fillStyle=i%2?'rgba(255,200,90,'+(1-p)+')':'rgba(255,110,30,'+(1-p)+')';c.fillRect(x-s/2,y-s/2,s,s)}c.globalCompositeOperation='source-over'}
   else if(k==='mushroom'){c.globalCompositeOperation='lighter';c.fillStyle=['#7affe8','#d0a0ff','#90c8ff'][vi];for(let i=0;i<4;i++){const p=(t*.18+i/4+d.v)%1;c.globalAlpha=Math.sin(p*PI)*.8;c.beginPath();c.arc(Math.sin(i*5.1+t*.8)*16,-14-p*50,1.1,0,TAU);c.fill()}c.globalAlpha=1;c.globalCompositeOperation='source-over'}
-  else if(k==='icespike'){const p=(t*.5+d.v*3)%3;if(p<.6){const a=Math.sin(p/.6*PI),x=[2,-6,0][vi],y=[-50,-40,-56][vi];c.globalCompositeOperation='lighter';c.fillStyle='rgba(255,255,255,'+a+')';c.fillRect(x-.5,y-5*a,1,10*a);c.fillRect(x-5*a,y-.5,10*a,1);c.globalCompositeOperation='source-over'}}
-  else if(k==='searock'){const p=(t*.4+d.v)%1;c.strokeStyle='rgba(240,250,255,'+(.5*(1-p))+')';c.lineWidth=1.2;c.beginPath();c.ellipse(0,2,26+p*10,6+p*3,0,0,TAU);c.stroke()}
+  // [v27] 얼음 기둥의 반짝 십자(3초마다 번쩍)는 깜빡여 보여서 뺐다
+  else if(k==='searock'&&d.v<.2){const p=(t*.4+d.v)%1;c.strokeStyle='rgba(240,250,255,'+(.5*(1-p))+')';c.lineWidth=1.2;c.beginPath();c.ellipse(0,2,26+p*10,6+p*3,0,0,TAU);c.stroke()}
   else if(k==='edgeportal'){const col=d.col||'#9ad8ff',cy=-48;c.globalCompositeOperation='lighter';c.globalAlpha=.55+.15*Math.sin(t*2);c.drawImage(Kit.glowCv(col),-30,cy-54,60,108);c.globalAlpha=1;
     for(let i=0;i<4;i++){const sp=t*(1.6+i*.5)*(i%2?-1:1)+i*1.7;c.strokeStyle=col;c.globalAlpha=.75-i*.13;c.lineWidth=2.4-i*.4;c.beginPath();c.ellipse(0,cy,22-i*4.5,44-i*9,0,sp,sp+3.6);c.stroke()}
     c.fillStyle='#fff';for(let i=0;i<6;i++){const a=t*1.2+i/6*TAU;c.globalAlpha=.6+.4*Math.sin(t*3+i);c.fillRect(Math.cos(a)*16-1,cy+Math.sin(a)*34-1,2,2)}
@@ -3837,6 +3842,86 @@ function tickBuffsV19(dt){for(const id in P.buffs){const b=P.buffs[id];b.t-=dt;i
 function putHotV19(nh,by,s){const o=P.hot;if(o&&o.t>0&&o.rate*o.t>nh.rate*nh.t+1e-6){if(s)msg(`${by}${s.n}: 더 큰 지속 치유가 이미 걸려 있습니다`,'#a39d8f');return false}P.hot=nh;return true}
 // 가호(쓰러지지 않게): 일으키는 생명력(heal)이 큰 쪽이 남는다 (같으면 새로 고침)
 function putWardV19(nw,by,s){const o=P.ward;if(o&&o.t>0&&o.heal>nw.heal+1e-6){msg(`${by}${s.n}: 더 강한 ${o.n}이(가) 이미 걸려 있습니다`,'#a39d8f');return false}P.ward=nw;return true}
+/* ---------- v27 (SKILL): 궁수 원소 사격 3갈래 · 사제 심판/퇴마 나누기 — 데이터 (사용자 2026-10-10 16:10, 5·6·7번) ----------
+   skill19.js 바로 뒤, b2.js(TREE·PRE·TREEPOS) 앞에 붙는다. 선행 연결·칸 배치는 skill27b.js(b2.js 바로 뒤),
+   흔한 이름 · 시전 시간 · 아이콘 · 저장 옮기기(점수 돌려주기)는 skill27c.js(맨 뒤, qa.js 앞).
+   · 궁수 「원소 화살」 → 「원소 사격」: 1위계(1레벨)에 화염 · 냉기 · 바람 화살 셋. 고른 원소를 3 · 5 · 7위계(10 · 23 · 38레벨)에서 키운다.
+     원소마다 범위기 2~3개. 공통: 엘리멘탈 퀴버(패시브, 2위계) · 엘리멘탈 임뷰(강화, 6위계) · 트리니티 샤프트(상위 기술).
+   · 궁수 「사격」: 두 발 쏘기(doubleshot)는 팬 샷의 아래 호환이라 없애고 파워 샷(powershot)으로 바꾼다.
+   · 사제: 심판(0) = 멀리서 정확히(한 대상 강타 · 직선 관통 · 하늘에서 내리치기). 퇴마(1) = 내 둘레를 정화(둘레 · 앞쪽 범위 ·
+     태우기 · 밀치기 · 묶기, 언데드 2~3배). 겹치던 빛의 회오리(divinestorm) → 턴 언데드. 어느 한쪽만 올려도 기본기 · 범위기 ·
+     묶기 · 8위계 큰 한 방이 다 있다(심판 8위계 사방의 성호 = 둘러싸였을 때 쓰는 큰 한 방, 퇴마 8위계 홀리 노바 = 옛 대심판).
+   · id는 그대로 둔다(단축칸 · 장비 +스킬 옵션 · 같이 하기 · 저장). 자리만 옮긴 스킬의 점수는 그대로 남는다.
+     없어지는 둘은 MERGE_V19에 넣어 점수 · 단축칸 · 옵션 · 옛 판 동료의 시전이 남는 스킬로 이어진다(v19와 같은 길).
+     하는 일이 크게 바뀐 궁수 원소 사격 스킬(REFUND27)의 점수만 skill27c.js가 처음 불러올 때 한 번 돌려준다. */
+
+/* ---- 1. 없어지는 스킬 → 이어 받는 스킬 (단축칸 · +스킬 옵션 · 옛 판 동료) ---- */
+const GONE27={doubleshot:'powershot',divinestorm:'turnundead'};
+
+/* ---- 2. 새 스킬 (def 모양은 cls.js와 같음: 값은 v18 기준 배율, 뒤의 시전 · 장판 규칙(cast24.js)이 똑같이 적용됨) ---- */
+// 사격: 파워 샷
+def('archer',2,'powershot','강한 한 발','Power Shot','phys','bolt',8,3,{phys:1,wt:'bow',mult:2,spd:900,r:7,knock:60,stun:.4},
+  '활을 힘껏 당겨 무거운 화살 한 대를 쏩니다. 맞은 적은 뒤로 밀려나며 0.4초 동안 멈칫합니다. 재사용이 짧은 한 대상 강타.');
+// 원소 사격 · 화염
+def('archer',5,'firerain','불화살 비','Fire Rain','fire','rain',26,12,{phys:1,wt:'bow',mult:1.3,rad:170,dur:3,rate:9,srad:36,burn:1},
+  '불붙은 화살을 하늘로 쏘아 올려 3초 동안 넓은 곳에 쏟아붓습니다. 맞은 적은 불탑니다.');
+def('archer',7,'volcanoshot','화산 화살','Volcano Shot','fire','strike',36,9,{phys:1,wt:'bow',mult:6,rad:170,delay:.5,burn:1},
+  '화살에 불을 가득 모아(시전 0.8초) 쏘면, 떨어진 자리가 화산처럼 터져 넓은 둘레를 크게 태웁니다.');
+// 원소 사격 · 냉기
+def('archer',5,'blizzardshot','눈보라 화살','Blizzard Shot','ice','field',26,14,{phys:1,wt:'bow',mult:.5,rad:190,dur:5,slow:1,freeze:.8},
+  '꽂힌 화살에서 눈보라가 일어 5초 동안 넓은 곳의 적을 계속 얼리며 느리게 합니다. 가끔 잠깐 얼어붙습니다.');
+def('archer',7,'glacialspike','빙하 가시','Glacial Spike','ice','strike',36,10,{phys:1,wt:'bow',mult:5.2,rad:190,delay:.4,freeze:1.8},
+  '얼음 화살을 땅에 박아(시전 0.7초) 거대한 얼음 가시를 솟구치게 합니다. 넓은 둘레의 적을 1.8초 동안 얼립니다.');
+// 원소 사격 · 바람
+def('archer',3,'galearrow','돌풍 화살','Gale Arrow','wind','beam',12,3,{phys:1,wt:'bow',mult:2.2,len:420,w:30,knock:70},
+  '돌풍을 실은 화살이 앞쪽 일직선의 적을 모두 꿰뚫고 뒤로 밀어냅니다.');
+def('archer',5,'cyclonearrow','회오리 화살','Cyclone Arrow','wind','field',24,14,{phys:1,wt:'bow',mult:.45,rad:170,dur:4,pull:1},
+  '꽂힌 자리에 4초 동안 회오리를 일으켜 둘레의 적을 가운데로 끌어모으며 벱니다. 다른 범위기와 함께 쓰기 좋습니다.');
+for(const id of ['powershot','firerain','volcanoshot','blizzardshot','glacialspike','galearrow','cyclonearrow'])SPELLS[id].kn=SPELLS[id].n;
+
+/* ---- 3. 있던 스킬 바꾸기 (덧셈 규칙 그대로 · 이름은 skill27c.js) ---- */
+const SPELL_PATCH27={
+  // 궁수 · 원소 사격 1위계: 셋 다 1레벨부터, 싸고 짧게
+  flamearrow:{rank:1,cost:5,cd:.8,mult:1.2,desc:'불붙은 화살. 맞은 적은 3초 동안 불탑니다. 화염 갈래의 첫 기술.'},
+  icearrow:{rank:1,cost:5,cd:1,mult:1,freeze:.5,desc:'맞은 적을 잠깐 얼리고 느리게 합니다. 냉기 갈래의 첫 기술.'},
+  shockarrow:{rank:1,el:'wind',en:'Wind Arrow',cost:5,cd:1,mult:1,spd:1000,r:6,pierce:1,knock:30,arc:0,
+    desc:'바람을 두른 빠른 화살이 일직선의 적을 모두 꿰뚫고 살짝 밀어냅니다. 바람 갈래의 첫 기술.'},
+  elementquiver:{rank:2,desc:'패시브: 원소 사격 계열(화염 · 냉기 · 바람)의 피해가 오릅니다(1레벨 5%, 레벨마다 +1%). 세 갈래 모두에 적용됩니다.'},
+  burstarrow:{rank:3,cost:12,cd:2.5,mult:2.2,aoe:120,desc:'꽂히는 순간 터져 둘레의 적을 태웁니다.'},
+  glacialarrow:{rank:3,cost:12,cd:3.5,mult:1.8,aoe:130,freeze:1,slow:1,desc:'터지며 둘레의 적을 1초 동안 얼리고 느리게 합니다.'},
+  imbue:{rank:6},
+  // 바람 갈래의 끝: 내 둘레에 6초 동안 벼락이 계속 떨어짐(움직이며 쏠 수 있음)
+  thunderarrow:{rank:7,kind:'storm',cost:38,cd:30,mult:1.9,dur:6,rate:4,range:380,rad:0,delay:0,stun:0,
+    desc:'하늘로 쏜 화살이 폭풍을 부릅니다. 6초 동안 내 둘레(380)의 적에게 벼락이 1초에 네 번씩 떨어집니다. 움직이며 다른 기술과 함께 쓸 수 있습니다.'},
+  // 사제 · 심판: 일찍 쓰는 원거리 기술을 앞으로
+  javelin:{rank:2},chainoflight:{rank:3,desc:'빛이 적에서 적으로 다섯 번 튀며 맞은 적을 잠깐 멈칫하게 합니다. 심판 갈래의 첫 범위기.'},
+  // 사제 · 퇴마: 내 둘레 정화 · 언데드 특효
+  holycross:{ud:2},holyfire:{ud:2},consecration:{ud:2},holychains:{ud:2},waveoflight:{ud:2},thunderprayer:{ud:2},
+  symbolflash:{rank:3,ud:2},holysun:{rank:6,ud:2},sunsword:{ud:2},
+  turnundead:{mult:1.2,rad:150,desc:'사방으로 빛을 터뜨려 둘레의 적을 밀어냅니다. 재사용이 짧아 몰려든 적을 자주 칠 수 있습니다. 언데드에게 세 배.'},
+  grandcross:{desc:'발밑에 거대한 십자를 그어 둘레를 심판하고 잠깐 멈칫하게 합니다. 적에게 둘러싸였을 때 쓰는 심판의 큰 한 방. 언데드에게 두 배.'},
+  greatjudgment:{ud:3,desc:'둘레의 모든 적을 한꺼번에 정화합니다. 퇴마의 가장 큰 한 방. 언데드에게 세 배.'}};
+for(const id in SPELL_PATCH27){const s=SPELLS[id];if(!s)continue;const p=SPELL_PATCH27[id];
+  for(const k in p){if(p[k]===0&&k!=='rank')delete s[k];else s[k]=p[k]}}
+
+/* ---- 4. 계열 (b2.js가 TREE_V18의 모든 직업을 마지막에 덮어씀) ---- */
+TREE_V18.archer[0]='quickshot hawkeye powershot piercearrow steadyhand fanshot fulldraw streamshot ricochet arrowrain deadeye siegeshot skyvolley';
+TREE_V18.archer[1]='flamearrow icearrow shockarrow elementquiver burstarrow glacialarrow galearrow firerain blizzardshot cyclonearrow imbue volcanoshot glacialspike thunderarrow trinityarrow';
+TREE_V18.priest={0:'smite javelin hammerofjustice chainoflight radiance pillaroflight rainoflight hammerofwrath judgment godspear sacredsword grandcross apotheosis',
+  1:'holycross turnundead holyfire symbolflash consecration blessedhammer holychains exorcircle waveoflight holysun thunderprayer greatjudgment magnus sunsword'};
+
+/* ---- 5. 선행 연결 (skill27b.js가 이 계열들의 PRE를 이것으로 다시 만든다) ---- */
+const LINKS27={
+  archer:{0:'quickshot>powershot quickshot>fanshot piercearrow>fulldraw fulldraw>siegeshot fanshot>arrowrain arrowrain>skyvolley streamshot>skyvolley',
+    1:'flamearrow>burstarrow burstarrow>firerain firerain>volcanoshot icearrow>glacialarrow glacialarrow>blizzardshot blizzardshot>glacialspike shockarrow>galearrow galearrow>cyclonearrow cyclonearrow>thunderarrow elementquiver>trinityarrow'},
+  priest:{0:'smite>javelin smite>chainoflight javelin>radiance javelin>pillaroflight pillaroflight>rainoflight pillaroflight>judgment hammerofjustice>hammerofwrath javelin>godspear radiance>sacredsword judgment>grandcross',
+    1:'holycross>symbolflash symbolflash>holychains symbolflash>waveoflight holychains>thunderprayer turnundead>blessedhammer turnundead>exorcircle exorcircle>greatjudgment holyfire>consecration consecration>holysun holysun>magnus waveoflight>sunsword'}};
+
+// 공통 기술은 세 갈래 가운데 칸에 (skill27b.js 칸 배치)
+for(const id of ['elementquiver','imbue','trinityarrow'])if(SPELLS[id])SPELLS[id].col27=1;
+
+/* ---- 6. 없애기 (이름은 GONE_V19에 적어 두고, 합칠 곳은 MERGE_V19에 — skill19b.js가 단축칸 · 옵션 표를 만든다) ---- */
+for(const id in GONE27){const s=SPELLS[id];if(s)GONE_V19[id]={n:s.n,cls:s.cls,rank:s.rank,v27:1};MERGE_V19[id]=GONE27[id];delete SPELLS[id]}
 /* ---------- v19 (JOB): 2차 전직 스킬 데이터 (설계: rpg/job-advancement/code/job2-skills.js + job-advancement-3 0·A절) ----------
    skill19.js 바로 뒤, b2.js(PASSIVES) 앞에 붙는다. 실행 중 동작·탭·퀘스트는 job2.js · job2q.js.
    · 50레벨 2차 전직. 직업마다 갈래 둘, 갈래마다 12개(패시브 2). 위계 10~19 = 열리는 레벨 RANK_LV_J2(50~92), 점수 한 점마다 +1레벨(기존 규칙).
@@ -5298,6 +5383,18 @@ function msg(t,c){if(GHOST)return;const d=document.createElement('div');d.textCo
 function ftext(x,y,t,c,big,z){texts.push({x:x+rnd(-6,6),y,z:z||40,t,c,life:1,big})}
 function burst(x,y,col,n,sp,size,z){z=z==null?12:z;n=Math.ceil(n*Q.burstK);for(let i=0;i<n&&parts.length<Q.pcap;i++){const a=R()*6.283,s=rnd(.2,1)*sp;parts.push({x,y,z,vx:Math.cos(a)*s,vy:Math.sin(a)*s,vz:rnd(-.3,.6)*s*.6,life:rnd(.35,.8),max:.8,col,sz:rnd(1.5,size||3.5)})}}
 function rise(x,y,col,z){parts.push({x,y,z:z||0,vx:rnd(-10,10),vy:rnd(-10,10),vz:rnd(30,60),life:.7,max:.7,col,sz:2})}
+/* ---------- v27 (SKILL): 새로 짠 계열의 선행 연결 · 칸 배치 (b2.js 바로 뒤) ----------
+   데이터는 skill27.js. b2.js는 옛 LINKS로 PRE를 만들었으므로, 새로 짠 계열(궁수 사격 · 원소 사격, 사제 심판 · 퇴마)만
+   LINKS27로 PRE를 다시 만들고 칸(TREEPOS)도 b2.js와 같은 규칙(선행 스킬 바로 아래 칸 먼저)으로 다시 놓는다. */
+(()=>{for(const cls in LINKS27)for(const t in LINKS27[cls]){const T=+t,list=Object.values(SPELLS).filter(s=>s.cls===cls&&TREE[s.id]===T);
+  for(const s of list)delete PRE[s.id];
+  for(const l of LINKS27[cls][t].trim().split(/\s+/)){const [a,b]=l.split('>');
+    if(SPELLS[a]&&SPELLS[b]&&SPELLS[a].rank<SPELLS[b].rank&&TREE[a]===T&&TREE[b]===T&&!(PRE[b]||[]).includes(a))(PRE[b]=PRE[b]||[]).push(a)}
+  for(let r=1;r<=9;r++){const row=list.filter(s=>s.rank===r),used=new Set();
+    row.sort((a,b)=>(PRE[b.id]||b.col27!=null?1:0)-(PRE[a.id]||a.col27!=null?1:0));
+    for(const s of row){let want=s.col27!=null?s.col27:PRE[s.id]&&TREEPOS[PRE[s.id][0]]?TREEPOS[PRE[s.id][0]].col:0,c=want;
+      for(let d=0;d<8;d++){if(want+d>=0&&!used.has(want+d)){c=want+d;break}if(want-d>=0&&!used.has(want-d)){c=want-d;break}}
+      used.add(c);TREEPOS[s.id]={row:r-1,col:c}}}}})();
 /* ---------- v18 (SYS): 단축키 바꾸기 ----------
    단축칸 21칸(좌·우 마우스 칸에도 키를 하나 더 줄 수 있음)과 물약·두루마리·창 열기 키를 원하는 키 조합
    (Shift/Alt/Ctrl + 키)으로 바꾼다. 캐릭터마다 저장의 선택 필드 keys에 '기본과 다른 것만' 넣는다
@@ -5969,7 +6066,7 @@ function update(dt){
   for(const l of loot){l.t+=dt;if(P.dead)continue;const d=Math.hypot(P.x-l.x,P.y-l.y);if(l.kind!=='item'&&d<110&&d>1){const k=Math.min(1,dt*(260/d));l.x+=(P.x-l.x)*k;l.y+=(P.y-l.y)*k}if(d<34)pickup(l)}
   loot=loot.filter(l=>!l.taken&&!loot25Gone(l));/* v25: 90초 (loot25.js) */
   for(const p of parts){p.x+=p.vx*dt;p.y+=p.vy*dt;p.z=(p.z||0)+(p.vz||0)*dt;if(p.g){p.vz-=520*dt;if(p.z<0){p.z=0;p.vz=0}}p.vx*=.94;p.vy*=.94;if(!p.g)p.vz=(p.vz||0)*.94;p.life-=dt}
-  parts=parts.filter(p=>p.life>0);if(parts.length>Q.pcap)parts.splice(0,parts.length-Q.pcap);
+  {let n=0;for(let i=0;i<parts.length;i++){const p=parts[i];if(p.life>0)parts[n++]=p}parts.length=n}if(parts.length>Q.pcap)parts.splice(0,parts.length-Q.pcap);// [v27] 새 배열을 만들지 않고 제자리에서 지운다
   for(const t of texts){t.z+=34*dt;t.life-=dt*.9}
   texts=texts.filter(t=>t.life>0);
   for(const b of bolts){if(b.delay>0){b.delay-=dt;continue}b.life-=dt}bolts=bolts.filter(b=>b.life>0);
@@ -6430,6 +6527,8 @@ setTimeout(()=>{try{const _ld=load;load=function(){K22.m.clear();return _ld.appl
 /* ---------- rendering ---------- */
 function ell(x,y,rx,ry){ctx.beginPath();ctx.ellipse(x,y,rx,ry,0,0,6.283);ctx.fill()}
 function circ(x,y,r){ctx.beginPath();ctx.arc(x,y,r,0,6.283);ctx.fill()}
+// [v27] 색마다 한 번 굽는 동그라미 (입자 · 이펙트용). 64칸 안에 반지름 31 원 → 늘리거나 줄여 붙인다
+const DOTS=new Map();function dotCv(col){let c=DOTS.get(col);if(c)return c;c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d');g.fillStyle=col;g.beginPath();g.arc(32,32,31,0,6.283);g.fill();if(DOTS.size>256)DOTS.clear();DOTS.set(col,c);return c}
 function poly(pts,fill){ctx.fillStyle=fill;ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.closePath();ctx.fill()}
 const up=(p,h)=>({x:p.x,y:p.y-h});
 // 빛 번짐은 색마다 한 번 구운 그림을 붙인다 (매 프레임 그라디언트를 만들지 않음)
@@ -6512,7 +6611,8 @@ function render(){
   for(const b of pillars){const a=clamp(b.life/b.max,0,1),s=W2S(b.x,b.y),w=b.w*1.1;const pe=SC.get('fx/pillar/'+b.col,16,128,8,128,g=>{const gr=g.createLinearGradient(0,0,0,128);gr.addColorStop(0,'rgba(0,0,0,0)');gr.addColorStop(1,b.col);g.fillStyle=gr;g.fillRect(0,0,16,128)},{force:1,scale:1});ctx.globalAlpha=a;ctx.drawImage(pe.cv,s.x-w/2,s.y-460,w,460);ctx.fillStyle='#fff';ctx.fillRect(s.x-w/6,s.y-460,w/3,460);ctx.globalAlpha=a*.6;ctx.fillStyle=b.col;ell(s.x,s.y,w*.9,w*.45)}
   ctx.globalAlpha=1;
   for(const b of beams)drawBeam(b);
-  for(const p of parts){const s=P3(p);ctx.globalAlpha=clamp(p.life/p.max,0,1);ctx.fillStyle=p.col;circ(s.x,s.y,p.sz)}
+  // [v27 최적화] 입자: 매번 원 경로를 만들어 칠하던 것을, 색마다 한 번 구운 동그라미 그림을 붙이는 것으로 (같은 그림이라 한꺼번에 처리된다). 화면 밖 입자는 건너뛴다.
+  for(const p of parts){const sx=(p.x-p.y)*KI-camX,sy=(p.x+p.y)*KI/2-camY-(p.z||0),r=p.sz;if(sx<-r||sx>W+r||sy<-r||sy>H+r)continue;ctx.globalAlpha=clamp(p.life/p.max,0,1);ctx.drawImage(dotCv(p.col),sx-r,sy-r,r*2,r*2)}
   ctx.globalAlpha=1;
   for(const b of bolts)drawBolt(b);
   ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';
@@ -11002,7 +11102,7 @@ let chunkScale=0,chunkWorld=null;const GJOBS=[];
 // 아직 다 굽지 못한 조각은 5×5 색 미리보기를 부드럽게 늘려 둔다 (점들이 월드 격자에 맞아 이웃 조각과 이어진다)
 function chunkPreview(cx,cy){const cv=document.createElement('canvas');cv.width=cv.height=5;const g=cv.getContext('2d'),id=g.createImageData(5,5);
   for(let j=0;j<5;j++)for(let i=0;i<5;i++){const c=DG?[12,11,10]:groundRGB(cx*CH+i*100,cy*CH+j*100).map(v=>v/.75),k=(j*5+i)*4;id.data[k]=c[0];id.data[k+1]=c[1];id.data[k+2]=c[2];id.data[k+3]=255}g.putImageData(id,0,0);return cv}
-function getChunkE(cx,cy){const want=clamp(Math.round(DPR*.9*20)/20,.8,1.4);if(want!==chunkScale){chunkScale=want;chunks.clear();GJOBS.length=0}
+function getChunkE(cx,cy){const want=clamp(Math.round(DPR*.9*20)/20,.8,1.4);if(want!==chunkScale){const first=!chunkScale;chunkScale=want;if(first){chunks.clear();GJOBS.length=0}else chunkStale()}// [v27] 해상도·확대가 바뀌어도 땅을 지우지 않고 새로 구울 때까지 예전 그림을 쓴다 (흐려졌다 다시 그려지던 깜빡임)
   const k=cx*1000+cy;let c=chunks.get(k);if(c){c.used=frameN;return c}
   const cv2=document.createElement('canvas');cv2.width=cv2.height=Math.round(CH*chunkScale);const g2=cv2.getContext('2d');g2.scale(chunkScale,chunkScale);
   c={cv:cv2,used:frameN,fx:null,ready:false,pv:chunkPreview(cx,cy),cx,cy,ms:0};c.job=paintChunkG(g2,cx*CH,cy*CH);chunks.set(k,c);GJOBS.push(c);
@@ -11032,16 +11132,17 @@ function drawGround(cx0,cx1,cy0,cy1){{const wk=DG||REG;if(wk!==chunkWorld){chunk
   isoFree=miss>4;runChunkJobs(miss>4?24:paused?10:4);
   for(let cy=cy0;cy<=cy1;cy++)for(let cx=cx0;cx<=cx1;cx++){if(!ok(cx,cy)||!inView(cx,cy))continue;const c=chunks.get(cx*1000+cy);if(!c)continue;
     if(c.ready&&c.stale){if(!c.rb)chunkRebake(c);c.rb.used=frameN}
-    if(c.ready){if(!isoBlit(c,cx,cy))ctx.drawImage(c.cv,cx*CH,cy*CH,CH+1,CH+1);if(c.fx&&c.fx.length)GVIS.push(c)}else ctx.drawImage(c.pv,.5,.5,4,4,cx*CH,cy*CH,CH+1,CH+1)}
+    if(c.ready){if(!isoBlit(c,cx,cy))isoFallback(c,cx,cy);if(c.fx&&c.fx.length)GVIS.push(c)}else ctx.drawImage(c.pv,.5,.5,4,4,cx*CH,cy*CH,CH+1,CH+1)}
   if(!miss&&GJOBS.length<2&&chunks.size<60){outer:for(let cy=cy0-1;cy<=cy1+1;cy++)for(let cx=cx0-1;cx<=cx1+1;cx++){if(!ok(cx,cy)||chunks.has(cx*1000+cy)||!inView(cx,cy,250))continue;getChunkE(cx,cy).used=frameN-1;break outer}}}
 // [최적화] 다 구운 조각을 화면 방향(마름모)으로 한 번 더 구워 두고, 매 프레임에는 회전 없이 그대로 붙인다.
 // 회전·기울인 큰 그림을 매 프레임 그리는 비용이 프레임의 절반 가까이였다. 그림 내용은 같다.
 const ISO_PAD=2,ISO_MAX=28;
 // [v24 최적화] 화면 방향 굽기는 한 프레임에 한 조각만, 그리고 땅 조각을 막 다 구운 프레임에는 하지 않는다 (걸을 때 가끔 끊기던 것).
 // 못 구운 조각은 이번 프레임만 예전 방식(돌려 그리기)으로 그린다. 멈춘 화면이나 순간이동 직후(빈 조각 많음)는 제한 없음.
-let isoBusy=-1,isoFree=false;
+let isoBusy=-1,isoFree=false,ISO_HOLD=false;// ISO_HOLD: 점검용(새 화면 방향 그림을 굽지 않음)
 function isoBlit(c,cx,cy){const s=DPR;
-  if(!c.iso||c.iso.s!==s){if(!isoFree&&!paused&&isoBusy===frameN)return false;isoBusy=frameN;let n=0,old=null,ou=1e12;for(const v of chunks.values())if(v.iso&&v!==c){n++;if(v.isoU<ou){ou=v.isoU;old=v}}if(n>=ISO_MAX&&old)old.iso=null;
+  if(!c.iso||c.iso.s!==s){if(ISO_HOLD||!isoFree&&!paused&&isoBusy===frameN){if(!c.iso)return false;/* [v27] 해상도만 바뀐 조각: 새로 구울 때까지 예전 그림을 늘려 붙인다 */const k=s/c.iso.s,wx=cx*CH,wy=cy*CH,sx=(wx-wy)*KI-camX+shx-CH*KI-ISO_PAD,sy=(wx+wy)*KI/2-camY+shy-ISO_PAD;
+      ctx.setTransform(1,0,0,1,0,0);ctx.drawImage(c.iso.cv,Math.round(sx*s),Math.round(sy*s),c.iso.cv.width*k,c.iso.cv.height*k);G();c.isoU=frameN;return true}isoBusy=frameN;let n=0,old=null,ou=1e12;for(const v of chunks.values())if(v.iso&&v!==c){n++;if(v.isoU<ou){ou=v.isoU;old=v}}if(n>=ISO_MAX&&old)old.iso=null;
     const w=Math.ceil((2*CH*KI+ISO_PAD*2)*s),h=Math.ceil((CH*KI+ISO_PAD*2)*s),cv2=document.createElement('canvas');cv2.width=w;cv2.height=h;const g=cv2.getContext('2d');
     g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';g.setTransform(s*KI,s*KI/2,-s*KI,s*KI/2,s*(CH*KI+ISO_PAD),s*ISO_PAD);g.drawImage(c.cv,-.5,-.5,CH+1.5,CH+1.5);
     decoIdx();const fl=DG?null:DFLAT.get(cx*1000+cy);/* v26: 던전 안에서는 들판 장식(밀 · 꽃 · 덤불)을 굽지 않는다 — 같은 자리 들판 장식이 던전 바닥에 겹쳐 보이던 버그(폭풍 첨탑 · 재의 성소) */if(fl){g.setTransform(s,0,0,s,0,0);const bl=SC.bakeLeft;SC.bakeLeft=1e9;const ox=(cx*CH-cy*CH)*KI-CH*KI-ISO_PAD,oy=(cx*CH+cy*CH)*KI/2-ISO_PAD;for(const d of fl)RD.draw(g,d,(d.x-d.y)*KI-ox,(d.x+d.y)*KI/2-oy,1,0);SC.bakeLeft=bl}
@@ -11049,13 +11150,17 @@ function isoBlit(c,cx,cy){const s=DPR;
   c.isoU=frameN;
   const wx=cx*CH,wy=cy*CH,sx=(wx-wy)*KI-camX+shx-CH*KI-ISO_PAD,sy=(wx+wy)*KI/2-camY+shy-ISO_PAD;
   ctx.setTransform(1,0,0,1,0,0);ctx.drawImage(c.iso.cv,Math.round(sx*s),Math.round(sy*s));G();return true}
+// [v27] 화면 방향 그림이 아직 없는 조각(새로 보인 조각 · 장식이 바뀐 조각): 땅을 돌려 그리고, 그 조각에 구워 넣을 낮은 장식(밀 · 꽃 · 돌 …)도
+// 이번 프레임에 조각 안쪽만 잘라 직접 그린다 → 화면 가장자리나 다시 굽는 동안 작은 장식이 사라졌다 나타나는 깜빡임이 없다.
+function isoFallback(c,cx,cy){ctx.drawImage(c.cv,cx*CH,cy*CH,CH+1,CH+1);if(DG)return;decoIdx();const fl=DFLAT.get(cx*1000+cy);if(!fl||!fl.length)return;
+  ctx.save();ctx.beginPath();ctx.rect(cx*CH,cy*CH,CH,CH);ctx.clip();S();const bl=SC.bakeLeft;SC.bakeLeft=1e9;for(const d of fl)RD.draw(ctx,d,(d.x-d.y)*KI-camX,(d.x+d.y)*KI/2-camY,1,0);SC.bakeLeft=bl;ctx.restore();G()}
 // [최적화 v19] 장식 칸 나누기: 장식을 땅 조각(400칸)별로 묶어, 화면에 보이는 조각의 장식만 살핀다.
 // 낮고 움직이지 않는 지역 장식(밀·꽃·고사리·이끼 바위 …)은 땅 조각 그림에 함께 구워 매 프레임 따로 그리지 않는다.
 const DBUCK=new Map(),DFLAT=new Map(),DMOB=[];let decoKey='';
 function isFlatDecor(d){const df=RD.D[d.k];return !!df&&!df.glow&&df.h<=60&&!d.zh&&!d.cell&&!d.label&&!/vent|mushroom|icespike|searock|edgeportal/.test(d.k)}
-function decoIdx(){const k=REG.id+'/'+decor.length+'/'+(decor[0]&&decor[0].x)+'/'+(decor.length&&decor[decor.length-1].x);if(k===decoKey)return;decoKey=k;DBUCK.clear();DFLAT.clear();DMOB.length=0;
+function decoIdx(){const k=REG.id+'/'+decor.length+'/'+(decor[0]&&decor[0].x)+'/'+(decor.length&&decor[decor.length-1].x);if(k===decoKey)return;decoKey=k;DBUCK.clear();DFLAT.clear();DMOB.length=0;DECO_Q=Q.lvl>=2?0:Q.lvl===1?.15:.3;
   for(const c of chunks.values())c.iso=null;
-  for(const d of decor){d._flat=isFlatDecor(d);if(d.k==='tfolk'||d.k==='npc'||d.walkT!=null||d.hx!=null){d._flat=false;DMOB.push(d);continue}if(!d._flat){const key=Math.floor(d.x/CH)*1000+Math.floor(d.y/CH);let b=DBUCK.get(key);if(!b)DBUCK.set(key,b=[]);b.push(d);continue}
+  for(const d of decor){if(decoThin(d))continue;d._flat=isFlatDecor(d);if(d.k==='tfolk'||d.k==='npc'||d.walkT!=null||d.hx!=null){d._flat=false;DMOB.push(d);continue}if(!d._flat){const key=Math.floor(d.x/CH)*1000+Math.floor(d.y/CH);let b=DBUCK.get(key);if(!b)DBUCK.set(key,b=[]);b.push(d);continue}
     const df=RD.D[d.k],sc=d.s||1,sx=(d.x-d.y)*KI,sy=(d.x+d.y)*KI/2,x0=sx-df.ax*sc,x1=x0+df.w*sc,y0=sy-df.ay*sc,y1=y0+df.h*sc;
     // 그림이 걸치는 모든 조각에 넣는다 (조각 경계에서 잘리지 않게)
     const cxa=Math.floor((d.x-90)/CH),cxb=Math.floor((d.x+90)/CH),cya=Math.floor((d.y-90)/CH),cyb=Math.floor((d.y+90)/CH);
@@ -11066,8 +11171,12 @@ function decoIdx(){const k=REG.id+'/'+decor.length+'/'+(decor[0]&&decor[0].x)+'/
 // [v20] 자동 품질이 내려가면(프레임이 계속 느리면) 꾸밈 장식(나무·덤불 등, 이동을 막지 않음)을 일부만 그린다: 품질 1단계 25%, 0단계 45% 덜 그림.
 // 어느 장식을 뺄지는 위치로 고정(깜빡이지 않음). 이름표·불빛·마을 건물·사람·절벽은 늘 그린다.
 const DTHIN=/^(htree|hpine|hbirch|hdead|hbush|oak|fern|mushroom|mossrock|bigleaf|jungletree|palm|snowpine|cactus|windtree|wheat|flowers|haystack|rock|stump|tree|bush)$/;
-function decoVisible(cx0,cx1,cy0,cy1,out){decoIdx();for(const d of DMOB)out.push(d);const th=Q.lvl>=2?0:Q.lvl===1?.25:.45;
-  for(let cy=cy0-1;cy<=cy1+1;cy++)for(let cx=cx0-1;cx<=cx1+1;cx++){const b=DBUCK.get(cx*1000+cy);if(b)for(const d of b){if(th&&d._thin==null)d._thin=DTHIN.test(d.k)&&!d.label&&!d.light&&!d.cell?hash((d.x*7)|0,(d.y*13)|0):1;if(th&&d._thin<th)continue;out.push(d)}}return out}
+// [v27] 꾸밈 장식(나무 · 덤불 · 꽃 · 돌 …, 이동을 막지 않음)은 늘 30%를 덜 그린다 (사용자: 장식이 너무 빽빽함). 자동 품질이 낮으면 지역에 들어갈 때 15~30%를 더 뺀다.
+// 어느 장식을 뺄지는 위치로 고정, 정하는 때도 지역을 불러올 때뿐이라 놀다가 갑자기 나무가 사라지거나 생기지 않는다. 마을 소품 · 이름표 · 불빛 · 절벽 위 장식은 늘 그린다.
+const DECO_BASE=.3;let DECO_Q=0;
+function decoThin(d){if(!DTHIN.test(d.k)||d.label||d.light||d.cell||d.tprop||d.town)return false;if(d._thin==null)d._thin=hash((d.x*7)|0,(d.y*13)|0);return d._thin<DECO_BASE+DECO_Q}
+function decoVisible(cx0,cx1,cy0,cy1,out){decoIdx();for(const d of DMOB)out.push(d);
+  for(let cy=cy0-1;cy<=cy1+1;cy++)for(let cx=cx0-1;cx<=cx1+1;cx++){const b=DBUCK.get(cx*1000+cy);if(b)for(const d of b)out.push(d)}return out}
 // 물결/얼음/용암 반짝임: 미리 구운 4장을 번갈아 붙인다
 const GLINT={};
 function glintCv(kind,f){const key=kind+f;if(GLINT[key])return GLINT[key];const cv=document.createElement('canvas');cv.width=64;cv.height=24;const g=cv.getContext('2d');
@@ -11077,8 +11186,9 @@ function glintCv(kind,f){const key=kind+f;if(GLINT[key])return GLINT[key];const 
   else for(let i=0;i<3;i++){const y=8+i*4+s()*2,x=10+s()*20,l=14+s()*18,a=[.15,.5,.8,.4][f]*(1-i*.25);g.strokeStyle=`rgba(${col[0]},${col[1]},${col[2]},${a})`;g.lineWidth=1.3;g.beginPath();g.moveTo(x+f*3,y);g.quadraticCurveTo(x+l/2+f*3,y-2,x+l+f*3,y);g.stroke()}
   return GLINT[key]=cv}
 function drawGroundFx(){if(!GVIS.length)return;const po=ctx.globalCompositeOperation;ctx.globalCompositeOperation='lighter';
-  for(const c of GVIS)for(const p of c.fx){const s=W2S(p.x,p.y);if(s.x<-40||s.x>W+40||s.y<-20||s.y>H+20)continue;const ph=time*(p.k==='lava'?.9:1.3)+p.ph,f=Math.floor(ph)%4;
-    ctx.globalAlpha=p.k==='ice'?.55:.8*(.5+.5*Math.sin(ph*1.57));ctx.drawImage(glintCv(p.k,f),s.x-32,s.y-12)}
+  // [v27] 물 · 얼음 반짝임은 6곳 중 1곳만, 그림을 0.8초마다 바꿔 끼우지 않고(뚝뚝 바뀌어 깜빡여 보였다) 한 장을 천천히 밝아졌다 어두워지게. 용암은 다 두되 같은 방식.
+  for(const c of GVIS)for(const p of c.fx){if(p.k!=='lava'&&((p.ph*7.31)%1)>.17)continue;const s=W2S(p.x,p.y);if(s.x<-40||s.x>W+40||s.y<-20||s.y>H+20)continue;const ph=time*(p.k==='lava'?.6:.5)+p.ph,f=(p.ph|0)%4;
+    ctx.globalAlpha=(p.k==='ice'?.45:.7)*(.35+.65*(.5+.5*Math.sin(ph)));ctx.drawImage(glintCv(p.k,f===0?2:f),s.x-32,s.y-12)}
   ctx.globalAlpha=1;ctx.globalCompositeOperation=po}
 function groundLights(Lt){let n=0;for(const c of GVIS)for(const p of c.fx){if(p.k!=='lava'||(p.ph*10|0)%3)continue;const s=W2S(p.x,p.y);Lt(s.x,s.y,150,.45);if(++n>40)return}}
 
@@ -11317,10 +11427,18 @@ const TKEEP={};
 function terrLayer(id){return id==='home'?HOME:RCACHE[id]}
 function terrSnap(id){const L=terrLayer(id);if(!L)return null;let k=TKEEP[id];if(!k||k.L!==L)k=TKEEP[id]={L,keeps:terrKeeps(id,L),tg:terrTargets(L)};return k}
 // 물(LQ)과 절벽을 함께 막힘으로 본 걷기 도달 격자 (LQS 간격 점). w가 없으면 물만 본다
-function terrReachLQ(L,w,x,y,par){const N=LQN,lq=L.lq&&L.id!=='home'?L.lq:null,ok=new Uint8Array(N*N);
-  const free=n=>{if(lq&&lq[n]>.5)return false;if(!w)return true;const i=n%N,j=(n/N)|0,ci=Math.floor(i*LQS/TCS),cj=Math.floor(j*LQS/TCS);return !(ci<-TK||cj<-TK||ci>=TNC+TK||cj>=TNC+TK)&&!w[terrIdx(ci,cj)]};
-  const i0=clamp(Math.round(x/LQS),0,N-1),j0=clamp(Math.round(y/LQS),0,N-1),s0=j0*N+i0,q=[s0];ok[s0]=1;if(par)par[s0]=-1;
-  for(let h=0;h<q.length;h++){const k=q[h],i=k%N,j=(k/N)|0;for(const [a,b] of [[1,0],[-1,0],[0,1],[0,-1]]){const X=i+a,Y=j+b;if(X<0||Y<0||X>=N||Y>=N)continue;const n=Y*N+X;if(ok[n]||!free(n))continue;ok[n]=1;if(par)par[n]=k;q.push(n)}}return ok}
+function terrReachLQ(L,w,x,y,par){const N=LQN,total=N*N,lq=L.lq&&L.id!=='home'?L.lq:null,ok=new Uint8Array(total),open=new Uint8Array(total),q=new Int32Array(total);
+  // 동일한 격자·4방향 탐색 순서를 유지하며, 막힘 판정을 칸마다 한 번만 계산한다.
+  if(!w){open.fill(1);if(lq)for(let k=0;k<total;k++)if(lq[k]>.5)open[k]=0}
+  else{const axis=new Int32Array(N);for(let i=0;i<N;i++)axis[i]=Math.floor(i*LQS/TCS);
+    for(let j=0;j<N;j++){const cj=axis[j];if(cj<-TK||cj>=TNC+TK)continue;const base=(cj+TK)*TN+TK,row=j*N;
+      for(let i=0;i<N;i++){const ci=axis[i],k=row+i;if(ci>=-TK&&ci<TNC+TK&&!(lq&&lq[k]>.5)&&!w[base+ci])open[k]=1}}}
+  const i0=clamp(Math.round(x/LQS),0,N-1),j0=clamp(Math.round(y/LQS),0,N-1),s0=j0*N+i0;let tail=1;q[0]=s0;ok[s0]=1;if(par)par[s0]=-1;
+  for(let h=0;h<tail;h++){const k=q[h],i=k%N,j=(k/N)|0;let n;
+    if(i+1<N){n=k+1;if(!ok[n]&&open[n]){ok[n]=1;if(par)par[n]=k;q[tail++]=n}}
+    if(i>0){n=k-1;if(!ok[n]&&open[n]){ok[n]=1;if(par)par[n]=k;q[tail++]=n}}
+    if(j+1<N){n=k+N;if(!ok[n]&&open[n]){ok[n]=1;if(par)par[n]=k;q[tail++]=n}}
+    if(j>0){n=k-N;if(!ok[n]&&open[n]){ok[n]=1;if(par)par[n]=k;q[tail++]=n}}}return ok}
 const terrLQi=(x,y)=>clamp(Math.round(y/LQS),0,LQN-1)*LQN+clamp(Math.round(x/LQS),0,LQN-1);
 // QA · 손쉬운 검사용: 지역 L에서 마을부터 걸어서 닿는 격자 (물 + 절벽)
 function terrReach(id){const L=terrLayer(id),T=terrEnsure(id),t0=(L.towns&&L.towns[0])||{x:3000,y:3000};return terrReachLQ(L,T&&T.w,t0.x,t0.y)}
@@ -11899,6 +12017,17 @@ window.__fl.twFolkSprite=(...a)=>twFolkSprite(...a);window.__fl.f12Look=f12Look;
 
 /* ---------- 패치노트: 새 버전이면 시작 화면에 요약, 게임 안에서는 버튼으로 다시 보기 ---------- */
 const PATCHES=[
+  {v:27,d:'2026-10-10',t:'캐릭터 이름 · 궁수 원소 사격 세 갈래 · 사제 심판 · 퇴마 · 첫 기술 마나 0 · 짝문 한 화면',items:[
+    '캐릭터에 이름을 지을 수 있어요. 새 캐릭터를 고르면 이름 짓는 창이 떠요. 한글이나 영문으로 한글 8글자(영문 16글자)까지 되고, 띄어쓰기 · 숫자 · 특수문자는 안 돼요. 이름은 화면 왼쪽 위 · 캐릭터 고르기 카드 · 같이 하기에서 보이고, 「캐릭터와 가방」 창 맨 위 「이름 바꾸기」로 언제든 바꿀 수 있어요. 예전 캐릭터는 그대로 열리고(이름 칸만 비어 있음) 같은 곳에서 이름을 지어 줄 수 있어요',
+    '처음 배우는 기본 기술은 마나를 쓰지 않아요: 마법사 「파이어 볼트」(예전 플레임 스파크) · 사제 「스마이트」(전사 · 궁수 첫 기술은 원래 0). 마나가 0이어도 쏠 수 있어요',
+    'PC에서 짝문 창이 스크롤 없이 한 화면에 다 보여요. 창을 넓히고 난이도 · 설명은 왼쪽, 세계 지도는 오른쪽에 두었어요. 화면이 작으면 지도를 그만큼 줄여서 맞춰요(휴대폰은 예전처럼 밀어서 봐요)',
+    '스킬 트리에서 고른 스킬의 설명이 트리 아래가 아니라 트리 오른쪽에 나와요(창이 넓어졌어요). 세로로 든 휴대폰처럼 옆에 자리가 없으면 예전처럼 아래에 나와요',
+    '같이 하기: 친구가 접속하면 「○○님이 접속했습니다 (직업 Lv)」 알림이 화면과 대화창에 떠요. 내가 혼자이거나 방장이고 친구가 혼자이면 알림에 「파티에 초대」 단추가 있어요',
+    '같이 하기: 파티로 같이 던전에 들어가기를 모든 지역의 던전 입구에서 다시 확인했어요(방장이 들어가기 · 참가자가 들어가기 · 휴대폰 · 레벨 차이 · 건물 안). 연결이 잠깐 끊겨도 30분 안에 다시 이어지면 저절로 같은 파티로 돌아와요(예전 5분). 같은 서버에 있어도 파티가 아니면 던전에 따로 들어가니, 「같이 하기」 창에서 「파티 중」인지 확인해 주세요',
+    '낮은 단계 스킬 이름을 흔히 쓰는 이름으로 바꿨어요(블레싱, 실드 배시, 파이어 볼트 등)',
+    '궁수 원소 사격이 화염 · 냉기 · 바람 세 갈래가 되었어요. 1레벨에 셋 중 골라 키우고, 갈래마다 범위기가 생겼어요(바뀐 원소 화살에 찍었던 점수는 한 번 돌려받아요). 두 발 쏘기 → 파워 샷, 팬 샷 → 멀티플 샷',
+    '사제 심판은 「멀리서 정확히」, 퇴마는 「내 둘레 정화 · 언데드 특효」로 나눴어요. 한쪽만 올려도 공격 기술이 다 갖춰져요'
+  ]},
   {v:26,d:'2026-10-10',t:'왕도 새 지도 · 남부 마을 둘 · 짝문 지도 · 선공 · 비선공 · 궁수 사거리',items:[
     '왕도 아르덴이 아르세이아 남부 북쪽의 따로 된 지도로 옮겨 갔어요. 성벽 · 탑 · 가로등 · 깃발로 꾸민 작은 왕도이고 몬스터가 나오지 않아요. 동서남북 네 포탈로 남부(남) · 북부 빙원(북) · 서리바람 고원(서) · 망각의 협곡(동)과 이어져요. 세계 지도에서 북부 빙원 · 불꽃 산맥은 한 칸씩 북쪽으로 옮겨졌어요',
     '왕도에 직업마다 전당이 있어요: 왕립 마법원(마법사 · 엘리안) · 대성당(사제 · 오벨린) · 기사단 전당(전사 · 브로딘) · 사냥꾼 회관(궁수 · 세린). 전직 · 전직 의뢰는 모두 왕도 전당에서 받아요. 무기 · 방어구 · 잡화 상점, 창고, 짝문, 책 판매, 소속 회관도 왕도에 있어요',
@@ -18207,7 +18336,7 @@ function core21OnHit(e,id,amt,crit,hs){if(!id||!SPELLS[id]||!e)return;e._c21k=id
     if(typeof rings!=='undefined')rings.push({x:e.x,y:e.y,r:6,max:100,life:.45,col:'#ffe9a8'})}
   if(core21Has('boil')&&core21Tag(CORE21_BY.c_ragemail.tag,id)){const d=c21Budget('boil',.15,.6);if(d)c21CutCd(d,k=>k!==id&&core21Tag(CORE21_BY.c_ragemail.tag,k))}
   if(core21Has('reload')&&c21Basic(s)){const d=c21Budget('reload',.1,.6);if(d)c21CutCd(d,k=>k!==id&&core21Tag(CORE21_BY.c_windcoat.tag,k))}
-  if(core21Has('cycle')&&core21Tag(CORE21_BY.c_threesky.tag,id)&&['fire','ice','storm'].includes(sel)){const c=C21.cycle;if(c.last&&c.last!==sel)c.free=time+4;c.last=sel}
+  if(core21Has('cycle')&&core21Tag(CORE21_BY.c_threesky.tag,id)&&['fire','ice','storm','wind'].includes(sel)){const c=C21.cycle;if(c.last&&c.last!==sel)c.free=time+4;c.last=sel}
   // 겹친 덫: 덫이 터져 맞은 적을 묶음(같은 적은 3초에 한 번)
   if(core21Has('traps')&&core21Tag(CORE21_BY.c_huntlord.tag,id)&&!e.dead)c21Root(e);
   // 이번 시전이 맞힌 수 (울리는 종 · 휩쓰는 기세): 시전 뒤 1.5초 안의 같은 기술
@@ -19874,7 +20003,7 @@ function royalMigrate(d){if(!d||typeof d!=='object')return null;let note=null;
         참가자 화면에는 「○○님이 ○○에 들어갔어요 · 함께 들어가기」 알림(한 번 누르면 들어감).
    4) 옛 판 게임(새로 고침 안 한 창)과는 던전 자료가 맞지 않을 수 있다 → 판 번호를 주고받아(co22v) 알려 준다.
    메시지는 모두 'v20x'(옛 판은 모르는 k를 무시) + 기존 'req'·'dg'. 서버는 그대로. 저장 형식 그대로(캐릭터 저장소는 건드리지 않음). */
-const CO22={V:22,RJ:'arseia-coop-rj',RJMS:5*60e3,rj:null,rjT:-1e9,rjSaveT:0,ver:new Map(),stAt:new Map(),peerAt:new Map(),fail:new Map(),bye:new Set(),oldTold:new Set(),
+const CO22={V:22,RJ:'arseia-coop-rj',RJMS:30*60e3/* v27: 5분 → 30분 (무료 서버가 잠들었다 깨어나도 파티로 돌아오게) */,rj:null,rjT:-1e9,rjSaveT:0,ver:new Map(),stAt:new Map(),peerAt:new Map(),fail:new Map(),bye:new Set(),oldTold:new Set(),
   fol:null,hostDg:null,hA:-9,hAt:-1e9,miss:0,ask:null,why:'',pr:null,prMute:-1e9,cap:null,qa:false,lastA:-9,FOLMS:5000,ASKMS:6000};
 const co22Now=()=>performance.now();
 function co22Store(){if(window.__QA)return;try{sessionStorage.setItem(CO22.RJ,JSON.stringify(CO22.rj||{}))}catch(_){}}
@@ -20949,6 +21078,140 @@ addEventListener('resize',()=>{try{if(P&&P.cls)s26Lay()}catch(_){}});
 body.m22.s26on #qhud{right:var(--s26w,8px)!important}
 body.m22 #set24{max-height:calc(100vh - 16px);overflow-y:auto}`;document.head.appendChild(st)}
 if(window.__game)Object.assign(window.__game,{S26,s26Cat,s26Lay,s26Toggle});
+/* ---------- v27 (사용자 2026-10-10 16:10 목록 1 · 2 · 3 · 4 · 8번) ----------
+   1. 「처음에 배우는 기본 스킬은 마나를 소모하지 않도록 하기」 → 직업마다 첫 기술(CLASSES[].start)은 마나 0 (불티 · 성스러운 불티. 베기 · 속사는 원래 0)
+   2. 「컴퓨터 환경에서 짝문 이용 시 스크롤 없이 한 창에 모두 보일 수 있도록 크기 조절하기」
+      → PC(휴대폰이 아닐 때)에서 짝문 창을 넓히고, 난이도 · 설명은 왼쪽 칸, 지도는 오른쪽에. 지도 칸을 조금 낮추고 창 안에 다 들어오게 줄인다(CSS zoom · 스크롤 없음). 너무 작아지면(0.55배 아래) 0.55배로 두고 밀어 보기.
+        휴대폰은 예전 그대로(밀어 보기).
+   3. 「스킬 설명은 스킬트리의 아래가 아니라 왼쪽/오른쪽에 나오도록 하기」
+      → 스킬 트리 창을 넓히고 설명(.detail)을 트리 오른쪽에. 창이 좁으면(세로 휴대폰) 자리가 모자라 예전처럼 아래로 내려간다.
+   4. 「캐릭터의 이름을 지을 수 있게 하기 (특수문자는 불가능하며 한글 또는 영문으로 한글 기준 최대 8글자)」
+      → 새 캐릭터를 고르면 이름 짓는 창. 한글(완성된 글자) · 영문만, 띄어쓰기 · 숫자 · 특수문자 안 됨. 한글 1자 = 2칸, 영문 1자 = 1칸, 16칸까지(한글 8 · 영문 16).
+        캐릭터 창에서 바꿀 수 있음. 화면 왼쪽 위 · 캐릭터 고르기 카드 · 같이 하기 이름에 쓴다.
+        저장: 캐릭터마다 name(선택 필드). 예전 저장은 이름 없이 그대로(직업 칭호로 보임) — 캐릭터 키를 지우거나 비우지 않는다. 잘못된 값은 불러올 때 버린다.
+   8. 「친구가 접속하면 알림이 떴으면 좋겠음」 → 같이 하기 서버의 접속자 목록(who)에 새 사람이 생기면 「OO님이 접속했습니다」 (처음 받은 목록은 알리지 않음)
+      + 위쪽 쪽지(15초). 내가 혼자이거나 방장이고 친구가 혼자이면 쪽지에 「파티에 초대」 단추.
+   9. 「여전히 파티플레이 시 같이 던전에 입장하는 게 안되는 것 같은데」 → 두 브라우저 + 진짜 서버로 모든 지역 던전 입구(방장 F · 참가자 F) · 휴대폰 참가자 · 레벨/난이도 차이 · 건물 안에서
+      모두 함께 들어감(재현 안 됨, c-e-dgsweep27 · c-e-real27). 남은 짐작: 연결이 5분 넘게 끊기면(무료 서버가 잠들거나 다시 켜짐) 파티가 저절로 다시 묶이지 않아
+      같은 서버에 있어도 파티가 아님 → 다시 묶는 시간 5분 → 30분(coop22.js CO22.RJMS) · 친구 접속 쪽지에 「파티에 초대」. */
+
+/* 1. 첫 기술 마나 0 */
+const FREE27=[];
+for(const k in CLASSES)for(const id of CLASSES[k].start||[])if(SPELLS[id]){if(SPELLS[id].cost>0)FREE27.push(id);SPELLS[id].cost=0}
+
+/* 4. 캐릭터 이름 */
+const N27={MAX:16,pending:null,pass:false,el:null,
+  SUG:{mage:['아리엔','세린','루멘','엘다'],priest:['아우렐','미르','라엘','세오'],warrior:['카일','브란','도윤','하르'],archer:['리아','펠린','시온','나루']}};
+const n27W=s=>{let w=0;for(const ch of s)w+=/[가-힣]/.test(ch)?2:1;return w};
+// 이름이 안 되는 까닭 ('' = 됨)
+function n27Why(s){s=typeof s==='string'?s:'';if(!s.length)return '이름을 적어 주세요';
+  if(!/^[가-힣a-zA-Z]+$/.test(s))return /\s/.test(s)?'띄어쓰기는 쓸 수 없어요':/[ㄱ-ㅎㅏ-ㅣ]/.test(s)?'다 쓰지 않은 한글 글자가 있어요':'한글이나 영문만 쓸 수 있어요 (숫자 · 특수문자 안 됨)';
+  if(n27W(s)>N27.MAX)return '너무 길어요: 한글 8글자, 영문 16글자까지';return ''}
+const n27Clean=v=>typeof v==='string'&&!n27Why(v.trim())?v.trim():'';
+const n27Of=d=>d?n27Clean(d.name):'';
+// 이름 짓는 창: cb(이름) — 취소면 부르지 않는다
+function n27Open(cls,cur,cb){n27Close();const el=document.createElement('div');el.id='n27';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');el.setAttribute('aria-labelledby','n27h');
+  const C=CLASSES[cls]||CLASSES.mage,sug=(N27.SUG[cls]||N27.SUG.mage)[Math.floor(Math.random()*4)];
+  el.innerHTML=`<div class="card"><h2 id="n27h">${cur?'이름 바꾸기':`${C.n}의 이름`}</h2>
+    <p class="muted">한글이나 영문으로, 한글 8글자(영문 16글자)까지 지을 수 있어요. 띄어쓰기 · 숫자 · 특수문자는 안 돼요.</p>
+    <div class="n27in"><input id="n27v" type="text" maxlength="16" autocomplete="off" spellcheck="false" value="${cur||sug}" aria-describedby="n27m"><span id="n27c" class="muted"></span></div>
+    <div id="n27m" class="n27m" role="status"></div>
+    <div class="row"><button class="primary" type="button" id="n27ok">${cur?'바꾸기':'이 이름으로 시작'}</button><button class="ghost" type="button" id="n27no">취소</button></div></div>`;
+  document.body.appendChild(el);N27.el=el;
+  const i=el.querySelector('#n27v'),m=el.querySelector('#n27m'),c=el.querySelector('#n27c'),ok=el.querySelector('#n27ok');
+  const chk=()=>{const v=i.value.trim(),w=n27W(v),why=n27Why(v);c.textContent=`${Math.ceil(w/2)}/8`;m.textContent=why;ok.disabled=!!why;return why?null:v};
+  const go=()=>{const v=chk();if(!v)return;n27Close();cb(v)};
+  i.addEventListener('input',chk);
+  el.addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Escape')n27Close();else if(e.key==='Enter'&&!e.isComposing){e.preventDefault();go()}});
+  el.addEventListener('pointerdown',e=>e.stopPropagation());
+  ok.onclick=go;el.querySelector('#n27no').onclick=()=>n27Close();
+  chk();try{i.focus();i.select()}catch(_){}return el}
+function n27Close(){if(N27.el){N27.el.remove();N27.el=null}}
+// 새 캐릭터 단추를 누르면 먼저 이름을 묻는다 (단추의 원래 동작은 이름을 정한 뒤 그대로)
+document.addEventListener('click',e=>{if(N27.pass)return;const b=e.target&&e.target.closest&&e.target.closest('#introBody [data-cls]');if(!b||b.disabled)return;
+  e.preventDefault();e.stopImmediatePropagation();
+  n27Open(b.dataset.cls,'',v=>{N27.pending=v;N27.pass=true;try{b.click()}finally{N27.pass=false;N27.pending=null}})},true);
+{const _ng=newGame;newGame=function(cls,slot){const nm=N27.pending;N27.pending=null;const r=_ng.apply(this,arguments);
+  if(nm&&P){P.name=nm;try{updateHud()}catch(_){}save();n27Net()}return r}}
+function n27Set(v){v=n27Clean(v);if(!v||!P)return false;P.name=v;try{updateHud()}catch(_){}save();n27Net();return true}
+function n27Net(){try{if(typeof NET==='object'){NET.name=netName();if(NET.ws&&NET.ws.readyState===1){NET.meK='';netMe()}}}catch(_){}}
+{const _nn=netName;netName=function(){return (P&&n27Clean(P.name))||_nn.apply(this,arguments)}}
+// 저장 · 불러오기: name은 선택 필드
+{const _sd=saveData;saveData=function(){const d=_sd.apply(this,arguments);try{const n=P&&n27Clean(P.name);if(d&&n)d.name=n}catch(_){}return d}}
+{const _ld=load;load=function(d){const n=n27Of(d);const r=_ld.apply(this,arguments);try{if(r&&P)P.name=n;if(r)updateHud()}catch(_){}return r}}
+// 화면 왼쪽 위: 이름 + 칭호
+{const _uh=updateHud;updateHud=function(){const r=_uh.apply(this,arguments);try{let s=document.getElementById('pn27');const t=el.title;
+  if(!s&&t&&t.parentNode){s=document.createElement('span');s.id='pn27';t.parentNode.insertBefore(s,t)}const n=P&&n27Clean(P.name);
+  if(s){if(s.textContent!==(n||''))s.textContent=n||'';s.hidden=!n}}catch(err){if(window.__QA)throw err}return r}}
+// 캐릭터 고르기 카드: 이름
+{const _ib=introButtons;introButtons=function(){const r=_ib.apply(this,arguments);try{for(let i=0;i<NSAVE;i++){const d=readSlot(i),n=n27Of(d);if(!n)continue;
+    const x=document.querySelector(`#introBody [data-exp="${i}"]`),card=x&&x.closest('.cls'),b=card&&card.querySelector(':scope>b');
+    if(b&&!b.querySelector('.n27c')){const s=document.createElement('span');s.className='n27c';s.textContent=n;b.prepend(s)}}}catch(err){if(window.__QA)throw err}return r}}
+// 캐릭터 창: 이름 바꾸기
+{const _ch=charHtml;charHtml=function(){const h=_ch.apply(this,arguments),n=P&&n27Clean(P.name);
+  return `<div class="n27row">이름 <b>${n||'<span class="muted">아직 없음</span>'}</b><button class="ghost sm" type="button" data-n27ren="1">${n?'이름 바꾸기':'이름 짓기'}</button></div>`+h}}
+document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.target.closest('#pbody [data-n27ren]');if(!b)return;
+  n27Open(P.cls,n27Clean(P.name)||'',v=>{if(n27Set(v)){msg(`이름을 「${v}」(으)로 정했습니다`,'#d6b262');if(!panel.hidden&&tab==='char')renderPanel()}})});
+// 같이 하기 창: 이름이 있으면 그 이름을 쓴다 (바꾸기는 캐릭터 창에서)
+{const _nu=netUI;netUI=function(){const r=_nu.apply(this,arguments);try{const i=document.getElementById('coopName'),n=P&&n27Clean(P.name);
+  if(i&&n){i.value=n;i.readOnly=true;i.title='캐릭터 이름 (캐릭터 창에서 바꿀 수 있어요)'}}catch(_){}return r}}
+
+/* 8. 친구 접속 알림 */
+const F27={seen:null,log:[]};
+function f27Who(list){const ids=new Set(),nw=[];for(const o of list||[]){if(!o||o.id==null||o.id===NET.id)continue;ids.add(o.id);if(F27.seen&&!F27.seen.has(o.id))nw.push(o)}
+  F27.seen=ids;for(const o of nw){const C=CLASSES[o.c],t=`${o.n||'누군가'}님이 접속했습니다${C?` (${C.n} Lv ${o.l|0})`:''}`;F27.log.push(t);
+    msg(t,'#9fe0ff');if(window.COOP_SERVER)try{chatSys(t,'#9fe0ff')}catch(_){}try{if(typeof sfx==='function')sfx('ui')}catch(_){}f27Toast(o,t)}}
+// 알림 쪽지: 내가 파티를 열 수 있고(혼자이거나 방장) 친구가 혼자이면 「파티에 초대」 단추 (9번: 같은 서버에 있기만 하고 파티가 아니면 던전에 같이 안 들어감)
+const f27CanInv=o=>!!o&&!o.r&&(NET.on?NET.host:!NET.roomHost);
+function f27Toast(o,t){let el=document.getElementById('f27t');if(!el){el=document.createElement('div');el.id='f27t';el.setAttribute('role','status');document.body.appendChild(el)}
+  clearTimeout(F27.tt);const inv=f27CanInv(o);
+  el.innerHTML=`<span></span>${inv?'<button class="primary" type="button" data-f27inv>파티에 초대</button>':''}<button class="ghost" type="button" data-f27x>닫기</button>`;el.querySelector('span').textContent=t;el.hidden=false;
+  const b=el.querySelector('[data-f27inv]');if(b)b.onclick=()=>{el.hidden=true;netInvite(o.id)};el.querySelector('[data-f27x]').onclick=()=>{el.hidden=true};
+  el.addEventListener('pointerdown',e=>e.stopPropagation());F27.tt=setTimeout(()=>{el.hidden=true},15000);return el}
+{const _om=netOnMsg;netOnMsg=function(m){if(m&&m.t==='hello')F27.seen=null;// 새로 이어지면 처음 목록은 알리지 않음
+  if(m&&m.t==='who'){try{f27Who(m.list)}catch(err){if(window.__QA)throw err}}return _om.apply(this,arguments)}}
+
+/* 2 · 3. PC 창 배치: 짝문 · 스킬 트리 */
+const W27={gate:{CH:100,SY:108},MIN:.55};
+const w27Pc=()=>!(typeof M22==='object'&&M22.phone());
+{const _gm=gate26Map;gate26Map=function(){if(!w27Pc())return _gm.apply(this,arguments);const o={CH:G26.CH,SY:G26.SY};Object.assign(G26,W27.gate);
+  try{return _gm.apply(this,arguments)}finally{Object.assign(G26,o)}}}
+function w27Gate(card){const w=pbody.querySelector('#g26w'),m=w&&w.querySelector('.g26m');if(!w||!m)return;
+  const row=document.createElement('div');row.className='g27row';const side=document.createElement('div');side.className='g27side';const box=document.createElement('div');box.className='g27map';
+  for(const c of [...pbody.children])if(c!==w)side.appendChild(c);box.appendChild(w);row.append(side,box);pbody.appendChild(row);
+  const Wd=parseFloat(m.style.width),Hd=parseFloat(m.style.height),cs=getComputedStyle(panel),pi=panel.clientHeight-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom),
+    cc=getComputedStyle(card),top=row.getBoundingClientRect().top-card.getBoundingClientRect().top,
+    aH=pi-top-parseFloat(cc.paddingBottom)-parseFloat(cc.borderBottomWidth)-4,aW=box.clientWidth-2;
+  let s=Math.min(1,aW/Wd,aH/Hd);const fit=s>=W27.MIN;if(!fit)s=W27.MIN;s=Math.floor(s*1000)/1000;
+  m.style.zoom=s<1?String(s):'';
+  w.style.width=Math.ceil(Wd*s)+2+'px';w.style.height=fit?Math.ceil(Hd*s)+2+'px':'';w.style.maxHeight=fit?'none':Math.max(160,aH)+'px';w.style.overflow=fit?'hidden':'auto';
+  W27.s=s;W27.fit=fit}
+function w27Tree(){const ts=pbody.querySelector(':scope>.treescroll'),dt=pbody.querySelector(':scope>.detail');if(!ts||!dt)return;
+  const row=document.createElement('div');row.className='t27row';const l=document.createElement('div');l.className='t27l';const r=document.createElement('div');r.className='t27r';
+  ts.before(row);l.appendChild(ts);const kb=pbody.querySelector(':scope>.kbhint');if(kb)r.appendChild(kb);r.appendChild(dt);row.append(l,r)}
+{const _rp=renderPanel;renderPanel=function(){const card=panel.querySelector('.card'),pc=w27Pc();
+  if(card){card.classList.toggle('g27',tab==='gate'&&pc);card.classList.toggle('t27',tab==='tree')}
+  const r=_rp.apply(this,arguments);
+  try{if(tab==='gate'&&pc&&card)w27Gate(card);if(tab==='tree')w27Tree()}catch(err){if(window.__QA)throw err}return r}}
+addEventListener('resize',()=>{try{if(!panel.hidden&&(tab==='gate'||tab==='tree'))renderPanel()}catch(_){}});
+
+{const st=document.createElement('style');st.textContent=`
+#n27{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(0,0,0,.6)}
+#n27 .card{width:min(420px,100%)}#n27 h2{margin-top:0}
+.n27in{display:flex;align-items:center;gap:8px;margin:10px 0 4px}.n27in input{flex:1;min-width:0;font-size:18px;padding:8px 10px;background:#0e0c0a;color:#f0e2bc;border:1px solid var(--line);border-radius:3px}
+.n27m{min-height:18px;font-size:13px;color:#ff9a7a;margin-bottom:8px}
+#f27t{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 84px);transform:translateX(-50%);z-index:31;display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;max-width:calc(100% - 32px);box-sizing:border-box;background:rgba(14,12,10,.94);border:1px solid #9fe0ff;border-radius:4px;padding:8px 12px;color:#e8e2d2;box-shadow:0 4px 14px rgba(0,0,0,.5)}#f27t[hidden]{display:none}#f27t button{min-height:34px}
+#pn27{color:#ffe6a8;margin-right:6px}#pn27[hidden]{display:none}
+#introBody .n27c{color:#ffe6a8;margin-right:6px}#introBody .n27c::after{content:' ·';color:var(--muted)}
+.n27row{display:flex;align-items:center;gap:10px;margin:0 0 10px;font-size:14px}.n27row b{color:#ffe6a8;font-size:16px}
+#panel .card.g27{width:min(1240px,100%)}body.m22L #panel .card.g27{width:min(1240px,100%)}
+.g27row{display:flex;gap:16px;align-items:flex-start}.g27side{flex:0 0 250px;min-width:0}.g27side .diffs{flex-wrap:wrap}.g27map{flex:1;min-width:0;display:flex;justify-content:center}
+.g27map .g26w{margin:0}.g27 .g26t{min-height:30px}
+#panel .card.t27{width:min(1040px,100%)}body.m22L #panel .card.t27{width:min(1040px,100%)}
+.t27row{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start}.t27l{flex:0 1 auto;min-width:0;max-width:100%}
+.t27r{flex:1 1 280px;min-width:280px;position:sticky;top:0}.t27r .detail{margin-top:0}
+@media (max-width:640px){.t27r{min-width:0;flex-basis:100%}}`;document.head.appendChild(st)}
+if(window.__game)Object.assign(window.__game,{FREE27,N27,n27Why,n27W,n27Clean,n27Open,n27Set,F27,f27Who,W27,w27Gate,w27Tree});
 /* ---------- v24 마을 안에서는 공격 기술 못 씀 (사용자 2026-10-10 05:16) ----------
    「마을 안에서 밖의 몬스터를 리스크 없이 공격할 수 있음 → 마을 밖으로 나가야 공격 기술이 되게」
    · 마을 안전 구역(inSafe, 몬스터가 쫓아오지 않는 곳) · 건물 안(IN)에서는 피해를 주는 기술(isDmg: 기본 공격 · 투사체 · 장판 · 소환 · 덫 등)을 시작하지 않는다.
@@ -21067,6 +21330,69 @@ body.m22P #chat{width:min(300px,calc(100% - 192px))}/* v24: 세로 휴대폰에�
 body.m22 #set24 .s24seg{min-height:36px}body.m22 #set24 .s24item{min-height:40px}`;document.head.appendChild(st)})();
 set24Clamp();Q.apply();
 window.__set24={SET24,set24Q,set24Fps,set24Open,set24Clamp,gfxDprCap};
+/* ---------- v27 (SKILL): 흔한 이름 · 새 스킬 시전 시간 · 아이콘 · 저장 옮기기 (맨 뒤, qa.js 앞) ----------
+   데이터는 skill27.js, 선행 · 칸은 skill27b.js.
+   · 이름(사용자 5번): 많은 게임에서 흔히 쓰는 이름이 있으면 그 이름으로. 낮은 위계일수록 기본 이름(던 블레싱 → 블레싱),
+     높은 위계는 지금의 멋진 이름을 그대로 둔다. 표시 이름(n)만 바꾸고 id는 그대로(저장 · 단축칸 · 장비 옵션 안전).
+   · 시전 시간: 새 큰 기술 둘(볼케이노 샷 0.8초 · 글레이셜 스파이크 0.7초). cast24.js와 같은 규칙으로 기본 배율 ×(1+0.15×시전 초).
+   · 저장: 하는 일이 크게 바뀐 궁수 원소 사격 스킬(REFUND27)에 찍은 점수는 이 판을 처음 불러올 때 한 번 스킬 포인트로 돌려준다.
+     원래 점수는 저장의 rs27.old에 보관. 저장에 rs27이 있으면 다시 돌려주지 않는다. 캐릭터 키는 지우거나 비우지 않는다(불러온 값의 사본만 고침).
+     자리만 옮긴 스킬(사제 심판 ↔ 퇴마 등)은 점수 그대로. 없어진 두 발 쏘기 · 빛의 회오리는 v19와 같은 길로 파워 샷 · 턴 언데드로 옮겨진다. */
+const RENAME27={
+  // 사제
+  blessing:'블레싱',agiup:'헤이스트',lightward:'홀리 실드',barrier:'배리어',closewounds:'하이 힐',renew:'리제너레이션',prayerheal:'매스 힐',
+  holycross:'홀리 크로스',holyfire:'홀리 파이어',consecration:'컨세크레이션',greatjudgment:'홀리 노바',
+  // 마법사
+  spark:'파이어 볼트',splash:'워터 볼트',windblade:'윈드 커터',arcanemissiles:'매직 미사일',
+  // 전사
+  shieldbash:'실드 배시',doubleslash:'더블 슬래시',crossslash:'크로스 슬래시',swordmastery:'소드 마스터리',polearmmastery:'폴암 마스터리',
+  shieldcharge:'실드 차지',bladedance:'블레이드 댄스',taunt:'타운트',laststand:'라스트 스탠드',
+  // 궁수
+  fanshot:'멀티플 샷',fulldraw:'차지 샷',streamshot:'래피드 샷',steadyhand:'보우 마스터리',powershot:'파워 샷',
+  flamearrow:'플레임 애로우',icearrow:'프로스트 애로우',shockarrow:'윈드 애로우',
+  burstarrow:'익스플로시브 애로우',glacialarrow:'프리징 애로우',galearrow:'게일 애로우',
+  firerain:'파이어 레인',blizzardshot:'블리자드 샷',cyclonearrow:'사이클론 애로우',
+  volcanoshot:'볼케이노 샷',glacialspike:'글레이셜 스파이크',thunderarrow:'썬더스톰 애로우'};
+// 하는 일이 바뀐 스킬의 설정 이름(kn) · 영어 이름
+const KN27={shockarrow:['바람 화살','Wind Arrow'],thunderarrow:['폭풍 화살','Thunderstorm Arrow'],burstarrow:['터지는 화살','Explosive Arrow'],
+  glacialarrow:['얼리는 화살','Freezing Arrow'],greatjudgment:['정화의 빛','Holy Nova']};
+for(const id in RENAME27)if(SPELLS[id])SPELLS[id].n=RENAME27[id];
+for(const id in KN27)if(SPELLS[id]){SPELLS[id].kn=KN27[id][0];SPELLS[id].en=KN27[id][1]}
+if(CLASSES.archer&&CLASSES.archer.trees)CLASSES.archer.trees[1]='원소 사격';
+if(CLASSES.archer)CLASSES.archer.desc='멀리서 활을 당깁니다. 민첩이 오를수록 강해지고 잘 맞힙니다. 덫과 사냥 동료, 그리고 화염 · 냉기 · 바람 중 고른 원소 사격을 씁니다.';
+
+/* ---- 시전 시간 (cast24.js와 같은 규칙) ---- */
+const CAST_T27={volcanoshot:.8,glacialspike:.7};
+for(const id in CAST_T27){const s=SPELLS[id];if(!s||CAST_T[id])continue;CAST_T[id]=CAST_T27[id];s.mult=Math.round(s.mult*(1+.15*CAST_T27[id])*1000)/1000}
+
+/* ---- 아이콘 (iconsphys.js 문양 조각) ---- */
+Object.assign(ICP,{
+  powershot:c=>ICX.bow(12,20,-45,.85,1)+ICX.arrow(18,14,-45,1.05)+ICX.burst(26,6,.4,'#fff'),
+  shockarrow:c=>ICX.lines(8,24,-45,.6,PAL.wind[0],3)+ICX.arrow(17,15,-45,1,PAL.wind[2],PAL.wind[0])+ICX.path('M6 10q6-4 12 0',PAL.wind[0],1.2,.8),
+  galearrow:c=>ICX.path('M3 22q8-6 16-2t10-4',PAL.wind[0],1.6,.8)+ICX.path('M3 14q8-6 16-2',PAL.wind[0],1.2,.6)+ICX.arrow(18,14,-20,1,PAL.wind[2],PAL.wind[0]),
+  cyclonearrow:c=>ICX.spiral(16,16,1.15,PAL.wind[0])+ICX.arrow(16,13,-45,.65,PAL.wind[2],PAL.wind[0]),
+  thunderarrow:c=>ICX.cloud(16,6,.85,'#5a6088')+ICX.zap(9,19,0,.7)+ICX.zap(22,21,0,.7)+ICX.spiral(16,24,.5,PAL.wind[0])+ICX.arrow(16,15,-80,.5,PAL.storm[2],PAL.storm[0]),
+  firerain:c=>ICX.cloud(16,6,.85,'#7a3a2a')+[[9,15],[15,19],[21,14],[25,21],[12,24]].map(([x,y])=>ICX.arrow(x,y,70,.4,PAL.fire[0],PAL.fire[0])).join('')+ICX.flame(18,26,.4),
+  volcanoshot:c=>ICX.path('M4 28L12 16 16 20 20 14 28 28z','#5a2a18',1.2)+ICX.flame(16,13,.9)+ICX.burst(16,13,.7,PAL.fire[0],9)+ICX.arrow(9,22,-60,.5,PAL.fire[0],PAL.fire[0]),
+  blizzardshot:c=>ICX.cloud(16,8,.85,'#7a90a8')+ICX.flake(10,20,.5)+ICX.flake(21,23,.55)+ICX.flake(16,16,.45)+ICX.arrow(24,12,110,.5,PAL.ice[2],PAL.ice[0]),
+  glacialspike:c=>`<path d="M16 3L20 26H12z" fill="${PAL.ice[0]}" stroke="${PAL.ice[1]}" stroke-width=".8"/><path d="M8 12L11 27H5z M24 12L27 27H21z" fill="${PAL.ice[2]}" stroke="${PAL.ice[1]}" stroke-width=".6" opacity=".9"/>`+ICX.ring(16,27,.7,PAL.ice[0])});
+
+/* ---- 저장: 바뀐 원소 사격 스킬의 점수를 한 번 돌려주기 ---- */
+const REFUND27={archer:['flamearrow','icearrow','shockarrow','burstarrow','glacialarrow','thunderarrow']};
+const rs27Clean=x=>{const o={v:1};if(x&&typeof x==='object'&&!Array.isArray(x)&&x.old&&typeof x.old==='object'&&!Array.isArray(x.old)){const old={};for(const k in x.old){const v=x.old[k]|0;if(v>0&&v<=99)old[k]=v}if(Object.keys(old).length)o.old=old}return o};
+// 불러올 저장(d)의 사본에서 돌려줄 점수를 빼고 sp에 더한다 (d 자체는 고치지 않음)
+function rs27Fix(d){if(!d||typeof d!=='object'||d.rs27||!(d.v>=4)||!d.sk||typeof d.sk!=='object'||!REFUND27[d.cls])return {d,n:0};
+  const sk=Object.assign({},d.sk),old={};let n=0;
+  for(const id of REFUND27[d.cls]){const v=clamp(sk[id]|0,0,MAXSK);if(v>0){old[id]=v;n+=v}delete sk[id]}
+  if(!n)return {d,n:0};
+  return {d:Object.assign({},d,{sk,sp:(d.sp|0)+n,rs27:{v:1,old}}),n,old}}
+{const _ld=load;load=function(d,slot){const f=rs27Fix(d);const ok=_ld.call(this,f.d,slot);
+  if(ok&&P){P.rs27=rs27Clean(f.d&&f.d.rs27);
+    if(f.n>0)setTimeout(()=>{msg(`원소 사격이 화염 · 냉기 · 바람 세 갈래로 새로 짜였습니다. 바뀐 원소 화살에 찍었던 ${f.n}점을 스킬 포인트로 돌려받았습니다`,'#ffd76a');msg('스킬 트리(T)의 「원소 사격」에서 갈래를 골라 다시 찍으세요','#ffd76a')},700)}
+  return ok}}
+{const _sd=saveData;saveData=function(){const d=_sd.apply(this,arguments);try{if(d&&P)d.rs27=rs27Clean(P.rs27)}catch(err){if(window.__QA)throw err}return d}}
+
+setTimeout(()=>{try{if(window.__game)Object.assign(window.__game,{RENAME27,REFUND27,GONE27,LINKS27,CAST_T27,rs27Fix})}catch(_){}},0);
 
 /* ---------- QA: 자가 점검 모드(#qa) ----------
    게임 IIFE 안, b5.js 바로 앞에 붙는다. location.hash가 '#qa'이고 qa0.js가 준비됐을 때만 동작한다.
@@ -21171,7 +21497,7 @@ let qaMigr=null;
 const QCN={mage:'마법사',priest:'사제',warrior:'전사',archer:'궁수'},QCLS=['mage','priest','warrior','archer'];// v18: 전사·궁수
 for(const cls of QCLS)qT('시작',`새 캐릭터(${QCN[cls]}) 만들고 3초 진행`,()=>{
   if(cls!=='mage'){$('#helpBtn').click();qOk(!$('#intro').hidden,'도움말(시작 화면)이 열리지 않음')}
-  const b=document.querySelector(`#introBody [data-cls="${cls}"]`);qOk(b,'새 캐릭터 버튼 없음');const slot=+b.dataset.slot;b.click();
+  const b=document.querySelector(`#introBody [data-cls="${cls}"]`);qOk(b,'새 캐릭터 버튼 없음');const slot=+b.dataset.slot;qN27(b,'시험'+QCN[cls]);qOk(P.name==='시험'+QCN[cls],'이름 '+P.name);
   qOk($('#intro').hidden,'시작 화면이 닫히지 않음');qOk(P.cls===cls,`직업이 ${P.cls}`);qOk(curSlot===slot,`저장 칸 ${curSlot}≠${slot}`);qOk(!paused,'일시정지 상태');
   qOk(localStorage.getItem(SLOTKEY(slot)),'새 캐릭터가 저장되지 않음');
   const x0=P.x;keys.add('KeyD');qStep(90,{renderEvery:3,spawn:true});keys.delete('KeyD');qStep(90,{renderEvery:3,spawn:true});
@@ -21851,7 +22177,7 @@ qT('저장','깨진 JSON 칸이 섞여도 다른 칸은 멀쩡함',()=>{qResetSt
   qOk(cards.join()==='0,2',`카드 ${cards}`);qClick('#introBody [data-play="2"]');qOk(P.lvl===41&&curSlot===2,'2번 칸 불러오기 실패');saveNow();qStep(5);saveNow();
   for(const i of [0,1,3])qOk(qRaw('arseia-char-'+i)===raw[i],`${i}번 칸이 바뀜`);qOk(JSON.parse(qRaw('arseia-char-2')).lvl===41,'2번 칸 저장');loadRegion('home')});
 qT('저장','새 캐릭터를 만들 때 읽을 수 없는 칸(깨진 JSON·미래 버전)을 덮어쓰지 않음',()=>{qResetStore();qPut('arseia-char-0',QA_FIX.v4);const bad='{"v":5,"cls":"mage",lvl:';qPut('arseia-char-1',bad);qPut('arseia-char-2',QA_FIX.v6future);
-  introButtons(false);const b=document.querySelector('#introBody [data-cls="mage"]');qOk(b,'새 캐릭터 버튼 없음');const slot=+b.dataset.slot;b.click();
+  introButtons(false);const b=document.querySelector('#introBody [data-cls="mage"]');qOk(b,'새 캐릭터 버튼 없음');const slot=+b.dataset.slot;qN27(b,'시험');
   const ok1=qRaw('arseia-char-1')===bad,ok2=qRaw('arseia-char-2')===JSON.stringify(QA_FIX.v6future);qOk(ok1&&ok2,`새 캐릭터가 ${slot}번 칸에 저장되어 ${!ok1?'깨진 JSON(1번)':''}${!ok2?' 미래 버전(2번)':''} 저장을 덮어씀`);return `새 칸 ${slot}`});
 qT('저장','8칸이 다 찬 경우',()=>{qResetStore();const F=[QA_FIX.v1old,QA_FIX.v2,QA_FIX.v4,QA_FIX.v5,QA_FIX.v4,QA_FIX.v2,QA_FIX.v5,QA_FIX.v1old];F.forEach((d,i)=>qPut('arseia-char-'+i,Object.assign({},d,{slot:i})));
   introButtons(false);const cards=document.querySelectorAll('#introBody [data-play]').length,nw=document.querySelectorAll('#introBody [data-cls]').length;
@@ -21859,7 +22185,7 @@ qT('저장','8칸이 다 찬 경우',()=>{qResetStore();const F=[QA_FIX.v1old,QA
   for(let i=0;i<8;i++){const d=readSlot(i);qOk(d&&load(d,i)&&curSlot===i&&P.cls===F[i].cls,`${i}번 칸 불러오기 실패`)}loadRegion('home');return '8/8'});
 qT('저장','띄엄띄엄 찬 경우 (0·3·7번) — 새 캐릭터는 1번 칸, 다른 칸은 그대로',()=>{qResetStore();qPut('arseia-char-0',QA_FIX.v4);qPut('arseia-char-3',QA_FIX.v2);qPut('arseia-char-7',QA_FIX.v5);
   const raw=[0,3,7].map(i=>qRaw('arseia-char-'+i));introButtons(false);const cards=[...document.querySelectorAll('#introBody [data-play]')].map(b=>+b.dataset.play);qOk(cards.join()==='0,3,7',`카드 ${cards}`);
-  const b=document.querySelector('#introBody [data-cls="priest"]');qOk(b&&b.dataset.slot==='1',`새 칸 ${b&&b.dataset.slot}`);b.click();qOk(curSlot===1&&qRaw('arseia-char-1'),'1번에 저장 안 됨');
+  const b=document.querySelector('#introBody [data-cls="priest"]');qOk(b&&b.dataset.slot==='1',`새 칸 ${b&&b.dataset.slot}`);qN27(b,'시험');qOk(curSlot===1&&qRaw('arseia-char-1'),'1번에 저장 안 됨');
   [0,3,7].forEach((i,j)=>qOk(qRaw('arseia-char-'+i)===raw[j],`${i}번 칸이 바뀜`));qStep(5);saveNow();[0,3,7].forEach((i,j)=>qOk(qRaw('arseia-char-'+i)===raw[j],`${i}번 칸이 바뀜(저장 후)`));loadRegion('home')});
 qT('저장','저장소가 가득 차서 저장이 실패해도 게임이 멈추지 않음',()=>{qPrep('mage');QA.quota=10;try{saveNow();save();qStep(10);gainXp(xpNeed(P.lvl))}finally{QA.quota=0}});
 
@@ -25074,12 +25400,12 @@ qT('물약 v25','물약 단계 수는 5개 그대로 · 단계마다 최대 생�
 /* ===== v25 마우스 휠 단축키 (사용자 09:08) ===== */
 qT('단축키 v25','단축키 창에서 칸을 고르고 휠을 굴리면 그 칸이 「휠 ↑/↓」 · 게임 화면에서 휠 한 칸 = 한 번 시전 · 잘게 오는 휠은 모아서 한 칸 · 창이 열려 있으면 시전 안 함 · 휠에 넣은 것이 없으면 휠을 막지 않음 · 저장 keys에 남고 다시 읽힘',()=>{qPrep('mage');const bad=[];
   const W=(dy,o)=>{const ev=new WheelEvent('wheel',Object.assign({deltaY:dy,deltaMode:0,bubbles:true,cancelable:true},o||{}));cv.dispatchEvent(ev);return ev};
-  try{P.sk.spark=1;P.bar[2]='spark';buildBar();kbReset();
+  try{P.sk.firebolt=1;P.bar[2]='firebolt';P.mp=maxMp();/* v27: 첫 기술(파이어 볼트=spark)은 마나 0 → 마나를 쓰는 기술로 잼 */buildBar();kbReset();
     let ev=W(-120);if(ev.defaultPrevented)bad.push('넣은 것 없는데 휠을 막음');
     kbOpen();KB.cap='s2';const we=new WheelEvent('wheel',{deltaY:-120,bubbles:true,cancelable:true});window.dispatchEvent(we);
     if(KB.bind.s2!=='WheelUp')bad.push('잡기 '+KB.bind.s2);if(!/휠 ↑/.test(SLOTS[2].k))bad.push('칸 글자 '+SLOTS[2].k);
     KB.cap='s3';window.dispatchEvent(new WheelEvent('wheel',{deltaY:100,shiftKey:true,bubbles:true,cancelable:true}));if(KB.bind.s3!=='S+WheelDown')bad.push('Shift 잡기 '+KB.bind.s3);kbClose();
-    const cast=()=>{const m=P.mp;P.cd={};WHEEL25.last=0;return ()=>P.mp<m};
+    const cast=()=>{P.mp=maxMp();const m=P.mp;P.cd={};REC.t=0;REC.q=null;WHEEL25.last=0;return ()=>P.mp<m};
     let c=cast();ev=W(-120);if(!c())bad.push('휠 위로 시전 안 됨');if(!ev.defaultPrevented)bad.push('넣었는데 페이지가 스크롤됨');
     c=cast();W(-15);W(-15);const mid=c();W(-15);if(mid||!c())bad.push(`잘게 오는 휠: 중간 ${mid} · 끝 ${c()}`);
     c=cast();P.cd={};W(-120);const t2=c();P.cd={};P.mp=maxMp();const m2=P.mp;W(-120);if(P.mp<m2)bad.push('0.12초 안에 두 번');
@@ -25168,7 +25494,7 @@ qT('화면','v26 짝문 = 세계 지도: 지역 칸이 지도 자리대로, 가 
   // 칸이 서로 겹치지 않음
   for(let i=0;i<cells.length;i++)for(let j=i+1;j<cells.length;j++){const a=cells[i].getBoundingClientRect(),b=cells[j].getBoundingClientRect();qOk(!(a.left<b.right-1&&a.right>b.left+1&&a.top<b.bottom-1&&a.bottom>b.top+1),'칸 겹침 '+ids[i]+'/'+ids[j])}
   P.towns.push('haven','arden');renderPanel();const tr=[...pbody.querySelectorAll('[data-travel]')].map(b=>b.dataset.travel).sort().join();qOk(tr==='arden,haven','눌리는 마을 '+tr);
-  for(const b of pbody.querySelectorAll('.g26t'))qOk(b.getBoundingClientRect().height>=40,'단추가 40px보다 낮음');
+  {const mh=M22.phone()?40:28;/* v27: PC는 한 화면에 맞추려고 칸을 낮춤(마우스) · 휴대폰은 40px 그대로 */for(const b of pbody.querySelectorAll('.g26t'))qOk(b.getBoundingClientRect().height>=mh,`단추가 ${mh}px보다 낮음`)}
   pbody.querySelector('[data-travel="arden"]').click();await qSleep();qOk(REG.id==='royal'&&nearestTown(P.x,P.y).t.id==='arden','짝문으로 왕도에 가지 않음 '+REG.id);
   qClosePanels();loadRegion('home');return `칸 ${cells.length}`});
 qT('전투','v26 선공 · 비선공: 비선공은 맞기 전까지 안 옴, 선공은 예전 거리의 70%, 보스 · 정예 · 던전은 그대로, 지역마다 섞임',()=>{qPrep('warrior',{lvl:60});const T=TOWNS[0];P.x=T.x+1500;P.y=T.y;P.invT=1e9;
@@ -25193,18 +25519,21 @@ qT('전투','v26 궁수 사거리 1.5배 · 꿰뚫는 기술 2배: 퀵 샷 760 �
   // 자동 겨누기도 810까지
   touchMode=true;mouse.active=false;let e=qDummy(P.x+780,P.y);let t=aimPoint();qOk(Math.hypot(t.x-e.x,t.y-e.y)<1,'자동 겨누기가 780을 못 고름');qClear();touchMode=false;
   return out.join(' · ')});
-qT('보스 v26','모르가스 쉽게: 부하(재의 사도)는 30초에 둘(처음 20초 뒤) · 분신은 부하를 안 부르고 화살 부채 5 · 보스 부채 8(분노 10) · 군주의 메아리 쌍둥이 · 다른 보스는 그대로',()=>{const out=[];
+qT('보스 v26','모르가스 쉽게: 부하(재의 사도)는 30초에 둘(처음 20초 뒤) · 분신은 부하를 안 부르고 화살 부채 5 · 보스 부채 8(분노 10) · 군주의 메아리 쌍둥이 · 다른 보스는 그대로',()=>{const out=[],think0=bossThink;
   try{const T=TYPES.b_morgath;qOk(T.sumCd===30&&T.sumN===2&&String(T.vol)==='8,10','값');qOk(!TYPES.b_arsil.vol&&!TYPES.b4_morgath2.vol&&TYPES.b_arsil.sumN==null,'다른 보스도 바뀜');
-    let {e}=qBossAt(3,0);qOk(e.k==='b_morgath','4번째 던전 보스가 모르가스가 아님 '+e.k);enemies=[e];const sum=[],vol=[];let nA=0;
+    let {e}=qBossAt(3,0);qOk(e.k==='b_morgath','4번째 던전 보스가 모르가스가 아님 '+e.k);enemies=[e];const sum=[],vol=[],cloneVol=[];let nA=0;
+    // 부채를 쏘는 함수 한 번마다 센다. 같은 프레임의 보통 공격과 다른 시전자 부채는 섞지 않는다.
+    bossThink=function(actor){const before=new Set(projs),r=think0.apply(this,arguments);
+      if(actor===e||actor.clone&&actor.mg===e.mg){const count=projs.filter(p=>p.owner==='e'&&!before.has(p)).length;if(count)(actor===e?vol:cloneVol).push(count)}return r};
     const watch=i=>{P.invT=1e9;P.hp=maxHp();const a=enemies.filter(o=>o.k==='apostle'&&!o._s26);for(const o of a)o._s26=1;if(a.length){sum.push([i/30,a.length]);nA+=a.length}
-      const ps=projs.filter(p=>p.owner==='e'&&!p._s26);for(const p of ps)p._s26=1;if(ps.length)vol.push(ps.length);for(const o of enemies)if(o.k==='apostle'){o.hp=0;o.dead=true}};
+      const ps=projs.filter(p=>p.owner==='e'&&!p._s26);for(const p of ps)p._s26=1;for(const o of enemies)if(o.k==='apostle'){o.hp=0;o.dead=true}};
     qStep(30*120,{dt:1/30,render:false,each:watch});
     qOk(sum.length>=2,'부하를 안 부름 '+sum.length);qOk(sum[0][0]>=19.5,'처음 부름 '+sum[0][0]);for(let i=1;i<sum.length;i++)qOk(sum[i][0]-sum[i-1][0]>=29.5,'부르는 간격 '+(sum[i][0]-sum[i-1][0]).toFixed(1));
     qOk(sum.every(x=>x[1]<=2),'한 번에 '+sum.map(x=>x[1]));qOk(vol.length&&Math.max(...vol)<=8,'부채 '+Math.max(...vol));out.push(`120초 부름 ${sum.length}번 · 부채 ${Math.max(...vol)}`);
     // 50%: 분신 하나. 분신은 부하를 부르지 않고 부채 5 · 보스는 분노 부채 10
-    e.hp=Math.round(e.max*.45);qStep(1,{render:false,each:()=>{P.invT=1e9}});const c=enemies.find(o=>o.clone&&o.mg===e.mg);qOk(c,'분신 없음');e.sumT=1e9;sum.length=0;vol.length=0;
+    e.hp=Math.round(e.max*.45);qStep(1,{render:false,each:()=>{P.invT=1e9}});const c=enemies.find(o=>o.clone&&o.mg===e.mg);qOk(c,'분신 없음');e.sumT=1e9;sum.length=0;vol.length=0;cloneVol.length=0;
     qStep(30*60,{dt:1/30,render:false,each:i=>{watch(i);e.hp=Math.max(e.hp,1);c.hp=Math.max(c.hp,1)}});qOk(!sum.length,'분신이 부하를 부름 '+sum.length);
-    qOk(vol.length&&Math.max(...vol)<=10&&vol.includes(5),'분노 · 분신 부채 '+[...new Set(vol)]);out.push('분신 부채 '+[...new Set(vol)].sort((a,b)=>a-b).join('/'))}finally{if(DG)leaveDungeon()}
+    qOk(vol.length&&Math.max(...vol)<=10,'분노 부채 '+[...new Set(vol)]);qOk(cloneVol.length&&cloneVol.every(n=>n===5),'분신 부채 '+cloneVol);out.push('보스 부채 '+[...new Set(vol)].join('/')+' · 분신 부채 5')}finally{bossThink=think0;if(DG)leaveDungeon()}
   return out.join(' · ')});
 qT('보스 v26','보스방 3배: 모든 지역의 모든 동굴 던전에서 보스방이 v24 넓이(원래 방의 2.25배 · 큰 보스 2.6배)의 3배 이상 · 보스가 가운데 · 남은 방과 떨어짐 · 걸어서 감 · 방 8개 이상',()=>{let n=0,mn=99,eat=0;const bad=[];qPrep('mage',{lvl:60});P.invT=1e9;
   for(const id of Object.keys(REGIONS)){if(DG)leaveDungeon();loadRegion(id);for(const c of CAVES.slice()){if(!c.cave||c.cave.trial||c.cave.arena||c.cave.w3k==='trial')continue;if(DG)leaveDungeon();K22.m.clear();enterDungeon(c);qOk(!DG||DG.d===c.cave,'다른 던전이 열림 '+c.cave.n);if(!DG||!DG.boss){bad.push(c.cave.n+' 못 들어감');continue}
@@ -25860,7 +26189,7 @@ qT('성능','v26 던전 벽 묶어 그리기: 묶어 그린 화면이 벽마다 
     for(const r of DG.rooms.slice(0,4)){qClear();const c=tc(r.cx,r.cy);P.x=c.x;P.y=c.y;
       // 방 가장자리(벽 바로 앞)와 가운데에 몬스터
       for(const [i,j] of [[r.i,r.j],[r.i+r.w-1,r.j],[r.i,r.j+r.h-1],[r.i+r.w-1,r.j+r.h-1],[r.cx+1,r.cy]]){const q=tc(i,j);const e=dgMob(k,q.x,q.y,10);if(e){e.atkCd=99;e.spd=0}}
-      for(let f=0;f<3;f++)render();window.__WBOFF=1;const a=shot();window.__WBOFF=0;const e0=WB.stat.early;for(let f=0;f<60;f++)render();const b=shot();early+=WB.stat.early-e0;
+      /* v27: 앞 점검이 남긴 화면 흔들림을 끈다 (묶음은 화소 단위로 붙여 흔들릴 때 반 화소쯤 다를 수 있다) */shake=0;shx=0;shy=0;for(let f=0;f<3;f++)render();window.__WBOFF=1;const a=shot();window.__WBOFF=0;const e0=WB.stat.early;for(let f=0;f<60;f++)render();const b=shot();early+=WB.stat.early-e0;
       let bad=0;for(let p=0;p<a.length;p+=4)if(Math.abs(a[p]-b[p])>24||Math.abs(a[p+1]-b[p+1])>24||Math.abs(a[p+2]-b[p+2])>24)bad++;worst=Math.max(worst,bad/(a.length/4));n++}
     qOk(early>0,'묶음을 한 번도 안 씀');qOk(worst<.002,`다른 점 ${(worst*100).toFixed(2)}%`);return `방 ${n}곳 · 묶어 그린 횟수 ${early} · 가장 많이 다른 점 ${(worst*100).toFixed(3)}%`}finally{window.__WBOFF=0;qClear();if(DG)leaveDungeon()}});
 qT('성능','v26 땅 무늬 그림이 새로 와도 다 구운 땅을 지우지 않고, 새로 다 구우면 바꿔 끼움',()=>{qPrep('mage');
@@ -25931,6 +26260,171 @@ qT('던전','v26 던전 바닥에 들판 장식이 겹쳐 보이지 않음(사�
     qOk(n>=4,'들어간 던전 '+n);qOk(seen>0,'같은 자리에 들판 장식이 있는 조각이 없음(시험이 겨누지 못함)');qOk(!out.length,'던전 바닥에 들판 장식: '+out.join(' · '))}
   finally{RD.draw=d0;paused=p0;if(DG)leaveDungeon();K22.m.clear();if(REG.id!=='home')loadRegion('home')}
   return `던전 ${n}곳 · 들판 장식과 겹치는 조각 ${seen}개 · 그려진 들판 장식 0`});
+qT('그래픽','v27 꾸밈 장식 30% 덜 그리기: 위치로 고정 · 놀던 중 품질이 바뀌어도 그대로 · 마을 소품은 그대로',()=>{qPrep('mage');const q0=Q.lvl;
+  try{loadRegion('forest');decoKey='';Q.lvl=2;decoIdx();const all=decor.filter(d=>DTHIN.test(d.k)&&!d.label&&!d.light&&!d.cell&&!d.tprop&&!d.town),kept=all.filter(d=>!decoThin(d));const r=kept.length/Math.max(1,all.length);
+    qOk(all.length>50&&r>.62&&r<.78,`남은 비율 ${(r*100).toFixed(0)}% (${kept.length}/${all.length})`);const vis0=decoVisible(0,40,0,40,[]).length;Q.lvl=0;Q.apply();const vis1=decoVisible(0,40,0,40,[]).length;
+    qOk(vis0===vis1,`놀던 중 품질이 바뀌자 장식 수가 바뀜 ${vis0}→${vis1}`);const tp=decor.filter(d=>d.tprop||d.town);qOk(tp.every(d=>!decoThin(d)),'마을 소품이 빠짐');
+    return `숲 꾸밈 장식 ${all.length}개 중 ${kept.length}개(${(r*100).toFixed(0)}%) 그림 · 품질 바뀌어도 ${vis1}개 그대로`}finally{Q.lvl=q0;Q.apply();decoKey='';qClear()}});
+qT('그래픽','v27 화면 방향 그림이 없는 땅 조각도 낮은 장식(밀 · 꽃 · 돌)을 같이 그림 (가장자리 깜빡임)',()=>{qPrep('mage');
+  try{loadRegion('plains');P.x=2600;P.y=2600;for(let f=0;f<300;f++){render();runChunkJobs(50);if(chunks.size&&[...chunks.values()].every(c=>c.ready&&(c.iso||c.used<frameN-1)))break}for(let f=0;f<5;f++)render();
+    const a=ctx.getImageData(0,0,cv.width,cv.height).data;const keep=new Map();for(const c of chunks.values()){keep.set(c,c.iso);c.iso=null}ISO_HOLD=true;render();const b=ctx.getImageData(0,0,cv.width,cv.height).data;ISO_HOLD=false;for(const [c,i] of keep)c.iso=i;
+    let bad=0;for(let p=0;p<a.length;p+=4)if(Math.abs(a[p]-b[p])+Math.abs(a[p+1]-b[p+1])+Math.abs(a[p+2]-b[p+2])>90)bad++;const r=bad/(a.length/4);qOk(r<.01,`다른 점 ${(r*100).toFixed(2)}%`);
+    return `조각 ${keep.size}개를 돌려 그리기로만 그려도 다른 점 ${(r*100).toFixed(2)}%`}finally{ISO_HOLD=false;qClear()}});
+qT('그래픽','v27 해상도가 바뀌어도 다 구운 땅을 지우지 않음 (흐려졌다 다시 그려지던 깜빡임)',()=>{qPrep('mage');const z0=GFX.zoom;
+  try{loadRegion('plains');P.x=2600;P.y=2600;for(let f=0;f<300;f++){render();runChunkJobs(50);if(chunks.size&&[...chunks.values()].every(c=>c.ready))break}const n0=[...chunks.values()].filter(c=>c.ready).length;
+    const s0=chunkScale;GFX.zoom=1.4;resize();render();const n1=[...chunks.values()].filter(c=>c.ready).length,pv=[...chunks.values()].filter(c=>!c.ready&&c.used>=frameN).length;
+    qOk(chunkScale!==s0,`배율이 안 바뀜 ${s0}`);qOk(n1>=n0&&pv===0,`해상도 바뀐 뒤 구운 조각 ${n0}→${n1} · 흐린 조각 ${pv}`);return `구운 조각 ${n0} → ${n1}개 (조각 배율 ${s0}→${chunkScale})`}finally{GFX.zoom=z0;resize();qClear()}});
+qT('성능','v27 입자: 동그라미 그림으로 그리기 · 다 된 입자만 제자리에서 지움',()=>{qPrep('mage');
+  try{parts.length=0;for(let i=0;i<50;i++)parts.push({x:P.x+i,y:P.y,z:10,vx:0,vy:0,vz:0,life:i%2?1:-1,max:1,col:'#ff8800',sz:3});const ref=parts;update(.01);qOk(parts===ref,'입자 배열을 새로 만듦');qOk(parts.length===25,`남은 입자 ${parts.length}`);
+    render();const d=dotCv('#ff8800');qOk(d.width===64&&DOTS.get('#ff8800')===d,'동그라미 그림');return `50개 중 ${parts.length}개 남김 · 같은 배열`}finally{qClear()}});
+
+qT('외부 B1','모르가스 부채는 보통 8 · 분노 10 · 분신 5발을 각각 정확히 쏜다',()=>{
+  const T=TYPES.b_morgath,skills=T.skills;let e;
+  try{e=qBossAt(3,0).e;T.skills=['volley'];const out=[];
+    for(const [rage,clone,want] of [[0,0,8],[1,0,10],[1,1,5]]){
+      e.rage=rage;e.clone=clone;e.hp=clone||rage?e.max*.45:e.max;e.freezeT=0;e.stunT=0;e.cast=0;e.skT=0;
+      const before=new Set(projs);bossThink(e,0,P,300);const n=projs.filter(p=>p.owner==='e'&&!before.has(p)).length;
+      qOk(n===want,'정확한 발 수 '+n+'/'+want);out.push(n)}return out.join('/');
+  }finally{T.skills=skills;if(DG)leaveDungeon()}});
+
+
+qT('외부 B2','입구 자리 찾기 결과: 모든 지역의 도달 칸과 탐색 부모가 예전 계산과 같다',()=>{
+  function oldReach(L,w,x,y,par){const N=LQN,lq=L.lq&&L.id!=='home'?L.lq:null,ok=new Uint8Array(N*N);
+  const free=n=>{if(lq&&lq[n]>.5)return false;if(!w)return true;const i=n%N,j=(n/N)|0,ci=Math.floor(i*LQS/TCS),cj=Math.floor(j*LQS/TCS);return !(ci<-TK||cj<-TK||ci>=TNC+TK||cj>=TNC+TK)&&!w[terrIdx(ci,cj)]};
+  const i0=clamp(Math.round(x/LQS),0,N-1),j0=clamp(Math.round(y/LQS),0,N-1),s0=j0*N+i0,q=[s0];ok[s0]=1;if(par)par[s0]=-1;
+  for(let h=0;h<q.length;h++){const k=q[h],i=k%N,j=(k/N)|0;for(const [a,b] of [[1,0],[-1,0],[0,1],[0,-1]]){const X=i+a,Y=j+b;if(X<0||Y<0||X>=N||Y>=N)continue;const n=Y*N+X;if(ok[n]||!free(n))continue;ok[n]=1;if(par)par[n]=k;q.push(n)}}return ok}
+
+  let count=0;
+  for(const id of ['home',...REG_IDS]){const L=terrLayer(id),T=terrEnsure(id),t=(L.towns&&L.towns[0])||{x:3000,y:3000};
+    const p0=new Int32Array(LQN*LQN),p1=new Int32Array(LQN*LQN);
+    const a=oldReach(L,T&&T.w,t.x,t.y,p0),b=terrReachLQ(L,T&&T.w,t.x,t.y,p1);
+    qOk(a.length===b.length,'격자 크기 '+id);for(let i=0;i<a.length;i++)qOk(a[i]===b[i]&&p0[i]===p1[i],'도달/부모 불일치 '+id+':'+i);count++}
+  return count+'지역 · 도달 칸/부모 모두 동일'});
+
+/* ---- v27: 스킬 이름 정리 · 궁수 원소 사격 3갈래 · 사제 심판/퇴마 나누기 (사용자 2026-10-10 16:10, 5·6·7번 · skill27*.js) ---- */
+const qAoe27=s=>!!(s&&isDmg(s)&&(s.aoe||s.pierce||['rain','field','strike','storm','nova','cone','beam','chain','orbit'].includes(s.kind)));
+qT('스킬 정리 v27','궁수 원소 사격: 1레벨에 화염 · 냉기 · 바람 셋 · 갈래마다 위로 이어지고 범위기 2개 이상 · 공통 패시브 · 두 발 쏘기 → 파워 샷 · 팬 샷 → 멀티플 샷',()=>{
+  const T1=qSpells('archer',s=>TREE[s.id]===1&&!s.tab),r1=T1.filter(s=>s.rank===1);
+  qOk(r1.length===3&&['fire','ice','wind'].every(el=>r1.some(s=>s.el===el&&isDmg(s)&&!PRE[s.id])),'1위계 '+r1.map(s=>s.id+':'+s.el).join(','));
+  const out=[];for(const root of r1){const br=[root.id];let cur=root.id;for(let k=0;k<6;k++){const nx=T1.find(s=>(PRE[s.id]||[]).includes(cur));if(!nx)break;br.push(nx.id);cur=nx.id}
+    const ss=br.map(id=>SPELLS[id]);qOk(br.length>=4,`${root.el} 갈래가 짧음 ${br}`);qOk(ss.every(s=>s.el===root.el||(root.el==='wind'&&s.el==='storm')),`${root.el} 갈래에 다른 원소 ${br}`);
+    qOk(ss.filter(qAoe27).length>=2,`${root.el} 갈래 범위기 ${ss.filter(qAoe27).map(s=>s.id)}`);qOk(Math.max(...ss.map(s=>s.rank))>=7,`${root.el} 갈래 끝 위계`);out.push(br.map(id=>SPELLS[id].n).join('→'))}
+  const pv=T1.filter(s=>s.kind==='passive');qOk(pv.length===1&&pv[0].id==='elementquiver'&&!PRE.elementquiver,'공통 패시브 '+pv.map(s=>s.id));
+  qOk((PRE.trinityarrow||[]).join()==='elementquiver','트리니티 선행 '+PRE.trinityarrow);
+  qOk(!SPELLS.doubleshot&&SPELLS.powershot&&mapGoneV19('doubleshot')==='powershot'&&GONE_SK.doubleshot==='powershot','두 발 쏘기 → 파워 샷');
+  qOk(SPELLS.powershot.rank===2&&(PRE.powershot||[]).join()==='quickshot'&&SPELLS.powershot.mult>SPELLS.quickshot.mult*1.5,'파워 샷 위계 · 선행 · 배율');
+  qOk(SPELLS.fanshot.n==='멀티플 샷'&&CLASSES.archer.trees[1]==='원소 사격','이름 '+SPELLS.fanshot.n+' / '+CLASSES.archer.trees[1]);
+  const T1p=T1.filter(s=>s.kind!=='passive').map(s=>TREEPOS[s.id].row+':'+TREEPOS[s.id].col);qOk(new Set(T1p).size===T1p.length,'트리 칸이 겹침');
+  return out.join(' · ')});
+qT('스킬 정리 v27','사제 심판 · 퇴마: 어느 한쪽만 올려도 기본기(1레벨) · 10레벨 안의 범위기 · 묶기/멈칫 · 8위계 큰 한 방이 있음 · 퇴마 공격은 모두 언데드 2배 이상 · 겹치던 빛의 회오리 → 턴 언데드',()=>{const out=[];
+  for(const t of [0,1]){const L=qSpells('priest',s=>TREE[s.id]===t&&!s.tab&&isDmg(s)),nm=CLASSES.priest.trees[t];
+    qOk(L.some(s=>s.rank===1&&s.cd<=1&&s.cost<=8),nm+' 1레벨 기본기');qOk(L.some(s=>s.rank<=3&&qAoe27(s)&&s.kind!=='bolt'),nm+' 10레벨 안의 범위기');
+    qOk(L.some(s=>s.stun>=1||s.root),nm+' 묶기/멈칫');qOk(L.some(s=>s.rank===8&&qAoe27(s)),nm+' 8위계 큰 범위기');qOk(L.length>=9,nm+' 공격 기술 '+L.length);out.push(`${nm} ${L.length}`)}
+  const ex=qSpells('priest',s=>TREE[s.id]===1&&isDmg(s));qOk(ex.every(s=>(s.ud||0)>=2),'퇴마인데 언데드 배율 없음 '+ex.filter(s=>!(s.ud>=2)).map(s=>s.id));
+  qOk(['holycross','holyfire','consecration','blessedhammer','turnundead'].every(id=>TREE[id]===1)&&['smite','javelin','chainoflight','godspear','grandcross'].every(id=>TREE[id]===0),'계열 배치');
+  qOk(!SPELLS.divinestorm&&mapGoneV19('divinestorm')==='turnundead'&&SPELLS.greatjudgment&&SPELLS.grandcross,'빛의 회오리 합치기');
+  for(const id in SPELLS){const s=SPELLS[id];if(s.cls!=='priest'||(TREE[id]!==0&&TREE[id]!==1))continue;for(const p of PRE[id]||[])qOk(TREE[p]===TREE[id]&&SPELLS[p].rank<s.rank,`선행 ${p}>${id}`)}
+  return out.join(' · ')});
+qT('스킬 정리 v27','흔한 이름: 낮은 위계는 기본 이름(블레싱 · 실드 배시 · 파이어 볼트) · 한 직업 안에서 같은 화면 이름 없음',()=>{
+  qOk(SPELLS.blessing.n==='블레싱'&&SPELLS.shieldbash.n==='실드 배시'&&SPELLS.spark.n==='파이어 볼트'&&SPELLS.minorheal.n==='힐','이름');
+  for(const id in RENAME27)qOk(!SPELLS[id]||SPELLS[id].n===RENAME27[id],id+' 이름이 덮어써짐 '+(SPELLS[id]&&SPELLS[id].n));
+  const dup=[];for(const c of ['mage','priest','warrior','archer']){const seen={};for(const s of qSpells(c)){if(seen[s.n])dup.push(`${c} ${s.n}(${seen[s.n]},${s.id})`);seen[s.n]=s.id}}
+  qOk(!dup.length,'같은 이름 '+dup.join(', '));return Object.keys(RENAME27).length+'개 이름'});
+qT('저장','v27 궁수 원소 사격: 예전 저장의 바뀐 원소 화살 점수는 처음 한 번만 돌려받음(원래 값 rs27.old) · 두 발 쏘기 점수 → 파워 샷 · 공통 패시브 점수 그대로 · 다시 불러와도 또 돌려받지 않음',()=>{
+  const F={v:5,slot:0,cls:'archer',lvl:30,xp:10,gold:777,towns:['brenhill','willowen'],home:'brenhill',x:1500,y:3900,reg:'home',hp:200,mp:80,pot:{hp:2,mp:2},gear:{},bag:[],
+    sk:{quickshot:6,doubleshot:4,flamearrow:5,glacialarrow:3,thunderarrow:1,elementquiver:2,snaretrap:1},sp:3,st:{int:0,vit:20,spi:20},ap:0,diff:0,
+    bar:['quickshot','doubleshot','flamearrow','glacialarrow'].concat(Array(17).fill(null)),uid:90,q:{i:0,st:0,c:{}}};
+  const raw=JSON.stringify(F);qOk(load(JSON.parse(raw),QA_SLOT),'불러오기 실패');
+  qOk(!P.sk.flamearrow&&!P.sk.glacialarrow&&!P.sk.thunderarrow&&!P.sk.doubleshot,'돌려받을 점수가 남음 '+JSON.stringify(P.sk));
+  qOk(P.sk.powershot===4&&P.sk.quickshot===6&&P.sk.elementquiver===2&&P.sk.snaretrap===1,'남은 점수 '+JSON.stringify(P.sk));
+  qOk(P.sp===F.sp+9,`sp ${P.sp} (기대 ${F.sp+9})`);const sum=o=>Object.values(o).reduce((a,b)=>a+b,0);qOk(sum(P.sk)+P.sp===sum(F.sk)+F.sp,'전체 점수가 바뀜');
+  qOk(P.bar[0]==='quickshot'&&P.bar[1]==='powershot'&&P.bar[2]==='flamearrow','단축칸 '+P.bar.slice(0,4));qOk(P.lvl===30&&P.gold===777,'레벨 · 금화');
+  const d=JSON.parse(JSON.stringify(saveData()));qOk(d.rs27&&d.rs27.v===1&&d.rs27.old&&d.rs27.old.flamearrow===5&&d.rs27.old.glacialarrow===3,'rs27 '+JSON.stringify(d.rs27));
+  d.sk.flamearrow=2;d.sp-=2;qOk(load(d,QA_SLOT)&&P.sk.flamearrow===2&&P.sp===d.sp,'다시 불러올 때 또 돌려받음');
+  qOk(JSON.stringify(JSON.parse(raw))===raw,'불러온 원본 저장이 바뀜');
+  qPrep('mage');const m=JSON.parse(JSON.stringify(saveData()));delete m.rs27;qOk(load(m,QA_SLOT)&&saveData().rs27.v===1&&!saveData().rs27.old,'다른 직업 rs27');
+  const bad=Object.assign(JSON.parse(raw),{rs27:'<x>'});qOk(load(bad,QA_SLOT)&&P.sk.flamearrow===5&&JSON.stringify(saveData().rs27)==='{"v":1}','손상된 rs27을 돌려받기 표시로 보고 그대로 둠');
+  return `돌려받음 9점 · 파워 샷 4`});
+qT('저장','v27 사제: 심판 · 퇴마 사이에서 자리만 옮긴 스킬의 점수는 그대로 · 빛의 회오리 점수는 턴 언데드로',()=>{
+  const F={v:5,slot:0,cls:'priest',lvl:40,xp:10,gold:50,towns:['brenhill'],home:'brenhill',x:1500,y:3900,reg:'home',hp:200,mp:80,pot:{hp:2,mp:2},gear:{},bag:[],
+    sk:{smite:8,holycross:3,holyfire:4,consecration:2,turnundead:2,divinestorm:3,grandcross:1,greatjudgment:1,symbolflash:2},sp:0,st:{int:30,vit:20,spi:20},ap:0,diff:0,
+    bar:['smite','divinestorm','turnundead'].concat(Array(18).fill(null)),uid:91,q:{i:0,st:0,c:{}}};
+  qOk(load(JSON.parse(JSON.stringify(F)),QA_SLOT),'불러오기 실패');
+  qOk(P.sk.smite===8&&P.sk.holycross===3&&P.sk.holyfire===4&&P.sk.consecration===2&&P.sk.grandcross===1&&P.sk.greatjudgment===1&&P.sk.symbolflash===2,'점수 '+JSON.stringify(P.sk));
+  qOk(P.sk.turnundead===5&&!P.sk.divinestorm&&P.sp===0,`턴 언데드 ${P.sk.turnundead} · sp ${P.sp}`);qOk(P.bar[1]===null&&P.bar[2]==='turnundead','단축칸 '+P.bar.slice(0,3));
+  return '점수 그대로 · 빛의 회오리 3 → 턴 언데드'});
+qT('스킬 트리','v27 원소 사격 · 심판 · 퇴마 트리 화면: 모든 스킬 칸이 보이고 서로 겹치지 않음 · 새 스킬 아이콘',()=>{const out=[];
+  for(const [c,t] of [['archer',1],['archer',0],['priest',0],['priest',1]]){qPrep(c,{lvl:45});openPanel('tree');treeSel=t;nodeSel=null;renderPanel();
+    const want=qSpells(c,s=>TREE[s.id]===t&&!s.tab),nodes=[...pbody.querySelectorAll('.tree [data-node]')],pos=nodes.map(n=>n.style.left+','+n.style.top);
+    qOk(want.every(s=>pbody.querySelector(`.tree [data-node="${s.id}"]`)),`${c} ${t} 칸 없음`);qOk(new Set(pos).size===pos.length,`${c} ${t} 칸이 겹침`);out.push(`${CLASSES[c].trees[t]} ${nodes.length}`);closePanel()}
+  for(const id of ['powershot','firerain','volcanoshot','blizzardshot','glacialspike','galearrow','cyclonearrow'])qOk(ICP[id]&&/<path|<circle|<g/.test(spellSvg(SPELLS[id])),id+' 아이콘');
+  return out.join(' · ')});
+/* ===== v27 (사용자 2026-10-10 16:10 목록 1 · 2 · 3 · 4 · 8번) ===== */
+qT('마나','v27 첫 기술은 마나 0(사용자 16:10 1번): 네 직업 첫 기술이 레벨 · 스킬 레벨과 상관없이 0 · 마나 0에서도 나감 · 단축칸이 「마나 부족」으로 어두워지지 않음 · 다른 기술은 그대로 마나를 씀',()=>{const out=[];
+  for(const cls of QCLS){qPrep(cls,{lvl:1});const id=CLASSES[cls].start[0],L0=skLv(id);qOk(L0>0,`${QCN[cls]}: 첫 기술을 모름`);qOk(costOf(id)===0,`${QCN[cls]} ${SPELLS[id].n}: 마나 ${costOf(id)}`);
+    P.lvl=120;P.sk[id]=20;qOk(costOf(id)===0&&costAt(id,20)===0,`${QCN[cls]} 120레벨 · 스킬 20: 마나 ${costOf(id)}`);P.sk[id]=L0;P.lvl=1;
+    const e=qDummy(P.x+120,P.y);enemies.push(e);P.mp=0;P.cd={};castReset();tryCast(id,e);
+    qOk(P.cd[id]>0||(CAST.cur&&CAST.cur.id===id),`${QCN[cls]}: 마나 0에서 ${SPELLS[id].n}이(가) 안 나감`);qOk(P.mp>=0,`${QCN[cls]}: 마나를 씀 ${P.mp}`);
+    P.bar[0]=id;buildBar();P.mp=0;updateHud();const b=document.querySelector('#bar .sk[data-slot="0"]');qOk(b&&!b.classList.contains('nomana'),`${QCN[cls]}: 단축칸이 마나 부족으로 보임`);
+    const other=Object.keys(SPELLS).find(k=>SPELLS[k].cls===cls&&SPELLS[k].kind!=='passive'&&!CLASSES[cls].start.includes(k)&&SPELLS[k].cost>0);if(other){P.sk[other]=1;qOk(costOf(other)>0,`${QCN[cls]} ${SPELLS[other].n}: 다른 기술도 마나 0`)}
+    out.push(`${QCN[cls]} ${SPELLS[id].n} 0`)}
+  qOk(FREE27.includes('spark')&&FREE27.includes(CLASSES.priest.start[0]),'마법사 · 사제 첫 기술이 바뀐 목록에 없음 '+FREE27);return out.join(' · ')});
+qT('짝문','v27 PC에서 짝문 창이 스크롤 없이 한 화면에(사용자 16:10 2번): 1024~1920 화면에서 지도 · 창 모두 스크롤 없음 · 모든 마을 단추가 화면 안 · 누르면 건너감 · 휴대폰은 예전 그대로(밀어 보기)',()=>{qPrep('mage',{lvl:99});
+  P.towns=ALLTOWNS.map(t=>t.id);const out=[];
+  try{for(const [w,h] of [[1920,1080],[1366,768],[1280,800],[1280,720],[1024,700]])qM22('',w,h,()=>{openPanel('gate');try{const g=$('#g26w'),c=panel.querySelector('.card');
+      qOk(g&&g.closest('.g27row'),`${w}×${h}: PC 배치가 아님`);qOk(g.scrollWidth<=g.clientWidth+1&&g.scrollHeight<=g.clientHeight+1,`${w}×${h}: 지도 스크롤 ${g.scrollWidth}/${g.clientWidth} × ${g.scrollHeight}/${g.clientHeight}`);
+      qOk(c.scrollHeight<=c.clientHeight+1,`${w}×${h}: 창 스크롤 ${c.scrollHeight}/${c.clientHeight}`);const cr=qmR(c),gr=qmR(g);qOk(cr.bottom<=h+.5&&cr.right<=w+.5,`${w}×${h}: 창이 화면 밖`);
+      const bs=[...g.querySelectorAll('.g26t')];qOk(bs.length>=20,'마을 단추 '+bs.length);for(const b of bs){const r=qmR(b);if(!(r.top>=gr.top-.5&&r.bottom<=gr.bottom+.5&&r.left>=gr.left-.5&&r.right<=gr.right+.5&&r.bottom<=h)){qOk(false,`${w}×${h}: ${b.textContent} 단추가 지도 밖`);break}}
+      qOk(W27.s>=(w>=1280?.75:.6),`${w}×${h}: 너무 작게 줄임 ${W27.s}`);out.push(`${w}×${h} ${Math.round(W27.s*100)}%`)}finally{closePanel()}});
+    qM22('',1366,768,()=>{openPanel('gate');const t=ALLTOWNS.find(t=>t.reg==='plains'),b=$(`#g26w [data-travel="${t.id}"]`);qOk(b,'황금 평원 단추 없음');b.click();qOk(REG.id==='plains','눌러도 안 건너감 '+REG.id);if(!panel.hidden)closePanel()});
+    for(const [m,w,h] of [['L',844,390],['P',390,844]])qM22(m,w,h,()=>{openPanel('gate');try{const g=$('#g26w');qOk(g&&!g.closest('.g27row')&&!panel.querySelector('.card.g27'),`${m}: 휴대폰에 PC 배치`);qOk(getComputedStyle(g).overflow==='auto'&&!g.querySelector('.g26m').style.zoom,`${m}: 휴대폰 지도가 밀어 보기가 아님`)}finally{closePanel()}})}
+  finally{if(!panel.hidden)closePanel();if(REG.id!=='home')loadRegion('home')}
+  return out.join(' · ')});
+qT('스킬 트리','v27 스킬 설명이 트리 옆에(사용자 16:10 3번): PC · 가로 휴대폰은 설명이 트리 오른쪽(같은 줄 · 화면 안) · 다른 마법을 눌러도 옆 · 세로 휴대폰은 자리가 없어 아래',()=>{const out=[];
+  for(const cls of ['mage','archer']){qPrep(cls,{lvl:60});
+    for(const [m,w,h] of [['',1280,800],['',1920,1080],['',1024,700],['L',844,390],['P',390,844]])qM22(m,w,h,()=>{openPanel('tree');try{
+      const chk=tag=>{const t=qmR(pbody.querySelector('.treescroll')),d=qmR(pbody.querySelector('.detail'));
+        if(m==='P'){qOk(d.top>=t.bottom-.5,`${cls} ${m}: 설명이 아래가 아님`);return}
+        qOk(d.left>=t.right-.5&&d.top<t.bottom&&Math.abs(d.top-t.top)<40,`${cls} ${w}×${h} ${tag}: 설명이 옆이 아님 (트리 ${Math.round(t.left)}~${Math.round(t.right)}/${Math.round(t.top)} · 설명 ${Math.round(d.left)}/${Math.round(d.top)})`);
+        qOk(d.right<=w+.5&&d.width>=240,`${cls} ${w}×${h}: 설명이 화면 밖이거나 좁음 ${Math.round(d.right)} ${Math.round(d.width)}`)};
+      chk('처음');const n=[...pbody.querySelectorAll('.node')].pop();n.click();qOk(nodeSel===n.dataset.node,'눌러도 안 고름');qOk(pbody.querySelector('.detail .t').textContent.includes(SPELLS[nodeSel].n),'설명이 안 바뀜');chk('다른 마법')}
+      finally{closePanel()}});out.push(cls)}
+  return out.join(' · ')});
+qT('이름','v27 캐릭터 이름(사용자 16:10 4번): 한글 · 영문만 · 한글 8 / 영문 16글자까지 · 띄어쓰기 · 숫자 · 특수문자 · 덜 쓴 한글 안 됨',()=>{
+  const ok=['아리엔','Arien','가나다라마바사아','abcdefghijklmnop','리아Lee','A'],no=['','아 리','ㄱㄴ','리ㅇ','루1','<b>','a_b','가나다라마바사아자','abcdefghijklmnopq','리아Leeeeeeeeeeeee','名前','é','😀'];
+  for(const s of ok)qOk(n27Why(s)==='',`「${s}」이(가) 안 됨: ${n27Why(s)}`);for(const s of no)qOk(n27Why(s)!=='',`「${s}」이(가) 됨`);
+  qOk(n27W('가나다')===6&&n27W('abc')===3,'글자 칸 셈');return `됨 ${ok.length} · 안 됨 ${no.length}`});
+function qN27(b,name){b.click();const d=document.getElementById('n27');qOk(d,'이름 창이 안 뜸');if(!d)return;const i=$('#n27v');i.value=name;i.dispatchEvent(new Event('input'));$('#n27ok').click()}
+qT('이름','v27 새 캐릭터 이름 짓기 · 저장 · 바꾸기 · 예전 저장(사용자 16:10 4번): 새 캐릭터 단추 → 이름 창(취소하면 그대로) · 정한 이름이 저장 · 화면 왼쪽 위 · 캐릭터 고르기 카드 · 같이 하기 이름 · 캐릭터 창에서 바꾸기 · 이름 없는 예전 저장도 그대로 열림 · 잘못된 이름은 버림',()=>{qResetStore();
+  qPut('arseia-char-0',QA_FIX.v5);const raw0=qRaw('arseia-char-0');introButtons(false);
+  const b=document.querySelector('#introBody [data-cls="archer"]'),slot=+b.dataset.slot,p0=P;b.click();qOk($('#n27'),'이름 창이 안 뜸');qOk(P===p0,'이름을 정하기 전에 캐릭터가 생김');
+  const i=$('#n27v');i.value='리 아';i.dispatchEvent(new Event('input'));qOk($('#n27ok').disabled&&/띄어쓰기/.test($('#n27m').textContent),'띄어쓰기가 막히지 않음');
+  $('#n27no').click();qOk(!$('#n27')&&P===p0&&!qRaw('arseia-char-'+slot),'취소했는데 캐릭터가 생김');
+  qN27(b,'리아');qOk(P!==p0&&P.cls==='archer'&&P.name==='리아'&&curSlot===slot,`새 캐릭터 ${P.cls} ${P.name}`);qOk($('#intro').hidden&&!paused,'시작 화면이 닫히지 않음');
+  qOk(JSON.parse(qRaw('arseia-char-'+slot)).name==='리아','이름이 저장되지 않음');qOk($('#pn27').textContent==='리아'&&!$('#pn27').hidden,'화면 왼쪽 위에 이름 없음');
+  qOk(netName()==='리아','같이 하기 이름 '+netName());
+  introButtons(true);const card=$(`#introBody [data-exp="${slot}"]`).closest('.cls');qOk(card.querySelector('.n27c').textContent==='리아','캐릭터 카드에 이름 없음');$('#intro').hidden=true;paused=false;
+  openPanel('char');qOk(pbody.querySelector('.n27row').textContent.includes('리아'),'캐릭터 창에 이름 없음');pbody.querySelector('[data-n27ren]').click();qOk($('#n27v').value==='리아','바꾸기 창에 지금 이름이 없음');
+  $('#n27v').value='Lia';$('#n27v').dispatchEvent(new Event('input'));$('#n27ok').click();qOk(P.name==='Lia'&&JSON.parse(qRaw('arseia-char-'+slot)).name==='Lia','바꾼 이름이 저장되지 않음');qOk(pbody.querySelector('.n27row b').textContent==='Lia','창이 안 바뀜');closePanel();
+  // 예전 저장 · 잘못된 이름
+  qOk(qRaw('arseia-char-0')===raw0,'다른 칸이 바뀜');const d0=readSlot(0);qOk(!('name' in d0),'시험 저장에 이름이 있음');qOk(load(d0,0),'예전 저장 불러오기 실패');
+  qOk(!P.name&&$('#pn27').hidden&&el.title.textContent.length>0,'예전 저장: 이름 칸이 보임');qOk(!('name' in saveData()),'예전 저장에 이름이 생김');qOk(P.lvl===d0.lvl,'레벨이 바뀜');
+  for(const bad of ['<img src=x>','가나다라마바사아자차',42,'ㄱ'])qOk(load(Object.assign({},d0,{name:bad}),0)&&!P.name,'잘못된 이름을 받음 '+bad);
+  qOk(load(Object.assign({},d0,{name:'세린'}),0)&&P.name==='세린'&&saveData().name==='세린','이름 왕복');loadRegion('home');return '취소 · 짓기 · 바꾸기 · 예전 저장 · 잘못된 값'});
+qT('같이 하기','v27 친구 접속 알림(사용자 16:10 8번): 접속자 목록에 새 사람이 생기면 「OO님이 접속했습니다」 + 쪽지 · 혼자인 친구면 「파티에 초대」 단추 · 처음 받은 목록 · 나 자신 · 이미 있던 사람은 알리지 않음 · 다시 이어지면 처음부터 · (9번) 파티 다시 묶는 시간 30분',()=>{qPrep('mage');
+  const id0=NET.id,lob0=NET.lobby,h0=NET.roomHost,n0=F27.log.length,L=()=>F27.log.slice(n0);
+  try{netOnMsg({t:'hello',id:501});netOnMsg({t:'who',host:0,list:[{id:501,n:'나',c:'mage',l:3,r:0},{id:502,n:'먼저온친구',c:'priest',l:10,r:0}]});qOk(!L().length,'처음 목록을 알림 '+L());
+    netOnMsg({t:'who',host:0,list:[{id:501,n:'나',c:'mage',l:3,r:0},{id:502,n:'먼저온친구',c:'priest',l:10,r:0},{id:503,n:'새친구',c:'archer',l:7,r:0}]});
+    qOk(L().length===1&&/^새친구님이 접속했습니다/.test(L()[0]),'새 사람 알림 '+L());qOk([...logEl.children].some(x=>x.textContent.startsWith('새친구님이 접속했습니다')),'화면에 알림이 안 뜸');
+    {const t=$('#f27t'),b=t&&t.querySelector('[data-f27inv]');qOk(t&&!t.hidden&&t.textContent.includes('새친구님이 접속했습니다'),'쪽지가 안 뜸');qOk(b,'혼자인 친구인데 「파티에 초대」 단추가 없음');
+      const ni=netInvite,got=[];netInvite=id=>got.push(id);try{b.click()}finally{netInvite=ni}qOk(got.join()==='503'&&t.hidden,'초대 단추가 초대하지 않음 '+got)}
+    netOnMsg({t:'who',host:0,list:[{id:501,n:'나',c:'mage',l:4,r:0},{id:503,n:'새친구',c:'archer',l:7,r:1}]});qOk(L().length===1,'이미 있던 사람을 또 알림');
+    netOnMsg({t:'who',host:0,list:[{id:501,n:'나',c:'mage',l:4,r:0},{id:503,n:'새친구',c:'archer',l:7,r:1},{id:504,n:'',c:'mage',l:1,r:0}]});qOk(L().length===2,'이름 없는 사람 알림');
+    netOnMsg({t:'who',host:506,list:[{id:501,n:'나',c:'mage',l:4,r:0},{id:503,n:'새친구',c:'archer',l:7,r:1},{id:504,n:'',c:'mage',l:1,r:0},{id:506,n:'파티중',c:'mage',l:9,r:1}]});
+    qOk(L().length===3&&!$('#f27t').querySelector('[data-f27inv]'),'이미 파티 중인 친구에게 초대 단추');
+    netOnMsg({t:'hello',id:601});netOnMsg({t:'who',host:0,list:[{id:601,n:'나',c:'mage',l:4,r:0},{id:503,n:'새친구',c:'archer',l:7,r:0},{id:505,n:'또',c:'mage',l:1,r:0}]});qOk(L().length===3,'다시 이어진 뒤 처음 목록을 알림');qOk(CO22.RJMS>=30*60e3,'파티 다시 묶는 시간 '+CO22.RJMS)}
+  finally{NET.id=id0;NET.lobby=lob0||[];NET.roomHost=h0;F27.seen=null;const t=$('#f27t');if(t)t.hidden=true}
+  return L().join(' · ')});
 window.__QA_RUN=qaRun;
 setTimeout(()=>{qaRun().catch(e=>{window.__QA_RESULT={fatal:String(e&&e.stack||e),results:[],summary:{total:0,pass:0,fail:1}}})},120);
 }

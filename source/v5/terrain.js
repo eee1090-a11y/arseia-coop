@@ -55,10 +55,18 @@ const TKEEP={};
 function terrLayer(id){return id==='home'?HOME:RCACHE[id]}
 function terrSnap(id){const L=terrLayer(id);if(!L)return null;let k=TKEEP[id];if(!k||k.L!==L)k=TKEEP[id]={L,keeps:terrKeeps(id,L),tg:terrTargets(L)};return k}
 // 물(LQ)과 절벽을 함께 막힘으로 본 걷기 도달 격자 (LQS 간격 점). w가 없으면 물만 본다
-function terrReachLQ(L,w,x,y,par){const N=LQN,lq=L.lq&&L.id!=='home'?L.lq:null,ok=new Uint8Array(N*N);
-  const free=n=>{if(lq&&lq[n]>.5)return false;if(!w)return true;const i=n%N,j=(n/N)|0,ci=Math.floor(i*LQS/TCS),cj=Math.floor(j*LQS/TCS);return !(ci<-TK||cj<-TK||ci>=TNC+TK||cj>=TNC+TK)&&!w[terrIdx(ci,cj)]};
-  const i0=clamp(Math.round(x/LQS),0,N-1),j0=clamp(Math.round(y/LQS),0,N-1),s0=j0*N+i0,q=[s0];ok[s0]=1;if(par)par[s0]=-1;
-  for(let h=0;h<q.length;h++){const k=q[h],i=k%N,j=(k/N)|0;for(const [a,b] of [[1,0],[-1,0],[0,1],[0,-1]]){const X=i+a,Y=j+b;if(X<0||Y<0||X>=N||Y>=N)continue;const n=Y*N+X;if(ok[n]||!free(n))continue;ok[n]=1;if(par)par[n]=k;q.push(n)}}return ok}
+function terrReachLQ(L,w,x,y,par){const N=LQN,total=N*N,lq=L.lq&&L.id!=='home'?L.lq:null,ok=new Uint8Array(total),open=new Uint8Array(total),q=new Int32Array(total);
+  // 동일한 격자·4방향 탐색 순서를 유지하며, 막힘 판정을 칸마다 한 번만 계산한다.
+  if(!w){open.fill(1);if(lq)for(let k=0;k<total;k++)if(lq[k]>.5)open[k]=0}
+  else{const axis=new Int32Array(N);for(let i=0;i<N;i++)axis[i]=Math.floor(i*LQS/TCS);
+    for(let j=0;j<N;j++){const cj=axis[j];if(cj<-TK||cj>=TNC+TK)continue;const base=(cj+TK)*TN+TK,row=j*N;
+      for(let i=0;i<N;i++){const ci=axis[i],k=row+i;if(ci>=-TK&&ci<TNC+TK&&!(lq&&lq[k]>.5)&&!w[base+ci])open[k]=1}}}
+  const i0=clamp(Math.round(x/LQS),0,N-1),j0=clamp(Math.round(y/LQS),0,N-1),s0=j0*N+i0;let tail=1;q[0]=s0;ok[s0]=1;if(par)par[s0]=-1;
+  for(let h=0;h<tail;h++){const k=q[h],i=k%N,j=(k/N)|0;let n;
+    if(i+1<N){n=k+1;if(!ok[n]&&open[n]){ok[n]=1;if(par)par[n]=k;q[tail++]=n}}
+    if(i>0){n=k-1;if(!ok[n]&&open[n]){ok[n]=1;if(par)par[n]=k;q[tail++]=n}}
+    if(j+1<N){n=k+N;if(!ok[n]&&open[n]){ok[n]=1;if(par)par[n]=k;q[tail++]=n}}
+    if(j>0){n=k-N;if(!ok[n]&&open[n]){ok[n]=1;if(par)par[n]=k;q[tail++]=n}}}return ok}
 const terrLQi=(x,y)=>clamp(Math.round(y/LQS),0,LQN-1)*LQN+clamp(Math.round(x/LQS),0,LQN-1);
 // QA · 손쉬운 검사용: 지역 L에서 마을부터 걸어서 닿는 격자 (물 + 절벽)
 function terrReach(id){const L=terrLayer(id),T=terrEnsure(id),t0=(L.towns&&L.towns[0])||{x:3000,y:3000};return terrReachLQ(L,T&&T.w,t0.x,t0.y)}
