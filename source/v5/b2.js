@@ -178,7 +178,7 @@ const SYN_PT=.015,SYN_CAP=.5,LV_PT=.1;
 const synBonus=id=>Math.min(SYN_CAP,SYN_PT*synergy(id));
 const dmgScale=(id,L)=>1+LV_PT*lvSteps(L)+synBonus(id)+stat('el_'+SPELLS[id].el)/100+core21Dmg(id)+core21SweepDmg(id);/* v21 빌드 핵심: 대상 스킬 피해 % (덧셈) */
 const supScale=L=>1+.08*lvSteps(L);
-const cdOf=id=>SPELLS[id].aspd?atkIv(SPELLS[id]):Math.max(.15,SPELLS[id].cd*(1-Math.min(core21Cap(id),stat('cdr')/100+buffSum('cdr')+core21QuickCdr(id))))*(SPELLS[id].cd<.15?1:1);/* v21 시간의 길 공명: 상한 50→55/60% */
+let cdOf=id=>SPELLS[id].aspd?atkIv(SPELLS[id]):Math.max(.15,SPELLS[id].cd*(1-Math.min(core21Cap(id),stat('cdr')/100+buffSum('cdr')+core21QuickCdr(id))))*(SPELLS[id].cd<.15?1:1);/* v21 시간의 길 공명: 상한 50→55/60% */
 /* v20: 3차 기술은 skLv가 1점마다 ×1.2(J3K)로 커지므로, 마나는 찍은 점수(+스킬 보너스) 그대로로 센다 — 피해만 세지고 마나가 두 번 비싸지지 않게 */
 const costLv=(id,L)=>typeof isJ3==='function'&&isJ3(id)?1+(Math.max(1,L)-1)/J3K(SPELLS[id].cls):L;
 const costAt=(id,L)=>SPELLS[id].cost<=0||core21Free(id)?0:Math.max(1,Math.round(SPELLS[id].cost*(1+P.lvl*.05)*(1+.05*(Math.max(1,costLv(id,L))-1))*(1-Math.min(core21McCap(),stat('mcost')/100+core21Mc(id)))));/* v21 샘의 길: 대상 스킬 마나 % · 상한 40→52/65% */

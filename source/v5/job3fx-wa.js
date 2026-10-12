@@ -261,7 +261,7 @@ let J3FT=null;
   if(!e||e.dead||!s||s.ghost||GHOST)return _he(e,amt,s);
   const own=!!s.cls&&s.cls===P.cls;let k=1,wk=0;
   if(own&&!s.proc){
-    if(e.j3nm>0&&P.cls==='archer'){const bd=Math.min(.5,buffSum('dmg'));k*=(1+Math.min(.5,bd+.2))/(1+bd)}
+    if(e.j3nm>0&&P.cls==='archer'){const bd=Math.min(.5,buffSum('dmg'));k*=(1+Math.min(.5,bd+(fb28Night(e,'dmg')??.2)))/(1+bd)}
     if(s.j3kill&&e.boss&&isBroken(e))k*=s.j3kill.mul;
     wk=e.j3wk>0?e.j3wkC||0:0}
   if(wk>0)P.buffs._j3wk={t:1,max:1,crit:wk,n:''};
@@ -302,7 +302,7 @@ function jwSink(e,dmg,s){e.j3sink={t:s.j3abyss.t,max:s.j3abyss.t,dmg,s:Object.as
   if(P.dead||P.invT>0||GHOST)return _hp(d,src,o);
   const lnk=!!(o&&o.lnk);
   // 밤의 사냥: 어둠 속의 적은 빗나간다
-  if(src&&src.j3nT>0&&!lnk&&R()<(src.boss?SPELLS.nighthunt.j3night.bossMiss:SPELLS.nighthunt.j3night.miss)){ftext(P.x,P.y,'빗나감','#b8a8e8');return}
+  if(src&&src.j3nT>0&&!lnk&&R()<(fb28Night(src,src.boss?'bossMiss':'miss')??(src.boss?SPELLS.nighthunt.j3night.bossMiss:SPELLS.nighthunt.j3night.miss))){ftext(P.x,P.y,'빗나감','#b8a8e8');return}
   // 성벽이 되리라: 범위 공격의 일부를 성벽의 군주가 대신
   if(J3W.aoe&&!lnk&&NET.on&&J3W.lords.size){for(const [id,L] of J3W.lords){if(!(L.t>0))continue;const r=NET.peers.get(id);if(!r||r.dead||!netSame(r)||dist(r,P)>L.rad)continue;
     const part=Math.round(d*L.sh);if(part>0){d-=part;j3Send('wawd',{d:part},id);J3W.gfx.push({k:'tether',a:P,b:r,t:.5,max:.5,col:'#e8d8a8'});ftext(P.x,P.y-20,'성벽이 막음','#e8d8a8',false,70)}break}}
@@ -323,7 +323,7 @@ function jwOnBlock(){if(GHOST||P.dead)return;const m=passSum('blkMp');if(m>0)P.m
 {const _nm=netOnMsg;netOnMsg=function(m){if(m&&m.t==='hit'&&m.ae){J3W.aoe=1;try{return _nm(m)}finally{J3W.aoe=0}}return _nm(m)}}
 {const _ng=netGhostCast;netGhostCast=function(m){const s0=m&&SPELLS[m.sp];if(!s0||!s0.j3wa)return _ng(m);J3W.gx={fz:m.fz|0,br:m.br|0,cf:+m.cf||0};try{return _ng(m)}finally{J3W.gx=null}}}
 // 위협: 밤 속 파티원은 절반 · 숨은 나는 0 / 결투: 무너짐 게이지 +50%, 다른 파티원의 피해도 게이지로
-{const _t=PTY.thr;PTY.thr=function(e,k,v){if(v>0&&k!=null){if(k===0&&jwHideOn())v=0;else if(fields.length&&jwInNight(this.who(k)))v*=SPELLS.nighthunt.j3night.thr}return _t.call(this,e,k,v)}}
+{const _t=PTY.thr;PTY.thr=function(e,k,v){if(v>0&&k!=null){if(k===0&&jwHideOn())v=0;else if(fields.length&&jwInNight(this.who(k)))v*=fb28Night(this.who(k),'thr')??SPELLS.nighthunt.j3night.thr}return _t.call(this,e,k,v)}}
 {const _st=PTY.stag;PTY.stag=function(e,amt,why){if(e&&e.j3duel&&e.j3duel.t>0&&amt>0)amt*=1+SPELLS.lordduel.j3duel.amp;return _st.call(this,e,amt,why)}}
 {const _od=PTY.onDmg;PTY.onDmg=function(e,k,d,s){const r=_od.apply(this,arguments);const D=e&&e.j3duel;if(D&&D.t>0&&k!==D.by&&d>0&&e.max>0&&!NET.guest&&!e.dead)this.stag(e,d/e.max*200,'duel');return r}}
 // 숨기: 적이 나를 놓친다 (방장은 숨은 동료도)
@@ -340,7 +340,7 @@ const J3W_RULE={
   unfallenkingdom:s=>({party:true,mode:'area',how:'radius',r:s.rad,short:`파티(주변) · 둘레 ${s.rad}`,text:`나와, 시전할 때 내 둘레 ${s.rad} 안의 동료 모두 ${s.dur}초 동안 쓰러지지 않습니다`}),
   fortressswap:s=>({party:false,one:true,mode:'one',how:'one',r:s.range,short:`한 명 · 고른 동료 (${s.range} 안)`,text:'고른 동료(없으면 생명력이 가장 낮은 동료)와 자리를 바꾸고 위협을 넘겨받습니다. 혼자면 뛰어듭니다'}),
   earthanchor:s=>({party:true,mode:'area',how:'zone',r:s.rad,short:'파티(주변) · 지대 안',text:`내 둘레 반경 ${s.rad}의 지대 안에 있는 동료는 밀려나거나 끌려가지 않습니다`}),
-  nighthunt:s=>({party:true,mode:'area',how:'zone',r:s.rad,short:'파티(주변) · 지대 안',text:`밤(반경 ${s.rad}) 안의 적은 공격이 빗나가고, 그 안의 동료는 위협을 절반만 쌓습니다`}),
+  nighthunt:s=>({party:true,mode:'area',how:'zone',r:s.rad,short:'파티(주변) · 지대 안',text:`밤(반경 ${s.rad}) 안의 적은 공격이 빗나가고, 그 안의 동료는 위협을 덜 쌓습니다`}),
   exposeweak:s=>({party:true,mode:'area',how:'mark',r:0,short:'파티 공용 표식',text:'표식이 붙은 적에게는 모든 파티원의 치명타 확률이 오릅니다'}),
   bloodharvest:()=>({party:false,mode:'self',how:'self',r:0,short:'자신만',text:'자신에게만 걸립니다 (동료에게는 걸리지 않음)'})};
 {const _r=PUI.rule;PUI.rule=function(s){if(s&&s.j3wa&&J3W_RULE[s.id])return J3W_RULE[s.id](s);return _r.call(this,s)}}

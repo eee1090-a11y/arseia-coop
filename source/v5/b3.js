@@ -40,7 +40,7 @@ function tryCast(id,target){const CM=CAST_MOD;
   const pw=(PHYS_CLS[s.cls]?physPw(id,L,s):power()*(s.mult||0)*dmgMul()*dmgScale(id,L))*(CM&&CM.mul||1),col=EL[s.el],sup=supScale(L);
   switch(s.kind){
     case'melee':case'leap':case'charge':case'trap':case'intervene':clsKind(s,id,L,t,pw,c,CM);break;// v18 전사·궁수 (cls2.js)
-    case'bolt':{const base=Math.atan2(t.y-P.y,t.x-P.x),n=s.cnt||1;
+    case'bolt':{if(s.rapid28){fb28Volley(s,pw,t);break}const base=Math.atan2(t.y-P.y,t.x-P.x),n=s.cnt||1;
       for(let i=0;i<n;i++){const a=base+(n%2?i-(n-1)/2:(i&1?-1:1)*((i+1)>>1))*(s.spread||0);
         projs.push({x:P.x+Math.cos(a)*16,y:P.y+Math.sin(a)*16,z:20,vx:Math.cos(a)*s.spd,vy:Math.sin(a)*s.spd,r:s.r,dmg:pw,owner:'p',s,life:s.homing?3:1.4,col,hit:s.pierce?new Set():null})}break}
     case'nova':{rings.push({x:P.x,y:P.y,r:10,max:s.rad,life:.5,col});burst(P.x,P.y,col,34,s.rad*1.4);
@@ -112,7 +112,7 @@ function supFx(s,id,pwr,from){const col=EL[s.el],sup=supScale(s.L||1),by=from?`$
 function applyFx(e,s,from){
   if(e.dead||s.ghost)return;
   if(NET.guest&&e.id)netFx(e,s,from);
-  if(s.slow)e.slowT=Math.max(e.slowT,2.5);
+  if(s.slow)e.slowT=Math.max(e.slowT,s.slowDur||2.5);
   if(s.freeze)e.freezeT=Math.max(e.freezeT,s.freeze);
   if(s.stun)e.stunT=Math.max(e.stunT,s.stun);
   if(s.knock&&from){const d=dist(e,from)||1;e.x+=(e.x-from.x)/d*s.knock;e.y+=(e.y-from.y)/d*s.knock}
@@ -346,10 +346,10 @@ function update(dt){
     p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;if(DG&&!dgFree(p.x,p.y,2)){p.life=0;burst(p.x,p.y,p.col,6,80,2.5,p.z);if(p.owner==='p')FXR.hit(p);continue}
     if(p.owner==='p'){
       if(R()<.8)parts.push({x:p.x,y:p.y,z:p.z,vx:rnd(-20,20),vy:rnd(-20,20),vz:rnd(-10,20),life:.3,max:.3,col:p.col,sz:p.r*.5});
-      for(const e of enemies){if(e.dead||(p.hit&&p.hit.has(e)))continue;if(Math.hypot(e.x-p.x,e.y-p.y)<hR(e)+p.r+4||r22Box(e,p)){
+      for(const e of enemies){if(e.dead||(p.hit&&p.hit.has(e))||(p.fb28Target&&!p.fb28Target.dead&&p.fb28Target!==e))continue;if(Math.hypot(e.x-p.x,e.y-p.y)<hR(e)+p.r+4||r22Box(e,p)){
         const s=p.s;hurtE(e,p.dmg*rnd(.9,1.1),s);applyFx(e,s,{x:p.x-p.vx,y:p.y-p.vy});burst(p.x,p.y,p.col,s.aoe?34:10,s.aoe?220:100,s.aoe?5:3,p.z);FXR.hit(p);
         if(s.aoe){decal(p.x,p.y,s.aoe*.6,s.el);rings.push({x:p.x,y:p.y,r:8,max:s.aoe,life:.35,col:p.col});shake=Math.max(shake,4);for(const o of enemies)if(o!==e&&!o.dead&&dist(o,p)<s.aoe+hR(o)){hurtE(o,p.dmg*.6,s);applyFx(o,s,p)}}
-        if(p.hit)p.hit.add(e);else{p.life=0;break}}}
+        if(p.hit){p.hit.add(e);if(s.growPierce){if(p.fb28Base==null)p.fb28Base=p.dmg;p.dmg=p.fb28Base*(1+s.growPierce*p.hit.size)}}else{p.life=0;break}}}
     }else if(p.ghost){if(!DG&&inSafe(p.x,p.y,20))p.life=0}else{
       if(NET.host)for(const r of NET.peers.values())if(p.life>0&&!r.dead&&netSame(r)&&Math.hypot(r.x-p.x,r.y-p.y)<r.r+p.r+2){p.life=0;netHit(r,p.dmg,null);burst(p.x,p.y,p.col,8,80,3,p.z)}
       if(p.life>0&&!P.dead&&Math.hypot(P.x-p.x,P.y-p.y)<P.r+p.r+2){p.life=0;hitPlayer(p.dmg);burst(p.x,p.y,p.col,8,80,3,p.z)}

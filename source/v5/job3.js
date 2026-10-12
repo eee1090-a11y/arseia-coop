@@ -43,9 +43,9 @@ function j3ChargePress(id,t,inner){const s0=SPELLS[id],c0=J3CH;
   if(P.dead||paused)return;
   if(typeof REC==='object'&&REC.p===P&&REC.t>0)return inner(id,t);// 후딜레이 중: 끝나면 다시 (recov.js가 기억)
   const L=skLv(id),c=costOf(id);if(L<=0||(P.cd[id]||0)>0||P.mp<c||!job3Ok(id))return inner(id,t);
-  const ch=s0.charge;if(P.moving&&!ch.walk){if(P.noMpT<=0){msg(`${s0.n}: 멈춰 서야 모을 수 있습니다`,'#a39d8f');P.noMpT=1.2}return}
+  const s=eff(id,L),ch=s.charge;if(P.moving&&!ch.walk){if(P.noMpT<=0){msg(`${s0.n}: 멈춰 서야 모을 수 있습니다`,'#a39d8f');P.noMpT=1.2}return}
   if(castOn())castStop('other');if(c0)j3ChargeStop();
-  const s=eff(id,L);P.mp-=c;P.cd[id]=cdOf(id);castFx(s);if(t&&!s.self)P.face=Math.atan2(t.y-P.y,t.x-P.x);
+  P.mp-=c;P.cd[id]=cdOf(id);castFx(s);if(t&&!s.self)P.face=Math.atan2(t.y-P.y,t.x-P.x);
   const mn=clamp(+ch.min||0,0,1);J3CH={id,L,s,t:0,max:Math.max(.3,+ch.max||3),mul:Math.max(1,+ch.mul||2),f:mn,min:mn,k:1+(Math.max(1,+ch.mul||2)-1)*mn,tg:t||null,hold:time,sticky:!CAST.slot,walk:+ch.walk||0,p:P};
   if(NET.on)netSend({t:'cst',sp:id,d:J3CH.max,ch:1});j3Hook(J3CH,'start');j3ChargeBar()}
 function j3ChargeBar(){const c=J3CH;if(!c)return;castBarSet({id:c.id,t:c.f*c.max,max:c.max});if(castBarEl){const tx=`${SPELLS[c.id].n} · 모으는 중 ×${c.k.toFixed(2)}`;if(castBarEl.lastChild.textContent!==tx)castBarEl.lastChild.textContent=tx;castBarEl.classList.add('ch')}}
@@ -64,7 +64,7 @@ function j3ChargeTick(dt){const c=J3CH;if(!c)return;if(c.p!==P||P.dead){j3Charge
 {const _cr=castReset;castReset=function(){_cr();J3CH=null}}
 // 표시: 쓰는 방식(채널링 무늬) · 한 줄 설명
 {const _k=CMARK.kind;CMARK.kind=function(id){const s=SPELLS[id];if(s&&s.charge&&s.kind!=='passive')return 'chan';return _k.call(this,id)}}
-{const _ci=castInfo;castInfo=function(id,L){const s=SPELLS[id];if(s&&s.charge)return `모으기 채널링 최대 ${s.charge.max}초 (오래 누를수록 최대 ×${s.charge.mul})`;return _ci(id,L)}}
+{const _ci=castInfo;castInfo=function(id,L){const s=SPELLS[id];if(s&&s.charge)return `모으기 채널링 최대 ${eff(id,L||Math.max(1,skLv(id))).charge.max}초 (오래 누를수록 최대 ×${s.charge.mul})`;return _ci(id,L)}}
 // 발밑 마법진: 모을수록 커진다
 {const _cd=castDraw;castDraw=function(){_cd();const c=J3CH;if(!c||P.dead||c.p!==P)return;const col=EL[c.s.el]||'#ffd76a',r=(40+Math.min(30,c.s.rank||20)*3)*(.45+.75*c.f);
   castGlyphAt(P.x,P.y,col,r,c.f,1.2+c.f*2);ctx.globalAlpha=.5+.4*c.f;ctx.strokeStyle=c.f>=.95?'#fff6d8':col;ctx.lineWidth=2+c.f*3;ctx.beginPath();ctx.arc(P.x,P.y,r*.98,-1.571,-1.571+6.283*c.f);ctx.stroke();ctx.globalAlpha=1}}

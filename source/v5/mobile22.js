@@ -20,10 +20,10 @@ const M22_META='width=device-width,initial-scale=1,maximum-scale=1,user-scalable
 if(typeof MOB==='object')MOB.on=function(){return M22.phone()};
 
 /* 카메라: b1 resize 뒤에 휴대폰 배율을 곱한다 (캔버스 픽셀 수는 그대로) */
-function m22Cam(){const k=M22.scale();if(k===1)return;const d0=DPR;
-  CZ=GFX.zoom*k;DPR=Math.min(1.5,window.devicePixelRatio||1)*CZ;const cw=cv.clientWidth||innerWidth,ch=cv.clientHeight||innerHeight;
+function m22Cam(skipBake){const k=M22.scale();if(k===1)return;const d0=DPR;
+  CZ=GFX.zoom*k*(window.__fb28?window.__fb28.zoom:1);DPR=Math.min(1.5,window.devicePixelRatio||1)*CZ;const cw=cv.clientWidth||innerWidth,ch=cv.clientHeight||innerHeight;
   W=cw/CZ;H=ch/CZ;cv.width=Math.round(cw*DPR/CZ);cv.height=Math.round(ch*DPR/CZ);lc.width=Math.ceil(W/2);lc.height=Math.ceil(H/2);
-  if(d0!==DPR)m22Rebake()}
+  if(d0!==DPR&&!skipBake)m22Rebake()}
 function m22Rebake(){try{if(P&&P.cls&&typeof heroBake==='function'){SC.bakeLeft=99;heroBake(P,Math.max(1,DPR)*HS*PK)}}catch(_){}}
 {const _rs=resize;resize=function(){const d0=DPR;_rs.apply(this,arguments);m22Apply();m22Cam();if(M22.scale()===1&&d0!==DPR)m22Rebake()}}
 addEventListener('resize',()=>{m22Apply();m22Cam()});

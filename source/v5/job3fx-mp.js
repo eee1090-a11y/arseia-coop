@@ -82,7 +82,7 @@ function mpPost(c){const id=c.id,s0=c.s0,G=c.G;if(!s0)return;
     case'beam':if(s0.brandBoom){const a=P.face;MPJ.spears.push({x:P.x,y:P.y,a,len:s.len,t:0,max:.32,w:s.w})}break;
     case'rain':{const nr=rains.slice(c.nR).filter(r=>r.s&&r.s.id===id);for(const r of nr)r.j3=1;break}
     case'summon':if(s0.form==='sovereign'&&!G)for(const a of allies)if(!c.A.has(a)&&a.s&&a.s.id===id)mpSovSetup(a,s);break;
-    case'buff':if(!G){if(s0.boom)MPJ.frenzy={t:s.dur,pw:mpPw(id,L,s0.boom.mult),rad:s0.boom.rad};if(s0.j3cost&&P.buffs[id])P.buffs[id].j3cost=s0.j3cost;
+    case'buff':if(!G){if(s0.boom)MPJ.frenzy={t:s.dur,pw:mpPw(id,L,s0.boom.mult),rad:s0.boom.rad};if(s0.j3cost&&P.buffs[id])P.buffs[id].j3cost=s.j3cost;
       if(s0.advent){banner={t:s0.n,sub:`${s0.kn} · 20초 동안 네 원소의 정령왕`,col:'#e8d8ff',life:2,max:2};flash={col:'#c8b0ff',a:.3};for(let i=0;i<4;i++)rings.push({x:P.x,y:P.y,r:10,max:120+i*60,life:.5+i*.15,col:EL[MPJ_QUAD[i][0]]})}}break;
     case'blink':if(s0.pheal&&!G){const h=Math.round((maxHp()*s0.pheal.pct+power()*s0.pheal.mult)*supScale(L));healP(h);if(c.ally)beams.push({x1:P.x,y1:P.y,x2:c.ally.x,y2:c.ally.y,z:30,w:6,life:.35,max:.35,col:EL.holy,el:'holy',rank:6});rings.push({x:P.x,y:P.y,r:10,max:90,life:.5,col:'#fff2c0'})}
       if(s0.chase){beams.push({x1:c.ox,y1:c.oy,x2:P.x,y2:P.y,z:24,w:16,life:.4,max:.4,col:EL.holy,el:'holy',rank:9});rings.push({x:P.x,y:P.y,r:10,max:120,life:.45,col:'#fff2c0'})}break;
