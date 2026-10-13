@@ -184,8 +184,10 @@ function learnPoint(id){
 function hitPlayer(d,src){
   if(P.dead)return;
   if(P.invT>0){ftext(P.x,P.y,'막음','#ffe39a');return}
-  if(P.armor){d*=1-P.armor.red;if(src&&!src.dead){const s=P.armor.s;hurtE(src,P.armor.dmg*.6,s);applyFx(src,s,P)}}
+  if(P.armor){d*=1-P.armor.red;if(src&&!src.dead&&src.hp!=null){const s=P.armor.s;hurtE(src,P.armor.dmg*.6,s);applyFx(src,s,P)}}
+  const g29Positive=d>0&&src&&Number.isFinite(Number(src.lvl));
   d=Math.round(d*(1-Math.min(.5,stat('dr')/100))*(1-Math.min(.6,buffSum('dr'))));
+  if(g29Positive)d=Math.max(1,Math.min(d,Math.max(1,Math.floor(maxHp()*(g29Boss(src)?G29.bossCap:G29.normalCap)))));
   if(P.shield>0){const a=Math.min(P.shield,d);P.shield-=a;d-=a;if(P.shieldRef&&a>0&&src&&!src.dead&&src.hp!=null&&P.shieldS)hurtE(src,a*P.shieldRef,P.shieldS);
     if(P.shieldN>0&&--P.shieldN<=0)P.shield=0;if(P.shield<=0)P.shieldT=0;}
   if(d<=0){ftext(P.x,P.y,'흡수','#8fd8ff');return}
@@ -232,7 +234,7 @@ function updateEnemies(dt){
       if(DG&&d>e.r+tg.r+30){const w=dgStep(e,tg);if(w){ux=w.x;uy=w.y}}
       if(t.ranged){
         if(d>240){mx=ux;my=uy}else if(d<150&&d>0){mx=-(tg.x-e.x)/d;my=-(tg.y-e.y)/d}
-        if(d<420&&e.atkCd<=0&&!held){e.atkCd=t.atk;const a=Math.atan2(tg.y-e.y,tg.x-e.x),sp=t.draw==='apostle'?300:260;projs.push({x:e.x,y:e.y,z:18,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,r:6,dmg:e.dmg,owner:'e',life:2,col:t.pcol})}
+        if(d<420&&e.atkCd<=0&&!held){e.atkCd=t.atk;const a=Math.atan2(tg.y-e.y,tg.x-e.x),sp=t.draw==='apostle'?300:260;projs.push({x:e.x,y:e.y,z:18,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,r:6,dmg:e.dmg,src:g29Source(e),owner:'e',life:2,col:t.pcol})}
       }else{
         if(d>e.r+tg.r+4){mx=ux;my=uy}
         else if(e.atkCd<=0&&!held){e.atkCd=t.atk;e.lunge=.15;if(tg.ally)hurtAlly(tg,e.dmg*rnd(.85,1.15));else if(tg.remote)netHit(tg,e.dmg*rnd(.85,1.15),e);else hitPlayer(e.dmg*rnd(.85,1.15),e)}
@@ -351,8 +353,8 @@ function update(dt){
         if(s.aoe){decal(p.x,p.y,s.aoe*.6,s.el);rings.push({x:p.x,y:p.y,r:8,max:s.aoe,life:.35,col:p.col});shake=Math.max(shake,4);for(const o of enemies)if(o!==e&&!o.dead&&dist(o,p)<s.aoe+hR(o)){hurtE(o,p.dmg*.6,s);applyFx(o,s,p)}}
         if(p.hit){p.hit.add(e);if(s.growPierce){if(p.fb28Base==null)p.fb28Base=p.dmg;p.dmg=p.fb28Base*(1+s.growPierce*p.hit.size)}}else{p.life=0;break}}}
     }else if(p.ghost){if(!DG&&inSafe(p.x,p.y,20))p.life=0}else{
-      if(NET.host)for(const r of NET.peers.values())if(p.life>0&&!r.dead&&netSame(r)&&Math.hypot(r.x-p.x,r.y-p.y)<r.r+p.r+2){p.life=0;netHit(r,p.dmg,null);burst(p.x,p.y,p.col,8,80,3,p.z)}
-      if(p.life>0&&!P.dead&&Math.hypot(P.x-p.x,P.y-p.y)<P.r+p.r+2){p.life=0;hitPlayer(p.dmg);burst(p.x,p.y,p.col,8,80,3,p.z)}
+      if(NET.host)for(const r of NET.peers.values())if(p.life>0&&!r.dead&&netSame(r)&&Math.hypot(r.x-p.x,r.y-p.y)<r.r+p.r+2){p.life=0;netHit(r,p.dmg,p.src);burst(p.x,p.y,p.col,8,80,3,p.z)}
+      if(p.life>0&&!P.dead&&Math.hypot(P.x-p.x,P.y-p.y)<P.r+p.r+2){p.life=0;hitPlayer(p.dmg,p.src);burst(p.x,p.y,p.col,8,80,3,p.z)}
       for(const a of allies)if(p.life>0&&Math.hypot(a.x-p.x,a.y-p.y)<a.r+p.r){p.life=0;hurtAlly(a,p.dmg)}
       if(!DG&&inSafe(p.x,p.y,20))p.life=0;
     }

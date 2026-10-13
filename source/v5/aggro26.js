@@ -10,6 +10,8 @@ const AG26={K:.7,
     'p_ogre','p_storm','f_slime','f_golem','f_dryad','lk_crab','lk_toad','lk_elem','h_cairn','h_troll','d_mummy','d_sand','sc_kobold','sc_golem','k_bear','k_shaman','i_yeti','i_elem',
     'c_dust','c_automaton','j_lizard','j_golem','t_cultist','t_sentinel','l_golem','l_elem','s_crab','s_siren','v_maw','v_seer',
     'a_brute','ss_crab','ss_giant','th_cloud','z_golem','rt_beetle','rt_golem','ec_maw'])};
+// 작업H: 원형 몬스터의 비선공 성격도 새 변형에 그대로 이어 준다.
+for(const S of H29_SPECS)S.types.forEach((k,j)=>{if(AG26.P.has(k))AG26.P.add(S.id+'_'+j)});
 const ag26Kind=e=>{const t=TYPES[e.k]||{};if(DG||e.boss||e.elite||t.boss||t.mini||t.trial)return 'X';return AG26.P.has(e.k)?'P':'A'};
 aggroOf=(e,t)=>{const m=ag26Kind(e);return m==='P'?0:m==='A'?t.aggro*AG26.K:t.aggro*(e.boss?1.4:1)};
 const ag26Tag=e=>{const m=ag26Kind(e);return m==='P'?' · 비선공':' · 선공'};

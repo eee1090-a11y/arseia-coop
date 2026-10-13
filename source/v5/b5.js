@@ -246,7 +246,7 @@ function slotRaw(i){try{return !!localStorage.getItem(SLOTKEY(i))||(i===0&&!ACC&
 function readSlot(i){try{const s=localStorage.getItem(SLOTKEY(i));const d=s?JSON.parse(s):null;return okSave(d)?d:null}catch(_){return null}}
 // 예전 한 칸짜리 저장은 1번 캐릭터로 옮긴다 (원본은 지우지 않음)
 (()=>{try{if(!localStorage.getItem(SLOTKEY(0))){const s=localStorage.getItem(KEY);const d=s?JSON.parse(s):null;if(okSave(d))localStorage.setItem(SLOTKEY(0),s)}}catch(_){}})();
-const fixItem=it=>{if(!(it&&SLOT[it.slot]&&it.stats))return null;if(it.rar===3&&!it.set)it.rar=4;if(it.rar>5)it.rar=5;fixStats(it.stats);return it};
+const fixItem=it=>{if(!(it&&SLOT[it.slot]&&it.stats))return null;if(it.rar===3&&!it.set)it.rar=4;if(it.rar>5)it.rar=5;fixStats(it.stats);g29Ensure(it);return it};
 function load(d,slot){
   if(!okSave(d))return false;
   curSlot=slot!=null?slot:(d.slot|0);DG=null;allies=[];warns=[];

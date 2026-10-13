@@ -56,6 +56,7 @@ REGIONS.royal={id:'royal',n:'왕도 아르덴',base:16,col:'#f0e2b0',entry:'S',e
   th:{pal:[[92,118,62],[80,100,56]],deep:[70,88,52],liq:{col:[50,80,100],th:9,kind:'water'},grass:150,gm:[1,1.06,1],flow:1,fcol:['#f4f0e4','#b0a0f0','#ffd76a','#e07a96'],tile:.3,paint:'royal'},
   mix:[['oak',12],['windtree',3],['bush',6],['mossrock',2],['rock',1]],
   clear:(x,y)=>Math.max(Math.abs(x-3000),Math.abs(y-3000))<1000};
+h29Install();
 const REG_IDS=Object.keys(REGIONS).filter(k=>k!=='home');
 const sideOf=(id,sd)=>((REGIONS[id]&&REGIONS[id].side)||SIDE)[sd];
 // 지역 몬스터: 들판 몬스터보다 단단하고 아프다

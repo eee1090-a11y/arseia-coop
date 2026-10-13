@@ -25,8 +25,8 @@ function cgDraw(c,PK,k,x,y,s,fl){const r=PK.meta.r[k];if(!r)return false;s=s||1;
   if(fl){c.save();c.translate(x,y);c.scale(-1,1);c.drawImage(PK.img,r[0],r[1],r[2],r[3],-r[4]*s,-r[5]*s,r[2]*s,r[3]*s);c.restore()}
   else c.drawImage(PK.img,r[0],r[1],r[2],r[3],x-r[4]*s,y-r[5]*s,r[2]*s,r[3]*s);return true}
 // 빛 층(흰 빛 그림)은 색을 곱해 더하기 섞기 (흰색 그대로 더하면 하얗게 날아간다)
-function cgGlow(c,PK,k,x,y,col,a){const r=PK.meta.r[k];if(!r)return;const tc=typeof flPkTint==='function'?flPkTint(PK,k,col,1,'m'):null;c.globalCompositeOperation='lighter';c.globalAlpha=a;
-  if(tc)c.drawImage(tc,0,0,r[2],r[3],x-r[4],y-r[5],r[2],r[3]);else c.drawImage(PK.img,r[0],r[1],r[2],r[3],x-r[4],y-r[5],r[2],r[3]);c.globalAlpha=1;c.globalCompositeOperation='source-over'}
+function cgGlow(c,PK,k,x,y,col,a,anchor){const r=PK.meta.r[k];if(!r)return;const ax=anchor?anchor[4]:r[4],ay=anchor?anchor[5]:r[5];const tc=typeof flPkTint==='function'?flPkTint(PK,k,col,1,'m'):null;c.globalCompositeOperation='lighter';c.globalAlpha=a;
+  if(tc)c.drawImage(tc,0,0,r[2],r[3],x-ax,y-ay,r[2],r[3]);else c.drawImage(PK.img,r[0],r[1],r[2],r[3],x-ax,y-ay,r[2],r[3]);c.globalAlpha=1;c.globalCompositeOperation='source-over'}
 const cgLabel=(t,x,y,col,f)=>{ctx.font=(f||'700 13px ')+FONT;ctx.textAlign='center';ctx.lineWidth=3;ctx.strokeStyle='rgba(0,0,0,.85)';ctx.strokeText(t,x,y);ctx.fillStyle=col;ctx.fillText(t,x,y)};
 
 /* ===== 마을 건물 ===== */
@@ -46,7 +46,7 @@ function cgBld(d){const PK=cgPK(CG.TOWN);if(!PK)return false;const key=cgBldKey(
   ctx.globalAlpha=a;ctx.drawImage(PK.img,r[0],r[1],r[2],r[3],x0,y0,w,h);
   if(d.mill){const bl=cgR(PK,'065_tw_blade');if(bl){ctx.save();ctx.translate(x0+CGMILL[0]*k,y0+CGMILL[1]*k);ctx.rotate(reduceMotion?0:time*.7);ctx.drawImage(PK.img,bl[0],bl[1],bl[2],bl[3],-bl[2]/2*k*.9,-bl[3]/2*k*.9,bl[2]*k*.9,bl[3]*k*.9);ctx.restore()}}
   const dp=W2S(d.door.x,d.door.y);d._cgDoor=dp;
-  if(d.signT){const sg=cgR(PK,'066_tw_sign');if(sg){const sx=dp.x,sy=dp.y-62;ctx.drawImage(PK.img,sg[0],sg[1],sg[2],sg[3],sx-sg[2]/2,sy-sg[3]/2,sg[2],sg[3]);
+  if(d.signT){const sg=cgR(PK,'066_tw_sign');if(sg){const clinic=d.signT==='페이스라인성형외과',sx=dp.x-(clinic?20:0),sy=dp.y-(clinic?70:62);ctx.drawImage(PK.img,sg[0],sg[1],sg[2],sg[3],sx-sg[2]/2,sy-sg[3]/2,sg[2],sg[3]);
     ctx.font=`700 11px ${DISPLAY}`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#ffe6a8';ctx.fillText(d.signT,sx,sy+1,sg[2]-16);ctx.textBaseline='alphabetic'}}
   ctx.globalAlpha=1;d._cg=1;
   if(TW.vis!==frameN){TW.vis=frameN;TW.visB.length=0}TW.visB.push(d);
@@ -71,7 +71,7 @@ const CGL={fountain:[CG.DEC,'071_twl_fountain'],lamp:[CG.DEC,'072_twl_lamp'],gat
 function cgLand(d){const L=CGL[d.k];if(!L)return false;const PK=cgPK(L[0]),T=cgPK(CG.TOWN);if(!PK||!T||!cgR(PK,L[1]))return false;const s=d._s,k=d.s||1,t=reduceMotion?0:time;
   cgDraw(ctx,PK,L[1],s.x,s.y,k);ctx.save();ctx.translate(s.x,s.y);ctx.scale(k,k);ctx.globalCompositeOperation='lighter';
   if(d.k==='lamp'){const f=reduceMotion?1:.92+.08*Math.sin(t*7+d.x);ctx.globalAlpha=.55*f;ctx.drawImage(Kit.glowCv('#ffd27a'),-22,-92,44,44)}
-  else if(d.k==='gate'){cgGlow(ctx,T,'074_gate_glow',0,0,'#b9a2ff',.5+.25*Math.sin(t*2.2));ctx.globalCompositeOperation='lighter'}
+  else if(d.k==='gate'){cgGlow(ctx,T,'074_gate_glow',0,0,'#b9a2ff',.5+.25*Math.sin(t*2.2),T.meta.r['074_gate_body']);ctx.globalCompositeOperation='lighter'}
   else if(d.k==='fountain'){ctx.globalAlpha=.16+.06*Math.sin(t*2);ctx.drawImage(Kit.glowCv('#aae6ff'),-60,-60,120,56)}
   else if(d.k==='stash'){ctx.fillStyle=`rgba(255,210,120,${.16+.08*Math.sin(t*2.4)})`;circ(-4,-20,10)}
   ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1;
@@ -108,7 +108,7 @@ const CGRD={statue:[CG.TOWN,'076_statue_false_nose_single'],facesign:[CG.TOWN,'0
 // 우리 장식 종류 → 그림 종류 (같은 이름은 그대로). 눈 지역 나무는 눈 덮인 소나무 · 죽은 나무
 const CGDA={tree:'htree',bush:'hbush'},CGDS={htree:'hdead',tree:'hdead',hbirch:'hdead',hpine:'snowpine',pine:'snowpine'};
 function cgDecKey(d){let k=CGDA[d.k]||d.k;if(flTheme&&flTheme()==='snow'&&CGDS[d.k])k=CGDS[d.k];const L=CG.dec[k];if(!L||!L.length)return null;return L[Math.floor((d.v||0)*L.length*.999)]}
-function cgDec(c,d,x,y,k){if(DG)return false;const R=CGRD[d.k];if(R){const PK=cgPK(R[0]);return PK?cgDraw(c,PK,R[1],x,y,(d.s||1)*(k||1)):false}
+function cgDec(c,d,x,y,k){if(DG)return false;const R=CGRD[d.k];if(R){const PK=cgPK(R[0]);if(PK&&d.k==='statue')return f29Statue(c,PK,d,x,y,(d.s||1)*(k||1));if(d.k==='facesign'&&d.f29host)return true;return PK?cgDraw(c,PK,R[1],x,y,(d.s||1)*(k||1)):false}
   const PK=cgPK(CG.DEC);if(!PK)return false;const key=cgDecKey(d);if(!key)return false;return cgDraw(c,PK,key,x,y,(d.s||1)*(k||1))}
 {const _rd=RD.draw;RD.draw=function(c,d,x,y,k,t){if(d&&d.k!=='edgeportal'&&cgDec(c,d,x,y,k))return true;return _rd.apply(this,arguments)}}
 {const _dd=drawDecor;drawDecor=function(d){if(!RD.D[d.k]&&d._s&&cgDec(ctx,d,d._s.x,d._s.y,1))return;return _dd.apply(this,arguments)}}

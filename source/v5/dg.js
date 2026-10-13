@@ -136,7 +136,7 @@ function bossThink(e,dt,tg,d){
   const ok=t.skills.filter(s=>s==='slam'?d<230:s==='charge'?d>140&&d<600:s==='summon'?enemies.length<45&&!(e.sumT>0)&&!(e.clone&&t.vol):true);/* v26: 모르가스 분신은 부하를 부르지 않음 */if(!ok.length)return;
   const s=pick(ok);if(s==='summon'&&t.sumCd)e.sumT=t.sumCd;e.skT=rnd(2.6,4)*(e.rage?.6:1)*(t.mini?1.2:1)*(e.clone&&t.vol?1.7:1);
   if(s==='slam'){const rad=t.boss?170:130;warns.push({x:e.x,y:e.y,rad,t:.95,max:.95,dmg:e.dmg*2.2,col:'#ff5a3a',src:e});e.cast=.95}
-  else if(s==='volley'){const n=t.vol?e.clone?5:t.vol[e.rage?1:0]:t.boss?(e.rage?14:10):7,a0=Math.atan2(tg.y-e.y,tg.x-e.x);for(let i=0;i<n;i++){const a=a0+(i-(n-1)/2)*.16;projs.push({x:e.x,y:e.y,z:30,vx:Math.cos(a)*270,vy:Math.sin(a)*270,r:7,dmg:e.dmg*.7,owner:'e',life:2.2,col:t.pcol||'#ff7a3a'})}e.cast=.4}
+  else if(s==='volley'){const n=t.vol?e.clone?5:t.vol[e.rage?1:0]:t.boss?(e.rage?14:10):7,a0=Math.atan2(tg.y-e.y,tg.x-e.x);for(let i=0;i<n;i++){const a=a0+(i-(n-1)/2)*.16;projs.push({x:e.x,y:e.y,z:30,vx:Math.cos(a)*270,vy:Math.sin(a)*270,r:7,dmg:e.dmg*.7,src:g29Source(e),owner:'e',life:2.2,col:t.pcol||'#ff7a3a'})}e.cast=.4}
   else if(s==='summon'){const n=t.sumN||(t.boss?3:2);for(let i=0;i<n;i++){const a=R()*6.283,x=e.x+Math.cos(a)*70,y=e.y+Math.sin(a)*70;if(!dgFree(x,y,14))continue;const m=dgMob(t.summon,x,y,Math.max(1,e.lvl-2));m.aggroed=true;rings.push({x,y,r:4,max:40,life:.4,col:'#b49cff'})}msg(`${t.n}이(가) 부하를 부릅니다`,'#c9b4ff');e.cast=.6}
   else if(s==='charge'){const a=Math.atan2(tg.y-e.y,tg.x-e.x);e.dvx=Math.cos(a);e.dvy=Math.sin(a);e.dash=.5;e.dashHit=0;warns.push({x:e.x,y:e.y,rad:40,t:.25,max:.25,dmg:0,col:'#ffb05a'})}
 }

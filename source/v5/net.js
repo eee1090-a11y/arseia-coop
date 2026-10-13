@@ -55,7 +55,7 @@ function netOnMsg(m){
   case'fx':if(NET.host){const e=enemies.find(o=>o.id===m.id);if(e)applyFx(e,{slow:m.sl,freeze:m.fz,stun:m.sn,knock:m.k},m.fx!=null?{x:m.fx,y:m.fy}:null)}break;
   case'rez':if(m.to===NET.id&&P.dead){const r=NET.peers.get(m.from);P.dead=false;FXB.cast({kind:'rez',el:'holy',rank:9},P);P.hp=Math.max(1,Math.round(maxHp()*(m.p||.5)));P.mp=Math.max(P.mp,maxMp()*.3);P.invT=2;$('#death').hidden=true;
     rings.push({x:P.x,y:P.y,r:6,max:110,life:.9,col:'#ffe39a'});burst(P.x,P.y,'#fff2c0',50,180,3,30);msg(`${r?r.name:'동료'}님이 나를 되살렸습니다`,'#ffe39a')}break;
-  case'hit':if(m.to===NET.id&&!P.dead){const src=enemies.find(o=>o.id===m.s);hitPlayer(m.d,src&&!src.dead?src:null)}break;
+  case'hit':if(m.to===NET.id&&!P.dead){const src=enemies.find(o=>o.id===m.s);hitPlayer(m.d,src&&!src.dead?src:(m.src29||null))}break;
   case'kill':if(NET.guest)netOnKill(m);break;
   case'cast':netGhostCast(m);break;
   case'cst':case'chs':castNetMsg(m);break;// v17 시전·채널링 시작/끝 (옛 버전은 모르는 메시지라 무시)
@@ -106,7 +106,7 @@ function netGuestEnemies(dt){for(const e of enemies){e.anim+=dt;e.hurt-=dt;if(e.
 function netDmg(e,amt,s,crit){const o={t:'dmg',to:NET.hostId,id:e.id,a:amt,c:crit?1:0,b:s&&s.burn?1:0};if(s&&s.threat)o.th=s.threat;netSend(o)}
 function netFx(e,s,from){if(!(s.slow||s.freeze||s.stun||s.knock))return;netSend({t:'fx',to:NET.hostId,id:e.id,sl:s.slow?1:0,fz:s.freeze||0,sn:s.stun||0,k:s.knock||0,fx:from?Math.round(from.x):null,fy:from?Math.round(from.y):null})}
 // 방장: 몬스터가 참가자를 때림
-function netHit(r,d,src){netSend({t:'hit',to:r.id,d:Math.round(d),s:src&&src.id||0});r.hurtT=.25}
+function netHit(r,d,src){netSend({t:'hit',to:r.id,d:Math.round(d),s:src&&src.id||0,src29:g29Source(src)});r.hurtT=.25}
 function netKill(e){if(!e.id)e.id=++NET.eid;const o={t:'kill',id:e.id,k:e.k,x:Math.round(e.x),y:Math.round(e.y),l:e.lvl,el:e.elite?1:0,a:netArea()};if(e.co)o.co=e.co;if(e.tw)o.tw=1;netSend(o)}
 function netNear(o){return dist(P,o)<1400}
 function netOnKill(m){const e=enemies.find(o=>o.id===m.id);
