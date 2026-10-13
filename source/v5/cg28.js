@@ -116,7 +116,7 @@ function cgDec(c,d,x,y,k){if(DG)return false;const R=CGRD[d.k];if(R){const PK=cg
 /* ===== 지역 문 (지역 경계 포탈) ===== */
 function cgPortal(c,d,x,y,k,t){const PK=cgPK(CG.TOWN);if(!PK||!cgR(PK,'079_region_portal_structure'))return false;const col=d.col||'#9ad8ff',s=(d.s||1)*(k||1);
   c.save();c.translate(x,y);c.scale(s,s);cgDraw(c,PK,'079_region_portal_structure',0,0,1);
-  cgGlow(c,PK,'079_region_portal_glow',0,0,col,(typeof flLo==='function'&&flLo())?.5:.42+.2*Math.sin((reduceMotion?0:t)*2.2));
+  cgGlow(c,PK,'079_region_portal_glow',0,0,col,(typeof flLo==='function'&&flLo())?.5:.42+.2*Math.sin((reduceMotion?0:t)*2.2),PK.meta.r['079_region_portal_structure']);
   if(d.label){c.font='700 13px '+FONT;c.textAlign='center';c.lineWidth=3;c.strokeStyle='rgba(0,0,0,.85)';c.strokeText(d.label,0,-150);c.fillStyle=col;c.fillText(d.label,0,-150)}
   c.restore();return true}
 {const _rd=RD.draw;RD.draw=function(c,d,x,y,k,t){if(d&&d.k==='edgeportal'&&!DG&&cgPortal(c,d,x,y,k,t))return true;return _rd.apply(this,arguments)}}

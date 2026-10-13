@@ -7877,6 +7877,107 @@ function h29Install(){
  // 지역 번호는 기존 왕도까지 그대로 두고 새 여섯 곳만 끝에 붙인다.
  REGIONS.lava.edges.E='h29_reed';
 }
+/* ---------- v30: 새 사냥터 6곳의 던전 · 쉼터 사람 · 의뢰, 몹 잡기 말고 다른 종류의 의뢰 (사용자 2026-10-13) ----------
+   「새로 추가된 맵들에서 던전이나 퀘스트가 없으니 더 추가 · 몹 잡아오라는 퀘스트만 있어서 심심해 · 배달·수집 말고 다양한 퀘스트」
+   · 던전 6곳: WX_DUNGEONS 에 붙인다(지역 생성기가 입구 둘레를 비우고 길을 낸다). 준보스·보스는 같은 레벨대 기존 몬스터의 모양·수치를 빌려 이름만 새로.
+   · 새 의뢰 종류(quest30.js 가 움직임): track 추적 · defend 지키기 · ritual 봉인(순서대로 밟기) · riddle 수수께끼 · chase 추격
+     자리는 [각도(도), 거리] = 그 지역 쉼터(또는 from 마을) 가운데 기준. 실제 자리는 그 지역에 들어갔을 때 걸을 수 있는 곳으로 맞춘다.
+   · 저장: 기존 P.sq 그대로(진행 수 c.g0). 새 칸 없음. */
+const Q30_CAMP=id=>id+'_camp';
+// 1) 쉼터 사람 (지역 쉼터마다 둘)
+Object.assign(WX_FOLK,{
+ r30_osen:{town:Q30_CAMP('h29_reed'),at:[-170,120],n:'나루지기 오센',role:'나루지기',L:{body:'#4a5a5a',legs:'#2a3030',cape:'#6a8a8a',hair:'#c8c4bc',hs:3,hat:1,hatC:'#3a4a4a',prop:'rod'},lines:['나루에 매어 둔 배는 내 자식 같은 걸세. 하나라도 사라지면 잠이 안 와.','물안개가 짙은 밤에는 갈대가 사람 목소리를 흉내 낸다네.']},
+ r30_yuna:{town:Q30_CAMP('h29_reed'),at:[150,-190],n:'갈대 피리꾼 유나',role:'피리꾼',L:{body:'#5a7a6a',cape:'#a8c8b8',hair:'#3a2a1a',hs:2,dress:1,prop:'staff',gem:'#bff0e0'},walk:[[150,-190],[190,-150],[120,-150]],lines:['갈대 피리는 바람이 반, 숨이 반이에요.','등불이 꺼지면 나루 쪽 짐승들이 더 대담해져요.']},
+ k30_verka:{town:Q30_CAMP('h29_kiln'),at:[-170,120],n:'유리장인 베르카',role:'유리장인',L:{body:'#7a4a3a',apron:'#c8a888',legs:'#3a2a22',hair:'#8a3a2a',hs:3,skin:'#b8845a',prop:'mug'},lines:['붉은 모래는 녹이면 피처럼 투명해져. 그래서 이 황야 유리가 비싼 거야.','가마가 식으면 유리도, 사람 마음도 금이 가지.']},
+ k30_dan:{town:Q30_CAMP('h29_kiln'),at:[150,-190],n:'초소병 단',role:'초소병',L:{armor:1,body:'#8a6a5a',legs:'#4a3a32',tabard:'#7a3a2a',hair:'#2a1a10',hs:3,hat:4,prop:'spear'},walk:[[150,-190],[200,-160],[120,-160]],lines:['유리길은 해가 지면 뜨거워. 낮에 달군 바위가 밤새 열을 토하거든.','숯가마 연기가 보이면 그쪽으로는 가지 마.']},
+ c30_seol:{town:Q30_CAMP('h29_crystal'),at:[-170,120],n:'맥 읽는 이 세올',role:'맥 읽는 이',L:{body:'#3a5a6a',cape:'#8ad8e8',hair:'#e8e4dc',hs:1,dress:1,prop:'staff',gem:'#9ff0ff'},lines:['수정에 손을 대면 땅속 마나가 흐르는 소리가 들려요.','요즘은 맥이 군데군데 끊겨서 숲이 앓는 소리를 내요.']},
+ c30_bodo:{town:Q30_CAMP('h29_crystal'),at:[150,-190],n:'광석꾼 보도',role:'광석꾼',L:{body:'#6a5a4a',apron:'#8a7a5a',legs:'#3a3a3a',hair:'#5a3a2a',hs:3,hat:6,hatC:'#4a5a4a',prop:'basket'},walk:[[150,-190],[190,-150]],lines:['푸른 수정은 캐는 게 아니라 얻는 거야. 숲이 내줄 때만.','뿌리 거상이 지나간 자리엔 수정이 다 깨져 있더군.']},
+ s30_amel:{town:Q30_CAMP('h29_snow'),at:[-170,120],n:'순례자 아멜',role:'순례자',L:{body:'#c8c8d0',cape:'#6a7a9a',hair:'#d8c890',hs:2,dress:1,prop:'staff',gem:'#cfe8ff'},lines:['이 길 끝 성소까지 걸어가는 게 평생의 기도예요.','눈이 발목까지 오면 노래를 불러요. 발이 덜 시리거든요.']},
+ s30_tor:{town:Q30_CAMP('h29_snow'),at:[150,-190],n:'얼음길 안내인 토르',role:'안내인',L:{body:'#5a6a7a',legs:'#2a3a4a',cape:'#a8c0d8',hair:'#e8e4dc',hs:3,hat:1,hatC:'#3a4a5a',prop:'spear'},walk:[[150,-190],[190,-160],[120,-160]],lines:['얼음 등불이 켜져 있으면 길을 잃을 일이 없지. 지금은 다 꺼졌지만.','눈보라가 치면 왼손을 벽에 대고 걸어. 그게 순례길 규칙이야.']},
+ b30_hesse:{town:Q30_CAMP('h29_bell'),at:[-170,120],n:'종지기의 딸 헤세',role:'종지기의 딸',L:{body:'#8a7a4a',cape:'#d8c890',hair:'#3a2418',hs:4,dress:1,prop:'book'},lines:['아버지는 종이 울리지 않게 된 날부터 말을 잃으셨어요.','이 정원에선 내 목소리도 돌아오지 않아요. 그래서 수수께끼를 좋아해요. 대답이 돌아오니까.']},
+ b30_garn:{town:Q30_CAMP('h29_bell'),at:[150,-190],n:'지킴이 가른',role:'지킴이',L:{armor:1,body:'#7a7a6a',legs:'#3a3a32',tabard:'#8a7a3a',hair:'#5a4a3a',hs:3,hat:4,prop:'sword'},walk:[[150,-190],[200,-160]],lines:['종 조각 하나라도 없어지면 정원의 침묵이 더 넓어진다고들 하지.','그림자가 발소리 없이 다니는 곳이야. 등 뒤를 조심해.']},
+ v30_lumen:{town:Q30_CAMP('h29_veil'),at:[-170,120],n:'새벽 사제 루멘',role:'새벽 사제',L:{body:'#e8e0c8',cape:'#b8a0e0',hair:'#f0e8d0',hs:1,dress:1,prop:'staff',gem:'#ffe8a0'},lines:['봉인석은 새벽빛을 먹고 버텨요. 밤이 길어지면 봉인이 약해지죠.','이 벌판의 어둠은 잠들어 있을 뿐이에요. 깨우지만 않으면 돼요.']},
+ v30_orsa:{town:Q30_CAMP('h29_veil'),at:[150,-190],n:'파수대장 오르사',role:'파수대장',L:{armor:1,body:'#6a6a7a',legs:'#3a3a4a',tabard:'#5a4a8a',hair:'#2a1a10',hs:3,hat:4,prop:'sword'},walk:[[150,-190],[200,-150],[120,-150]],lines:['새벽 순찰대가 돌아오지 않은 지 사흘째다.','봉인석 근처에서는 무기를 내려놓지 마라. 그게 여기 규칙이다.']},
+});
+// 2) 던전 6곳 (준보스·보스는 같은 레벨대 기존 몬스터를 빌려 이름·색만 바꾼다)
+const Q30_DGT={};
+{const mk=(id,src,n,col,eye)=>{const t=WX_TYPES[src]||TYPES[src];if(!t)return;Q30_DGT[id]={...t,n,col:col||t.col,eye:eye||t.eye}};
+ mk('m30_dbel','m_har','나루 망령 사공 드벨','#8ab0b0','#bff0e0');mk('m30_reedwyrm','m_icewyrm','갈대늪 비룡 어미','#6a9a8a');mk('b30_osmen','b_eldan','가라앉은 나루의 주인 오스멘','#7a9aa0','#bff0e0');
+ mk('m30_kasel','m_kedric','유리 장인 망령 카셀','#c87a5a','#ffb07a');mk('m30_meltstone','m_rodstone','녹은 유리 석상','#d88a6a');mk('b30_barka','b_raigon','붉은 유리 거인 바르카','#c8583a','#ffc070');
+ mk('m30_qmother','m_crystalq','맥을 먹는 여왕벌레','#6ab0b8');mk('m30_iona','m_ogma','수정 예언자 이오나','#7ac8d0','#9ff0ff');mk('b30_selas','b_bardus','푸른 맥의 심장 셀라스','#4a9aa8','#9ff0ff');
+ mk('m30_hanel','m_lore','얼어붙은 순례 기사 하넬','#8a9ab0','#cfe8ff');mk('m30_frostwyrm','m_icewyrm','서리 비룡 우두머리','#b8d8f0');mk('b30_orel','b_eldan','눈잠든 성자 오렐','#e8eef8','#cfe8ff');
+ mk('m30_murk','m_kedric','침묵 종지기장 무르크','#8a7a4a','#ffe066');mk('m30_bellguard','m_rodstone','깨진 종의 수호상','#a89a6a');mk('b30_amur','b_raigon','소리를 삼킨 종 아무르','#6a6040','#ffe066');
+ mk('m30_heiren','m_servan','봉인을 판 주교 헤이렌','#5a4a7a','#c8a0ff');mk('m30_kail','m_lore','새벽을 등진 기사 카일','#3a3050','#ffe8a0');mk('b30_nocta','b_amas','봉인 아래의 밤 노크타','#20182e','#c8a0ff');}
+Object.assign(TYPES,Q30_DGT);
+const Q30_DG=[
+ {id:'h30_dock',reg:'h29_reed',at:'near',n:'가라앉은 나루 창고',x:2200,y:4300,lvl:75,floor:[58,72,70],wall:['#4a6260','#1e2e2c','#6a8684'],torch:'#bff0e0',mobs:['h29_reed_0','h29_reed_1','h29_reed_2'],minis:['m30_dbel','m30_reedwyrm'],boss:'b30_osmen',loot:'냉기·마나·피해 감소'},
+ {id:'h30_glass',reg:'h29_kiln',at:'near',n:'붉은 유리 가마굴',x:4300,y:4300,lvl:77,floor:[76,50,40],wall:['#6a3a2a','#2a140e','#8a5a44'],torch:'#ff9a5a',mobs:['h29_kiln_0','h29_kiln_1','h29_kiln_3'],minis:['m30_kasel','m30_meltstone'],boss:'b30_barka',loot:'화염·생명력·치명타'},
+ {id:'h30_vein',reg:'h29_crystal',at:'near',n:'맥이 모이는 수정굴',x:4300,y:4300,lvl:85,floor:[54,74,78],wall:['#3a6a72','#14282c','#5a9aa4'],torch:'#9ff0ff',mobs:['h29_crystal_0','h29_crystal_2','h29_crystal_3'],minis:['m30_qmother','m30_iona'],boss:'b30_selas',loot:'대지·마나·마나 회복'},
+ {id:'h30_shrine',reg:'h29_snow',at:'near',n:'얼어붙은 순례자의 성소',x:2200,y:4300,lvl:87,floor:[80,88,100],wall:['#8a98ac','#3a4456','#b0c0d4'],torch:'#cfe8ff',mobs:['h29_snow_0','h29_snow_1','h29_snow_2'],minis:['m30_hanel','m30_frostwyrm'],boss:'b30_orel',loot:'냉기·피해 감소·생명력'},
+ {id:'h30_belltower',reg:'h29_bell',at:'near',n:'부서진 종탑 지하',x:4300,y:4300,lvl:95,floor:[70,66,52],wall:['#6a6450','#28241a','#8a8268'],torch:'#ffe066',mobs:['h29_bell_0','h29_bell_1','h29_bell_3'],minis:['m30_murk','m30_bellguard'],boss:'b30_amur',loot:'폭풍·재사용 대기 감소·치명타'},
+ {id:'h30_seal',reg:'h29_veil',at:'near',n:'봉인 아래 회랑',x:4300,y:1800,lvl:98,floor:[50,44,62],wall:['#463c56','#18141e','#64587a'],torch:'#c8a0ff',mobs:['h29_veil_0','h29_veil_1','h29_veil_2'],minis:['m30_heiren','m30_kail'],boss:'b30_nocta',loot:'신성·마나·스킬 레벨(드묾)'},
+];
+WX_DUNGEONS.push(...Q30_DG);
+// 3) 의뢰
+const q30Dg=(id,n1,n2,b)=>[{type:'kill',k:Q30_DG.find(d=>d.id===id).minis,n:2,d:`${n1} · ${n2} 처치`},{type:'kill',k:[Q30_DG.find(d=>d.id===id).boss],n:1,d:`${b} 처치`}];
+const Q30_SQ=[
+ // ── 달물결 쉼터 ──
+ {id:'h30r1',town:Q30_CAMP('h29_reed'),giver:'r30_osen',lvl:70,kind:'추적',t:'물안개 속 발자국',say:'나루에 매어 둔 배가 밤마다 하나씩 사라져. 그런데 진흙에 이상한 발자국이 남았더군. 사람 발은 아니야. 그 발자국을 따라가 보게. 끝에 범인이 있을 걸세.',done:'갈대 비늘 사냥수가 배를 끌고 갔다니… 그 녀석들, 배 밑창의 송진을 핥으려고 그랬던 거로군. 고맙네.',
+  goals:[{type:'track',reg:'h29_reed',steps:[[195,700,'진흙 위에 세 발가락 발자국. 무언가 무거운 것을 끌고 갔다'],[245,1150,'갈대가 한쪽으로 쓰러져 있다. 끌린 자국이 더 멀리 이어진다'],[255,1550,'부서진 노 한 자루. 푸른 비늘 조각이 박혀 있다'],[260,1900,'물안개 너머에서 낮게 그르렁거리는 소리가 들린다!']],foe:'h29_reed_0',foeN:'배 도둑 비늘 사냥수',d:'발자국 따라가 배 도둑 찾기',n:5}],rw:{xp:.9,gold:620,pot:2}},
+ {id:'h30r2',town:Q30_CAMP('h29_reed'),giver:'r30_yuna',req:'h30r1',lvl:72,kind:'지키기',t:'나루 등불 지키기',say:'나루 등불에 새 기름을 붓고 불씨를 다시 살리는 데 한참 걸려요. 그동안 불빛을 보고 짐승들이 몰려들 거예요. 등불 곁에서 끝까지 지켜 주세요. 등불이 깨지면 처음부터예요.',done:'불이 안정됐어요! 이제 밤에도 배들이 길을 잃지 않을 거예요.',
+  goals:[{type:'defend',reg:'h29_reed',at:[195,900],secs:60,hp:900,mobs:['h29_reed_1','h29_reed_2','h29_reed_0'],what:'나루 등불',d:'나루 등불을 60초 동안 지키기'}],rw:{xp:1.1,gold:760,pot:3,tp:1}},
+ {id:'h30r3',town:Q30_CAMP('h29_reed'),giver:'r30_osen',req:'h30r2',lvl:75,kind:'던전',t:'가라앉은 나루 창고',say:'쉼터 남서쪽, 물에 잠긴 옛 나루 창고 「가라앉은 나루 창고」에서 배들이 다 끌려 들어간 걸 알아냈네. 망령이 된 사공 드벨과 늪 비룡 어미가 지키고, 그 바닥에 나루의 옛 주인 오스멘이 산다더군. 한 번에 내려가서 끝내 주게.',done:'창고 문이 열렸다는 소식이 벌써 들리네! 배들을 찾아올 수 있겠어.',
+  goals:q30Dg('h30_dock','드벨','늪 비룡 어미','오스멘'),rw:{xp:1.6,gold:1500,pot:3,tp:1,item:1}},
+ // ── 유리길 초소 ──
+ {id:'h30k1',town:Q30_CAMP('h29_kiln'),giver:'k30_verka',lvl:71,kind:'추격',t:'유리 도둑을 잡아라',say:'방금 좀도둑 사블이 내 작업대에서 붉은 유리 꽃병을 채 갔어! 초소 밖 황야로 달아났을 거야. 녀석은 발이 빠르지만 금방 지쳐. 따라잡아서 붙잡아 줘!',done:'꽃병이 멀쩡해! 사블은 초소병 단에게 넘겼어. 한동안은 얌전하겠지.',
+  goals:[{type:'chase',reg:'h29_kiln',at:[40,650],path:[[60,1000],[105,1350],[75,1500],[95,1675],[190,1375]],who:{n:'좀도둑 사블',L:{body:'#5a4a3a',legs:'#2a2018',cape:'#7a5a3a',hair:'#2a1a10',hs:0,hat:2,hatC:'#3a2a1a'}},d:'달아난 좀도둑 사블 붙잡기'}],rw:{xp:.9,gold:640,pot:2}},
+ {id:'h30k2',town:Q30_CAMP('h29_kiln'),giver:'k30_dan',req:'h30k1',lvl:73,kind:'봉인',t:'식은 가마 다시 지피기',say:'황야의 옛 가마 넷이 식으면서 그 열기가 짐승들에게 흘러갔어. 가마는 작은 것부터 큰 것 순서로 지펴야 불이 고르게 붙는다더군. 순서가 틀리면 가마가 다시 식고, 새어 나온 열기에 짐승이 깨어날 거야.',done:'황야 쪽 짐승들이 한결 조용해졌어. 가마 연기도 제 색이야.',
+  goals:[{type:'ritual',reg:'h29_kiln',stones:[[300,900,'가장 큰 가마'],[20,1100,'작은 가마'],[105,800,'큰 가마'],[245,1150,'중간 가마']],order:[1,3,2,0],hint:'작은 가마에서 큰 가마 순서로',mobs:['h29_kiln_0','h29_kiln_2'],d:'옛 가마 넷을 작은 것부터 큰 것 순서로 지피기'}],rw:{xp:1.1,gold:780,pot:3,tp:1}},
+ {id:'h30k3',town:Q30_CAMP('h29_kiln'),giver:'k30_verka',req:'h30k2',lvl:77,kind:'던전',t:'붉은 유리 가마굴',say:'초소 남동쪽 「붉은 유리 가마굴」 깊은 곳에서 유리 거인 바르카가 깨어났어. 옛 장인의 망령 카셀이 녀석에게 유리를 먹이고, 녹은 석상이 길을 막는대. 한 번에 들어가서 모두 끝내 줘.',done:'가마굴의 불이 제 빛으로 돌아왔어. 이 유리 장식, 내가 만든 것 중 제일 잘 된 거야. 가져가.',
+  goals:q30Dg('h30_glass','카셀','녹은 유리 석상','바르카'),rw:{xp:1.6,gold:1560,pot:3,tp:1,item:1}},
+ // ── 푸른 맥 파수막 ──
+ {id:'h30c1',town:Q30_CAMP('h29_crystal'),giver:'c30_seol',lvl:80,kind:'수수께끼',t:'수정이 묻는 말',say:'맥을 읽으려면 먼저 수정의 물음에 답할 줄 알아야 해요. 수정이 내게 들려준 세 가지 물음을 그대로 낼게요. 천천히 생각해 보세요. 틀려도 괜찮아요.',done:'세 물음 모두 맞혔어요. 이제 당신도 맥 소리를 조금은 들을 수 있을 거예요.',
+  goals:[{type:'riddle',npc:'c30_seol',qs:[['모두가 나를 밟고 지나가지만 아무도 나를 다치게 하지 못해요. 나는 쉼터와 쉼터를 이어 줘요. 나는 무엇일까요?',['다리','길','돌'],1],['많이 가질수록 오히려 덜 보이는 것은 무엇일까요?',['안개','돈','어둠'],2],['이름을 부르는 순간 사라져 버리는 것은 무엇일까요?',['침묵','메아리','그림자'],0]],d:'세올이 내는 수정의 물음 셋에 답하기',n:3}],rw:{xp:.9,gold:700,pot:2}},
+ {id:'h30c2',town:Q30_CAMP('h29_crystal'),giver:'c30_bodo',req:'h30c1',lvl:82,kind:'추적',t:'끊긴 마나의 맥',say:'숲의 맥이 군데군데 끊겼어. 끊긴 자리마다 수정이 깨져 있지. 깨진 수정을 따라가면 맥을 끊고 다니는 놈이 나올 거야. 내 짐작엔 커다란 뿌리 거상이야.',done:'맥이 다시 이어졌어! 숲이 숨 쉬는 소리가 들리지? 이건 그 거상 몸에서 나온 수정이야. 네 몫이야.',
+  goals:[{type:'track',reg:'h29_crystal',steps:[[100,700,'깨진 푸른 수정. 마나가 실처럼 새어 나온다'],[80,1100,'뿌리가 땅을 갈아엎은 자국. 수정 가루가 길게 흩어져 있다'],[60,1450,'맥이 완전히 끊겼다. 땅이 차갑다'],[40,1800,'땅이 울린다. 무언가 거대한 것이 맥을 씹고 있다!']],foe:'h29_crystal_3',foeN:'맥을 씹는 뿌리 거상',d:'깨진 수정 따라가 맥을 끊은 놈 찾기',n:5}],rw:{xp:.9,gold:720,pot:2}},
+ {id:'h30c3',town:Q30_CAMP('h29_crystal'),giver:'c30_seol',req:'h30c2',lvl:85,kind:'던전',t:'맥이 모이는 수정굴',say:'모든 맥이 모이는 곳, 파수막 남동쪽 「맥이 모이는 수정굴」에서 맥을 삼키는 심장 셀라스가 자라고 있어요. 여왕벌레와 예언자 이오나가 그것을 키우고요. 한 번에 들어가 끝내 주세요.',done:'맥 소리가 맑아졌어요. 숲 전체가 고맙다고 말하는 것 같아요.',
+  goals:q30Dg('h30_vein','여왕벌레','이오나','셀라스'),rw:{xp:1.6,gold:1700,pot:3,tp:1,item:1}},
+ // ── 눈잠 쉼터 ──
+ {id:'h30s1',town:Q30_CAMP('h29_snow'),giver:'s30_amel',lvl:81,kind:'지키기',t:'순례자의 마지막 기도',say:'순례길 중간의 기도터에서 마지막 기도를 올려야 해요. 기도 등불이 꺼지지 않게 지켜 주시겠어요? 눈 속 짐승들이 불빛을 싫어해서 덤벼들 거예요.',done:'기도를 끝까지 올렸어요. 이제 성소까지 걸어갈 힘이 생겼어요.',
+  goals:[{type:'defend',reg:'h29_snow',at:[60,950],secs:75,hp:1100,mobs:['h29_snow_0','h29_snow_1','h29_snow_2'],what:'기도 등불',d:'기도 등불을 75초 동안 지키기'}],rw:{xp:1.1,gold:860,pot:3,tp:1}},
+ {id:'h30s2',town:Q30_CAMP('h29_snow'),giver:'s30_tor',req:'h30s1',lvl:83,kind:'봉인',t:'얼음 등불 다섯',say:'순례길 얼음 등불 다섯이 다 꺼졌어. 다시 켜려면 순례자들의 노래 순서대로 켜야 해. 「새벽에 하나, 한낮에 둘, 해 질 녘 셋, 별 뜰 때 넷, 다시 새벽에 다섯」. 등불마다 이름이 새겨져 있으니 노래대로 켜.',done:'등불이 이어졌어. 이제 눈보라가 쳐도 순례자들이 길을 잃지 않겠어.',
+  goals:[{type:'ritual',reg:'h29_snow',stones:[[30,800,'별빛 등불'],[330,900,'새벽 등불'],[90,1200,'한낮 등불'],[300,1300,'두 번째 새벽 등불'],[110,1000,'해 질 녘 등불']],order:[1,2,4,0,3],hint:'새벽 · 한낮 · 해 질 녘 · 별빛 · 두 번째 새벽',mobs:['h29_snow_0','h29_snow_3'],d:'얼음 등불 다섯을 노래 순서대로 켜기'}],rw:{xp:1.1,gold:880,pot:3,tp:1}},
+ {id:'h30s3',town:Q30_CAMP('h29_snow'),giver:'s30_amel',req:'h30s2',lvl:87,kind:'던전',t:'얼어붙은 순례자의 성소',say:'순례길 끝 「얼어붙은 순례자의 성소」에 성자 오렐이 잠들어 있대요. 그런데 성소를 지키던 기사 하넬이 얼어붙은 채 길을 막고, 서리 비룡까지 둥지를 틀었대요. 성자를 편히 쉬게 해 주세요.',done:'성소의 종이 한 번 울렸대요. 오렐 성자께서 드디어 쉬신 거예요.',
+  goals:q30Dg('h30_shrine','하넬','서리 비룡 우두머리','오렐'),rw:{xp:1.6,gold:1760,pot:3,tp:1,item:1}},
+ // ── 종원 지킴터 ──
+ {id:'h30b1',town:Q30_CAMP('h29_bell'),giver:'b30_garn',lvl:90,kind:'추격',t:'종 조각을 훔친 그림자',say:'방금 그림자 하나가 지킴터에 보관하던 종 조각을 들고 달아났어! 발소리가 안 나서 놓쳤지만 아직 멀리 못 갔을 거야. 쫓아가서 붙잡아!',done:'종 조각을 되찾았군! 그 그림자, 사람이었다니… 침묵에 홀린 자였나 보군.',
+  goals:[{type:'chase',reg:'h29_bell',at:[315,650],path:[[340,1000],[340,1350],[0,1500],[20,1700],[350,1800]],who:{n:'종 조각 도둑',L:{body:'#2a2a32',legs:'#1a1a20',cape:'#3a3a4a',hair:'#1a1a1a',hs:0,hat:2,hatC:'#1a1a22'}},d:'종 조각을 훔친 그림자 붙잡기'}],rw:{xp:.9,gold:800,pot:2}},
+ {id:'h30b2',town:Q30_CAMP('h29_bell'),giver:'b30_hesse',req:'h30b1',lvl:92,kind:'수수께끼',t:'소리 없는 종의 물음',say:'아버지가 남긴 종 조각에 세 가지 물음이 새겨져 있어요. 셋 다 맞히는 사람에게 종이 다시 운다고 했대요. 같이 풀어 봐요.',done:'세 물음을 다 맞혔어요! …방금 아주 작게, 종소리가 들린 것 같아요.',
+  goals:[{type:'riddle',npc:'b30_hesse',qs:[['입이 없어도 말하고 귀가 없어도 들어요. 몸은 없지만 바람과 함께 살아요. 나는 무엇일까요?',['바람','메아리','종'],1],['쇠로 된 몸에 혀가 하나. 맞을수록 멀리 울어요. 나는 무엇일까요?',['종','북','칼'],0],['밤에만 나오고 낮에는 사라져요. 세면 셀수록 더 많아 보여요. 나는 무엇일까요?',['달','그림자','별'],2]],d:'종 조각에 새겨진 물음 셋에 답하기',n:3}],rw:{xp:.9,gold:820,pot:2}},
+ {id:'h30b3',town:Q30_CAMP('h29_bell'),giver:'b30_garn',req:'h30b2',lvl:95,kind:'던전',t:'부서진 종탑 지하',say:'지킴터 남동쪽 「부서진 종탑 지하」가 침묵의 뿌리야. 종지기장 무르크가 미쳐서 종의 수호상과 함께 그 밑의 아무르를 섬기고 있지. 소리를 삼킨 그 종을 부숴야 정원에 소리가 돌아와. 한 번에 끝내.',done:'정원에 메아리가 돌아왔어! 헤세가 울면서 웃더군. 고맙다.',
+  goals:q30Dg('h30_belltower','무르크','깨진 종의 수호상','아무르'),rw:{xp:1.6,gold:1900,pot:3,tp:1,item:1}},
+ // ── 새벽 파수막 ──
+ {id:'h30v1',town:Q30_CAMP('h29_veil'),giver:'v30_orsa',lvl:91,kind:'추적',t:'새벽 순찰대의 흔적',say:'사흘 전 나간 새벽 순찰대가 돌아오지 않았다. 순찰대는 지나간 자리마다 표식을 남긴다. 그 표식을 따라가 무슨 일이 있었는지 알아 와라.',done:'순찰대장이 맹세를 저버리고 대원들을 봉인 쪽에 바쳤다니… 남은 대원들은 내가 찾으러 가겠다. 고맙다.',
+  goals:[{type:'track',reg:'h29_veil',steps:[[250,650,'순찰대 표식. 「이상 없음」 이라고 적혀 있다'],[245,1050,'표식이 긁혀 지워져 있다. 발자국이 여럿 흩어진다'],[250,1400,'부러진 창과 피 묻은 망토. 망토에 순찰대장 문장이 있다'],[250,1425,'봉인석 쪽에서 누군가 맹세의 말을 거꾸로 외고 있다!']],foe:'h29_veil_1',foeN:'맹세를 저버린 순찰대장',d:'순찰대 표식을 따라가 사라진 까닭 알아내기',n:5}],rw:{xp:.9,gold:820,pot:2}},
+ {id:'h30v2',town:Q30_CAMP('h29_veil'),giver:'v30_lumen',req:'h30v1',lvl:94,kind:'봉인',t:'다섯 봉인석',say:'순찰대장이 봉인석 다섯을 흐려 놓았어요. 봉인은 빛이 가장 약한 돌부터 가장 강한 돌 순서로 다시 맞춰야 해요. 순서를 틀리면 봉인이 반발해서 그늘의 짐승이 튀어나와요.',done:'다섯 봉인석이 다시 새벽빛을 머금었어요. 벌판이 한결 밝아졌죠?',
+  goals:[{type:'ritual',reg:'h29_veil',stones:[[60,900,'밝은 봉인석'],[110,1200,'희미한 봉인석'],[350,1100,'눈부신 봉인석'],[135,800,'빛나는 봉인석'],[20,1350,'옅은 봉인석']],order:[1,4,0,3,2],hint:'희미한 · 옅은 · 밝은 · 빛나는 · 눈부신',mobs:['h29_veil_0','h29_veil_3'],d:'봉인석 다섯을 빛이 약한 것부터 강한 것 순서로 맞추기'}],rw:{xp:1.1,gold:900,pot:3,tp:1}},
+ {id:'h30v3',town:Q30_CAMP('h29_veil'),giver:'v30_orsa',req:'h30v2',lvl:96,kind:'지키기',t:'새벽이 올 때까지',say:'루멘 사제가 큰 봉인석에 새벽빛을 다시 붓는다. 그 의식이 끝날 때까지 봉인석을 지켜라. 그늘의 것들이 마지막으로 몰려올 거다.',done:'새벽이 왔다. 봉인은 버텼다. 너도 버텼고.',
+  goals:[{type:'defend',reg:'h29_veil',at:[90,1000],secs:90,hp:1500,mobs:['h29_veil_0','h29_veil_2','h29_veil_3'],what:'큰 봉인석',d:'큰 봉인석을 90초 동안 지키기'}],rw:{xp:1.2,gold:1000,pot:3,tp:1}},
+ {id:'h30v4',town:Q30_CAMP('h29_veil'),giver:'v30_lumen',req:'h30v3',lvl:98,kind:'던전',t:'봉인 아래 회랑',say:'봉인 밑 「봉인 아래 회랑」에서 밤 그 자체인 노크타가 깨어나려 해요. 봉인을 판 주교 헤이렌과 새벽을 등진 기사 카일이 문을 열고 있어요. 그 둘을 막고, 노크타를 다시 잠재워 주세요.',done:'노크타가 다시 잠들었어요. 이 벌판에 진짜 새벽이 온 거예요.',
+  goals:q30Dg('h30_seal','헤이렌','카일','노크타'),rw:{xp:1.8,gold:2200,pot:4,tp:2,item:2}},
+ // ── 낮은 레벨: 브렌힐 · 헤이븐 · 아르덴 (몹 잡기 말고) ──
+ {id:'h30l1',town:'brenhill',giver:'farmer',lvl:4,kind:'추격',t:'사과 서리꾼',say:'또 그 녀석이야! 꼬마 서리꾼 도도가 사과를 한 바구니 채 가지고 들판으로 달아났어. 혼내려는 건 아니고, 사과값만 받으면 돼. 얼른 쫓아가서 붙잡아 주게!',done:'하하, 사과는 반쯤 먹었군. 도도 녀석, 내일부터 우리 과수원 일을 돕기로 했다네.',
+  goals:[{type:'chase',reg:'home',from:'brenhill',at:[20,620],path:[[40,800],[70,950],[100,1050],[130,950],[160,850]],who:{n:'꼬마 서리꾼 도도',L:{child:1,body:'#8a6a3a',legs:'#4a3a2a',hair:'#3a2418',hs:0}},slow:1,d:'사과를 들고 달아난 도도 붙잡기'}],rw:{xp:.7,gold:40,pot:2}},
+ {id:'h30l2',town:'haven',giver:'odric',lvl:8,kind:'지키기',t:'나루 횃불 지키기',say:'나루 횃불을 다시 세우는 동안 슬라임이며 고블린이며 다 몰려들 거야. 횃불이 쓰러지지 않게 곁에서 지켜 주게. 오래 걸리진 않아.',done:'횃불이 단단히 섰군! 이제 밤배도 나루를 찾을 수 있겠어.',
+  goals:[{type:'defend',reg:'home',from:'haven',at:[150,620],secs:45,hp:260,mobs:['slime','goblin'],what:'나루 횃불',d:'나루 횃불을 45초 동안 지키기'}],rw:{xp:1,gold:90,pot:3}},
+ {id:'h30l3',town:'brenhill',giver:'oldman',lvl:9,kind:'봉인',t:'잠든 표지석',say:'마을 둘레의 옛 표지석 셋이 잠들어서 길손들이 자꾸 길을 잃는다네. 표지석은 해가 지나가는 순서대로 깨워야 해. 해 뜨는 동쪽, 해가 가장 높은 남쪽, 해 지는 서쪽. 순서를 틀리면 다시 잠들어 버리지.',done:'표지석이 다시 빛나는군. 이제 길손들도 길을 잃지 않을 걸세.',
+  goals:[{type:'ritual',reg:'home',from:'brenhill',stones:[[180,640,'서쪽 표지석'],[0,640,'동쪽 표지석'],[90,700,'남쪽 표지석']],order:[1,2,0],hint:'해 뜨는 동쪽 · 해가 가장 높은 남쪽 · 해 지는 서쪽',mobs:['wolf'],d:'표지석 셋을 해가 지나가는 순서대로 깨우기'}],rw:{xp:1,gold:100,pot:2}},
+ {id:'h30l4',town:'arden',giver:'scholar',lvl:14,kind:'수수께끼',t:'학자의 세 수수께끼',say:'젊은이, 머리 쓰는 일도 모험일세. 내가 평생 모은 수수께끼 가운데 셋을 내지. 맞히면 서고에서 굴러다니는 귀한 물약을 좀 주겠네.',done:'세 개를 다 맞히다니! 왕도 학회에 자네 이름을 적어 두겠네.',
+  goals:[{type:'riddle',npc:'scholar',qs:[['아침에는 네 발, 낮에는 두 발, 저녁에는 세 발로 걷는 것은?',['사람','개','새'],0],['젖을수록 오히려 마르게 해 주는 것은?',['불','수건','바람'],1],['올라가기만 하고 절대 내려오지 않는 것은?',['연기','새','나이'],2]],d:'학자 테오의 수수께끼 셋 맞히기',n:3}],rw:{xp:.9,gold:160,pot:3}},
+ {id:'h30l5',town:'haven',giver:'nella',lvl:18,kind:'추적',t:'사라진 길잡이',say:'우리 조합 길잡이 하나가 노르반 쪽으로 손님을 안내하러 갔다가 돌아오지 않았어. 길잡이들은 지나간 자리에 매듭 끈을 묶어 둬. 그 끈을 따라가 봐 줘.',done:'잿빛 병사들한테 붙잡혀 있었다니… 무사히 데려와 줘서 고마워. 조합에서 정식으로 사례할게.',
+  goals:[{type:'track',reg:'home',from:'haven',steps:[[300,700,'나무에 묶인 붉은 매듭 끈. 길잡이 조합 표식이다'],[320,1000,'끈이 끊겨 있다. 발자국이 여럿 섞였다'],[340,1300,'떨어진 지팡이. 끈 끝이 북쪽을 가리킨다'],[0,1550,'잿빛 갑옷 소리! 길잡이가 묶여 있다!']],foe:'ashsoldier',foeN:'길잡이를 붙잡은 잿빛 병사',d:'매듭 끈을 따라가 길잡이 찾기',n:5}],rw:{xp:1,gold:200,pot:3,tp:1}},
+];
+WX_SQ.push(...Q30_SQ);
 
 /* ---------- 지역: 맵 끝 포탈로 이어지는 넓은 땅 ---------- */
 // 맵 네 변의 포탈 자리. 넘어가면 맞은편 변 포탈 옆에 선다
@@ -12049,6 +12150,7 @@ window.__fl.twFolkSprite=(...a)=>twFolkSprite(...a);window.__fl.f12Look=f12Look;
 
 /* ---------- 패치노트: 새 버전이면 시작 화면에 요약, 게임 안에서는 버튼으로 다시 보기 ---------- */
 const PATCHES=[
+  {v:30,d:'2026-10-13',t:'새 사냥터 던전 6곳 · 몹 잡기 말고 다른 의뢰 다섯 가지 · 같은 던전 두 번 가기 없앰 · 전사 생존 · 휴대폰 손보기',items:['70~100레벨 새 사냥터 여섯 곳마다 던전이 하나씩 생겼어요. 쉼터마다 새 사람 둘이 이야기와 의뢰를 줘요','몹 잡기 말고 새 의뢰 다섯 가지: 흔적을 따라가 범인 찾기(추적) · 정해진 시간 동안 물건 지키기 · 돌을 정해진 순서대로 밟는 봉인 · 수수께끼 · 달아나는 사람 붙잡기. 브렌힐·헤이븐·아르덴에도 낮은 레벨용으로 다섯 개를 넣었어요','이미 쓰러뜨린 준보스·보스는 기억해 두었다가 같은 대상을 노리는 의뢰(50레벨 아래)를 받으면 바로 처치로 쳐요. 「고분의 왕」 뒤 「늑대 송곳니」처럼 같은 던전에 다시 들어갈 필요가 없어요. 「고분의 속삭임」은 입구를 살펴보면 마을에 돌아가지 않고 바로 「고분의 왕」으로 이어져요','낮은 레벨이 너무 아프게 맞던 것을 고쳤어요. 30레벨 전에는 모자란 방어력을 채워 주고, 직업 기본 방어력(레벨마다 전사 15 · 사제 2 · 궁수 1)이 생겼어요. 일반 몬스터 한 대는 최대 생명의 35%를 넘지 않아요','전사는 모든 레벨에서 더 튼튼해졌어요: 생명력 배수 1.35 → 2, 「전사의 맷집」으로 몬스터 피해를 30%(준보스 · 보스는 10%) 덜 받아요. 같은 레벨 몬스터 4마리에 둘러싸여도 예전보다 두 배 넘게 버텨요(30 · 60 · 100레벨 약 3초 → 약 7초)','아르덴의 네 길은 성문 사이로 이어지고, 네 모서리의 성벽과 탑을 맞췄어요. 지역 문 안쪽 빛을 문틀에 맞췄어요','브렌힐 가짜코 동상의 물을 분수 안쪽에 맞췄어요','휴대폰: 화면 가운데 기록창 위에서도 두 손가락 확대가 돼요. 짝문 지도를 읽을 수 있는 크기로 열고 손가락이나 ＋ −로 키우고 줄여요. 창 둘레에 게임 화면 띠를 남겨 그곳을 누르면 창이 닫혀요','휴대폰: 단축칸 · 기록창 · 의뢰 알림판을 0.7초 길게 누르면 원하는 곳으로 옮길 수 있어요. 설정의 「위치 되돌리기」로 처음 자리']},
   {v:29,d:'2026-10-13',t:'방어구 방어력 · 70~100레벨 새 사냥터 6곳 · 화면과 브렌힐 정리',items:['모자·몸통 방어구·방패에 방어력이 생겼어요. 예전 장비에도 방어력을 채우며, 장비 설명과 능력 창에서 확인할 수 있어요.','레벨이 많이 높은 몬스터는 더 위험하고 낮은 몬스터는 더 약해요. 보스의 큰 공격에는 별도 상한을 두었어요.','70대·80대·90대에 두 곳씩, 새 사냥터 여섯 곳이 열렸어요. 잿불 용암지대 동쪽 길에서 달물결 갈대벌로 이어지고, 한 번 방문한 쉼터는 짝문으로 다시 갈 수 있어요','서로 다른 지형과 몬스터를 골라 사냥할 수 있어요. 보통·악몽·지옥 난이도와 정예·전리품은 기존 방식으로 적용돼요','짝문 안쪽 빛을 문틀에 맞추고, 휴대폰 의뢰창을 끝까지 끌어 볼 수 있게 했어요. 휴대폰 짝문 지도 위 여백과 스킬 트리 창 폭을 줄였어요','브렌힐 빈 건물에 페이스라인성형외과 간판을 달고, 가짜코 동상 아래 물과 잔잔한 물결을 되살렸어요']},
   {v:28,d:'2026-10-12',t:'새 그림(마을 · 들판 · 절벽 · 던전 입구) · 휴대폰 화면 옮기기와 줌 · 스킬 성장 · 궁수 사격 · 중간보스',items:[
     '마을이 새 그림으로 바뀌었어요: 집 · 큰 건물 · 노점 · 짝문 · 창고 · 분수 · 등불 · 소품 · 건물 안 가구까지 모두. 들판 나무와 바위, 절벽과 산봉우리, 바닥 무늬, 던전 입구도 새 그림이에요. 「설정 · 그림: 예전 그림」을 고르면 예전 모습으로 돌아가요',
@@ -21685,7 +21787,7 @@ function cgDec(c,d,x,y,k){if(DG)return false;const R=CGRD[d.k];if(R){const PK=cg
 /* ===== 지역 문 (지역 경계 포탈) ===== */
 function cgPortal(c,d,x,y,k,t){const PK=cgPK(CG.TOWN);if(!PK||!cgR(PK,'079_region_portal_structure'))return false;const col=d.col||'#9ad8ff',s=(d.s||1)*(k||1);
   c.save();c.translate(x,y);c.scale(s,s);cgDraw(c,PK,'079_region_portal_structure',0,0,1);
-  cgGlow(c,PK,'079_region_portal_glow',0,0,col,(typeof flLo==='function'&&flLo())?.5:.42+.2*Math.sin((reduceMotion?0:t)*2.2));
+  cgGlow(c,PK,'079_region_portal_glow',0,0,col,(typeof flLo==='function'&&flLo())?.5:.42+.2*Math.sin((reduceMotion?0:t)*2.2),PK.meta.r['079_region_portal_structure']);
   if(d.label){c.font='700 13px '+FONT;c.textAlign='center';c.lineWidth=3;c.strokeStyle='rgba(0,0,0,.85)';c.strokeText(d.label,0,-150);c.fillStyle=col;c.fillText(d.label,0,-150)}
   c.restore();return true}
 {const _rd=RD.draw;RD.draw=function(c,d,x,y,k,t){if(d&&d.k==='edgeportal'&&!DG&&cgPortal(c,d,x,y,k,t))return true;return _rd.apply(this,arguments)}}
@@ -21730,13 +21832,21 @@ const F29={clinic:'페이스라인성형외과',treeRatio:.85};
  if(host&&!host.enter){host.signT=F29.clinic;host.b.sign=1;host.b.extra=(host.b.extra||'')+'/f29sign';const sg=HOME.decor.find(d=>d.k==='facesign');if(sg)sg.f29host=host;}}
 {const draw=drawRegionDecor;drawRegionDecor=function(d){if(d.k==='facesign'&&d.f29host)return true;return draw.apply(this,arguments);};}
 // 새 동상 그림의 마른 분수 안만 투명하게 굽는다. 물 → 받침/동상 순으로 그려 앞 테두리와 동상을 보존한다.
-function f29Basin(g){g.beginPath();g.ellipse(90,207,66,20,0,0,Math.PI*2);g.rect(62,157,58,65);}
+// v30 (사용자 16:01 「가짜코 동상 아래 물도 위치가 어긋나있어」): 물 자리를 그림의 안쪽 바닥에 맞춘다.
+//  안쪽 바닥 = 타원 (86,171) 62×25 (그림 좌표 · 안쪽 벽 x 22~150, 뒤 y 145, 앞 테두리 y 198) · 받침 계단 타원 (91.5,190) 35×12 와 기둥 (69~116, 138~192)은 뺀다.
+//  예전(v29)은 (90,207) 66×20 이라 앞 테두리 위에 물이 그려지고 안쪽 바닥은 말라 보였다.
+const F29W={cx:86,cy:171,rx:62,ry:25,step:[91.5,190,35,12],col:[69,138,47,54]};
+function f29Mask(w,h){const m=document.createElement('canvas');m.width=w;m.height=h;const g=m.getContext('2d');g.fillStyle='#fff';g.beginPath();g.ellipse(F29W.cx,F29W.cy,F29W.rx,F29W.ry,0,0,Math.PI*2);g.fill();
+ g.globalCompositeOperation='destination-out';const s=F29W.step;g.beginPath();g.ellipse(s[0],s[1],s[2],s[3],0,0,Math.PI*2);g.fill();g.fillRect(...F29W.col);return m;}
+function f29Basin(g){g.beginPath();g.ellipse(F29W.cx,F29W.cy,F29W.rx,F29W.ry,0,0,Math.PI*2);}
 function f29Statue(c,PK,d,x,y,k){const r=PK.meta.r['076_statue_false_nose_single'];if(!r)return false;
- if(!PK.f29statue){const cv=document.createElement('canvas');cv.width=r[2];cv.height=r[3];const g=cv.getContext('2d');g.drawImage(PK.img,r[0],r[1],r[2],r[3],0,0,r[2],r[3]);g.globalCompositeOperation='destination-out';g.save();g.beginPath();g.ellipse(90,207,66,20,0,0,Math.PI*2);g.clip();f29Basin(g);g.fill('evenodd');g.restore();PK.f29statue=cv;}
- c.save();c.translate(x-r[4]*k,y-r[5]*k);c.scale(k,k);c.save();c.beginPath();c.ellipse(90,207,66,20,0,0,Math.PI*2);c.clip();f29Basin(c);c.clip('evenodd');
- const gr=c.createLinearGradient(0,182,0,230);gr.addColorStop(0,'#406b75');gr.addColorStop(.55,'#518c98');gr.addColorStop(1,'#244650');c.fillStyle=gr;c.fillRect(20,181,140,49);
- c.strokeStyle='rgba(216,240,237,.32)';c.lineWidth=1;const t=reduceMotion?0:time;
- for(let i=0;i<3;i++){c.beginPath();c.ellipse(90,207,30+i*11+Math.sin(t*.8+i)*2,5+i*3,0,0,Math.PI*2);c.stroke();}c.restore();c.drawImage(PK.f29statue,0,0);c.restore();return true;}
+ if(!PK.f29statue){const M=f29Mask(r[2],r[3]),cv=document.createElement('canvas');cv.width=r[2];cv.height=r[3];const g=cv.getContext('2d');g.drawImage(PK.img,r[0],r[1],r[2],r[3],0,0,r[2],r[3]);g.globalCompositeOperation='destination-out';g.drawImage(M,0,0);
+  const wv=document.createElement('canvas');wv.width=r[2];wv.height=r[3];PK.f29statue=cv;PK.f29mask=M;PK.f29wv=wv;}
+ const wv=PK.f29wv,w=wv.getContext('2d'),t=reduceMotion?0:time;w.globalCompositeOperation='source-over';w.clearRect(0,0,wv.width,wv.height);
+ const gr=w.createLinearGradient(0,F29W.cy-F29W.ry,0,F29W.cy+F29W.ry);gr.addColorStop(0,'#3a6670');gr.addColorStop(.55,'#518c98');gr.addColorStop(1,'#2c5560');w.fillStyle=gr;w.fillRect(F29W.cx-F29W.rx-2,F29W.cy-F29W.ry-2,F29W.rx*2+4,F29W.ry*2+4);
+ w.strokeStyle='rgba(216,240,237,.32)';w.lineWidth=1;for(let i=0;i<3;i++){w.beginPath();w.ellipse(F29W.cx,F29W.cy+4,40+i*9+Math.sin(t*.8+i)*2,13+i*3,0,0,Math.PI*2);w.stroke();}
+ w.globalCompositeOperation='destination-in';w.drawImage(PK.f29mask,0,0);
+ c.save();c.translate(x-r[4]*k,y-r[5]*k);c.scale(k,k);c.drawImage(wv,0,0);c.drawImage(PK.f29statue,0,0);c.restore();return true;}
 function f29Gate(){if(!M22.phone())return;const w=pbody.querySelector('#g26w'),m=w&&w.querySelector('.g26m');if(!m)return;
  const card=panel.querySelector('.card'),head=document.createElement('div');head.className='f29gatehead';head.innerHTML='<span>난이도</span>';
  const diffs=pbody.querySelector('.diffs');if(diffs)head.appendChild(diffs);const hint=document.createElement('span');hint.textContent='가 본 마을을 누르세요';head.appendChild(hint);
@@ -21795,6 +21905,283 @@ ITEMTIP_LINES.push(it=>{g29Ensure(it);return `<div class="tt-s">방어력 ${g29A
 {const st=document.createElement('style');st.textContent='.g29stats{margin:8px 0;line-height:1.5;overflow-wrap:anywhere}#itip{max-width:min(300px,calc(100vw - 16px));max-height:calc(100dvh - 16px);overflow:auto;overflow-wrap:anywhere;pointer-events:auto}';document.head.appendChild(st)}
 // 시험 도구에서 실제 게임 계산을 부르기 위한 읽기용 연결.
 setTimeout(()=>{window.__armor29={G29,g29Armor,g29Value,g29Ensure,g29Total,g29Reduction,g29Curve,g29Damage,g29Source,hitPlayer,maxHp,itemTip,charHtml}},0);
+/* ---------- v30 낮은 레벨 · 전사 생존 (사용자 2026-10-13 16:11) ----------
+   「전사 5레벨에 첫 던전에서 몹한테 몇 대 맞으면 그냥 죽던데? 기본 방어스탯을 좀 더 주거나 피통이 원거리 직업들보다 높아야」
+   원인: v29 방어력(armor29)은 「같은 레벨 일반 방어구를 다 입었을 때 = 예전 피해」에 맞춰 몬스터 피해를 ×2.5 한 뒤 방어력으로 깎는다.
+     낮은 레벨은 방어구가 거의 없어(시작 방패 3) 첫 던전 늑대 한 대가 v28의 약 2~3배(전사 2%→14%, 준보스 11%→25%, 보스 7%→41%).
+   · 낮은 레벨 보정: 입은 방어력이 「레벨×15(같은 레벨 일반 방어구 한 벌)」보다 적으면 모자란 만큼 채워 준다. 10레벨까지 전부, 30레벨에서 0 (사이는 직선).
+   · 직업 기본 방어: 레벨마다 전사 6 · 사제 2 · 궁수 1 · 마법사 0. 입은 방어구와 더해진다(모든 레벨).
+   · 전사 생명력 배수 1.35 → 1.5 (사제 1.2 · 궁수 1.1 · 마법사 1 그대로).
+   · 일반 몬스터 한 대 상한: 최대 생명의 50% → 35% (보스·준보스 60% 그대로).
+   (사용자 16:12 「첫 마을만이 아니라 근접인 전사 전반적으로 기본 방어력이랑 체력 버프. 몹 여러 마리한테 맞으면 근접은 금방 죽게 돼 있어」)
+   · 같은 레벨 일반 방어구를 다 입은 전사가 같은 레벨 몬스터 4마리에 둘러싸여 가만히 맞을 때 30·60·100레벨에서 약 3초 만에 쓰러졌다(마법사 1.5초).
+     → 모든 레벨에서: 전사 기본 방어 레벨마다 6 → 15, 생명력 배수 1.5 → 2.0, 「전사의 맷집」 몬스터 피해 일반 30% · 준보스·보스 10% 덜 받음.
+     같은 조건에서 전사 약 8~9초 (사제·궁수·마법사는 그대로).
+   방어구 아이템의 방어력 수치 · 감소율 공식(최대 75%) · 레벨 차이 곡선은 그대로. 저장 없음. */
+const G30={per:{warrior:15,priest:2,archer:1,mage:0},grace:[10,30],full:15,bonus:0,tough:{warrior:[.7,.9]}};
+function g30Tough(src){const t=G30.tough[P&&P.cls];if(!t||!src||!Number.isFinite(Number(src.lvl)))return 1;return g29Boss(src)?t[1]:t[0]}
+function g30Innate(){return Math.round((G30.per[P.cls]||0)*Math.max(1,P.lvl|0))}
+function g30Grace(gear){const L=Math.max(1,P.lvl|0),f=clamp((G30.grace[1]-L)/(G30.grace[1]-G30.grace[0]),0,1);return Math.max(0,Math.round(G30.full*L*f-(gear||0)))}
+function g30Bonus(gear){if(gear==null)gear=g29Total();return g30Innate()+g30Grace(gear)}
+{const f=g29Damage;g29Damage=function(d,src,level,armor){return G30.bonus?f.call(this,d,src,level,(Number(armor)||0)+G30.bonus):f.apply(this,arguments)}}
+{const f=hitPlayer;hitPlayer=function(d,src,...rest){if(!P)return f.apply(this,arguments);const b0=G30.bonus;G30.bonus=g30Bonus();if(d>0)d*=g30Tough(src);try{return f.call(this,d,src,...rest)}finally{G30.bonus=b0}}}
+if(CLASSES.warrior)CLASSES.warrior.hp=2;
+G29.normalCap=.35;
+{const f=charHtml;charHtml=function(){const h=f.apply(this,arguments);try{const g=g29Total(),b=g30Bonus(g);if(!b)return h;const red=Math.round(g29Reduction(g+b,P.lvl)*100),parts=[];const i=g30Innate(),gr=g30Grace(g);
+  if(i)parts.push(`${CLASSES[P.cls].n} 기본 방어 +${i}`);if(gr)parts.push(`낮은 레벨 보정 +${gr}`);const tg=G30.tough[P.cls];
+  return h.replace('</div><h2>능력</h2>',`<br><span class="muted">${parts.join(' · ')} → 실제 피해 감소 약 ${red}%${tg?`<br>전사의 맷집: 몬스터 피해 ${Math.round((1-tg[0])*100)}% 덜 받음 (준보스·보스 ${Math.round((1-tg[1])*100)}%)`:''}</span></div><h2>능력</h2>`)}catch(err){if(window.__QA)throw err;return h}}}
+setTimeout(()=>{if(window.__game)Object.assign(window.__game,{G30,g30Bonus,g30Innate,g30Grace,g30Tough})},0);
+/* 작업I: 화면 성벽만 교체. 충돌/저장/길 자료는 그대로. */
+const I29={half:760,gap:125,visual:[],corners:[],gates:[]};
+function i29Build(){const t=RCACHE.royal&&RCACHE.royal.town;if(!t||I29.visual.length)return;const H=I29.half,G=I29.gap;
+ const obj=(k,x,y,pv,len)=>({k,x:t.x+x,y:t.y+y,pv,tprop:1,s:1,v:0,i29:1,len});
+ for(const pv of [0,1])for(const sign of [-1,1]){
+  for(const [a,b] of [[-H,-G],[G,H]]){const n=Math.ceil((b-a)/140),len=(b-a)/n;
+   for(let j=0;j<n;j++){const u=a+(j+.5)*len,d=obj('cwall',pv?sign*H:u,pv?u:sign*H,pv,len);d.ends=pv?[[d.x,d.y-len/2],[d.x,d.y+len/2]]:[[d.x-len/2,d.y],[d.x+len/2,d.y]];I29.visual.push(d);}}
+  I29.gates.push(obj('gatepoint',pv?sign*H:0,pv?0:sign*H,pv));
+  for(const u of [-G-22,G+22])I29.visual.push(obj('gatetower',pv?sign*H:u,pv?u:sign*H,0));
+ }
+ for(const x of [-H,H])for(const y of [-H,H]){const d=obj('gatetower',x,y,0);I29.corners.push(d);I29.visual.push(d);}
+}
+i29Build();
+{const old=decoVisible;decoVisible=function(cx0,cx1,cy0,cy1,out){const r=old.apply(this,arguments);if(REG.id!=='royal'||IN||DG)return r;i29Build();
+ for(let i=r.length-1;i>=0;i--)if(r[i].k==='cwall'||r[i].k==='gatetower')r.splice(i,1);
+ for(const d of I29.visual)if(d.x>=(cx0-1)*CH&&d.x<(cx1+2)*CH&&d.y>=(cy0-1)*CH&&d.y<(cy1+2)*CH)r.push(d);return r;};}
+// 기존 그림의 앞끝 기준점을 중앙으로 바꾸고, 길이와 바닥 기울기만 맞춘다.
+function i29Wall(d){const PK=cgPK(CG.TOWN),r=PK&&cgR(PK,d.pv?'095_castle_wall_axis_y':'095_castle_wall_axis_x');
+ const s=d._s;if(!r){const e=twProp(d);if(e){ctx.save();ctx.translate(s.x,s.y);const k=d.len/140;ctx.transform(k,(d.pv?-1:1)*(k-1)*.5,0,1,0,0);SC.draw(ctx,e,0,0);ctx.restore();}return;}
+ const ends=d.pv?[45.5,141,230,64]:[35,61,207,141],span=ends[2]-ends[0],a=d.len*KI/span,sg=d.pv?-1:1;ctx.save();ctx.translate(s.x,s.y);ctx.transform(a,sg*a*.5-(ends[3]-ends[1])/span,0,1,0,0);
+ ctx.drawImage(PK.img,r[0],r[1],r[2],r[3],-(ends[0]+ends[2])/2,-(ends[1]+ends[3])/2,r[2],r[3]);ctx.restore();
+}
+{const old=twDrawProp;twDrawProp=function(d){if(d.i29&&d.k==='cwall'){i29Wall(d);return;}return old.apply(this,arguments);};}
+setTimeout(()=>{if(window.__game)Object.assign(window.__game,{I29,i29Wall});},0);
+
+
+/* ---------- v30: 몹 잡기 말고 다른 의뢰 다섯 가지 · 같은 던전 다시 들어가기 없애기 (사용자 2026-10-13) ----------
+   · track 추적: 흔적을 차례로 찾아가면(110 안) 끝에 범인(정예)이 나타난다. 쓰러뜨리면 끝.
+   · defend 지키기: 자리에 다가가면(150 안) 시작. 정해진 시간 동안 몰려오는 몬스터에게서 물건(체력)을 지킨다.
+       물건이 부서지거나 · 쓰러지거나 · 멀리(800) 떠나면 실패, 다시 다가가면 처음부터.
+   · ritual 봉인: 돌(등불·가마)을 정해진 순서대로 밟는다(70 안). 틀리면 모두 꺼지고 힌트 + 몬스터 둘.
+   · riddle 수수께끼: 의뢰인 대화 창에서 물음 셋에 답한다. 틀리면 잠깐 뒤 다시.
+   · chase 추격: 달아나는 사람을 붙잡는다(62 안). 끝까지 달아나면 처음 자리로 돌아간다.
+   · 같이 하기: 몬스터는 방장(혼자)만 부른다. 손님은 범인 대신 마지막 흔적에서 바로 끝으로 친다.
+   · 반복 정리: 준보스·보스를 쓰러뜨린 기록(P.mk, 종류마다 최대 9)을 남겨 두고, 50레벨 아래 의뢰를 받을 때 이미 잡은 것은 처치로 친다.
+       → 「고분의 왕」을 마친 뒤 「늑대 송곳니」를 받아도 고분에 다시 들어가지 않는다. 처음 불러올 때는 끝낸 의뢰의 목표로 채운다.
+     「고분의 속삭임」(입구 살펴보기)을 마치면 마을로 돌아가지 않고 바로 「고분의 왕」을 받는다.
+   · 저장: 새 칸 mk 하나(없으면 빈 칸). 지우는 코드 없음. */
+const Q30={pos:{},mo:new Map(),run:{},ch:{},on:{},pen:{},foe:{},lock:0,T:new Set(['track','defend','ritual','riddle','chase'])};
+for(const q of Q30_SQ)for(const g of q.goals)if(g.type==='ritual'&&!g.n)g.n=g.stones.length;
+Object.assign(FLDG,{h30_dock:['sunken2','#6a9a9a',.3],h30_glass:['forge','#c8583a',.35],h30_vein:['roots','#4a9aa8',.35],h30_shrine:['icecave','#cfe8ff',.25],h30_belltower:['tower','#8a8268',.4],h30_seal:['crypt','#5a4a7a',.45,'m']});
+// 자리: 그 지역 쉼터(또는 from 마을) 가운데에서 [각도, 거리]. 그 지역에 있을 때 걸을 수 있는 곳으로 맞추고 기억한다
+function q30Base(g){if(g.from){const t=ALLTOWNS.find(t=>t.id===g.from);if(t)return t}const L=(g.reg||'home')==='home'?null:RCACHE[g.reg];return L&&L.town||null}
+function q30Raw(g,a){const b=q30Base(g);if(!b)return null;const r=a[0]*Math.PI/180;return{x:clamp(b.x+Math.cos(r)*a[1],150,WORLD-150),y:clamp(b.y+Math.sin(r)*a[1],150,WORLD-150)}}
+const q30OkAt=(x,y)=>x>120&&y>120&&x<WORLD-120&&y<WORLD-120&&!blockedAt(x,y)&&!inSafe(x,y,-60)&&zoneLevel(x,y)>=1&&!CAVES.some(c=>Math.hypot(c.x-x,c.y-y)<170)&&!(EDGES||[]).some(e=>Math.hypot(e.x-x,e.y-y)<220);
+function q30Reach(id){if(id==='home'||typeof terrReach!=='function')return null;const R=Q30.reach||(Q30.reach={});return R[id]||(R[id]=terrReach(id))}
+function q30Spot(q,key,g,a){const ck=q.id+'/'+key,c=Q30.pos[ck];if(c)return c;const p=q30Raw(g,a);if(!p)return null;
+  if(REG.id!==(g.reg||'home')||DG||IN)return p;const ok=q30Reach(REG.id);/* 물·절벽에 갇힌 곳 말고 마을에서 걸어서 닿는 곳만 */
+  for(let r=0;r<1400;r+=40){const n=r?Math.max(6,Math.round(r/20)):1;for(let i=0;i<n;i++){const t=i/n*6.283+r*.01,x=p.x+Math.cos(t)*r,y=p.y+Math.sin(t)*r;if(q30OkAt(x,y)&&(!ok||wxCanReach(ok,x,y)))return Q30.pos[ck]={x,y}}}
+  return Q30.pos[ck]=p}
+// 지금 할 목표 (앞 목표를 다 했을 때만)
+function q30Cur(q){if(!q)return -1;for(let j=0;j<q.goals.length;j++){if(sqGoalDone(q,j))continue;return Q30.T.has(q.goals[j].type)?j:-1}return -1}
+const q30C=(q,j)=>{const a=sqState().a[q.id];return a?(a.c['g'+j]|0):0};
+const q30Host=()=>!(typeof NET==='object'&&NET.guest);
+function q30Lvl(k,x,y){const t=TYPES[k];return Math.max(1,Math.max(t.min||1,zoneLevel(x,y))+(DIFF[P.diff]?DIFF[P.diff].add:0))}
+function q30Near(x,y,r0,r1){for(let i=0;i<14;i++){const a=R()*6.283,r=rnd(r0,r1),px=x+Math.cos(a)*r,py=y+Math.sin(a)*r;if(px>60&&py>60&&px<WORLD-60&&py<WORLD-60&&!blockedAt(px,py)&&!inSafe(px,py,0))return{x:px,y:py}}return null}
+function q30Mob(k,x,y,o){if(!TYPES[k])return null;const e=dgMob(k,x,y,q30Lvl(k,x,y),o&&o.elite?{elite:1}:null);if(o&&o.agg)e.aggroed=true;rings.push({x,y,r:6,max:70,life:.5,col:'#c8a0ff'});return e}
+// 표시물 (decor에 잠깐 넣는다. 맨 앞·맨 뒤를 건드리지 않아 장식 색인을 매번 다시 만들지 않는다)
+function q30Mark(key,o){let m=Q30.mo.get(key);if(!m){m={k:'q30',q30:1,walkT:0,s:1,v:0,face:1,moving:false,zl:0};Q30.mo.set(key,m)}Object.assign(m,o);m._w=1;return m}
+function q30Sync(){for(const [key,m] of Q30.mo){if(m._w){m._w=0;if(m._reg!==REG||decor.indexOf(m)<0){decor.splice(Math.min(1,decor.length),0,m);m._reg=REG}continue}
+  const i=decor.indexOf(m);if(i>=0)decor.splice(i,1);Q30.mo.delete(key)}}
+// 한 걸음
+function q30Tick(dt){if(!P||!P.sq)return;const s=sqState(),here=!DG&&!IN;
+  for(const id in Q30.run){const q=SQBY[id],g=q&&q.goals[q30Cur(q)];if(!q||!s.a[id]||!g||g.type!=='defend'||!here||(g.reg||'home')!==REG.id)q30DefFail(id,'자리를 떠나')}
+  for(const id in Q30.ch){const q=SQBY[id],g=q&&q.goals[q30Cur(q)];if(!q||!s.a[id]||!g||g.type!=='chase'||!here||(g.reg||'home')!==REG.id)delete Q30.ch[id]}
+  if(here)for(const id in s.a){const q=SQBY[id],j=q30Cur(q);if(j<0)continue;const g=q.goals[j];if((g.reg||'home')!==REG.id)continue;
+    try{Q30TICK[g.type]&&Q30TICK[g.type](q,j,g,dt)}catch(err){if(window.__QA)throw err}}
+  q30Sync();q30ReachChain()}
+const Q30TICK={
+  track(q,j,g,dt){const c=q30C(q,j),L=g.steps.length;
+    if(c<L){const sp=q30Spot(q,'s'+c,g,g.steps[c]);q30Mark(q.id+'/clue',{kind:'clue',x:sp.x,y:sp.y,lb:`흔적 ${c+1}/${L}`});
+      if(!P.dead&&dist(P,sp)<110){sqProgress(q,j,1,true);burst(sp.x,sp.y,'#9fe0ff',16,90);msg(`흔적 ${c+1}/${L}: ${g.steps[c][2]}`,'#9fe0ff');
+        if(c+1===L){if(q30Host())msg(`${g.foeN}이(가) 모습을 드러냅니다!`,'#ffb05a');else{sqProgress(q,j,1,true);msg('함께 하는 동료가 범인을 맡았습니다','#9fe0ff')}}}
+      return}
+    if(!q30Host()){sqProgress(q,j,1,true);return}
+    const sp=q30Spot(q,'s'+(L-1),g,g.steps[L-1]),e=Q30.foe[q.id];
+    if(e&&!e.dead&&enemies.includes(e))return;
+    if(dist(P,sp)>900)return;const p=q30Near(sp.x,sp.y,90,180)||sp,f=q30Mob(g.foe,p.x,p.y,{elite:1,agg:1});if(!f)return;f.q30=q.id;Q30.foe[q.id]=f;
+    burst(p.x,p.y,'#ffb05a',24,120,3,20)},
+  defend(q,j,g,dt){const w=q30Spot(q,'w',g,g.at),run=Q30.run[q.id];
+    q30Mark(q.id+'/ward',{kind:'ward',x:w.x,y:w.y,lb:run?g.what:`${g.what} · 가까이 가면 시작`,on:!!run,hp:run?run.hp:g.hp,max:g.hp,t:run?run.t:g.secs,hurt:run?run.hurt:0});
+    if(!run){if(!P.dead&&dist(P,w)<150){Q30.run[q.id]={t:g.secs,hp:g.hp,wv:1.5,hurt:0};banner={t:`${g.what} 지키기`,sub:`${g.secs}초 동안 버티세요 · 곁을 떠나면 실패`,col:'#9fe0ff',life:2.4,max:2.4};msg(`${g.what}을(를) 지키기 시작했습니다. ${g.secs}초 동안 곁에서 버티세요`,'#9fe0ff')}return}
+    run.t-=dt;run.wv-=dt;run.hurt=Math.max(0,run.hurt-dt);
+    if(run.wv<=0&&q30Host()){run.wv=3.5;const live=enemies.filter(e=>!e.dead&&e.q30w===q.id).length;
+      for(let i=0,n=Math.min(6-live,2+(R()<.5?1:0));i<n;i++){const p=q30Near(w.x,w.y,330,430);if(!p)continue;const e=q30Mob(g.mobs[(R()*g.mobs.length)|0],p.x,p.y);if(e)e.q30w=q.id}}
+    for(const e of enemies){if(e.dead)continue;if(e.q30w===q.id&&!e.aggroed){e.wx=w.x;e.wy=w.y;e.wt=5}
+      if(Math.hypot(e.x-w.x,e.y-w.y)>e.r*(e.sc||1)+46)continue;e._q30T=(e._q30T==null?.5:e._q30T)-dt;
+      if(e._q30T<=0){e._q30T=((TYPES[e.k]&&TYPES[e.k].atk)||1.2)*1.1;const dm=Math.ceil(g.hp*(e.elite||e.boss?.06:.035));run.hp-=dm;run.hurt=.2;ftext(w.x,w.y,'-'+dm,'#ff9a7a',false,60)}}
+    if(run.hp<=0)return q30DefFail(q.id,`${g.what}이(가) 부서져`);if(P.dead)return q30DefFail(q.id,'쓰러져');if(dist(P,w)>800)return q30DefFail(q.id,'자리를 떠나');
+    if(run.t<=0){delete Q30.run[q.id];sqProgress(q,j,1,true);rings.push({x:w.x,y:w.y,r:10,max:200,life:1,col:'#9fe0ff'});burst(w.x,w.y,'#9fe0ff',30,150,3,30);
+      banner={t:'지켜 냈다!',sub:`${g.what}이(가) 무사합니다`,col:'#9fe0ff',life:2.4,max:2.4}}},
+  ritual(q,j,g,dt){const c=q30C(q,j),lit=g.order.slice(0,c);let on=-1;
+    g.stones.forEach((st,i)=>{const sp=q30Spot(q,'r'+i,g,st);q30Mark(q.id+'/st'+i,{kind:'stone',x:sp.x,y:sp.y,lb:st[2],lit:lit.includes(i)});if(on<0&&!P.dead&&dist(P,sp)<70)on=i});
+    const was=Q30.on[q.id];Q30.on[q.id]=on;if(on<0||on===was||lit.includes(on))return;const st=g.stones[on],sp=q30Spot(q,'r'+on,g,st);
+    if(g.order[c]===on){sqProgress(q,j,1,true);burst(sp.x,sp.y,'#ffd98a',20,110,3,20);rings.push({x:sp.x,y:sp.y,r:6,max:90,life:.6,col:'#ffd98a'});msg(`${st[2]}에 불이 들어왔습니다 (${c+1}/${g.n})`,'#ffd98a');return}
+    const a=sqState().a[q.id];if(a)a.c['g'+j]=0;burst(sp.x,sp.y,'#ff7a5a',20,110);shake=Math.max(shake,3);
+    msg(`순서가 틀렸습니다! 불이 모두 꺼졌습니다. 힌트: ${g.hint}`,'#ff9a7a');banner={t:'순서가 틀렸습니다',sub:`힌트: ${g.hint}`,col:'#ff9a7a',life:2.4,max:2.4};
+    if(q30Host()&&g.mobs&&time>(Q30.pen[q.id]||0)){Q30.pen[q.id]=time+6;for(let i=0;i<2;i++){const p=q30Near(sp.x,sp.y,120,200);if(p)q30Mob(g.mobs[i%g.mobs.length],p.x,p.y,{agg:1})}}
+    questHud();save()},
+  riddle(){},
+  chase(q,j,g,dt){let C=Q30.ch[q.id];const a0=q30Spot(q,'a',g,g.at);
+    if(!C)C=Q30.ch[q.id]={x:a0.x,y:a0.y,i:0,st:'wait',rt:0,pt:0,walkT:0,face:1};
+    if(C.st==='wait'){if(!P.dead&&dist(P,C)<260){C.st='run';C.rt=0;msg(`${g.who.n}이(가) 달아납니다! 쫓아가서 붙잡으세요`,'#ffd34d')}}
+    else if(C.st==='rest'){C.pt-=dt;if(C.pt<=0){C.st='run';C.rt=0}}
+    else{const tg=q30Spot(q,'p'+C.i,g,g.path[C.i]),d=dist(C,tg),sp=SPEED*(g.slow?.6:.88)*dt;
+      if(d<=sp+2){C.x=tg.x;C.y=tg.y;C.i++;if(C.i>=g.path.length){Object.assign(C,{x:a0.x,y:a0.y,i:0,st:'wait'});msg(`${g.who.n}을(를) 놓쳤습니다. 처음 자리로 돌아갔어요. 다시 쫓아가세요`,'#ff9a7a')}}
+      else{const dx=tg.x-C.x,dy=tg.y-C.y;C.x+=dx/d*sp;C.y+=dy/d*sp;C.walkT+=dt;const sx=dx-dy;if(Math.abs(sx)>.5)C.face=sx>0?1:-1}
+      C.rt+=dt;if(C.rt>3&&C.st==='run'){C.st='rest';C.pt=.9}
+      if(dist(P,C)>1500)Object.assign(C,{x:a0.x,y:a0.y,i:0,st:'wait'})}
+    q30Mark(q.id+'/run',{kind:'runner',x:C.x,y:C.y,L:g.who.L,n:g.who.n,moving:C.st==='run',walkT:C.walkT,face:C.face,say:C.st==='rest'?'헉, 헉…':C.st==='run'?null:'',sayT:time+1});
+    if(C.st!=='wait'&&!P.dead&&dist(P,C)<62){delete Q30.ch[q.id];sqProgress(q,j,1,true);burst(C.x,C.y,'#ffd34d',20,110);banner={t:'붙잡았다!',sub:g.who.n,col:'#ffd34d',life:2.2,max:2.2};msg(`${g.who.n}을(를) 붙잡았습니다`,'#ffd34d')}}
+};
+function q30DefFail(id,why){const run=Q30.run[id];if(!run)return;delete Q30.run[id];const q=SQBY[id],g=q&&q.goals.find(g=>g.type==='defend');
+  msg(`${why} 「${q?q.t:''}」 지키기에 실패했습니다. 다시 다가가면 처음부터 시작합니다`,'#ff8a6a');banner={t:'지키기 실패',sub:g?`${g.what} 곁으로 다시 가면 처음부터`:'',col:'#ff8a6a',life:2.4,max:2.4};questHud()}
+// 범인 쓰러뜨림 · 준보스·보스 기록
+const q30Mk=()=>{if(!P.mk||typeof P.mk!=='object'||Array.isArray(P.mk))P.mk={};return P.mk};
+{const _k=questKill;questKill=function(e){_k.apply(this,arguments);try{if(!e)return;
+  if(e.q30){const q=SQBY[e.q30],j=q30Cur(q);if(q&&j>=0&&q.goals[j].type==='track'&&q30C(q,j)===q.goals[j].steps.length){sqProgress(q,j,1,true);msg(`${q.goals[j].foeN}을(를) 쓰러뜨렸습니다`,'#9fe0ff')}return}
+  const T=TYPES[e.k];if(T&&(T.mini||T.boss)){const m=q30Mk();m[e.k]=Math.min(9,(m[e.k]|0)+1)}}catch(err){if(window.__QA)throw err}}}
+// 받을 때 이미 잡은 준보스·보스를 처치로 친다 (50레벨 아래 · 되풀이 의뢰 제외)
+const q30Pre=g=>g.type==='kill'&&Array.isArray(g.k)&&g.k.length&&g.k.every(k=>TYPES[k]&&(TYPES[k].mini||TYPES[k].boss));
+function q30Credit(goals,c){const m=q30Mk(),got=[];goals.forEach((g,j)=>{if(!q30Pre(g))return;let n=0;for(const k of g.k)n+=m[k]|0;n=Math.min(n,g.n||1);if(n>(c['g'+j]|0)){c['g'+j]=n;got.push(g.d)}});return got}
+{const _a=sqAccept;sqAccept=function(id){const r=_a.apply(this,arguments);try{const q=SQBY[id],a=sqState().a[id];if(q&&a&&q.lvl<50&&!q.rep){const got=q30Credit(q.goals,a.c);
+  if(got.length){msg(`이미 해낸 일: ${got.join(' · ')}. 던전에 다시 들어가지 않아도 됩니다`,'#ffd98a');if(sqAllDone(q)){const tf=sqFolk(sqTurn(q));msg(`「${q.t}」 목표를 모두 이뤘습니다. ${tf?tf.n+'에게 알리세요':''}`,'#9fe0ff')}questHud();save()}}}catch(err){if(window.__QA)throw err}return r}}
+{const _a=questAccept;questAccept=function(){const st=qState(),i=st.i,s0=st.st;const r=_a.apply(this,arguments);try{const q=qCur();if(s0===0&&st.st===1&&st.i===i&&q&&q.lvl<50){const got=q30Credit(q.goals,st.c);
+  if(got.length){msg(`이미 해낸 일: ${got.join(' · ')}`,'#ffd98a');if(qAllDone(q)){st.st=2;msg(`의뢰 「${q.t}」 목표를 모두 이뤘습니다. 의뢰인에게 알리세요`,'#ffd98a')}questHud();save()}}}catch(err){if(window.__QA)throw err}return r}}
+// 처음 불러올 때(mk 없음): 이미 끝낸 의뢰의 준보스·보스를 잡은 것으로 채운다
+function q30Seed(){const m=q30Mk(),add=gs=>{for(const g of gs||[])if(q30Pre(g))for(const k of g.k)m[k]=Math.max(m[k]|0,1)};
+  const st=qState();for(let i=0;i<Math.min(st.i,QUESTS.length);i++)add(QUESTS[i].goals);if(st.st===2&&QUESTS[st.i])add(QUESTS[st.i].goals);
+  const s=sqState();for(const id in s.d)if(SQBY[id]&&s.d[id]>0)add(SQBY[id].goals);return m}
+const q30MkClean=v=>{const o={};if(v&&typeof v==='object'&&!Array.isArray(v))for(const k in v){const n=v[k]|0;if(n>0&&k.length<=40)o[k]=Math.min(9,n)}return o};
+{const _sd=saveData;saveData=function(){const d=_sd.apply(this,arguments);try{if(d&&P)d.mk=q30MkClean(P.mk)}catch(err){if(window.__QA)throw err}return d}}
+{const _ld=load;load=function(d,slot){Q30.run={};Q30.ch={};Q30.pos={};const ok=_ld.apply(this,arguments);if(ok&&P)try{P.mk=q30MkClean(d&&d.mk);if(!(d&&d.mk&&typeof d.mk==='object'))q30Seed()}catch(err){if(window.__QA)throw err}return ok}}
+{const _ng=newGame;newGame=function(){Q30.run={};Q30.ch={};Q30.pos={};const r=_ng.apply(this,arguments);if(P)P.mk={};return r}}
+// 「고분의 속삭임」처럼 던전 입구만 살펴보는 의뢰를 마치면 마을에 돌아가지 않고 바로 그 던전 의뢰를 받는다
+function q30ReachChain(){const st=qState(),q=qCur();if(!q||st.st!==2||!q.goals.length||!q.goals.every(g=>g.type==='reach'))return;const nq=QUESTS[st.i+1];if(!nq)return;
+  const D=DUNGEONS.find(d=>q.goals.some(g=>g.cave===d.id));if(!D)return;const ks=[...D.minis,D.boss];if(!nq.goals.some(g=>g.type==='kill'&&g.k&&g.k.some(k=>ks.includes(k))))return;
+  const t0=q.t;questFinish();if(qState().st===0&&qCur()===nq){questAccept();msg(`「${t0}」을(를) 마치고 바로 다음 의뢰 「${nq.t}」을(를) 받았습니다. 마을에 돌아가지 않고 이대로 「${D.n}」에 들어가면 됩니다`,'#ffd98a')}}
+{const _u=update;update=function(dt){_u(dt);try{q30Tick(dt)}catch(err){if(window.__QA)throw err}}}
+// 그리기
+{const _rd=drawRegionDecor;drawRegionDecor=function(d){if(d.k!=='q30')return _rd(d);const s=d._s;if(!s)return true;const pa=ctx.globalAlpha;
+  if(d.kind==='runner'){twDrawFolk(d);return true}
+  const pul=.5+.5*Math.sin(time*4+d.x*.01),ell=(r,col,w,a)=>{ctx.globalAlpha=a;ctx.strokeStyle=col;ctx.lineWidth=w;ctx.beginPath();ctx.ellipse(s.x,s.y,r,r/2,0,0,6.283);ctx.stroke();ctx.globalAlpha=pa};
+  const lbl=(t,c,dy)=>QLBL.push({x:s.x,y:s.y-(dy||40),n:t,mk:'',c,say:'',sa:0,ph:d.x});
+  if(d.kind==='clue'){ctx.globalCompositeOperation='lighter';glow(s.x,s.y-6,46+pul*10,'#7fd8ff');ctx.globalCompositeOperation='source-over';ell(26+pul*6,'#9fe0ff',2,.9);
+    ctx.fillStyle='rgba(20,40,50,.85)';for(const [ox,oy] of [[-8,4],[6,-3]]){ctx.beginPath();ctx.ellipse(s.x+ox,s.y+oy,4,2.4,.4,0,6.283);ctx.fill()}lbl(d.lb,'#9fe0ff',30);return true}
+  if(d.kind==='stone'){const c=d.lit?'#ffd98a':'#8a8aa0';ctx.fillStyle='rgba(0,0,0,.35)';ctx.beginPath();ctx.ellipse(s.x+4,s.y+2,20,9,0,0,6.283);ctx.fill();
+    ctx.fillStyle=d.lit?'#6a5a3a':'#4a4a56';ctx.beginPath();ctx.moveTo(s.x-12,s.y);ctx.lineTo(s.x-9,s.y-34);ctx.lineTo(s.x,s.y-40);ctx.lineTo(s.x+9,s.y-34);ctx.lineTo(s.x+12,s.y);ctx.closePath();ctx.fill();
+    ctx.fillStyle=d.lit?'#fff0c0':'#9a9ab8';ctx.fillRect(s.x-2,s.y-30,4,14);
+    if(d.lit){ctx.globalCompositeOperation='lighter';glow(s.x,s.y-24,40+pul*8,'#ffd98a');ctx.globalCompositeOperation='source-over'}else ell(24+pul*4,c,1.5,.6);
+    lbl(d.lb,d.lit?'#ffd98a':'#c8c8d8',52);return true}
+  if(d.kind==='ward'){ctx.fillStyle='rgba(0,0,0,.35)';ctx.beginPath();ctx.ellipse(s.x+4,s.y+2,18,8,0,0,6.283);ctx.fill();ctx.fillStyle='#4a3a2a';ctx.fillRect(s.x-3,s.y-46,6,46);ctx.fillStyle='#2a2018';ctx.fillRect(s.x-9,s.y-52,18,8);
+    ctx.globalCompositeOperation='lighter';glow(s.x,s.y-58,d.on?44+pul*10:30,'#ffd98a');ctx.globalCompositeOperation='source-over';ctx.fillStyle='#fff0c0';ctx.beginPath();ctx.arc(s.x,s.y-58,5,0,6.283);ctx.fill();
+    if(d.hurt>0)hurtFlash(s.x,s.y-40,26,.5);if(!d.on)ell(70+pul*8,'#9fe0ff',2,.7);else ell(150,'rgba(159,224,255,.5)',1.5,.5);
+    if(d.on){const y=s.y-86,f=clamp(d.hp/d.max,0,1);ctx.fillStyle='rgba(0,0,0,.65)';ctx.fillRect(s.x-30,y,60,6);ctx.fillStyle=f<.3?'#ff5a4a':'#9fe0ff';ctx.fillRect(s.x-30,y,60*f,6);
+      ctx.font='700 13px '+FONT;ctx.textAlign='center';ctx.lineWidth=3;ctx.strokeStyle='rgba(0,0,0,.85)';const tx=`${Math.max(0,Math.ceil(d.t))}초`;ctx.strokeText(tx,s.x,y-6);ctx.fillStyle='#fff0c0';ctx.fillText(tx,s.x,y-6)}
+    lbl(d.lb,'#9fe0ff',d.on?110:70);return true}
+  return true}}
+// 의뢰 창: 수수께끼 물음 · 목표 글 · 목표 자리
+{const _h=sqNpcHtml;sqNpcHtml=function(){let h=_h.apply(this,arguments);try{const f=SQV.npc;if(!f)return h;const s=sqState();
+  for(const id in s.a){const q=SQBY[id],j=q30Cur(q);if(j<0)continue;const g=q.goals[j];if(g.type!=='riddle'||g.npc!==f.id)continue;const c=q30C(q,j),Q=g.qs[c];if(!Q)continue;
+    h+=`<div class="qlog q30rid"><b>${q.t} · 물음 ${c+1}/${g.qs.length}</b><p class="qsay">「${Q[0]}」</p><div class="row">${Q[1].map((ch,i)=>`<button class="ghost" type="button" data-q30q="${q.id}" data-q30a="${i}">${ch}</button>`).join('')}</div></div>`}}catch(err){if(window.__QA)throw err}return h}}
+function q30Answer(id,i){const q=SQBY[id],j=q30Cur(q);if(j<0)return;const g=q.goals[j];if(g.type!=='riddle')return;
+  if(time<Q30.lock){msg('잠깐 생각을 가다듬고 다시 답해 보세요','#a39d8f');return}const Q=g.qs[q30C(q,j)];if(!Q)return;
+  if(Q[2]===i){sqProgress(q,j,1,true);msg(`맞았습니다! 「${Q[1][i]}」 (${q30C(q,j)}/${g.qs.length})`,'#9fe0ff')}
+  else{Q30.lock=time+2;msg(`「${Q[1][i]}」… 아닌 것 같아요. 다시 생각해 보세요`,'#ff9a7a')}}
+{const _qc=questClick;questClick=function(b){const d=b&&b.dataset;if(d&&d.q30q){q30Answer(d.q30q,+d.q30a);renderPanel();return true}return _qc(b)}}
+{const _g=sqGoalText;sqGoalText=function(q,j){const g=q.goals[j];if(!g||!Q30.T.has(g.type))return _g(q,j);const c=q30C(q,j),done=sqGoalDone(q,j);if(done)return g.d;
+  if(g.type==='track'){const L=g.steps.length;return c<L?`${g.d} · 흔적 ${c}/${L}`:`${g.d} · ${g.foeN} 쓰러뜨리기`}
+  if(g.type==='defend'){const run=Q30.run[q.id];return run?`${g.d} · 남은 시간 ${Math.max(0,Math.ceil(run.t))}초 · ${g.what} ${Math.max(0,Math.round(run.hp/g.hp*100))}%`:g.d}
+  if(g.type==='ritual')return `${g.d} ${c}/${g.n}`;if(g.type==='riddle')return `${g.d} ${c}/${g.qs.length}`;
+  if(g.type==='chase'){const C=Q30.ch[q.id];return C&&C.st!=='wait'?`${g.d} · 쫓는 중`:g.d}return g.d}}
+{const _t=sqTarget;sqTarget=function(q){try{const j=q30Cur(q);if(j>=0&&sqState().a[q.id]){const g=q.goals[j],reg=g.reg||'home',rn=reg==='home'?'':REGIONS[reg].n+' · ';
+  if(g.type==='riddle'){const f=sqFolk(g.npc);if(f)return{reg:f.town&&f.town.reg||'home',x:f.hx,y:f.hy,label:`${f.town?f.town.n:''} · ${f.n}`}}
+  if(g.type==='track'){const c=Math.min(q30C(q,j),g.steps.length-1),p=q30Spot(q,'s'+c,g,g.steps[c]);if(p)return{reg,x:p.x,y:p.y,label:`${rn}흔적 ${c+1}`}}
+  if(g.type==='defend'){const p=q30Spot(q,'w',g,g.at);if(p)return{reg,x:p.x,y:p.y,label:`${rn}${g.what}`}}
+  if(g.type==='ritual'){let x=0,y=0;g.stones.forEach((st,i)=>{const p=q30Spot(q,'r'+i,g,st);x+=p.x;y+=p.y});const n=g.stones.length;return{reg,x:x/n,y:y/n,label:`${rn}${g.stones.length}개의 돌이 있는 곳`}}
+  if(g.type==='chase'){const C=Q30.ch[q.id],p=C||q30Spot(q,'a',g,g.at);if(p)return{reg,x:p.x,y:p.y,label:`${rn}${g.who.n}`}}}}catch(err){if(window.__QA)throw err}return _t(q)}}
+// 미니맵: 봉인 돌 자리 점 (켜진 돌 금색 · 안 켜진 돌 하늘색) · 추격 중인 사람 점
+{const _m=sqMarks;sqMarks=function(world){const out=_m.apply(this,arguments);try{if(DG||IN)return out;const s=sqState();
+  for(const id in s.a){const q=SQBY[id],j=q30Cur(q);if(j<0)continue;const g=q.goals[j];if((g.reg||'home')!==REG.id)continue;
+    if(g.type==='ritual'){const lit=g.order.slice(0,q30C(q,j));g.stones.forEach((st,i)=>{const p=q30Spot(q,'r'+i,g,st);out.push({x:p.x,y:p.y,kind:'dot',col:lit.includes(i)?'#ffd98a':'#9fe0ff'})})}
+    if(g.type==='chase'&&Q30.ch[id])out.push({x:Q30.ch[id].x,y:Q30.ch[id].y,kind:'dot',col:'#ffd34d'})}}catch(err){if(window.__QA)throw err}return out}}
+window.__q30={Q30,Q30_SQ,Q30_DG,Q30_DGT,q30Spot,q30Cur,q30Tick,q30Answer,q30Credit,q30Seed,q30Mk,q30MkClean,q30ReachChain,q30Base,q30OkAt,TICK:Q30TICK};
+/* ---------- v30 휴대폰 손보기 (사용자 2026-10-13 15:59) ----------
+   「모바일에서 줌인줌아웃이 안돼 · 짝문 누르면 너무 작아서 제대로 보이지도 않아 · 스킬트리나 캐릭터 창 등이 떴을 때 바깥을 누르면 닫히게」
+   · 두 손가락 확대(v28): 화면 가운데 기록창(#log) 위에 손가락이 닿으면 기록창이 손가락을 가져가서(길게 눌러 옮기기) 확대가 안 됐다.
+     → 기록창 위의 손가락도 두 손가락 확대에 넣는다. 두 번째 손가락이 닿으면 기록창 옮기기는 취소. 손가락을 다 떼면 남은 기록을 비운다.
+   · 짝문 지도: 휴대폰에서 화면에 다 넣느라 0.3배까지 줄던 것을 처음엔 0.9배(읽을 수 있는 크기)로 열고, 지도 안에서 밀어 본다.
+     지도 칸 안에서 두 손가락으로 벌리고 오므리면 0.3~1.3배, 위쪽 ＋ − 단추로도 바꾼다. 지금 있는 지역이 가운데.
+   · 창 바깥 누르기: 휴대폰에서 창이 화면을 거의 다 덮어 바깥이 없었다. 창 둘레에 게임 화면이 보이는 띠(가로 화면 양옆 · 세로 화면 위아래)를 남겨
+     그곳을 누르면 닫힌다(원래 있던 바깥 누르기 그대로). 세계 지도(M)도 같다.
+   · 길게 눌러 옮기기(v28: 단축칸 · 기록창): 2초는 너무 길어 0.7초로. 의뢰 알림판(#qhud)도 길게 눌러 옮긴다(손가락 스크롤 · 단추는 그대로).
+     자리는 이 기기에 기록(v28 arseia-device-v28 의 pos.L_qhud / P_qhud), 설정의 「위치 되돌리기」로 모두 처음 자리.
+   · 짝문 배율은 이번 접속 동안만 기억. */
+const M30={gz:null,gcur:1,gfit:1,gh:0,gp:null};
+// 1) 두 손가락 확대: 기록창 위 손가락도 받기
+addEventListener('pointerdown',e=>{if(e.pointerType!=='touch'||!M22.phone())return;const t=e.target;if(!(t===cv||(t&&t.closest&&t.closest('#log'))))return;
+  const pts=FB28.pointers;pts.set(e.pointerId,{x:e.clientX,y:e.clientY});if(pts.size<2)return;
+  fb28Cancel();for(const id of pts.keys())try{cv.setPointerCapture(id)}catch(_){}
+  if(!FB28.pinch){const [a,b]=[...pts.values()];FB28.pinch={d:Math.max(1,Math.hypot(a.x-b.x,a.y-b.y)),z:FB28.zoom}}
+  joy=null;fireTouch=null;mouse.l=mouse.r=false;try{castStop('move')}catch(_){}e.preventDefault();e.stopImmediatePropagation()},true);
+for(const ev of ['pointerup','pointercancel'])addEventListener(ev,e=>{if(e.pointerType==='touch'&&e.target!==cv)FB28.pointers.delete(e.pointerId)},true);
+const m30TouchEnd=e=>{if(e.touches&&e.touches.length)return;if(FB28.pointers.size)FB28.pointers.clear();if(FB28.pinch){FB28.pinch=null;m22Rebake();fb28Save()}};
+addEventListener('touchend',m30TouchEnd,true);addEventListener('touchcancel',m30TouchEnd,true);
+// 1-2) 길게 눌러 옮기기: 0.7초 · 의뢰 알림판
+FB28.hold=700;
+const M30Q={d:null};
+function m30QDown(e){if(!M22.phone()||FB28.drag||M30Q.d||!e.touches||e.touches.length!==1)return;const q=document.getElementById('qhud');if(!q||!q.contains(e.target))return;const t=e.touches[0],r=fb28Rect('qhud');if(!r)return;
+  const d=M30Q.d={x:t.clientX,y:t.clientY,r,on:false};d.timer=setTimeout(()=>{if(M30Q.d!==d)return;d.on=true;q.classList.add('fb28moving');try{navigator.vibrate&&navigator.vibrate(15)}catch(_){}},FB28.hold)}
+function m30QMove(e){const d=M30Q.d;if(!d)return;const t=e.touches&&e.touches[0];if(!t)return;const dx=t.clientX-d.x,dy=t.clientY-d.y;
+  if(!d.on){if(Math.hypot(dx,dy)>12){clearTimeout(d.timer);M30Q.d=null}return}if(e.cancelable)e.preventDefault();e.stopPropagation();fb28Move('qhud',d.r.x+dx,d.r.y+dy)}
+function m30QUp(e){const d=M30Q.d;if(!d)return;clearTimeout(d.timer);M30Q.d=null;const q=document.getElementById('qhud');if(q)q.classList.remove('fb28moving');if(!d.on)return;
+  if(e.cancelable)e.preventDefault();FB28.blockedUntil=performance.now()+500;const r=fb28Rect('qhud'),vp=M22.vp();if(r){FB28.pos[M22.mode()+'_qhud']={x:r.x/Math.max(1,vp.w-r.w),y:r.y/Math.max(1,vp.h-r.h)};fb28Save()}}
+document.addEventListener('touchstart',m30QDown,{capture:true,passive:true});document.addEventListener('touchmove',m30QMove,{capture:true,passive:false});
+document.addEventListener('touchend',m30QUp,true);document.addEventListener('touchcancel',m30QUp,true);
+document.addEventListener('click',e=>{if(M22.phone()&&performance.now()<FB28.blockedUntil&&e.target.closest&&e.target.closest('#qhud')){e.preventDefault();e.stopImmediatePropagation()}},true);
+{const _m=fb28Move;fb28Move=function(id){if(id==='qhud'){const q=document.getElementById('qhud');if(q&&q.style.boxSizing!=='border-box'){const w=q.getBoundingClientRect().width;q.style.boxSizing='border-box';if(w>0)q.style.width=w+'px'}}return _m.apply(this,arguments)}}// 알림판은 안쪽 여백 때문에 옮길 때마다 넓어지지 않게
+{const _r=fb28Restore;fb28Restore=function(){_r.apply(this,arguments);const q=document.getElementById('qhud');if(q)for(const k of ['position','width','maxWidth','left','top','bottom','right','transform','boxSizing'])q.style[k]=''}}
+const m30QApply=()=>{const q=document.getElementById('qhud');if(q&&M22.phone()&&FB28.pos[M22.mode()+'_qhud']&&!q.style.left)fb28Apply('qhud')};
+{const _qh=questHud;questHud=function(){const r=_qh.apply(this,arguments);try{m30QApply()}catch(_){}return r}}
+addEventListener('resize',()=>setTimeout(()=>{const q=document.getElementById('qhud');if(q)q.style.left='';m30QApply()},0));
+setTimeout(m30QApply,0);
+// 2) 짝문 지도 배율
+function m30GateParts(){const w=pbody.querySelector('#g26w'),fit=w&&w.querySelector('.f29mapfit'),m=fit&&fit.querySelector('.g26m');return m?{w,fit,m,mw:parseFloat(m.style.width),mh:parseFloat(m.style.height)}:null}
+function m30GateZoom(z,keep){const G=m30GateParts();if(!G)return;const {w,fit,m,mw,mh}=G;z=clamp(z,Math.min(M30.gfit,.3),1.3);
+  const oz=M30.gcur||1,cx=(w.scrollLeft+w.clientWidth/2)/oz,cy=(w.scrollTop+w.clientHeight/2)/oz;
+  fit.style.width=Math.ceil(mw*z)+'px';fit.style.height=Math.ceil(mh*z)+'px';m.style.transform='scale('+z+')';
+  w.style.height=Math.max(60,Math.min(M30.gh,Math.ceil(mh*z)+2))+'px';w.style.overflow='auto';M30.gcur=z;
+  if(keep){w.scrollLeft=Math.max(0,cx*z-w.clientWidth/2);w.scrollTop=Math.max(0,cy*z-w.clientHeight/2)}
+  else{const c=w.querySelector('.g26c.now')||w.querySelector('[data-greg="home"]');if(c){w.scrollLeft=Math.max(0,(c.offsetLeft+c.offsetWidth/2)*z-w.clientWidth/2);w.scrollTop=Math.max(0,(c.offsetTop+c.offsetHeight/2)*z-w.clientHeight/2)}}
+  const lb=pbody.querySelector('.m30zl');if(lb)lb.textContent=Math.round(z*100)+'%'}
+function m30Gate(prev){const G=m30GateParts();if(!G)return;const {w,m}=G,mt=/scale\(([\d.]+)\)/.exec(m.style.transform);M30.gfit=mt?+mt[1]:1;
+  const card=panel.querySelector('.card'),cr=card.getBoundingClientRect(),cs=getComputedStyle(card),r=w.getBoundingClientRect();
+  M30.gh=Math.max(60,Math.min(innerHeight-8,cr.bottom)-r.top-parseFloat(cs.paddingBottom||0)-6);M30.gcur=M30.gfit;
+  const head=pbody.querySelector('.f29gatehead');if(head&&!head.querySelector('.m30z')){const box=document.createElement('span');box.className='m30z';
+    box.innerHTML='<button type="button" class="ghost" data-m30z="-1" aria-label="지도 작게">−</button><b class="m30zl"></b><button type="button" class="ghost" data-m30z="1" aria-label="지도 크게">＋</button>';
+    for(const b of box.querySelectorAll('button'))b.addEventListener('click',e=>{e.stopPropagation();const z=M30.gcur*(b.dataset.m30z>0?1.2:1/1.2);m30GateZoom(z,true);M30.gz=M30.gcur});head.appendChild(box)}
+  const z=M30.gz!=null?M30.gz:Math.max(M30.gfit,.9);m30GateZoom(z,false);if(prev&&prev.z===M30.gcur){w.scrollLeft=prev.sl;w.scrollTop=prev.st}
+  w.addEventListener('touchstart',e=>{if(e.touches.length===2){const [a,b]=e.touches;M30.gp={d:Math.max(1,Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY)),z:M30.gcur};e.preventDefault()}},{passive:false});
+  w.addEventListener('touchmove',e=>{if(e.touches.length===2&&M30.gp){const [a,b]=e.touches;m30GateZoom(M30.gp.z*Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY)/M30.gp.d,true);e.preventDefault()}},{passive:false});
+  const end=e=>{if(e.touches.length<2&&M30.gp){M30.gp=null;M30.gz=M30.gcur}};w.addEventListener('touchend',end);w.addEventListener('touchcancel',end)}
+{const _rp=renderPanel;renderPanel=function(){const g=tab==='gate'&&M22.phone()?m30GateParts():null,prev=g?{z:M30.gcur,sl:g.w.scrollLeft,st:g.w.scrollTop}:null;const r=_rp.apply(this,arguments);
+  try{if(tab==='gate'&&M22.phone())m30Gate(prev)}catch(err){if(window.__QA)throw err}return r}}
+{const st=document.createElement('style');st.textContent=`
+body.m22L #panel .card,body.m22L #wmap .card{max-width:calc(100% - 92px)!important}
+body.m22P #panel .card,body.m22P #wmap .card{max-height:calc(100% - 76px)!important}
+.f29gatehead .m30z{display:inline-flex;align-items:center;gap:6px;margin-left:auto}
+.f29gatehead .m30z button{min-width:40px;min-height:30px;padding:0 10px;font-size:18px;line-height:1}
+.f29gatehead .m30zl{min-width:44px;text-align:center;font-size:13px;color:#d6b262}`;document.head.appendChild(st)}
+setTimeout(()=>{if(window.__game)Object.assign(window.__game,{M30Q,m30QDown,m30QMove,m30QUp,M30,m30Gate,m30GateZoom,m30GateParts})},0);
 
 /* ---------- QA: 자가 점검 모드(#qa) ----------
    게임 IIFE 안, b5.js 바로 앞에 붙는다. location.hash가 '#qa'이고 qa0.js가 준비됐을 때만 동작한다.
@@ -22903,10 +23290,10 @@ qT('월드','지역 의뢰: 선행(req) 전엔 잠김 · 끝나면 열림 · 채
   for(const d of sp){qOk(wxCanReach(ok,d.x,d.y),'못 닿는 채집 자리');const L=sqUseLive(d);if(sqAllDone(g2))break;qOk(L&&/캐기|줍기/.test(L.label),`라벨 ${L&&L.label}`);P.x=d.x;P.y=d.y+30;qStep(1,{render:false});
     qOk(act==='tw_use'||sqUseLive(d),'채집 자리 act 없음');sqUse(d)}
   qOk(sqAllDone(g2),'채집이 안 끝남');const m=sqMarks(false);qStep(2);loadRegion('home');return `자리 ${sp.length}곳 · 표시 ${m.length}`});
-qT('월드','지역 마을 의뢰 60개: 주는 사람 · 받는 사람이 마을에 있고, 목표 자리가 있고 닿음 (던전/둥지/채집)',()=>{qPrep('mage',{lvl:60});qOk(WX_SQ.length===60,`${WX_SQ.length}개`);const bad=[],kinds={};
+qT('월드','지역 마을 의뢰 60개(+v30 새 사냥터 24개): 주는 사람 · 받는 사람이 마을에 있고, 목표 자리가 있고 닿음 (던전/둥지/채집)',()=>{qPrep('mage',{lvl:60});qOk(WX_SQ.length===60+Q30_SQ.length&&Q30_SQ.length===24,`${WX_SQ.length}개`);const bad=[],kinds={};
   for(const q of WX_SQ){const T=ALLTOWNS.find(t=>t.id===q.town);if(!T){bad.push(q.id+' 마을 없음');continue}kinds[q.kind]=(kinds[q.kind]||0)+1;
     {const f=sqFolk(q.giver),g=sqFolk(sqTurn(q));if(!f||f.town!==T)bad.push(`${q.id}: 주는 사람 ${q.giver} 없음`);if(!g||!ALLTOWNS.includes(g.town))bad.push(`${q.id}: 받는 사람 ${sqTurn(q)} 없음`)}
-    const s=sqState();if(q.req)s.d[q.req]=1;s.a={};qOk(sqAvail(q)==='ok',`${q.id} ${sqAvail(q)}`);sqAccept(q.id);
+    P.lvl=Math.max(60,q.lvl|0);const s=sqState();if(q.req)s.d[q.req]=1;s.a={};qOk(sqAvail(q)==='ok',`${q.id} ${sqAvail(q)}`);sqAccept(q.id);
     q.goals.forEach((g,j)=>{if(j>0)for(let k=0;k<j;k++)sqProgress(q,k,99,true);const tg=sqTarget(q);if(!tg){bad.push(`${q.id} 목표${j} 자리 없음`);return}
       if(tg.reg&&tg.reg!=='home'){const {L,ok}=qWxReach(tg.reg);if(!wxCanReach(ok,tg.x,tg.y))bad.push(`${q.id} 목표${j} 못 닿음`);if(tg.cave!=null&&!(L.caves[tg.cave]&&[...L.caves[tg.cave].cave.minis,L.caves[tg.cave].cave.boss,...L.caves[tg.cave].cave.mobs].some(k=>(g.k||[]).includes(k))))bad.push(`${q.id} 동굴 표시가 다름`)}
       if(g.type==='gather'&&(SQSPOT[g.use]||[]).length<g.n)bad.push(`${q.id} 채집 자리 ${(SQSPOT[g.use]||[]).length}<${g.n}`)});
@@ -23711,7 +24098,7 @@ qT('스킬 정리 v19','초반 광역: 직업마다 2위계(5레벨)까지 여�
   for(const c of ['mage','priest','warrior','archer']){const L=qSpells(c,aoe);qOk(L.length,`${c}: 2위계까지 광역 없음`);out.push(`${QCN[c]} ${L.map(s=>s.n).join('/')}`)}
   qOk(SPELLS.crossslash.rank===2&&SPELLS.crossslash.cd<=2&&SPELLS.fanshot.rank===2&&SPELLS.fanshot.cd<=2&&SPELLS.sweep.cd<=2,'크로스 컷·팬 샷·와이드 스윕 위계/재사용');
   for(const [c,id,d] of [['warrior','crossslash',55],['archer','fanshot',230]]){qCastPrep(c,id);if(typeof clsGearFor==='function')clsGearFor(id);qClear();P.x=QA_SPOT.x;P.y=QA_SPOT.y;followCam();
-    const es=[-.22,0,.22].map(a=>qDummy(P.x+Math.cos(a)*d,P.y+Math.sin(a)*d));qCast(id,es[1]);qStep(60,{render:false});const n=es.filter(e=>e.taken>0).length;qOk(n>=2,`${SPELLS[id].n}: 셋 중 ${n}`);out.push(`${SPELLS[id].n} ${n}/3`)}
+    const es=[-.22,0,.22].map(a=>qDummy(P.x+Math.cos(a)*d,P.y+Math.sin(a)*d));QA.reseed(30019+d);/* v30: 물리 기술은 명중 굴림이 있어 전체 점검 순서에 따라 빗나감 → 같은 난수로 */qCast(id,es[1]);qStep(60,{render:false});const n=es.filter(e=>e.taken>0).length;qOk(n>=2,`${SPELLS[id].n}: 셋 중 ${n}`);out.push(`${SPELLS[id].n} ${n}/3`)}
   qClear();return out.join(' · ')});
 qT('스킬 정리 v19','3차 대비 조정: 화염 화살 10레벨부터 두 발 · 돌풍 레벨마다 멀리 · 리와인드 6위계 이하만 · 타임 스톱 보스 0.5초 · 불사 25% · 이름 바꿈 · +모든 스킬 레벨 최대 5(v21: 3→5) · 아이템 · 세트 이름',()=>{qPrep('mage',{lvl:60});const out=[];
   qOk(eff('firebolt',10).cnt===2&&!(eff('firebolt',9).cnt>1)&&Math.abs(eff('firebolt',10).mult-SPELLS.firebolt.mult*.65)<1e-9,`화염 화살 ${eff('firebolt',9).cnt}/${eff('firebolt',10).cnt}`);qOk(eff('gust',10).knock>eff('gust',1).knock,'돌풍 밀치기');
@@ -25033,8 +25420,8 @@ qT(QQ22,'1막 첫 던전은 한 번만 들어감: 「고분의 속삭임」은 �
   const {ci,c}=qQ22Cave();qOk(c,'안개숲 고분 없음');const _e=enterDungeon;let trips=0;enterDungeon=function(){trips++;return _e.apply(this,arguments)};
   try{P.q={i:1,st:0,c:{}};questAccept();const q1=qCur();qOk(P.q.st===1&&q1.t==='고분의 속삭임','못 받음');qOk(q1.goals.length===1&&q1.goals[0].type==='reach','입구 목표 아님');
     let tg=qMainTargetW();qOk(tg&&tg.cave===ci&&tg.label.includes('입구'),'입구 목표 자리 '+JSON.stringify(tg));qOk(/안개숲 옛 고분 입구/.test(qHudBlock().g[0].s)&&!/\d\/\d/.test(qHudBlock().g[0].s),'알림판 글 '+qHudBlock().g[0].s);
-    P.x=c.x+60;P.y=c.y+90;qStep(20,{render:false});qOk(P.q.st===2&&!DG&&trips===0,`입구에 닿아도 안 끝남 st${P.q.st} trips${trips}`);questFinish();
-    const q2=qCur();qOk(q2.t==='고분의 왕'&&q2.goals.some(g=>g.k&&g.k.includes('m_bolg'))&&q2.goals.some(g=>g.k&&g.k.includes('b_arsil')),'고분의 왕 목표');questAccept();
+    P.x=c.x+60;P.y=c.y+90;qStep(20,{render:false});/* v30: 입구를 살펴보면 마을에 돌아가지 않고 바로 「고분의 왕」을 받음 (q30ReachChain) */qOk(P.q.i===2&&P.q.st===1&&!DG&&trips===0,`입구에 닿아도 안 이어짐 i${P.q.i} st${P.q.st} trips${trips}`);
+    const q2=qCur();qOk(q2.t==='고분의 왕'&&q2.goals.some(g=>g.k&&g.k.includes('m_bolg'))&&q2.goals.some(g=>g.k&&g.k.includes('b_arsil')),'고분의 왕 목표');
     tg=qMainTargetW();qOk(tg&&tg.cave===ci,'던전 목표 '+JSON.stringify(tg));const sp0=P.sp;
     P.x=c.x;P.y=c.y+40;qStep(1,{render:false});doAct();qOk(DG&&DG.ci===ci&&trips===1,'던전에 못 들어감');
     for(const k of ['m_bolg','b_arsil']){const e=enemies.find(o=>o.k===k&&!o.dead);qOk(e,k+' 없음');killE(e)}
@@ -25042,12 +25429,12 @@ qT(QQ22,'1막 첫 던전은 한 번만 들어감: 「고분의 속삭임」은 �
     qOk(P.q.i===3&&P.sp===sp0+1&&trips===1,`끝 i${P.q.i} sp+${P.sp-sp0} 들어간 횟수 ${trips}`);return `던전 ${trips}번 · 스킬 포인트 +1`}
   finally{enterDungeon=_e;if(DG)leaveDungeon();qClosePanels()}});
 qT(QQ22,'메인 의뢰를 받기 전에 그 의뢰의 준보스·보스를 먼저 잡으면 받을 때 처치로 침 (첫 의뢰 중 고분에 들어가 다 잡아도 다시 안 들어감) · 저장 왕복',()=>{qPrep('mage',{lvl:10});
-  const {ci,c}=qQ22Cave();try{P.q={i:1,st:0,c:{}};questAccept();P.x=c.x;P.y=c.y+40;qStep(1,{render:false});doAct();qOk(DG&&DG.ci===ci,'던전');qStep(20,{render:false});qOk(P.q.st===2,'던전 안에서 입구 목표 안 끝남');
+  const {ci,c}=qQ22Cave();const _ch=q30ReachChain;q30ReachChain=()=>{};/* v30 바로 이어 받기를 끄고 v22 「먼저 잡은 것 기억」만 본다 (이어 받기는 의뢰 v30 시험) */try{P.q={i:1,st:0,c:{}};questAccept();P.x=c.x;P.y=c.y+40;qStep(1,{render:false});doAct();qOk(DG&&DG.ci===ci,'던전');qStep(20,{render:false});qOk(P.q.st===2,'던전 안에서 입구 목표 안 끝남');
     for(const k of ['m_bolg','b_arsil']){const e=enemies.find(o=>o.k===k&&!o.dead);qOk(e,k+' 없음');killE(e)}qOk(P.qpre&&P.qpre.m_bolg===1&&P.qpre.b_arsil===1,'먼저 잡은 것 기억 '+JSON.stringify(P.qpre));
     leaveDungeon();const d=JSON.parse(JSON.stringify(saveData()));qOk(d.qv===22&&d.qpre&&d.qpre.b_arsil===1,'저장 '+JSON.stringify(d.qpre));qOk(load(d,QA_SLOT),'load');qOk(P.qpre&&P.qpre.m_bolg===1,'불러온 뒤');
     questFinish();questAccept();qOk(P.q.i===2&&P.q.st===2&&!P.qpre,'받자마자 끝나야 함 '+JSON.stringify(P.q));
     P.q={i:3,st:0,c:{}};const d2=JSON.parse(JSON.stringify(saveData()));qOk(!('qpre' in d2),'빈 qpre가 저장됨');return '먼저 잡은 볼그·아르실 → 받자마자 보고'}
-  finally{if(DG)leaveDungeon();qClosePanels()}});
+  finally{q30ReachChain=_ch;if(DG)leaveDungeon();qClosePanels()}});
 qT(QQ22,'1막 12개를 차례로 끝까지: 목표 자리가 늘 있고(입구 목표 포함), 끝남',()=>{qPrep('mage',{lvl:30});P.q={i:0,st:0,c:{}};const r=[];
   try{for(let i=0;i<12;i++){const q=qCur();qOk(q===QUESTS[i],i+'번째');qOk(qMainTargetW(),q.t+' 받을 자리');questAccept();qOk(P.q.st===1,q.t+' 못 받음');
     q.goals.forEach((g,j)=>{if(qGoalDone(q,j))return;const tg=qMainTargetW();qOk(tg&&['home','royal'].includes(tg.reg||'home')&&qNum(tg.x),`${q.t}: ${g.d} 자리 ${JSON.stringify(tg)}`);/* v26: 아르덴 의뢰인은 왕도 지도 */
@@ -26850,7 +27237,7 @@ qT('피드백 v28','4. 0.5초 지대·뒤에 남는 지대·출혈: 단계마다
 qT('피드백 v28','5. 래피드 샷: 3마리 3·3·2발 · 8마리 한 발씩 · 사거리 밖 제외 · 빈 대상 앞쪽 · 기본 공격 절반 이하 간격',()=>{qPrep('archer');P.sk.streamshot=1;clsGearFor('streamshot');const seen=[];
   for(const n of [3,8,0]){qClear();qNoRec();const es=[];for(let i=0;i<n;i++)es.push(qDummy(P.x+180+i*22,P.y+(i%2)*35));qDummy(P.x+2000,P.y);const s=eff('streamshot',1),list=fb28Targets(s);qOk(list.length===n,'대상 수 '+list.length);fb28Volley(s,100,{x:P.x+200,y:P.y});const q=fb28Shots.slice(),first=projs[0];qOk(q.length===7&&first,'8발 아님');const all=[first.fb28Target,...q.map(o=>o.e)],counts=es.map(e=>all.filter(x=>x===e).length);
     qOk(n===3?counts.join()==='3,3,2':n===8?counts.every(x=>x===1):all.every(x=>!x),'분배 '+counts);qOk(q[0].at-time<=atkIv(SPELLS.quickshot)/2+1e-8,'간격 느림');if(!n)qOk(Math.abs(Math.atan2(first.vy,first.vx)-P.face)<1e-8,'빈 대상 방향');fb28Shots=[];seen.push(counts.join('/'))}return seen.join(' · ')});
-qT('피드백 v28','6. 피어싱 관통 피해 증가와 짧은 감속 · 파워 샷 기본 2.5배 이상과 밀치기 · 시즈 폭·그림 54',()=>{qPrep('archer');P.sk.piercearrow=1;clsGearFor('piercearrow');const es=[80,170,260].map(d=>qDummy(P.x+d,P.y));qCast('piercearrow',es[0]);qStep(45,{render:false});qOk(es.every(e=>e.hits>0),'관통 안 맞음');qOk(es[2].taken>es[0].taken,'관통 피해 안 늘음');qOk(es[2].slowT>0&&es[2].slowT<=1.2,'짧은 감속');
+qT('피드백 v28','6. 피어싱 관통 피해 증가와 짧은 감속 · 파워 샷 기본 2.5배 이상과 밀치기 · 시즈 폭·그림 54',()=>{qPrep('archer');P.sk.piercearrow=1;clsGearFor('piercearrow');QA.reseed(30028);/* v30: 치명타 난수에 따라 50번 중 9번 실패하던 것(작업I 보고) → 같은 난수로 고정 */const es=[80,170,260].map(d=>qDummy(P.x+d,P.y));qCast('piercearrow',es[0]);qStep(45,{render:false});qOk(es.every(e=>e.hits>0),'관통 안 맞음');qOk(es[2].taken>es[0].taken,'관통 피해 안 늘음');qOk(es[2].slowT>0&&es[2].slowT<=1.2,'짧은 감속');
   qOk(SPELLS.powershot.mult>=SPELLS.quickshot.mult*2.5&&SPELLS.powershot.knock>0,'파워 배율/밀치기');qClear();qNoRec();P.sk.powershot=1;const e=dgMob('goblin',P.x+120,P.y,10);e.hp=e.max=1e6;e.atkCd=1e9;e.stunT=20;const x=e.x;qCast('powershot',e);qStep(20,{render:false});qOk(e.hp<1e6&&e.x>x,'파워 밀치기 안 됨');
   qClear();qNoRec();P.sk.siegeshot=1;const f=qDummy(P.x+220,P.y+80);qCast('siegeshot',{x:P.x+500,y:P.y});qOk(f.hits>0,'넓힌 가장자리 안 맞음');qOk(eff('siegeshot',1).w===54&&FXP.fx.some(o=>o.k==='beamp'&&o.w===54),'시즈 그림 폭');return '관통 피해 '+es.map(e=>Math.round(e.taken)).join(' / ')});
 qT('피드백 v28','7. 모든 던전: 중간보스 체력 > 가장 강한 정예 ×3 · 최종 보스 체력보다 작음 · 정예보다 공격력 높음',()=>{qPrep('mage');let n=0;
@@ -26919,9 +27306,9 @@ qT('화면·마을 v29','짝문 본체·빛 중심 차이 0px: 모든 마을·�
  try{for(const t of ALLTOWNS)for(const z of [.7,1,1.5])for(const k of [.8,1,1.3]){calls.length=0;ctx.setTransform(z,0,0,z,12,21);qOk(cgLand({k:'gate',x:t.gate.x,y:t.gate.y,s:k,_s:{x:31,y:47}}),'짝문 안 그려짐');qOk(calls.length===2&&Math.hypot(calls[0].x-calls[1].x,calls[0].y-calls[1].y)<.001,t.n+' 빛 어긋남');}}
  finally{ctx.restore();ctx.drawImage=keep.draw;flPkTint=keep.tint;GFX.art=keep.art;if(keep.pk)FL.P[CG.TOWN]=keep.pk;else delete FL.P[CG.TOWN];if(keep.on)CG.on[CG.TOWN]=keep.on;else delete CG.on[CG.TOWN];}return ALLTOWNS.length+'마을 × 줌 3 × 크기 3 · 실제 그리기 중심 0px';});
 qT('화면·마을 v29','휴대폰 의뢰: 목록·상세·보상 마지막 요소가 스크롤 후 화면 안 · 제목 고정 · 터치 지도 전달 없음',()=>{qPrep('mage');const old=SQV.mode;try{for(const [m,w,h] of [['L',844,390],['P',390,844]])qM22(m,w,h,()=>{for(const mode of ['log','main']){SQV.mode=mode==='log'?'log':'';qTown=TOWN;openPanel('quest');const c=panel.querySelector('.card'),last=pbody.lastElementChild,top=qmR($('#pclose')).top;pbody.scrollTop=pbody.scrollHeight;const a=qmR(last),b=qmR(pbody);qOk(a.bottom<=b.bottom+1&&b.bottom<=h+1,'마지막 내용 화면 밖');qOk(Math.abs(qmR($('#pclose')).top-top)<1&&c.scrollTop===0,'제목 이동');let leaked=0;const fn=()=>leaked++;panel.addEventListener('pointermove',fn);const pos={x:P.x,y:P.y};pbody.dispatchEvent(new PointerEvent('pointermove',{bubbles:true,pointerType:'touch',clientX:120,clientY:150}));panel.removeEventListener('pointermove',fn);qOk(!leaked&&P.x===pos.x&&P.y===pos.y,'지도 터치 전달');closePanel();}});}finally{SQV.mode=old;closePanel();}return '844×390 / 390×844';});
-qT('화면·마을 v29','휴대폰 짝문: 제목·난이도 2줄 · 지도 끝 화면 안 · 스크롤 0',()=>{qPrep('mage');for(const [m,w,h] of [['L',844,390],['P',390,844]])qM22(m,w,h,()=>{openPanel('gate');const c=panel.querySelector('.card'),map=$('#g26w'),r=qmR(map),last=qmR(map.querySelector('.g26m'));qOk(r.bottom<=h+1&&last.bottom<=r.bottom+1,'지도 아래 잘림 '+last.bottom+'/'+h);qOk(c.scrollTop===0&&pbody.scrollTop===0&&map.scrollTop===0,'스크롤 필요');qOk(qmR(pbody.querySelector('.f29gatehead')).height<=30,'안내 두 줄 초과');closePanel();});return '가로·세로 스크롤 0';});
-qT('화면·마을 v29','스킬 창 v28 대비 80~90% · 4직업 스킬 칸 겹침 0',()=>{let n=0;for(const cls of Object.keys(CLASSES)){qPrep(cls);for(const [m,w,h] of [['',1280,800],['L',844,390],['P',390,844]])qM22(m,w,h,()=>{openPanel('tree');const c=panel.querySelector('.card'),newW=qmR(c).width,orig=c.style.width;c.style.width='min(1040px,100%)';const oldW=qmR(c).width;c.style.width=orig;qOk(newW/oldW>=.8&&newW/oldW<=.9,'창 비율 '+newW/oldW);const nodes=[...pbody.querySelectorAll('.node')].map(qmR);for(let i=0;i<nodes.length;i++)for(let j=i+1;j<nodes.length;j++)qOk(!qmOv(nodes[i],nodes[j]),'스킬 칸 겹침');n+=nodes.length;closePanel();});}return n+'칸 · 겹침 0';});
-qT('화면·마을 v29','브렌힐 빈 건물 정면 간판 정확히 1개 · 동상 물은 받침 아래 · 충돌 그대로',()=>{qPrep('mage');const hosts=HOME.decor.filter(d=>d.k==='bld'&&d.signT===F29.clinic);qOk(hosts.length===1&&!hosts[0].enter,'빈 건물 간판 1개 아님');qOk(twBldSprite(hosts[0].b).sign,'예전 그림 간판 자리 없음');const d=HOME.decor.find(d=>d.k==='statue'),foot=JSON.stringify(d.foot);const cv=document.createElement('canvas');cv.width=180;cv.height=250;const PK={img:cv,meta:{r:{'076_statue_false_nose_single':[0,0,180,250,92.5,239]}}},g=cv.getContext('2d');f29Statue(g,PK,d,92.5,239,1);qOk(PK.f29statue,'물 아래 동상 층 없음');qOk(g.getImageData(40,207,1,1).data[3]>0,'물 없음');qOk(g.getImageData(90,190,1,1).data[3]===0,'물로 동상 받침 덮음');qOk(JSON.stringify(d.foot)===foot,'충돌 변경');return '간판 1 · 물 표면 · 받침 보호';});
+qT('화면·마을 v29','휴대폰 짝문: 제목·난이도 2줄 · 지도 칸 화면 안 · 창 스크롤 0 (v30: 지도는 읽을 크기로 칸 안에서 밀어 봄)',()=>{qPrep('mage');for(const [m,w,h] of [['L',844,390],['P',390,844]])qM22(m,w,h,()=>{openPanel('gate');const c=panel.querySelector('.card'),map=$('#g26w'),r=qmR(map);qOk(r.bottom<=h+1,'지도 칸 아래 잘림 '+r.bottom+'/'+h);qOk(c.scrollTop===0&&pbody.scrollTop===0,'창 스크롤 필요');qOk(qmR(pbody.querySelector('.f29gatehead')).height<=30,'안내 두 줄 초과');closePanel();});return '가로·세로 스크롤 0';});
+qT('화면·마을 v29','스킬 창 v28 대비 80~90% · 4직업 스킬 칸 겹침 0',()=>{let n=0;for(const cls of Object.keys(CLASSES)){qPrep(cls);for(const [m,w,h] of [['',1280,800],['L',844,390],['P',390,844]])qM22(m,w,h,()=>{openPanel('tree');const c=panel.querySelector('.card'),newW=qmR(c).width,orig=c.style.width;const omx=c.style.getPropertyValue('max-width'),omp=c.style.getPropertyPriority('max-width');c.style.width='min(1040px,100%)';c.style.setProperty('max-width','none','important');const oldW=qmR(c).width;c.style.width=orig;c.style.setProperty('max-width',omx,omp);/* v30: 휴대폰 창 바깥 띠(max-width)는 예전 폭 재기에서 뺀다 */qOk(newW/oldW>=.8&&newW/oldW<=.9,'창 비율 '+newW/oldW);const nodes=[...pbody.querySelectorAll('.node')].map(qmR);for(let i=0;i<nodes.length;i++)for(let j=i+1;j<nodes.length;j++)qOk(!qmOv(nodes[i],nodes[j]),'스킬 칸 겹침');n+=nodes.length;closePanel();});}return n+'칸 · 겹침 0';});
+qT('화면·마을 v29','브렌힐 빈 건물 정면 간판 정확히 1개 · 동상 물은 받침 아래 · 충돌 그대로',()=>{qPrep('mage');const hosts=HOME.decor.filter(d=>d.k==='bld'&&d.signT===F29.clinic);qOk(hosts.length===1&&!hosts[0].enter,'빈 건물 간판 1개 아님');qOk(twBldSprite(hosts[0].b).sign,'예전 그림 간판 자리 없음');const d=HOME.decor.find(d=>d.k==='statue'),foot=JSON.stringify(d.foot);const cv=document.createElement('canvas');cv.width=180;cv.height=250;const PK={img:cv,meta:{r:{'076_statue_false_nose_single':[0,0,180,250,92.5,239]}}},g=cv.getContext('2d');f29Statue(g,PK,d,92.5,239,1);qOk(PK.f29statue,'물 아래 동상 층 없음');qOk(g.getImageData(40,172,1,1).data[3]>0,'물 없음');qOk(g.getImageData(90,192,1,1).data[3]===0,'물로 동상 받침 덮음');qOk(JSON.stringify(d.foot)===foot,'충돌 변경');return '간판 1 · 물 표면 · 받침 보호';});
 
 // 작업G 회귀 시험: 기존 시험은 그대로 둔다.
 qT('방어력 v29','방어구 양수 · 무기와 장신구와 화살통 0 · 레벨과 등급 증가',()=>{qPrep('mage',{lvl:75});let n=0;
@@ -26982,6 +27369,111 @@ qT('사냥터 v29','70~100 일반 사냥터 수: 기존 6곳 + 새 6곳 = 12곳'
  qOk(dgs.length===6,'기존 고정 던전 수 '+dgs.length);qOk(fields.length===6,'추가 들판 수 '+fields.length);qOk(fields.length+dgs.length===12,'합계');return '6 → 12 (고정 이름의 일반 사냥터 기준, 오르타 반복층은 별도)';
 });
 
+qT('작업I v29','아르덴 네 길 출구: 벽 그림 없음 · 길 폭보다 넓은 문 · 화면 목록만 교체',()=>{qPrep('mage');loadRegion('royal');const t=RCACHE.royal.town,keep=JSON.stringify(TW.blds.royal.map(d=>d.foot));qOk(I29.gates.length===4,'문 4개 아님');for(const g of I29.gates){qOk(roadDist(g.x,g.y)<1,'길과 문 어긋남');for(const d of I29.visual.filter(d=>d.k==='cwall')){const a=d.ends[0],b=d.ends[1];qOk(segDist(g.x,g.y,...a,...b)>=I29.gap-.01,'벽이 길 덮음');}qOk(!blockedAt(g.x,g.y,14),'출구 판정 막힘');}decoVisible(0,20,0,20,[]);qOk(JSON.stringify(TW.blds.royal.map(d=>d.foot))===keep,'충돌 변경');qOk(I29.visual.every(d=>!d.foot&&!decor.includes(d)),'화면 물체가 충돌 자료에 들어감');return '네 길 · 열린 폭 250 · 충돌 자료 그대로';});
+qT('작업I v29','아르덴 네 모서리: 두 벽 끝점 차이 0px · 탑 4개',()=>{qPrep('mage');loadRegion('royal');qOk(I29.corners.length===4,'모서리 탑 4개 아님');for(const c of I29.corners){const ends=I29.visual.filter(d=>d.k==='cwall').flatMap(d=>d.ends).filter(p=>Math.hypot(p[0]-c.x,p[1]-c.y)<1);qOk(ends.length===2,'모서리 벽 두 개 아님');const a=W2S(...ends[0]),b=W2S(...ends[1]);qOk(Math.hypot(a.x-b.x,a.y-b.y)<.01,'끝점 어긋남');}return '네 모서리의 투영 끝점 차이 0px';});
+qT('작업I v29','아르덴 각 성문으로 실제 걷기: 네 방향 안쪽에서 바깥으로',()=>{qPrep('mage');loadRegion('royal');const t=RCACHE.royal.town;for(const g of I29.gates){const dx=Math.sign(g.x-t.x),dy=Math.sign(g.y-t.y);P.x=g.x-dx*100;P.y=g.y-dy*100;const sx=dx-dy,sy=(dx+dy)/2,l=Math.hypot(sx,sy);joy={id:'qa-i29',ox:0,oy:0,x:sx/l*44,y:sy/l*44};try{qStep(180,{render:false});}finally{joy=null;}qOk((P.x-g.x)*dx+(P.y-g.y)*dy>70,'성문으로 못 나감');}return '4방향 180프레임씩 실제 update 이동';});
+qT('작업I v29','짝문·지역 포탈 모든 연결: 본체와 빛 중심 차이 0px · 줌 0.7/1/1.5',()=>{qPrep('mage');const cv=document.createElement('canvas');cv.width=600;cv.height=200;const PK={img:cv,meta:{r:{'074_gate_body':[0,0,90,81,61.5,74.4],'074_gate_glow':[90,0,90,81,50.5,60.4],'079_region_portal_structure':[180,0,162,145,49,136.1],'079_region_portal_glow':[342,0,162,145,74,109.1]}}},keep={pk:FL.P[CG.TOWN],on:CG.on[CG.TOWN],art:GFX.art,draw:ctx.drawImage,tint:flPkTint},calls=[];FL.P[CG.TOWN]=PK;CG.on[CG.TOWN]=1;GFX.art='new';flPkTint=()=>null;ctx.drawImage=(...a)=>{calls.push(new DOMPoint(a[5]+a[7]/2,a[6]+a[8]/2).matrixTransform(ctx.getTransform()));};ctx.save();let n=0;
+try{for(const z of [.7,1,1.5])for(const scale of [.8,1,1.3]){for(const id of Object.keys(REGIONS))for(const side of Object.keys(REGIONS[id].edges||{})){calls.length=0;ctx.setTransform(z,0,0,z,12,21);const d=edgeDecor(side,REGIONS[id].edges[side],id);d.s=scale;qOk(cgPortal(ctx,d,31,47,1,0),'지역문 없음');qOk(calls.length===2&&Math.hypot(calls[0].x-calls[1].x,calls[0].y-calls[1].y)<.001,id+'/'+side+' 빛 어긋남');n++;}for(const t of ALLTOWNS){calls.length=0;ctx.setTransform(z,0,0,z,12,21);qOk(cgLand({k:'gate',x:t.gate.x,y:t.gate.y,s:scale,_s:{x:31,y:47}}),'짝문 없음');qOk(calls.length===2&&Math.hypot(calls[0].x-calls[1].x,calls[0].y-calls[1].y)<.001,'짝문 빛 어긋남');n++;}}}
+finally{ctx.restore();ctx.drawImage=keep.draw;flPkTint=keep.tint;GFX.art=keep.art;if(keep.pk)FL.P[CG.TOWN]=keep.pk;else delete FL.P[CG.TOWN];if(keep.on)CG.on[CG.TOWN]=keep.on;else delete CG.on[CG.TOWN];}return n+'개 실제 drawImage 중심 비교';});
+
+
+qT('작업I v29','성벽 실제 그리기: 두 그림 방향의 바닥 끝점이 투영 끝점과 일치',()=>{qPrep('mage');loadRegion('royal');i29Build();const cv=document.createElement('canvas');cv.width=520;cv.height=150;const PK={img:cv,meta:{r:{'095_castle_wall_axis_x':[0,0,260,150,207,141],'095_castle_wall_axis_y':[260,0,260,150,45.5,141]}}},keep={pk:FL.P[CG.TOWN],on:CG.on[CG.TOWN],art:GFX.art,draw:ctx.drawImage};FL.P[CG.TOWN]=PK;CG.on[CG.TOWN]=1;GFX.art='new';let n=0;ctx.save();try{for(const d of I29.visual.filter(d=>d.k==='cwall')){d._s=W2S(d.x,d.y);ctx.setTransform(1,0,0,1,0,0);ctx.drawImage=(...a)=>{const e=d.pv?[45.5,141,230,64]:[35,61,207,141],tr=ctx.getTransform(),pts=[[e[0],e[1]],[e[2],e[3]]].map(p=>new DOMPoint(p[0]+a[5],p[1]+a[6]).matrixTransform(tr)),targets=d.ends.map(p=>W2S(...p));if(d.pv)targets.reverse();for(let j=0;j<2;j++)qOk(Math.hypot(pts[j].x-targets[j].x,pts[j].y-targets[j].y)<.01,'그림 끝점 어긋남');n++;};i29Wall(d);}}
+finally{ctx.restore();ctx.drawImage=keep.draw;GFX.art=keep.art;if(keep.pk)FL.P[CG.TOWN]=keep.pk;else delete FL.P[CG.TOWN];if(keep.on)CG.on[CG.TOWN]=keep.on;else delete CG.on[CG.TOWN];}qOk(n===40,'40조각 안 그림');return '40조각 실제 Canvas 변환 끝점 0px';});
+
+/* ===== v30: 새 던전 · 다섯 가지 의뢰 · 반복 정리 · 생존 · 휴대폰 · 동상 물 (영구 시험) ===== */
+const Q30Q=window.__q30;
+function q30Prep(cls,lvl){qPrep(cls||'mage',{lvl:lvl||99});P.towns=ALLTOWNS.map(t=>t.id);P.invT=1e9;const S=sqState();S.a={};S.d={};Q30Q.Q30.run={};Q30Q.Q30.ch={};Q30Q.Q30.pos={};return S}
+const q30Tk=n=>{for(let i=0;i<n;i++){P.invT=1e9;update(1/30)}};
+const q30Go=p=>{P.x=p.x;P.y=p.y;q30Tk(3)};
+function q30Acc(id){const q=SQBY[id],S=sqState();if(q.req)S.d[q.req]=1;sqAccept(id);qOk(S.a[id],'의뢰 못 받음 '+id);return q}
+qT('의뢰 v30','새 던전 6곳: 사냥터마다 입구 · 준보스 둘 · 보스 · 입구 그림',()=>{q30Prep();const ds=WX_DUNGEONS.filter(d=>/^h30_/.test(d.id));qOk(ds.length===6,'던전 수 '+ds.length);
+  for(const d of ds){qOk(RCACHE[d.reg].caves.some(c=>c.cave===d),'입구 없음 '+d.id);qOk(d.minis.length===2&&d.minis.every(k=>TYPES[k]&&TYPES[k].mini),'준보스 '+d.id);qOk(TYPES[d.boss]&&TYPES[d.boss].boss,'보스 '+d.id);
+    const A=FLDG[d.id],known=new Set(Object.entries(FLDG).filter(([k])=>!/^h30_/.test(k)).map(([,v])=>v[0]));qOk(A&&known.has(A[0]),'입구 그림 '+d.id);qOk(new Set(WX_DUNGEONS.filter(x=>x.reg===d.reg).map(x=>x.id)).size===WX_DUNGEONS.filter(x=>x.reg===d.reg).length,'같은 id')}
+  return ds.map(d=>d.n).join(' · ')});
+qT('의뢰 v30','새 의뢰 24개: 의뢰인 · 마을 · 앞 의뢰 · 몹 잡기 아닌 종류 18개 · 자리는 걸을 수 있는 곳',()=>{const S=q30Prep();const qs=Q30Q.Q30_SQ;qOk(qs.length===24,'의뢰 수');let other=0,spots=0;
+  for(const q of qs){const f=sqFolk(q.giver);qOk(SQBY[q.id]===q,'SQ 없음 '+q.id);qOk(f&&f.town&&f.town.id===q.town,'의뢰인 '+q.id);if(q.req)qOk(SQBY[q.req],'앞 의뢰 '+q.id);if(q.goals.some(g=>Q30Q.Q30.T.has(g.type)))other++}
+  qOk(other===18,'새 종류 의뢰 수 '+other);
+  for(const reg of [...new Set(qs.flatMap(q=>q.goals.map(g=>g.reg)).filter(Boolean))]){loadRegion(reg);for(const q of qs){for(const g of q.goals){if((g.reg||'home')!==reg)continue;
+    const keys=g.type==='track'?g.steps.map((s,i)=>['s'+i,s]):g.type==='ritual'?g.stones.map((s,i)=>['r'+i,s]):g.type==='defend'?[['w',g.at]]:g.type==='chase'?[['a',g.at],...g.path.map((p,i)=>['p'+i,p])]:[];
+    for(const [k,a] of keys){const p=Q30Q.q30Spot(q,k,g,a);spots++;qOk(p&&!blockedAt(p.x,p.y)&&!inSafe(p.x,p.y,0)&&zoneLevel(p.x,p.y)>=1,'막힌 자리 '+q.id+' '+k)}}}}
+  loadRegion('home');return `새 종류 ${other}개 · 자리 ${spots}곳`});
+qT('의뢰 v30','추적: 흔적을 차례로 찾으면 범인(정예)이 나오고 쓰러뜨리면 끝 · 순서 건너뛰기 안 됨',()=>{const S=q30Prep();loadRegion('h29_reed');const q=q30Acc('h30r1'),g=q.goals[0];
+  q30Go(Q30Q.q30Spot(q,'s2',g,g.steps[2]));qOk((S.a.h30r1.c.g0|0)===0,'세 번째 흔적부터 셈');
+  for(let i=0;i<4;i++){const sp=Q30Q.q30Spot(q,'s'+i,g,g.steps[i]);q30Go({x:sp.x+160,y:sp.y});q30Go(sp)}qOk(S.a.h30r1.c.g0===4,'흔적 '+S.a.h30r1.c.g0);
+  q30Tk(3);const f=enemies.find(e=>e.q30==='h30r1');qOk(f&&f.elite&&f.k===g.foe,'범인 없음');qOk(sqGoalText(q,0).includes('쓰러뜨리기'),'글');f.hp=0;killE(f);q30Tk(2);qOk(sqAllDone(q),'끝나지 않음');loadRegion('home');return '흔적 4 · 범인 Lv'+f.lvl});
+qT('의뢰 v30','지키기: 다가가면 시작 · 떠나면 실패 후 다시 · 버티면 끝 · 몬스터가 물건을 친다',()=>{const S=q30Prep();loadRegion('h29_reed');const q=q30Acc('h30r2'),g=q.goals[0],w=Q30Q.q30Spot(q,'w',g,g.at);
+  q30Go({x:w.x+400,y:w.y});qOk(!Q30Q.Q30.run.h30r2,'멀리서 시작');q30Go({x:w.x+60,y:w.y});qOk(Q30Q.Q30.run.h30r2,'시작 안 함');q30Go({x:w.x+1200,y:w.y});qOk(!Q30Q.Q30.run.h30r2&&!sqAllDone(q),'떠나도 계속');
+  q30Go({x:w.x+60,y:w.y});const run=Q30Q.Q30.run.h30r2;qOk(run&&run.t>g.secs-1,'다시 시작 안 함');const e=Q30Q.TICK&&dgMob(g.mobs[0],w.x+10,w.y,72);q30Tk(45);qOk(run.hp<g.hp,'물건이 맞지 않음');e.hp=0;killE(e);
+  let n=0;for(let s=0;s<g.secs*30+60&&!sqAllDone(q);s++){q30Tk(1);for(const x of enemies)if(!x.dead&&Math.hypot(x.x-w.x,x.y-w.y)<260){x.hp=0;killE(x)}n++}
+  qOk(sqAllDone(q),'끝나지 않음 '+(run.hp|0));loadRegion('home');return `물건 ${Math.round(run.hp)}/${g.hp} · ${Math.round(n/30)}초`});
+qT('의뢰 v30','봉인: 순서대로 밟으면 하나씩 · 틀리면 모두 꺼지고 힌트 · 끝까지 맞추면 끝',()=>{const S=q30Prep();loadRegion('h29_snow');const q=q30Acc('h30s2'),g=q.goals[0],st=i=>Q30Q.q30Spot(q,'r'+i,g,g.stones[i]);qOk(g.n===g.stones.length,'n');
+  const step=i=>{q30Go({x:st(i).x+180,y:st(i).y});q30Go(st(i))};step(g.order[0]);step(g.order[1]);qOk(S.a.h30s2.c.g0===2,'두 개 '+S.a.h30s2.c.g0);step(g.order[3]);qOk(S.a.h30s2.c.g0===0,'틀려도 안 꺼짐');
+  for(const i of g.order)step(i);qOk(sqAllDone(q),'끝나지 않음');loadRegion('home');return '돌 '+g.n});
+qT('의뢰 v30','수수께끼: 대화 창에 물음과 답 단추 · 틀리면 그대로 · 셋 다 맞히면 끝',()=>{const S=q30Prep();loadRegion('h29_crystal');const q=q30Acc('h30c1'),g=q.goals[0],f=sqFolk(g.npc);qOk(f,'의뢰인');sqTalk(f);
+  const h=sqNpcHtml();qOk(h.includes('data-q30q="h30c1"')&&h.includes(g.qs[0][0].slice(0,10)),'물음 없음');Q30Q.q30Answer('h30c1',(g.qs[0][2]+1)%3);qOk((S.a.h30c1.c.g0|0)===0,'틀린 답을 셈');
+  Q30Q.Q30.lock=0;for(const Q of g.qs){Q30Q.q30Answer('h30c1',Q[2]);Q30Q.Q30.lock=0}qOk(sqAllDone(q),'끝나지 않음');qClosePanels();loadRegion('home');return '물음 '+g.qs.length});
+qT('의뢰 v30','추격: 다가가면 달아남 · 놓치면 처음 자리 · 붙잡으면 끝',()=>{const S=q30Prep();loadRegion('h29_kiln');const q=q30Acc('h30k1'),g=q.goals[0],a=Q30Q.q30Spot(q,'a',g,g.at);
+  q30Go({x:a.x+600,y:a.y});qOk(Q30Q.Q30.ch.h30k1&&Q30Q.Q30.ch.h30k1.st==='wait','기다리지 않음');q30Go({x:a.x+200,y:a.y});qOk(Q30Q.Q30.ch.h30k1.st!=='wait','달아나지 않음');
+  for(let s=0;s<30*40&&Q30Q.Q30.ch.h30k1&&Q30Q.Q30.ch.h30k1.st!=='wait';s++)q30Tk(1);qOk(Q30Q.Q30.ch.h30k1&&Q30Q.Q30.ch.h30k1.st==='wait'&&Math.hypot(Q30Q.Q30.ch.h30k1.x-a.x,Q30Q.Q30.ch.h30k1.y-a.y)<2,'놓쳐도 처음 자리 아님');
+  let t=0;for(;t<30*30&&Q30Q.Q30.ch.h30k1;t++){const C=Q30Q.Q30.ch.h30k1,d=Math.hypot(C.x-P.x,C.y-P.y),sp=SPEED/30;if(d>1){P.x+=(C.x-P.x)/d*Math.min(sp,d);P.y+=(C.y-P.y)/d*Math.min(sp,d)}q30Tk(1)}
+  qOk(sqAllDone(q),'못 붙잡음');loadRegion('home');return Math.round(t/30)+'초에 붙잡음'});
+qT('의뢰 v30','새 던전 의뢰: 목표가 던전 입구 · 준보스 둘과 보스를 한 번 들어가서 끝',()=>{const S=q30Prep();const q=q30Acc('h30b3'),tg=sqTarget(q);qOk(tg&&tg.reg==='h29_bell'&&/부서진 종탑/.test(tg.label),'목표 '+(tg&&tg.label));
+  loadRegion('h29_bell');const c=CAVES.find(c=>c.cave&&c.cave.id==='h30_belltower');enterDungeon(c);qOk(DG&&DG.lvl>=95,'던전 레벨');for(const e of enemies.slice())if(TYPES[e.k].mini||TYPES[e.k].boss){e.hp=0;killE(e)}q30Tk(2);const L=DG.lvl;qOk(sqAllDone(q),'한 번에 안 끝남');leaveDungeon();loadRegion('home');return '던전 Lv'+L});
+qT('의뢰 v30','반복 정리: 이미 잡은 준보스·보스는 50레벨 아래 의뢰를 받을 때 처치로 침 (고분 · 하수도 · 요새) · 되풀이 의뢰 제외',()=>{q30Prep('warrior',5);P.mk={};
+  for(const k of ['m_wolfking','m_drowned','m_herdin'])questKill({k,x:0,y:0});qOk(P.mk.m_wolfking===1&&P.mk.m_drowned===1&&P.mk.m_herdin===1,'기억 '+JSON.stringify(P.mk));
+  sqAccept('fang');qOk(sqAllDone(SQBY.fang),'늑대 송곳니');const S=sqState();S.d.ctw1=S.d.ctw2=S.d.ctw3=1;P.lvl=23;sqAccept('ctw4');qOk(S.a.ctw4&&sqGoalDone(SQBY.ctw4,SQBY.ctw4.goals.findIndex(g=>g.k&&g.k.includes('m_herdin'))),'전사 시험 헤르딘');
+  P.mk={};const o={};qOk(!Q30Q.q30Credit([{type:'kill',k:['wolf'],n:3}],o).length,'일반 몬스터까지 셈');
+  q30Prep('priest',10);P.mk={m_drowned:1};const S2=sqState();S2.d.ctp1=1;sqAccept('ctp2');qOk(S2.a.ctp2&&sqGoalDone(SQBY.ctp2,0),'사제 시험 익사한 사제');
+  // 50레벨 아래 의뢰 중 같은 던전 준보스·보스를 노리는 것끼리는 모두 기억으로 이어짐
+  const pairs=[];const lo=[...QUESTS.map(q=>({q,id:'M'})),...SQ.map(q=>({q,id:q.id}))].filter(a=>a.q.lvl<50&&!a.q.rep);for(const a of lo)for(const g of a.q.goals)if(g.type==='kill'&&g.k&&g.k.every(k=>TYPES[k]&&(TYPES[k].mini||TYPES[k].boss)))pairs.push(g);
+  qOk(pairs.length>3,'대상 '+pairs.length);return '기억 3종 · 의뢰 3개 바로 끝 · 대상 목표 '+pairs.length});
+qT('의뢰 v30','고분의 속삭임: 입구를 살펴보면 마을에 돌아가지 않고 바로 고분의 왕',()=>{q30Prep('mage',4);const st=qState();st.i=1;st.st=2;st.c={g0:1};q30Tk(2);qOk(st.i===2&&st.st===1&&qCur()===QUESTS[2],'이어지지 않음 '+st.i+'/'+st.st);
+  st.i=0;st.st=2;q30Tk(2);qOk(st.i===0&&st.st===2,'다른 의뢰까지 바로 끝냄');return QUESTS[2].t});
+qT('의뢰 v30','저장: 새 칸 mk · 없으면 끝낸 의뢰로 채움 · 지우지 않음 · 이상한 값 버림',()=>{q30Prep('warrior',30);P.mk={m_bolg:2,b_arsil:1};const d=saveData();qOk(d.mk&&d.mk.m_bolg===2,'저장 안 됨');
+  const d2=JSON.parse(JSON.stringify(d));delete d2.mk;d2.q={i:3,st:0,c:{}};load(d2,0);qOk(P.mk.m_bolg===1&&P.mk.b_arsil===1,'끝낸 의뢰로 안 채움 '+JSON.stringify(P.mk));
+  const d3=JSON.parse(JSON.stringify(d));d3.mk={m_bolg:99,x:-1,y:'a',[('k'.repeat(50))]:3};load(d3,0);qOk(P.mk.m_bolg===9&&!('x' in P.mk)&&!('y' in P.mk)&&Object.keys(P.mk).length===1,'정리 '+JSON.stringify(P.mk));return 'mk 저장 · 채움 · 정리'});
+qT('의뢰 v30','새 의뢰의 흔적 · 돌 · 달아나는 길 · 지킬 자리가 모두 쉼터에서 걸어서 닿음 (물 · 절벽에 갇히지 않음) · 지역 안에서 고른 자리도',()=>{qPrep('mage',{lvl:100});const bad=[];let n=0;
+  for(const q of Q30_SQ)for(const g of q.goals){if(!g.reg||g.reg==='home')continue;const ok=terrReach(g.reg),b=g.from?ALLTOWNS.find(t=>t.id===g.from):RCACHE[g.reg].town;
+    const pts=[...(g.steps||[]),...(g.at?[g.at]:[]),...(g.stones||[]),...(g.path||[]),...(g.start?[g.start]:[])];
+    for(const a of pts){const r=a[0]*Math.PI/180,x=clamp(b.x+Math.cos(r)*a[1],150,WORLD-150),y=clamp(b.y+Math.sin(r)*a[1],150,WORLD-150);n++;if(!wxCanReach(ok,x,y))bad.push(q.id+' '+JSON.stringify(a.slice(0,2)))}}
+  qOk(!bad.length,bad.join(' / '));Q30.pos={};switchRegion('h29_reed',2000,2000,true);const q=Q30_SQ.find(q=>q.id==='h30r1'),g=q.goals[0],ok=terrReach('h29_reed');
+  for(let i=0;i<g.steps.length;i++){const p=q30Spot(q,'s'+i,g,g.steps[i]);qOk(p&&wxCanReach(ok,p.x,p.y),'갈대 흔적 '+i)}loadRegion('home');Q30.pos={};return n+'곳'});
+qT('생존 v30','5레벨 첫 던전: 전사 늑대 ≤8% · 준보스 ≤15% · 보스 ≤25% · 마법사 늑대 ≤15% · 일반 한 대 ≤35% · 전사 생명력 최고',()=>{const R={};
+  for(const cls of ['warrior','mage','priest','archer']){qPrep(cls,{lvl:5});const c=HOME.caves.find(c=>c.cave&&c.cave.id==='barrow');enterDungeon(c);const r={hp:maxHp()};
+    for(const k of ['wolf','m_wolfking','b_arsil']){const e=enemies.find(e=>e.k===k);if(!e)continue;let s=0;for(let i=0;i<10;i++){P.hp=maxHp();P.invT=0;P.shield=0;P.dead=false;const h=P.hp;hitPlayer(e.dmg,e);s+=h-P.hp}r[k]=s/10/maxHp()}leaveDungeon();R[cls]=r}
+  qOk(R.warrior.wolf<=.08,'전사 늑대 '+R.warrior.wolf);qOk(R.warrior.m_wolfking<=.15,'전사 준보스 '+R.warrior.m_wolfking);qOk(R.warrior.b_arsil<=.25,'전사 보스 '+R.warrior.b_arsil);qOk(R.mage.wolf<=.15,'마법사 늑대 '+R.mage.wolf);
+  qOk(R.warrior.hp>R.priest.hp&&R.warrior.hp>R.archer.hp&&R.warrior.hp>R.mage.hp,'전사 생명력');
+  qPrep('mage',{lvl:5});P.hp=maxHp();const h=P.hp;hitPlayer(1e7,{k:'wolf',lvl:60});qOk(h-P.hp<=Math.floor(h*.35),'일반 한 대 35% 넘음');
+  qPrep('mage',{lvl:75});qOk(g30Bonus(75*15)===0,'75레벨 마법사 보정이 생김');qPrep('warrior',{lvl:75});qOk(g30Innate()===1125,'전사 기본 방어');qOk(charHtml().includes('전사 기본 방어 +1125')&&charHtml().includes('전사의 맷집'),'능력 창');
+  return Object.entries(R).map(([c,r])=>`${c} ${Math.round(r.wolf*100)}/${Math.round(r.m_wolfking*100)}/${Math.round(r.b_arsil*100)}%`).join(' · ')});
+qT('생존 v30','전사 전반 (사용자 16:12): 같은 레벨 방어구를 입고 같은 레벨 몬스터 4마리에 둘러싸여 맞기 · 30·100레벨 전사 4.5초 이상 · 마법사의 2.5배 이상 · 가장 센 한 대 10% 이하',()=>{const out=[];
+  const surv=(cls,L,rg)=>{qPrep(cls,{lvl:L});QA.reseed(30016+L);const g={robe:{id:9e6,slot:'robe',rar:0,il:L,cls,wt:cls==='warrior'?'plate':'',stats:{},name:'시험'},hat:{id:9e6+1,slot:'hat',rar:0,il:L,cls,stats:{},name:'시험'}};
+    if(cls==='warrior')g.off={id:9e6+2,slot:'off',rar:0,il:L,cls,wt:'shield',stats:{},name:'시험'};for(const it of Object.values(g))g29Ensure(it);P.gear=Object.assign({},P.gear,g);
+    enterDungeon(HOME.caves.find(c=>c.cave&&c.cave.id==='barrow'));enemies.length=0;const ks=REGIONS[rg].mobs.filter(k=>TYPES[k]&&!TYPES[k].boss&&!TYPES[k].mini).slice(-4);
+    const mobs=ks.map((k,i)=>dgMob(k,P.x+Math.cos(i*Math.PI/2)*45,P.y+Math.sin(i*Math.PI/2)*45,L));const H=maxHp();let hit=0;
+    for(const e of mobs){P.hp=H;P.invT=0;P.shield=0;P.dead=false;hitPlayer(e.dmg,e);hit=Math.max(hit,(H-P.hp)/H)}
+    P.hp=H;P.invT=0;P.shield=0;P.dead=false;let t=0;for(;t<60&&!P.dead;t+=1/30){for(const e of mobs)e.hp=e.max;update(1/30)}const dead=P.dead;P.dead=false;P.hp=H;leaveDungeon();return{t,hit,dead,H}};
+  for(const [L,rg] of [[30,'moor'],[100,'h29_veil']]){const w=surv('warrior',L,rg),m=surv('mage',L,rg);qOk(w.t>=4.5,L+'레벨 전사 '+w.t.toFixed(2)+'초 · 마법사 '+m.t.toFixed(2)+' · 한 대 '+w.hit.toFixed(3)+' · 생명 '+w.H);qOk(w.t>=m.t*2.5,L+'레벨 마법사 대비 '+w.t.toFixed(1)+'/'+m.t.toFixed(1));qOk(w.hit<=.1,L+'레벨 전사 가장 센 한 대 '+w.hit);
+    out.push(`${L}레벨 전사 ${w.t.toFixed(1)}초(생명 ${w.H}) · 마법사 ${m.t.toFixed(1)}초(생명 ${m.H})`)}
+  qPrep('warrior',{lvl:30});qOk(g30Tough({k:'wolf',lvl:30})===.7&&g30Tough({k:'b_arsil',lvl:30,boss:1})===.9,'맷집');qPrep('mage',{lvl:30});qOk(g30Tough({k:'wolf',lvl:30})===1,'마법사 맷집 생김');
+  return out.join(' · ')});
+qT('휴대폰 v30','기록창 위 손가락도 두 손가락 확대 · 손가락 다 떼면 비움',()=>{qPrep('mage');const z0=FB28.zoom,p0=FB28.pos;
+  try{return qM22('L',844,390,()=>{const lg=$('#log'),r=lg.getBoundingClientRect(),fire=(el,type,id,x,y)=>el.dispatchEvent(new PointerEvent(type,{bubbles:true,cancelable:true,pointerType:'touch',pointerId:id,clientX:x,clientY:y}));
+    fire(lg,'pointerdown',301,r.x+20,r.y+10);fire(cv,'pointerdown',302,r.x+120,r.y-60);qOk(FB28.pinch&&!FB28.drag,'확대 시작 안 함');fire(cv,'pointermove',302,r.x+260,r.y-140);qOk(FB28.zoom>z0,'확대 안 됨 '+FB28.zoom);
+    fire(cv,'pointerup',302,r.x+260,r.y-140);fire(cv,'pointerup',301,r.x+20,r.y+10);dispatchEvent(new TouchEvent('touchend',{touches:[]}));qOk(!FB28.pointers.size&&!FB28.pinch,'손가락 기록 남음');return '확대 '+FB28.zoom.toFixed(2)})}
+  finally{fb28Zoom(z0,false);FB28.pos=p0;FB28.pointers.clear();FB28.pinch=null}});
+qT('휴대폰 v30','짝문 지도: 휴대폰에서 90%로 열림 · 키우고 줄이기 30~130% · 창 바깥 띠',()=>{qPrep('mage');P.towns=ALLTOWNS.map(t=>t.id);M30.gz=null;
+  return qM22('L',844,390,()=>{openPanel('gate');const p=m30GateParts();qOk(p&&Math.abs(M30.gcur-.9)<.01,'처음 배율 '+M30.gcur);const z=M30.gcur;pbody.querySelector('[data-m30z="1"]').click();qOk(M30.gcur>z,'키우기');m30GateZoom(5,true);qOk(M30.gcur<=1.3,'상한');m30GateZoom(.01,true);qOk(M30.gcur>=.29,'하한');
+    const c=panel.querySelector('.card').getBoundingClientRect();qOk(c.left>=40&&844-c.right>=40,'바깥 띠 '+c.left);const at=document.elementFromPoint(10,200);qOk(at===panel,'바깥이 창 배경 아님');panel.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true}));qOk(panel.hidden,'바깥 눌러도 안 닫힘');M30.gz=null;return '바깥 띠 '+Math.round(c.left)+'px'})});
+qT('휴대폰 v30','의뢰 알림판 0.7초 길게 눌러 옮기기 · 짧게는 안 옮김 · 자리 기억 · 되돌리기',async()=>{qPrep('mage');const p0=FB28.pos;FB28.pos={};
+  try{await qM22('L',844,390,async()=>{questHud();const q=$('#qhud'),r=q.getBoundingClientRect(),ev=(x,y)=>({touches:x==null?[]:[{clientX:x,clientY:y}],target:q,cancelable:true,preventDefault(){},stopPropagation(){}});
+    m30QDown(ev(r.x+20,r.y+20));await new Promise(s=>setTimeout(s,300));m30QMove(ev(r.x+5,r.y+20));qOk(!M30Q.d,'짧게 움직여도 옮기기');m30QUp(ev());qOk(!FB28.pos.L_qhud,'짧게 눌러도 저장');
+    m30QDown(ev(r.x+20,r.y+20));await new Promise(s=>setTimeout(s,FB28.hold+150));qOk(M30Q.d&&M30Q.d.on&&q.classList.contains('fb28moving'),'길게 눌러도 옮기기 안 됨');m30QMove(ev(r.x-180,r.y-60));m30QUp(ev());
+    const a=q.getBoundingClientRect();qOk(Math.abs(a.x-(r.x-200))<3&&Math.abs(a.width-r.width)<2,'옮긴 자리 '+a.x+' 폭 '+a.width);qOk(FB28.pos.L_qhud,'자리 기억 없음');fb28Reset();qOk(!q.style.left&&!FB28.pos.L_qhud,'되돌리기')})}
+  finally{FB28.pos=p0;fb28Restore()}return '0.7초 · 끌기 · 되돌리기'});
+qT('화면·마을 v30','가짜코 동상 물: 안쪽 바닥에 있고 앞 테두리·기둥·받침 계단은 덮지 않음',()=>{qPrep('mage');const cv0=document.createElement('canvas');cv0.width=180;cv0.height=250;const PK={img:cv0,meta:{r:{'076_statue_false_nose_single':[0,0,180,250,92.5,239]}}},g=cv0.getContext('2d');
+  f29Statue(g,PK,HOME.decor.find(d=>d.k==='statue'),92.5,239,1);const a=(x,y)=>g.getImageData(x,y,1,1).data[3];
+  qOk(a(40,172)>0&&a(140,170)>0&&a(30,165)>0,'안쪽 바닥에 물 없음');qOk(a(90,207)===0&&a(40,205)===0,'앞 테두리에 물');qOk(a(92,170)===0&&a(92,195)===0,'기둥·계단에 물');return '안쪽 바닥만'});
 window.__QA_RUN=qaRun;
 setTimeout(()=>{qaRun().catch(e=>{window.__QA_RESULT={fatal:String(e&&e.stack||e),results:[],summary:{total:0,pass:0,fail:1}}})},120);
 }
