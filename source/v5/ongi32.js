@@ -15,6 +15,8 @@ const OG_LINES=['진한 화장을 해라!','이태희 원장님이 주신 새 �
 Object.assign(MON_H,{ongipig:58,ongigod:68});
 if(typeof R22_HW==='object')Object.assign(R22_HW,{ongipig:22,ongigod:15});
 queueMicrotask(()=>{try{if(typeof BGM_REG==='object')BGM_REG[OG32.reg]='snow'}catch(_){}});
+// 선공 · 비선공 섞기(v26): 진흙덩이 · 숭배자는 비선공 (빌린 모양의 원래 성격과 같음)
+if(typeof AG26==='object')for(const k of ['og_1','og_3'])AG26.P.add(k);
 
 /* ===== 그림: 옹기 (투사체 · 돼지 손 · 동상 손이 같이 씀) ===== */
 function ogPaintJar(g){// 발밑 (0,0) · 높이 22
@@ -144,13 +146,13 @@ if(typeof netEnterDg==='function'){const _n=netEnterDg;netEnterDg=function(){OGV
   const had=!!DG.og.god;enemies=enemies.filter(o=>o.og!==2);const b=DG.boss;b.cast=0;b.ogN=0;b.ogA=null;DG.og=ogNew();OGV.say=[];OGV.line=null;return r||had}}
 // 대사: 머리 위 말풍선 (같이 하기: 방장이 알림)
 function ogSay(e,w,quiet){if(!e)return;if(NET.on&&!e.id)e.id=++NET.eid;OGV.say=OGV.say.filter(q=>q.ref!==e&&!(q.id&&q.id===e.id));
-  OGV.say.push({ref:e,id:e.id||0,x:e.x,y:e.y,k:e.k,w,t0:time});if(!quiet&&NET.on&&NET.host)v20Send('ogs',{i:e.id,w,x:Math.round(e.x),y:Math.round(e.y),k:e.k})}
-V20NET.ogs=m=>{if(!DG)return;const e=enemies.find(o=>o.id===m.i);OGV.say=OGV.say.filter(q=>q.id!==m.i);OGV.say.push({ref:e||null,id:m.i,x:m.x,y:m.y,k:m.k,w:m.w,t0:time})};
+  OGV.say.push({ref:e,id:e.id||0,x:e.x,y:e.y,k:e.k,w,t0:time});if(!quiet&&NET.on&&NET.host)v20Send('ogs',{i:e.id,w,x:Math.round(e.x),y:Math.round(e.y),m:e.k})/* k는 메시지 이름 자리라 몬스터 종류는 m */}
+V20NET.ogs=m=>{if(!DG)return;const e=enemies.find(o=>o.id===m.i);OGV.say=OGV.say.filter(q=>q.id!==m.i);OGV.say.push({ref:e||null,id:m.i,x:m.x,y:m.y,k:m.m,w:m.w,t0:time})};
 V20NET.ogl=m=>{if(!DG)return;const a=m.a;OGV.line={x1:a[0],y1:a[1],x2:a[2],y2:a[3],t0:time-(m.f?OGT.line:0)}};
 V20NET.ogd=m=>{if(!DG)return;const a=m.a;OGV.line=null;OGV.say=[{ref:null,id:0,x:a[0],y:a[1],k:OG32.pig,w:2,t0:time}];if(a.length>2)OGV.say.push({ref:null,id:0,x:a[2],y:a[3],k:OG32.god,w:2,t0:time})};
 function ogCount(e){e.ogN=(e.ogN||0)+1;if(e.ogN%3===0)ogSay(e,e.og===2?1:0)}
 // 여신이 내려옴: 돼지와 같은 생명력(하나를 나눠 씀) · 같은 레벨 · 같은 파티 배수
-function ogSpawnGod(og,pig){let x=pig.x,y=pig.y;for(let i=0;i<12;i++){const a=i/12*6.283+R()*.3,X=pig.x+Math.cos(a)*170,Y=pig.y+Math.sin(a)*170;if(dgFree(X,Y,30)){x=X;y=Y;break}}
+function ogSpawnGod(og,pig){let x=pig.x,y=pig.y;for(let i=0;i<12;i++){const a=i/12*6.283+R()*.3,X=pig.x+Math.cos(a)*220,Y=pig.y+Math.sin(a)*220;if(dgFree(X,Y,30)){x=X;y=Y;break}}
   const g=dgMob(OG32.god,x,y,pig.lvl);Object.assign(g,{hp:pig.hp,max:pig.max,dmg:pig.dmg*TYPES[OG32.god].dmg/TYPES[OG32.pig].dmg,ps:pig.ps,_b24:pig._b24,aggroed:true,boss:1,big:1,og:2,skT:rnd(2,3.5),atkCd:99});pig.og=1;
   og.god=g;og.S=pig.hp;rings.push({x,y,r:6,max:120,life:.7,col:'#ffd6e0'});for(let i=0;i<24;i++)parts.push({x:x+rnd(-20,20),y:y+rnd(-20,20),z:rnd(60,140),vx:rnd(-30,30),vy:rnd(-30,30),vz:-rnd(40,120),life:1,max:1,col:'#ffd6e0',sz:2.4});
   banner={t:'옹기돼지 · 가짜코 여신',sub:'두 보스는 생명력을 함께 씁니다 · 30초마다 둘 사이 일직선을 피하세요',col:'#ffb0c8',life:3,max:3};msg('가짜코 여신이 내려왔습니다! 두 보스는 생명력을 함께 씁니다','#ffb0c8');return g}
@@ -192,6 +194,7 @@ function ogTick(dt){const og=DG.og,p=DG.boss;if(!p||p.k!==OG32.pig||og.dead||p.d
   const og=DG.og;og.dead=1;og.ph=null;OGV.line=null;const pig=DG.boss&&DG.boss.k===OG32.pig?DG.boss:e,g=og.god;
   OGV.say=[];ogSay(pig,2,1);if(g)ogSay(g,2,1);if(NET.on&&NET.host)v20Send('ogd',{a:(g?[pig.x,pig.y,g.x,g.y]:[pig.x,pig.y]).map(Math.round)});
   if(g&&!g.dead){g.dead=true;g.hp=0;killFx(g)}
+  projs=projs.filter(q=>!(q.owner==='e'&&(q.col===OG_JAR||q.col===OG_SIL)));// 날아가던 옹기 · 실리콘도 함께 사라짐
   if(e!==pig){if(pig.dead)return;pig.hp=0;return _k.call(this,pig)}
   return _k.apply(this,arguments)}}
 // 같이 하기 몫: 여신에게 준 피해도 보스(돼지) 몫으로 센다
