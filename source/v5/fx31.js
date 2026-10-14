@@ -18,7 +18,8 @@ const FX31={P:{},want:{},busy:0,busyT:0,q:[],inst:[],nd:0,t:0,C:128,
     ['021','wind','field','dustdevil whirlwind'],['022','fire','field','firewall firestorm magmafield forbidblaze'],['023','earth','beam','fissure magmariver'],['024','arcane','shield','shieldcircle elembarrier'],
     ['025','fire','armor','flamemantle'],['026','ice','shield','iceshield'],['027','storm','cone','shockinggrasp'],['028','wind','blink','windleap'],['029','earth','field','quicksand earthquake'],
     ['030','storm','beam','lightning rendingsky'],['031','earth','rain','stonerain'],['032','life','heal','arcaneheal'],['033','ice','field','whirlpool blizzard'],['034','storm','rain','hail lordvermilion'],
-    ['035','ice','beam','callwave'],['036','ice','armor','frostarmor'],['037','storm','nova','eyeofstorm'],['038','arcane','strike','spacetwist testament'],['039','light','rain','lightrain starlight']],
+    ['035','ice','beam','callwave'],['036','ice','armor','frostarmor'],['037','storm','nova','eyeofstorm'],['038','arcane','strike','spacetwist testament'],['039','light','rain','lightrain starlight'],
+    ['040','fire','summon','hydra fireelem phoenix']],
   TWO:new Set(['bolt','chain','beam','rain']),M:{},n:{draw:0,fall:0,evict:0,load:0},
   init(){for(const [no,el,k,ids] of this.T){const b=`fx_${no}_1_mage_${el}_${k}`,i=this.TWO.has(k)?`fx_${no}_2_mage_${el}_${k}`:null;for(const id of ids.split(' '))this.M[id]={k,b,i,pk:'mage-'+el}}},
   on(){return typeof GFX==='undefined'||GFX.art!=='old'},
@@ -62,7 +63,7 @@ FX31.init();
 window.FX_PACK=function(name,meta,url){FX31.got(name,meta,url)};
 
 /* ----- 시전 앞뒤: clsAim(모든 시전이 지나는 곳, 겨눔 직전)에서 개수를 적어 두고, FXP.cast(시전 끝)에서 새로 생긴 예전 층을 바꾼다 ----- */
-{const _ca=clsAim;clsAim=function(s,t){if(s&&FX31.M[s.id])FX31.snap={id:s.id,x:P.x,y:P.y,r:rings.length,p:parts.length,b:bolts.length,bm:beams.length,f:fields.length,pd:pend.length,fx:FXB.fx.length};return _ca.apply(this,arguments)}}
+{const _ca=clsAim;clsAim=function(s,t){if(s&&FX31.M[s.id])FX31.snap={id:s.id,x:P.x,y:P.y,r:rings.length,p:parts.length,b:bolts.length,bm:beams.length,f:fields.length,pd:pend.length,fx:FXB.fx.length,al:allies.length};return _ca.apply(this,arguments)}}
 {const _fc=FXP.cast;FXP.cast=function(s,t,actor){const r=_fc.apply(this,arguments);const sn=FX31.snap;FX31.snap=null;
   try{if(s&&sn&&sn.id===s.id)FX31.cast(s,t,actor||P,sn)}catch(err){if(window.__QA)throw err}return r}}
 // 같이 하기 유령 시전에서도 이때의 P가 시전한 사람 자리 (net.js가 P를 잠깐 바꿔 둔다)
@@ -76,6 +77,9 @@ FX31.cast=function(s,t,_o,sn){const o=P;const g=this.get(s.id);if(!g)return;cons
   else if(k==='beam'){for(let i=sn.bm;i<beams.length;i++){const b=beams[i];b.a31=m;if(m.i)this.add({st:m.i,pk:m.pk,x:b.x2,y:b.y2,z:b.z||14,d:.4,sc:.5+rank*.04,ax:64,ay:64})}
     for(let i=sn.b;i<bolts.length;i++)bolts[i].hid31=1;newRings();this.halve(sn.p)}
   else if(k==='field'){for(let i=sn.f;i<fields.length;i++)fields[i].a31=m}
+  // v32: 불러낼 때 빛 — 새로 나온 동료(소환수) 발밑에서 한 번 (없으면 시전한 사람 앞)
+  else if(k==='summon'){const sc=.85+rank*.03,at=allies.slice(sn.al||0).filter(a=>a.s&&a.s.id===s.id);if(!at.length)at.push({x:o.x+Math.cos(P.face)*50,y:o.y+Math.sin(P.face)*50});
+    for(const a of at)this.add({st:m.b,pk:m.pk,x:a.x,y:a.y,z:0,d:.75,sc,ax:64,ay:100});newRings();this.halve(sn.p)}
   else if(k==='strike'){for(let i=sn.pd;i<pend.length;i++){const q=pend[i];if(q.s&&q.s.mini)continue;const dl=Math.max(0,q.t-.45);this.add({st:m.b,pk:m.pk,x:q.x,y:q.y,z:0,d:.7,sc:Math.max(.8,Math.min(2.2,(q.s.rad||90)*2.2/this.C)),ax:64,ay:108,t0:time+dl})}}};
 // 투사체 몸통: 그림이 있으면 예전 몸통·꼬리·고리 대신 그림 (휘는 빛 꼬리는 그림에 들어 있음)
 {const _d=FXR.draw;FXR.draw=function(c,p,s,k,ox,oy,map){const g=p&&p.s&&!p.s.phys&&FX31.get(p.s.id);if(!g||g.m.k!=='bolt')return _d.apply(this,arguments);

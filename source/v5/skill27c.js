@@ -19,7 +19,7 @@ const RENAME27={
   fanshot:'멀티플 샷',fulldraw:'차지 샷',streamshot:'래피드 샷',steadyhand:'보우 마스터리',powershot:'파워 샷',
   flamearrow:'플레임 애로우',icearrow:'프로스트 애로우',shockarrow:'윈드 애로우',
   burstarrow:'익스플로시브 애로우',glacialarrow:'프리징 애로우',galearrow:'게일 애로우',
-  firerain:'파이어 레인',blizzardshot:'블리자드 샷',cyclonearrow:'사이클론 애로우',
+  firerain:'블레이즈 필드',blizzardshot:'블리자드 샷',cyclonearrow:'사이클론 애로우',
   volcanoshot:'볼케이노 샷',glacialspike:'글레이셜 스파이크',thunderarrow:'썬더스톰 애로우'};
 // 하는 일이 바뀐 스킬의 설정 이름(kn) · 영어 이름
 const KN27={shockarrow:['바람 화살','Wind Arrow'],thunderarrow:['폭풍 화살','Thunderstorm Arrow'],burstarrow:['터지는 화살','Explosive Arrow'],
@@ -40,7 +40,7 @@ Object.assign(ICP,{
   galearrow:c=>ICX.path('M3 22q8-6 16-2t10-4',PAL.wind[0],1.6,.8)+ICX.path('M3 14q8-6 16-2',PAL.wind[0],1.2,.6)+ICX.arrow(18,14,-20,1,PAL.wind[2],PAL.wind[0]),
   cyclonearrow:c=>ICX.spiral(16,16,1.15,PAL.wind[0])+ICX.arrow(16,13,-45,.65,PAL.wind[2],PAL.wind[0]),
   thunderarrow:c=>ICX.cloud(16,6,.85,'#5a6088')+ICX.zap(9,19,0,.7)+ICX.zap(22,21,0,.7)+ICX.spiral(16,24,.5,PAL.wind[0])+ICX.arrow(16,15,-80,.5,PAL.storm[2],PAL.storm[0]),
-  firerain:c=>ICX.cloud(16,6,.85,'#7a3a2a')+[[9,15],[15,19],[21,14],[25,21],[12,24]].map(([x,y])=>ICX.arrow(x,y,70,.4,PAL.fire[0],PAL.fire[0])).join('')+ICX.flame(18,26,.4),
+  firerain:c=>ICX.g(16,23,0,1,'<ellipse rx="12" ry="5" fill="#7a2a10" opacity=".55"/>')+ICX.flame(10,20,.55)+ICX.flame(22,20,.55)+ICX.flame(16,17,.8)+ICX.arrow(16,10,80,.55,PAL.fire[0],PAL.fire[0]),// v32: 하늘 화살비 → 땅 불 장판
   volcanoshot:c=>ICX.path('M4 28L12 16 16 20 20 14 28 28z','#5a2a18',1.2)+ICX.flame(16,13,.9)+ICX.burst(16,13,.7,PAL.fire[0],9)+ICX.arrow(9,22,-60,.5,PAL.fire[0],PAL.fire[0]),
   blizzardshot:c=>ICX.cloud(16,8,.85,'#7a90a8')+ICX.flake(10,20,.5)+ICX.flake(21,23,.55)+ICX.flake(16,16,.45)+ICX.arrow(24,12,110,.5,PAL.ice[2],PAL.ice[0]),
   glacialspike:c=>`<path d="M16 3L20 26H12z" fill="${PAL.ice[0]}" stroke="${PAL.ice[1]}" stroke-width=".8"/><path d="M8 12L11 27H5z M24 12L27 27H21z" fill="${PAL.ice[2]}" stroke="${PAL.ice[1]}" stroke-width=".6" opacity=".9"/>`+ICX.ring(16,27,.7,PAL.ice[0])});
