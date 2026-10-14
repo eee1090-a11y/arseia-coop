@@ -3680,7 +3680,7 @@ qT(QG22,'목표 자리: 사람(의뢰인 · 지금 서 있는 자리를 따라�
     qOk(qgRo('황금 평원')==='황금 평원으로'&&qgRo('브렌힐')==='브렌힐로'&&qgRo('바다')==='바다로','로/으로');r.push(L.label);
     return r.join(' · ')}
   finally{if(typeof IN!=='undefined'&&IN)twLeave(true);if(DG)leaveDungeon();qG22Off()}});
-qT(QG22,'화살표가 목표 쪽을 가리킴: 동서남북 네 자리에서 화살표 각도 = 화면 위 목표 방향 · 화살표가 캐릭터 둘레(반지름 72px, 휴대폰은 54px)에 · 큰 지도를 열면 숨김',()=>{qPrep('mage',{lvl:30});qG22Off();const r=[];
+qT(QG22,'화살표가 목표 쪽을 가리킴: 동서남북 네 자리에서 화살표 각도 = 화면 위 목표 방향 · 화살표가 캐릭터 둘레(반지름 72px, 휴대폰은 54px)에 · 큰 지도를 열면 숨김',()=>{qPrep('mage',{lvl:30});qG22Off();const r=[];const _rt=q22ReachTick;q22ReachTick=()=>{};/* v31: 「남」 자리는 고분 입구에서 206px라 0.25초마다 도는 도착 판정이 가끔 끼어들어 「고분의 속삭임」이 끝나고(v30부터 바로 다음 의뢰로 이어짐) 목표가 사라졌다. 이 시험은 화살표만 본다 */
   try{P.q={i:1,st:1,c:{}};qgSet('main:1',true);qStep(2,{render:false});qgTick(true);/* 마을 사람이 자리 잡은 뒤의 목표 */const tg=qgTargetW('main:1'),el=QG.el||qgEl();
     for(const [dx,dy,nm] of [[600,0,'동'],[-450,0,'서'],[0,600,'남'],[0,-450,'북'],[420,420,'남동']]){P.x=tg.x+dx;P.y=tg.y+dy;followCam();qStep(2,{render:false});qgTick(true);qStep(1,{render:false});qgTick(true);qgDraw();/* v25: 화살표 각도도 방금 고른 목표로 다시 그림(움직이는 마을 사람 목표면 qgTick 뒤 한 틈 어긋남 · 전체 점검에서 가끔 0.02 차이) */ /* v24: 마지막 한 프레임에 목표가 바뀌었으면(입구 근처 도착 등) 화살표도 그 목표로 다시 맞춘 뒤 잼 */
       const c=QG.cur,tgN=qgTargetW('main:1');qOk(c&&tgN&&Math.hypot(c.x-tgN.x,c.y-tgN.y)<=200&&c.label&&tgN.label.includes(c.label.split(' · ').pop()),`${nm} 목표 (지금 목표 ${tgN&&Math.round(tgN.x)},${tgN&&Math.round(tgN.y)} ${tgN&&tgN.label}) ${JSON.stringify(c)} · 나 ${Math.round(P.x)},${Math.round(P.y)} · ${REG.id}${DG?' 던전':''}${IN?' 건물':''}`);const a=W2S(P.x,P.y),b=W2S(c.x,c.y),want=Math.atan2((b.y-20)-(a.y-30),b.x-a.x);
@@ -3691,7 +3691,7 @@ qT(QG22,'화살표가 목표 쪽을 가리킴: 동서남북 네 자리에서 화
       qOk(el.children[1].textContent.includes(`${Math.max(1,Math.round(Math.hypot(c.x-P.x,c.y-P.y)/10))}m`),nm+' 거리 글');r.push(`${nm} ${Math.round(QG.ang*57.3)}°`)}
     qOk(QG.Rm<QG.R&&QG.Rm<=56,'휴대폰 반지름');wmapOpen();try{qStep(1,{render:false});qOk(el.hidden,'큰 지도 위에 화살표')}finally{wmapClose()}
     qgSet('main:1',true);qStep(1,{render:false});qOk(el.hidden&&!P.qg,'끄면 안 숨음');return r.join(' · ')}
-  finally{qG22Off();qStep(1,{render:false})}});
+  finally{q22ReachTick=_rt;qG22Off();qStep(1,{render:false})}});
 qT(QG22,'지도 표시 자리: 미니맵(가까우면 그 자리 · 멀면 가장자리 같은 방향 · 금색) · 큰 지도 지역 칸(던전 표시 · 맵 끝 포탈 표시와 같은 자리) · 세계 칸(목표 지역 칸)',()=>{qPrep('mage',{lvl:30});qG22Off();const r=[];
   try{P.q={i:1,st:1,c:{}};qgSet('main:1',true);const tg=qgTargetW('main:1'),{c}=qQ22Cave();
     // 미니맵
@@ -5290,6 +5290,74 @@ qT('휴대폰 v30','의뢰 알림판 0.7초 길게 눌러 옮기기 · 짧게는
 qT('화면·마을 v30','가짜코 동상 물: 안쪽 바닥에 있고 앞 테두리·기둥·받침 계단은 덮지 않음',()=>{qPrep('mage');const cv0=document.createElement('canvas');cv0.width=180;cv0.height=250;const PK={img:cv0,meta:{r:{'076_statue_false_nose_single':[0,0,180,250,92.5,239]}}},g=cv0.getContext('2d');
   f29Statue(g,PK,HOME.decor.find(d=>d.k==='statue'),92.5,239,1);const a=(x,y)=>g.getImageData(x,y,1,1).data[3];
   qOk(a(40,172)>0&&a(140,170)>0&&a(30,165)>0,'안쪽 바닥에 물 없음');qOk(a(90,207)===0&&a(40,205)===0,'앞 테두리에 물');qOk(a(92,170)===0&&a(92,195)===0,'기둥·계단에 물');return '안쪽 바닥만'});
+qT('던전 v31','벽 쪽으로 밀친 몬스터가 벽에 박히지 않음 · 벽에 걸린 몬스터는 빈 바닥으로 나옴 · 그 뒤 다시 쫓아오고 마법에 맞음 (사용자 23:41)',()=>{qPrep('mage',{lvl:20});P.sk.firebolt=Math.max(1,P.sk.firebolt||0);
+  try{enterDungeon(HOME.caves.find(c=>c.cave&&c.cave.id==='barrow'));enemies.length=0;const P0y=P.y;let wx=P.x;while(dgFree(wx,P.y,0)&&wx<P.x+3000)wx+=4;qOk(wx<P.x+3000,'벽 못 찾음');
+    const e=dgMob('wolf',wx-60,P.y,20);applyFx(e,{knock:160},{x:e.x-50,y:e.y});qOk(dgFree(e.x,e.y,Math.min(e.r,30))&&e.x<wx,'밀쳐서 벽에 박힘 '+Math.round(e.x-wx));qOk(e.x>wx-60,'밀치기가 아예 안 됨');
+    const e2=dgMob('wolf',wx+18,P.y,20);qOk(!dgFree(e2.x,e2.y,15),'시험 준비: 벽 속 아님');update(1/60);qOk(dgFree(e2.x,e2.y,Math.min(e2.r,30))&&Math.hypot(e2.x-wx,0)<140,'벽에 걸린 몬스터가 안 나옴 '+Math.round(e2.x-wx));
+    P.x=wx-260;P.invT=999;const x0=e.x;e.atkCd=99;e2.atkCd=99;qStep(120,{render:false});qOk(Math.hypot(e.x-x0,0)>40,'풀린 뒤 안 쫓아옴');
+    e2.dead=true;const e3=dgMob('wolf',wx-40,P0y,20);e3.atkCd=99;applyFx(e3,{knock:200},{x:e3.x-50,y:e3.y});const h=e3.hp;P.x=wx-220;P.y=P0y;let cast=0;
+    for(let k=0;k<6&&e3.hp>=h&&!e3.dead;k++){if(qCast('firebolt',{x:e3.x,y:e3.y}))cast++;qStep(40,{render:false,each:()=>{P.mp=maxMp()}})}qOk(e3.hp<h||e3.dead,'벽 가의 몬스터가 마법에 안 맞음 · 쏜 횟수 '+cast);
+    applyFx(e,{knock:40},{x:e.x+50,y:e.y});return `벽에서 멈춤 · 걸린 몬스터 꺼냄 · 다시 쫓아옴 · 맞음`}
+  finally{if(DG)leaveDungeon()}});
+qT('전사 v31','전사 명중 (사용자 23:43 「근접인데 명중까지 있어 보스전이 너무 어려움」): 같은 레벨 보스: 확률 최소 85% · 60레벨부터 95%↑ · 실제로 400번 휘둘러 80%↑(60레벨부터 92%↑) · 궁수는 예전 공식 그대로',()=>{const out=[];const bk=Object.keys(TYPES).find(k=>TYPES[k].boss&&!TYPES[k].mini);
+  for(const L of [5,30,60,100]){qPrep('warrior',{lvl:L});P.st.dex=(P.st.dex||0)+Math.round((L-1));qClear();const e=qDummy(QA_SPOT.x+60,QA_SPOT.y,{lvl:L});e.k=bk;e.lvl=L;QA.reseed(31000+L);
+    let hit=0;const N=400;for(let i=0;i<N;i++){const t0=e.taken;e._miss=null;hurtE(e,10,SPELLS.slash);if(e.taken>t0)hit++}const r=hit/N;out.push(`${L}레벨 ${Math.round(r*100)}%`);
+    qOk(r>=(L<50?.8:.92),L+'레벨 보스 명중 '+r+' · 확률 '+hitChance(e));qOk(hitChance(e)>=.85&&(L<50||hitChance(e)>=.95),L+'레벨 확률 '+hitChance(e))}
+  qPrep('archer',{lvl:60});const e=qDummy(QA_SPOT.x+60,QA_SPOT.y,{lvl:60});e.k=bk;e.lvl=60;const want=clamp(.8+(accRating()-150)*.003-.05,.65,.97);qOk(Math.abs(hitChance(e)-want)<1e-9,'궁수 명중이 바뀜 '+hitChance(e)+'/'+want);qClear();
+  return '같은 레벨 보스 '+out.join(' · ')});
+/* v31 스킬 이펙트 그림 (fx31.js). #qa에서는 파일을 받지 않으므로 작은 가짜 묶음을 직접 넣어 본다 */
+function qFX31Fake(){const cv=document.createElement('canvas');cv.width=cv.height=16;const g=cv.getContext('2d');g.fillStyle='#f80';g.fillRect(2,2,12,12);const P0={};
+  for(const id in FX31.M){const m=FX31.M[id],pk=P0[m.pk]||(P0[m.pk]={img:cv,meta:{cell:128,size:[16,16],r:{}},mem:1024,used:FX31.now()});for(const st of [m.b,m.i])if(st)pk.meta.r[st]=[0,1,2,3,4,5].map(()=>[0,0,16,16,56,56])}
+  return P0}
+function qFX31(fn){const sv={P:FX31.P,want:FX31.want,q:FX31.q.slice(),busy:FX31.busy,cap:FX31.cap,art:GFX.art};FX31.inst=[];
+  try{return fn()}finally{FX31.P=sv.P;FX31.want=sv.want;FX31.q=sv.q;FX31.busy=sv.busy;FX31.cap=sv.cap;FX31.qaQ=0;if(sv.art===undefined)delete GFX.art;else GFX.art=sv.art;FX31.inst=[];qClear()}}
+const QFX31_K={bolt:'firebolt',cone:'gust',nova:'frozenground',chain:'static',beam:'steamjet',field:'firewall',rain:'stonerain',strike:'spacetwist',blink:'blink',heal:'arcaneheal',shield:'shieldcircle',armor:'flamemantle',orbit:'dancingflames'};
+function qFX31Cast(id){qPrep('mage',{lvl:140});P.sk[id]=10;P.x=QA_SPOT.x;P.y=QA_SPOT.y;followCam();const e=qDummy(P.x+170,P.y+30,{lvl:140});const e2=qDummy(P.x+230,P.y+80,{lvl:140});qCast(id,{x:e.x,y:e.y});return e}
+qT('이펙트 v31','그림 묶음이 없을 때: 13가지 모양 대표 스킬이 예전 그림 그대로 · 오류 0 · 새 그림은 한 장도 안 그림 · #qa에서는 파일을 받지 않음(줄만 섬)',()=>qFX31(()=>{FX31.P={};FX31.want={};FX31.q=[];const d0=FX31.n.draw,out=[];
+  for(const k in QFX31_K){const id=QFX31_K[k];qFX31Cast(id);qStep(24,{renderEvery:3,each:()=>{P.mp=maxMp()}});out.push(k)}
+  qFX31Cast('frozenground');qOk(rings.length>0,'고리 마법의 예전 고리가 없음');qFX31Cast('steamjet');qOk(beams.length>0&&!beams.some(b=>b.a31),'광선이 예전 그림이 아님');
+  qOk(FX31.n.draw===d0,'묶음이 없는데 새 그림을 그림 '+(FX31.n.draw-d0));qOk(FX31.q.includes('mage-fire')&&FX31.q.includes('mage-ice'),'받을 줄에 안 섬 '+FX31.q.join());qOk(!Object.values(FX31.want).some(v=>v===1),'#qa에서 파일을 받으려 함');
+  return out.length+'가지 모양 예전 그림 · 받을 줄 '+FX31.q.length}));
+qT('이펙트 v31','그림 묶음이 있을 때: 13가지 모양이 새 그림으로 그려짐 · 같은 역할의 예전 층(고리·광선·번개 줄기·치유 빛기둥·보호막 선)은 빠짐 · 「예전 그림」 설정이면 예전 그대로',()=>qFX31(()=>{FX31.P=qFX31Fake();const out=[];
+  for(const k in QFX31_K){const id=QFX31_K[k];const d0=FX31.n.draw;qFX31Cast(id);if(k==='strike'||k==='rain')qStep(40,{render:false,each:()=>{P.mp=maxMp()}});
+    qStep(30,{renderEvery:2,each:()=>{P.mp=maxMp()}});out.push(k+' '+(FX31.n.draw-d0));qOk(FX31.n.draw>d0,k+'('+id+') 새 그림이 안 그려짐')}
+  qFX31Cast('frozenground');qOk(!rings.some(r=>!r.faint),'고리 마법에 예전 고리가 남음');
+  qFX31Cast('steamjet');qOk(beams.length&&beams.every(b=>b.a31),'광선에 그림 표시가 없음');qFX31Cast('static');qOk(bolts.length&&bolts.every(b=>b.a31),'연쇄 번개에 그림 표시가 없음');
+  qFX31Cast('arcaneheal');qOk(!FXB.fx.some(f=>f.k==='heal'),'치유 빛기둥이 남음');
+  qFX31Cast('shieldcircle');qOk(P.shield>0,'보호막이 안 걸림');render();qOk(P.shield>0,'그린 뒤 보호막 흡수량이 사라짐');
+  GFX.art='old';const d1=FX31.n.draw;qFX31Cast('frozenground');qStep(20,{renderEvery:2});qOk(FX31.n.draw===d1&&rings.some(r=>!r.faint),'「예전 그림」인데 새 그림을 그림');
+  return out.join(' · ')}));
+qT('이펙트 v31','같이 하기: 동료 마법사가 쓴 13가지 모양이 동료 자리에서 새 그림으로 · 오류 0 · 보호막·갑옷·도는 구슬 그림은 내 것만',()=>qFX31(()=>{FX31.P=qFX31Fake();qPrep('mage',{lvl:140});P.x=QA_SPOT.x;P.y=QA_SPOT.y;followCam();
+  try{NET.gerr=[];const out=[];let r=null;
+    for(const k in QFX31_K){const id=QFX31_K[k];qClear();FX31.inst=[];r=qPeerOn();Object.assign(r,{cls:'mage',x:P.x+300,y:P.y-120,face:0});const d0=FX31.n.draw;
+      netGhostCast({from:'qa_peer',sp:id,L:10,x:Math.round(P.x+360),y:Math.round(P.y-60),pw:200});qOk(r.proxy&&r.proxy.cd&&id in r.proxy.cd,k+' 동료 시전이 안 됨');
+      const near=FX31.inst.length?FX31.inst.filter(o=>Math.hypot(o.x-r.x,o.y-r.y)<160).length:-1;
+      qStep(k==='strike'||k==='rain'?50:12,{renderEvery:2,each:()=>{r.seen=performance.now()}});out.push(k+(FX31.n.draw>d0?'✓':'·'));
+      if(['cone','nova','blink','heal'].includes(k))qOk(near>0,k+' 그림이 동료 자리가 아님 '+near)}
+    qOk(!(NET.gerr||[]).length,'동료 시전 오류 '+(NET.gerr||[]).join());qOk(!(P.shield>0)&&!P.armor,'동료 보호막·갑옷이 나에게');
+    const ok=out.filter(x=>x.endsWith('✓')).length;qOk(ok>=10,'동료 시전 새 그림이 적음 '+out.join(' '));return out.join(' ')}
+  finally{qPeerOff()}}));
+qT('이펙트 v31','스킬 짝: 그림이 있는 스킬 81개가 모두 마법사의 실제 스킬이고 모양(종류)이 그림과 맞음 · 그림 없는 스킬은 예전 그대로(짝 없음) · 띠 이름이 묶음 이름과 맞음',()=>{
+  const ids=Object.keys(FX31.M),KIND={bolt:['bolt'],cone:['cone'],nova:['nova'],shield:['shield'],chain:['chain'],orbit:['orbit'],blink:['blink'],beam:['beam'],field:['field'],armor:['armor'],rain:['rain'],heal:['heal'],strike:['strike']};
+  qOk(ids.length>=81,'짝 수 '+ids.length);for(const id of ids){const s=SPELLS[id],m=FX31.M[id];qOk(s&&s.cls==='mage',id+' 마법사 스킬 아님');qOk(s&&KIND[m.k].includes(s.kind),id+' 모양 다름 '+(s&&s.kind)+'/'+m.k);
+    qOk(m.b.includes('_mage_'+m.pk.split('-')[1]+'_')&&(!m.i||m.i.replace('_2_','_1_')===m.b),id+' 띠 이름 '+m.b)}
+  const keep=Object.values(SPELLS).filter(s=>s.cls!=='mage'||!FX31.M[s.id]).length;qOk(!FX31.M.slash&&!FX31.M.heal,'다른 직업 스킬에 짝');
+  return `그림 있는 스킬 ${ids.length} · 예전 그대로 ${keep}`});
+qT('이펙트 v31','가벼움: 한 프레임 이펙트 예산(FXL)을 넘으면 광선 조각을 반으로 · 화면 밖 그림은 안 그림 · 그린 만큼 예산에 더함',()=>qFX31(()=>{FX31.P=qFX31Fake();qFX31Cast('steamjet');const b=beams[0];qOk(b&&b.a31,'광선 준비');b.life=b.max;b.x2=b.x1+700;b.y2=b.y1-700;
+  const cnt=over=>{FXL.f=frameN;FXL.n=over?FXL.budget()+1:0;const d0=FX31.n.draw,n0=FXL.n;S();ctx.globalCompositeOperation='lighter';drawBeam(b);return [FX31.n.draw-d0,FXL.n-n0]};
+  const [a,sa]=cnt(false),[c]=cnt(true);qOk(a>=2&&c<a,'예산을 넘어도 조각 수가 같음 '+a+'/'+c);qOk(sa===a,'예산에 안 더함 '+sa+'/'+a);
+  const o=FX31.add({st:FX31.M.firebolt.i,pk:'mage-fire',x:P.x+9000,y:P.y-9000,z:20,d:1,sc:.5,ax:64,ay:64});const d0=FX31.n.draw;FX31.one(ctx,o,W2S);qOk(FX31.n.draw===d0,'화면 밖인데 그림');
+  const o2=FX31.add({st:FX31.M.firebolt.i,pk:'mage-fire',x:P.x,y:P.y,z:20,d:1,sc:.5,ax:64,ay:64});FXL.n=0;FX31.one(ctx,o2,W2S);qOk(FX31.n.draw===d0+1,'화면 안인데 안 그림');G();
+  return `광선 ${a}조각 → 예산 넘으면 ${c}조각 · 화면 밖 0`}));
+qT('이펙트 v31','메모리: 3분 넘게 안 쓴 묶음은 내려놓음 · 단축칸 스킬 묶음은 남김 · 상한(PC 32MB · 휴대폰 16MB)을 넘으면 오래 안 쓴 것부터 · 내려놓은 묶음은 다시 받을 수 있음 · 받기 줄은 하나씩(겹쳐 불러도 줄이 안 사라짐)',()=>qFX31(()=>{qPrep('mage',{lvl:140});
+  qOk(FX31.cap===(matchMedia('(pointer:coarse)').matches?16:32)*1048576,'상한 '+FX31.cap);
+  const F=qFX31Fake(),t=FX31.now();FX31.P={};for(const k of ['mage-fire','mage-ice','mage-earth','mage-storm'])FX31.P[k]=Object.assign({},F[k],{mem:4e6,used:t});
+  P.sk.firebolt=10;P.bar[0]='firebolt';FX31.P['mage-fire'].used=t-500;FX31.P['mage-ice'].used=t-200;FX31.P['mage-earth'].used=t-60;FX31.evict(FX31.barPacks());
+  qOk(FX31.P['mage-fire']&&!FX31.P['mage-ice']&&FX31.P['mage-earth']&&FX31.P['mage-storm'],'3분 규칙 '+Object.keys(FX31.P).join());qOk(FX31.want['mage-ice']===0,'내려놓은 묶음을 다시 받을 수 없음');
+  FX31.cap=9e6;FX31.evict(FX31.barPacks());qOk(FX31.P['mage-fire']&&!FX31.P['mage-earth']&&FX31.P['mage-storm']&&FX31.mem()<=9e6,'상한 규칙 '+Object.keys(FX31.P).join());
+  FX31.P={};FX31.want={};FX31.busy=0;FX31.q=['mage-wind','mage-light','mage-life'];FX31.qaQ=1;FX31.t=0;FX31.tick(.01);FX31.t=0;FX31.tick(.01);FX31.t=0;FX31.tick(.01);
+  qOk(FX31.busy==='mage-wind'&&FX31.q.slice(0,2).join()==='mage-light,mage-life','겹쳐 부르면 줄이 사라짐 '+FX31.busy+' | '+FX31.q.join());FX31.busy=0;FX31.t=0;FX31.tick(.01);qOk(FX31.busy==='mage-light','다음 묶음으로 안 넘어감');
+  return '3분 · 단축칸 남김 · 상한 · 줄 하나씩'}));
 window.__QA_RUN=qaRun;
 setTimeout(()=>{qaRun().catch(e=>{window.__QA_RESULT={fatal:String(e&&e.stack||e),results:[],summary:{total:0,pass:0,fail:1}}})},120);
 }
