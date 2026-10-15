@@ -5338,10 +5338,11 @@ qT('이펙트 v31','같이 하기: 동료 마법사가 쓴 13가지 모양이 �
     const ok=out.filter(x=>x.endsWith('✓')).length;qOk(ok>=10,'동료 시전 새 그림이 적음 '+out.join(' '));return out.join(' ')}
   finally{qPeerOff()}}));
 qT('이펙트 v31','스킬 짝: 그림이 있는 스킬 81개가 모두 마법사의 실제 스킬이고 모양(종류)이 그림과 맞음 · 그림 없는 스킬은 예전 그대로(짝 없음) · 띠 이름이 묶음 이름과 맞음',()=>{
-  const ids=Object.keys(FX31.M),KIND={bolt:['bolt'],cone:['cone'],nova:['nova'],shield:['shield'],chain:['chain'],orbit:['orbit'],blink:['blink'],beam:['beam'],field:['field'],armor:['armor'],rain:['rain'],heal:['heal'],strike:['strike'],summon:['summon']};
-  qOk(ids.length>=81,'짝 수 '+ids.length);for(const id of ids){const s=SPELLS[id],m=FX31.M[id];qOk(s&&s.cls==='mage',id+' 마법사 스킬 아님');qOk(s&&KIND[m.k].includes(s.kind),id+' 모양 다름 '+(s&&s.kind)+'/'+m.k);
-    qOk(m.b.includes('_mage_'+m.pk.split('-')[1]+'_')&&(!m.i||m.i.replace('_2_','_1_')===m.b),id+' 띠 이름 '+m.b)}
-  const keep=Object.values(SPELLS).filter(s=>s.cls!=='mage'||!FX31.M[s.id]).length;qOk(!FX31.M.slash&&!FX31.M.heal,'다른 직업 스킬에 짝');
+  const ids=Object.keys(FX31.M),KIND={bolt:['bolt'],cone:['cone'],nova:['nova'],shield:['shield'],chain:['chain'],orbit:['orbit'],blink:['blink'],beam:['beam'],field:['field'],armor:['armor'],rain:['rain','storm'],heal:['heal'],strike:['strike'],summon:['summon','recall','clone'],
+    aura:['invuln','buff','ward'],burst:['detonate','fuse'],wave:['wave'],gale:['gale'],spchain:['spchain'],trap:['trap']};/* v33: 궁수 짝 · 새 그리는 방식 */
+  qOk(ids.length>=81,'짝 수 '+ids.length);for(const id of ids){const s=SPELLS[id],m=FX31.M[id];qOk(s&&s.cls===m.c&&(m.c==='mage'||m.c==='archer'),id+' 짝 직업이 다름');qOk(s&&KIND[m.k]&&KIND[m.k].includes(s.kind),id+' 모양 다름 '+(s&&s.kind)+'/'+m.k);
+    qOk(m.b.includes('_'+m.c+'_'+m.pk.split('-')[1]+'_')&&m.pk.startsWith(m.c+'-')&&(!m.i||m.i.replace('_2_','_1_')===m.b),id+' 띠 이름 '+m.b)}
+  const keep=Object.values(SPELLS).filter(s=>!FX31.M[s.id]).length;qOk(!FX31.M.slash&&!FX31.M.heal&&!Object.keys(FX31.M).some(id=>SPELLS[id]&&(SPELLS[id].cls==='warrior'||SPELLS[id].cls==='priest')),'전사·사제 스킬에 짝');
   return `그림 있는 스킬 ${ids.length} · 예전 그대로 ${keep}`});
 qT('이펙트 v31','가벼움: 한 프레임 이펙트 예산(FXL)을 넘으면 광선 조각을 반으로 · 화면 밖 그림은 안 그림 · 그린 만큼 예산에 더함',()=>qFX31(()=>{FX31.P=qFX31Fake();qFX31Cast('steamjet');const b=beams[0];qOk(b&&b.a31,'광선 준비');b.life=b.max;b.x2=b.x1+700;b.y2=b.y1-700;
   const cnt=over=>{FXL.f=frameN;FXL.n=over?FXL.budget()+1:0;const d0=FX31.n.draw,n0=FXL.n;S();ctx.globalCompositeOperation='lighter';drawBeam(b);return [FX31.n.draw-d0,FXL.n-n0]};
@@ -5536,6 +5537,68 @@ qT(QS32,'잡화점 망각의 물약 둘: 「능력치」는 능력치만, 「스
   qPrep('archer',{lvl:40});P.sp=2;learnPoint('hawkeye');P.st.dex+=3;P.ap-=3;const ap=P.ap,sp=P.sp;respec();qOk(P.ap===ap+3&&!(P.sk.hawkeye>0)&&P.sp>sp,'보상 물약은 둘 다');
   qPrep('archer',{lvl:140});P.rune=P.rune||{};actTown=TOWNS[0];actShop='general';const h=shopHtml();if(typeof runeTabOn==='function'&&runeTabOn())qOk(h.includes('각인 지우개')&&h.indexOf('각인 지우개')>h.indexOf('data-respec="sk"'),'각인 지우개 자리');
   return out.join(' · ')});
+
+/* ===== v33: 옹기여신 전용 그림 · 이펙트 묶음(마법사 88장 · 궁수 8장) · 독 가시 덫 가시밭 고침 (사용자 2026-10-15 「지금까지 완료된 작업들을 반영해서 다음 패치」) ===== */
+function qOG33Fake(){const cv=document.createElement('canvas');cv.width=cv.height=256;const g=cv.getContext('2d');g.fillStyle='#c07a48';g.fillRect(0,0,256,256);const r={};
+  const keys=[...Object.values(OG33.mon),...Object.values(OG33.folk),...Object.values(OG33.prop).map(p=>p[0]),'ongi_boss_pig','ongi_boss_fakenose','ongi_statue','ongi_temple','ongi_sanctuary',
+    'ongi_proj_pot_0','ongi_proj_pot_1','ongi_proj_pot_2','ongi_proj_pot_3','ongi_proj_silicone','ongi_dun_torch','ongi_dun_kiln','ongi_dun_broken_pots','ongi_dun_entrance','ongi_dun_rune_floor'];
+  for(const k of keys)r[k]=[0,0,64,64,32,63];r.ongi_dun_wall=[0,0,128,160,64,159];for(const t of ['ogsnow','ogdeep','ogfloor'])r['tex/'+t]=[0,0,128,128,0,0];
+  return{img:cv,meta:{sp:{},tex:{},r,pt:{ongi_boss_fakenose:{nose:[28,27]}}}}}
+function qOG33(fn){const sv=FL.P[OG33.pk],d0=og33Draw,b0=og33Bld,art=GFX.art;const seen=new Set();og33Draw=function(c,key){seen.add(key);return d0.apply(this,arguments)};og33Bld=function(d,key){const r=b0.apply(this,arguments);if(r)seen.add(key);return r};
+  try{return fn(seen)}finally{og33Draw=d0;og33Bld=b0;if(sv)FL.P[OG33.pk]=sv;else delete FL.P[OG33.pk];OG33.tx=null;OG33.wt=null;if(art===undefined)delete GFX.art;else GFX.art=art;og33Ground();if(DG)leaveDungeon();if(REG.id!=='home')loadRegion('home')}}
+const qOG33Px=(e)=>{const cv=document.createElement('canvas');cv.width=cv.height=240;const g=cv.getContext('2d');drawMon(g,e,120,220);const D=g.getImageData(0,0,240,240).data;let n=0;for(let i=0;i<D.length;i+=4)if(D[i+3]>200&&D[i]===0xc0&&D[i+1]===0x7a&&D[i+2]===0x48)n++;return n};
+qT('옹기그림 v33','그림 묶음이 없을 때(받기 전 · #qa · 「예전 그림」): 몬스터 · 보스 · 사람 · 동상 · 신전 · 소품 · 바닥 · 던전이 v32 그림 그대로 · 오류 0 · #qa에서는 묶음을 받지 않음',()=>qOG33(seen=>{delete FL.P[OG33.pk];
+  const c=qOG();qOk(!og33PK(),'묶음이 있음');qOk(!FL.want[OG33.pk],'#qa에서 묶음을 받으러 감');for(const id in OG33.mon)qOk(TYPES[id].draw==='og33_'+id&&MON_H['og33_'+id]>0,id+' 그리기 이름');
+  const es=Object.keys(OG33.mon).map((id,i)=>dgMob(id,P.x+400+i*40,P.y,44));let px=0;for(const e of es){e.stunT=99;px+=qOG33Px(e)}qOk(px===0,'묶음이 없는데 새 그림 '+px);
+  const L=RCACHE[OG32.reg],T=L.town;P.x=T.x;P.y=T.y+80;followCam();qStep(6,{renderEvery:1});qOk(seen.size===0,'새 그림을 그림 '+[...seen]);qOk(!OG33.T,'설원 바닥이 바뀜');
+  P.x=c.x;P.y=c.y+80;followCam();qStep(1,{render:false});doAct();qOk(DG&&DG.d===OG32_DG,'던전');qStep(6,{renderEvery:1});qOk(seen.size===0,'던전에서 새 그림 '+[...seen]);
+  return '예전 그림 그대로 · 새 그림 0'}));
+qT('옹기그림 v33','그림 묶음이 있을 때: 몬스터 6 · 보스 2 · 쉼터 사람 3 · 동상 · 신전 · 성소 · 들판 소품 · 옹기 투사체 · 설원 바닥 · 던전 바닥 · 벽 · 횃불 · 바닥 문양 · 깨진 옹기가 새 그림 · 지역을 떠나면 눈 바닥이 원래대로 · 「예전 그림」이면 예전 그대로 · 크기 · 충돌은 그대로',()=>qOG33(seen=>{
+  const c=qOG();const r0={};for(const id in OG33.mon)r0[id]=TYPES[id].r;FL.P[OG33.pk]=qOG33Fake();flReady(OG33.pk);qOk(og33PK(),'묶음');qOk(OG33.T&&GTX.snow===OG33.T,'설원 바닥이 안 바뀜');
+  const es=Object.keys(OG33.mon).map((id,i)=>dgMob(id,P.x+400+i*40,P.y,44));for(const e of es){e.stunT=99;qOk(qOG33Px(e)>200,e.k+' 새 그림이 아님');qOk(e.r===r0[e.k],e.k+' 충돌 크기가 바뀜')}
+  const L=RCACHE[OG32.reg],T=L.town,st=L.decor.find(d=>d.k==='statue'&&d.og),tp=L.decor.find(d=>d.id==='og_temple');
+  for(const at of [{x:T.x,y:T.y+80},{x:st.x+60,y:st.y+60},{x:tp.door.x,y:tp.door.y+80},{x:OG33.san.door.x,y:OG33.san.door.y+60}]){P.x=at.x;P.y=at.y;followCam();qStep(3,{renderEvery:1})}
+  for(const f of decor.filter(d=>d.L&&OG33.folk[d.L.key])){P.x=f.x+40;P.y=f.y+40;followCam();qStep(2,{renderEvery:1})}
+  for(const k of ['ongi_statue','ongi_temple','ongi_sanctuary',...Object.values(OG33.folk)])qOk(seen.has(k),k+' 안 그림');
+  const pr=Object.keys(OG33.prop).map(k=>decor.find(d=>d.k===k&&!d.town&&Math.hypot(d.x-T.x,d.y-T.y)>500)).filter(Boolean);for(const d of pr){P.x=d.x+30;P.y=d.y+30;followCam();qStep(2,{renderEvery:1})}/* 절벽 칸에 걸친 소품은 지형이 대신 그리기도 해서 셋 이상이면 됨 */
+  const pk=pr.filter(d=>seen.has(OG33.prop[d.k][0])).map(d=>d.k);qOk(pk.length>=3&&seen.has('ongi_prop_snow_pine'),'들판 소품 '+pk+' / '+pr.map(d=>d.k));
+  projs.push({x:P.x+40,y:P.y,z:30,vx:200,vy:50,r:11,dmg:0,owner:'e',life:1,col:OG_JAR},{x:P.x-40,y:P.y,z:58,vx:-300,vy:80,r:6,dmg:0,owner:'e',life:1,col:OG_SIL});P.invT=1e9;render();qOk([0,1,2,3].some(i=>seen.has('ongi_proj_pot_'+i)),'옹기 투사체');
+  P.x=c.x;P.y=c.y+80;followCam();qStep(1,{render:false});doAct();qOk(DG&&DG.d===OG32_DG,'던전');qOk(GTX.snow!==OG33.T,'던전 안인데 설원 바닥');
+  qOk(DG.og33&&DG.og33.some(o=>o.key==='ongi_dun_rune_floor'&&o.flat)&&DG.og33.filter(o=>o.key==='ongi_dun_broken_pots').length>=3,'던전 장식 '+(DG.og33||[]).map(o=>o.key));qOk(DG.og33.every(o=>o.flat||dgFree(o.x,o.y,30)),'장식이 벽 속');
+  const pat=dgPat(ctx,'floor',[60,50,64]);qOk(pat&&DGTX['og33floor60,50,64'],'던전 바닥 무늬');const w=wallSprite({og:1,id:DG.d.id},60,0,0),w2=wallSprite({id:DG.d.id},60,0,0);qOk(w&&w!==w2,'던전 벽');
+  const tr=torchSprite();qOk(tr&&tr.w===og33PK().meta.r.ongi_dun_torch[2]+4,'횃불 '+(tr&&tr.w));
+  const ru=DG.og33.find(o=>o.flat);P.x=ru.x+20;P.y=ru.y+60;followCam();qStep(3,{renderEvery:1});qOk(seen.has('ongi_dun_rune_floor'),'바닥 문양 안 그림');
+  for(const o of DG.og33.filter(o=>!o.flat).slice(0,4)){P.x=o.x+30;P.y=o.y+30;followCam();qStep(2,{renderEvery:1})}qOk(seen.has('ongi_dun_broken_pots')||seen.has('ongi_dun_kiln'),'던전 소품 안 그림');
+  const p=DG.boss;p.aggroed=true;P.x=p.x+200;P.y=p.y;followCam();qStep(2,{render:false,each:()=>{P.hp=maxHp()}});const g=DG.og.god;qOk(g,'여신');qOk(qOG33Px(p)>200&&qOG33Px(g)>200,'보스 새 그림');
+  for(let i=0;i<3;i++)render();let bad=0;for(const o of DG.og33)if(!isFinite(o.x+o.y))bad++;qOk(!bad,'NaN');
+  leaveDungeon();qOk(OG33.T&&GTX.snow===OG33.T,'던전에서 나오면 설원 바닥');GFX.art='old';qOk(!og33PK()&&qOG33Px(es[0])===0,'「예전 그림」인데 새 그림');delete GFX.art;
+  loadRegion('home');qOk(GTX.snow!==OG33.T,'다른 지역에서 옹기 바닥');return '새 그림 '+seen.size+'가지'}));
+qT('이펙트 v33','짝: 마법사 새 29가지(솔라 레이~서클 오브 엔딩) · 궁수 5가지(화살 16 · 불화살 3 · 덫 9 · 강화 13 · 구르기 3)가 실제 스킬 · 묶음 이름 fx-archer-phys/fire',()=>{
+  const MG='sunflame jaws forbidupheave dawnblade meteor callstorm stonebody bodyofwater rewind heavenbolt sunfall steamburst frostgolem stormhawk stonetitan communion overload manaflux spiritadvent spiritburst meteorswarm summoncircle elemrelease timerift spiritthrone spiritlegion spiritsovereign spiritfusion wardspirit forbidtide spiritchain spiritfrenzy forbidgale pactprice spiritreturn manaclone finalcircle'.split(' ');
+  for(const id of MG)qOk(FX31.M[id]&&FX31.M[id].c==='mage'&&SPELLS[id].cls==='mage',id+' 짝 없음');
+  const AR={'archer-phys':['quickshot','fanshot','fulldraw','streamshot','oneshot','hawkeye','snaretrap','abysstrap','evaderoll','shadowstep'],'archer-fire':['flamearrow','burstarrow','trinityarrow']};
+  for(const pk in AR)for(const id of AR[pk])qOk(FX31.M[id]&&FX31.M[id].pk===pk&&SPELLS[id].cls==='archer',id+' 궁수 짝 '+(FX31.M[id]&&FX31.M[id].pk));
+  const n=k=>Object.values(FX31.M).filter(m=>m.c==='archer'&&m.f===k).length;qOk(n('bolt')===19&&n('trap')===9&&n('buff')===13&&n('blink')===3,'궁수 짝 수 '+[n('bolt'),n('trap'),n('buff'),n('blink')]);
+  qOk(Object.keys(FX31.M).length===165,'짝 수 '+Object.keys(FX31.M).length);return `짝 ${Object.keys(FX31.M).length} (마법사 ${Object.values(FX31.M).filter(m=>m.c==='mage').length} · 궁수 ${Object.values(FX31.M).filter(m=>m.c==='archer').length})`});
+qT('이펙트 v33','그림 묶음이 있을 때: 새 그리는 방식(몸 둘레 빛 · 크게 터짐 · 물벽 · 태풍 · 정령 사슬 · 덫 · 화살 · 구르기)이 새 그림으로 · 무적 빛은 무적이 끝나면 사라짐 · 같이 하기 오류 0',()=>qFX31(()=>{FX31.P=qFX31Fake();const out=[];
+  const run=(cls,id,n,pre)=>{qPrep(cls,{lvl:140});P.sk[id]=10;P.x=QA_SPOT.x;P.y=QA_SPOT.y;followCam();if(MPJ){MPJ.waves.length=0;MPJ.gales.length=0;MPJ.chain=null}traps.length=0;FX31.inst=[];
+    if(cls==='archer'&&typeof clsGearFor==='function')clsGearFor(id);if(pre)pre();const e=qDummy(P.x+170,P.y+30,{lvl:140});const d0=FX31.n.draw;qCast(id,{x:e.x,y:e.y});qStep(n||30,{renderEvery:2,each:()=>{P.mp=maxMp()}});const d=FX31.n.draw-d0;out.push(id+' '+d);qOk(d>0,id+' 새 그림이 안 그려짐');return e};
+  run('mage','stonebody',10);qOk(FX31.inst.some(o=>o.inv&&o.fol),'무적 빛');P.invT=0;render();qOk(!FX31.inst.some(o=>o.inv&&time-o.t0<o.d),'무적이 끝났는데 빛이 남음');
+  for(const id of ['communion','spiritburst','rewind','sunflame','dawnblade','meteor','frostgolem','summoncircle'])run('mage',id,40);
+  run('mage','forbidtide',60);
+  qPrep('mage',{lvl:140});P.x=QA_SPOT.x;P.y=QA_SPOT.y;followCam();MPJ.gales.length=0;{const d0=FX31.n.draw;mpMkGale(P.x+120,P.y,eff('forbidgale',10),10,true,false);qStep(20,{renderEvery:2});MPJ.gales.length=0;out.push('forbidgale '+(FX31.n.draw-d0));qOk(FX31.n.draw>d0,'태풍 소용돌이 새 그림')}
+  run('mage','spiritchain',40);qOk(bolts.some(b=>b.a31===FX31.M.spiritchain),'정령 사슬 줄기');
+  run('archer','quickshot',12);run('archer','flamearrow',12);run('archer','hawkeye',20);run('archer','evaderoll',20);
+  run('archer','snaretrap',10);qOk(traps.length>0,'덫이 안 놓임');const tr=traps[0];tr.age=9;const e=dgMob('wolf',tr.x,tr.y,140);e.hp=e.max=1e9;const n0=FX31.inst.length;qStep(3,{renderEvery:1});
+  qOk(FX31.inst.length>n0||FX31.inst.some(o=>o.st===FX31.M.snaretrap.i),'덫 터짐 그림');
+  return out.join(' · ')}));
+qT('이펙트 v33','그림 묶음이 없을 때: 궁수 화살 · 덫 · 강화는 예전 그림 그대로(새 그림 0) · 받을 줄에 fx-archer-phys가 섬 · 오류 0',()=>qFX31(()=>{FX31.P={};FX31.want={};FX31.q=[];const d0=FX31.n.draw;
+  for(const id of ['quickshot','snaretrap','hawkeye','evaderoll']){qPrep('archer',{lvl:140});P.sk[id]=10;P.x=QA_SPOT.x;P.y=QA_SPOT.y;followCam();if(typeof clsGearFor==='function')clsGearFor(id);const e=qDummy(P.x+170,P.y+30,{lvl:140});qCast(id,{x:e.x,y:e.y});qStep(15,{renderEvery:2})}
+  qOk(FX31.n.draw===d0,'묶음 없이 새 그림 '+(FX31.n.draw-d0));qOk(FX31.q.includes('archer-phys'),'받을 줄 '+FX31.q.join());return '예전 그림 · 줄 '+FX31.q.join()}));
+qT('고친 버그 v33','독 가시 덫: 밟으면 6초 동안 독 가시밭이 펼쳐짐 (예전에는 그림 장치가 덫 터짐을 바꿔 끼워 가시밭이 안 생겼음)',()=>{qPrep('archer',{lvl:60});P.x=QA_SPOT.x;P.y=QA_SPOT.y;followCam();
+  const s=Object.assign({},SPELLS.thorntrap,eff('thorntrap',5));traps.push({x:P.x+120,y:P.y,s,id:'thorntrap',own:0,dmg:10,arm:.1,life:30,age:1});const e=dgMob('wolf',P.x+120,P.y,60);e.hp=e.max=1e9;e.atkCd=1e9;
+  qStep(6,{render:false});const f=fields.find(f=>f.s&&f.s.id==='thorntrap');qOk(f&&Math.abs(f.max-SPELLS.thorntrap.field.dur)<.01&&f.s.slow,'가시밭 '+JSON.stringify(f&&{t:f.max,slow:f.s.slow}));
+  qStep(60,{render:false});qOk(e.taken>0||e.hp<e.max,'가시밭 피해');return '가시밭 '+(f?f.max+'초':'없음')});
 window.__QA_RUN=qaRun;
 setTimeout(()=>{qaRun().catch(e=>{window.__QA_RESULT={fatal:String(e&&e.stack||e),results:[],summary:{total:0,pass:0,fail:1}}})},120);
 }

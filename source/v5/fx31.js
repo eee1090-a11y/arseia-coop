@@ -19,9 +19,23 @@ const FX31={P:{},want:{},busy:0,busyT:0,q:[],inst:[],nd:0,t:0,C:128,
     ['025','fire','armor','flamemantle'],['026','ice','shield','iceshield'],['027','storm','cone','shockinggrasp'],['028','wind','blink','windleap'],['029','earth','field','quicksand earthquake'],
     ['030','storm','beam','lightning rendingsky'],['031','earth','rain','stonerain'],['032','life','heal','arcaneheal'],['033','ice','field','whirlpool blizzard'],['034','storm','rain','hail lordvermilion'],
     ['035','ice','beam','callwave'],['036','ice','armor','frostarmor'],['037','storm','nova','eyeofstorm'],['038','arcane','strike','spacetwist testament'],['039','light','rain','lightrain starlight'],
-    ['040','fire','summon','hydra fireelem phoenix']],
+    ['040','fire','summon','hydra fireelem phoenix'],
+    // v33: 마법사 나머지 29가지(041~069) + 궁수 5가지(095~099). [번호, 원소, 그림 모양, 스킬, (그리는 방식 · 없으면 그림 모양과 같음), (직업 · 없으면 마법사)]
+    ['041','light','beam','sunflame'],['042','earth','strike','jaws forbidupheave'],['043','light','cone','dawnblade'],['044','fire','strike','meteor'],
+    ['045','storm','storm','callstorm','rain'],['046','earth','invuln','stonebody','aura'],['047','ice','invuln','bodyofwater','aura'],['048','arcane','heal','rewind'],
+    ['049','storm','strike','heavenbolt'],['050','light','strike','sunfall'],['051','ice','strike','steamburst'],['052','ice','summon','frostgolem'],['053','storm','summon','stormhawk'],
+    ['054','earth','summon','stonetitan'],['055','arcane','buff','communion overload manaflux spiritadvent','aura'],['056','fire','detonate','spiritburst','burst'],
+    ['057','fire','rain','meteorswarm'],['058','arcane','field','summoncircle elemrelease timerift spiritthrone'],['059','arcane','summon','spiritlegion spiritsovereign'],
+    ['060','arcane','fuse','spiritfusion','burst'],['061','life','buff','wardspirit','aura'],['062','ice','wave','forbidtide'],['063','storm','spchain','spiritchain'],
+    ['064','fire','buff','spiritfrenzy','aura'],['065','storm','gale','forbidgale'],['066','arcane','ward','pactprice','aura'],['067','arcane','recall','spiritreturn','summon'],
+    ['068','arcane','clone','manaclone','summon'],['069','arcane','rain','finalcircle'],
+    ['095','phys','bolt','quickshot trackmark fanshot piercearrow fulldraw streamshot weakspot tripleshot snipe splitarrow netshot deathmark windpierce shadowarrow exposeweak oneshot',0,'archer'],
+    ['096','phys','buff','hawkeye camouflage huntinghorn deadeye survivor predatoreye imbue traptoss focus beastawaken shadowhide piercinggaze poisonshade','aura','archer'],
+    ['097','phys','trap','snaretrap shrapneltrap trapfield beastcage blasttrap thorntrap dominion shadowtrap abysstrap',0,'archer'],
+    ['098','fire','bolt','flamearrow burstarrow trinityarrow',0,'archer'],['099','phys','blink','evaderoll backshot shadowstep',0,'archer']],
   TWO:new Set(['bolt','chain','beam','rain']),M:{},n:{draw:0,fall:0,evict:0,load:0},
-  init(){for(const [no,el,k,ids] of this.T){const b=`fx_${no}_1_mage_${el}_${k}`,i=this.TWO.has(k)?`fx_${no}_2_mage_${el}_${k}`:null;for(const id of ids.split(' '))this.M[id]={k,b,i,pk:'mage-'+el}}},
+  init(){for(const [no,el,f,ids,k0,c0] of this.T){const c=c0||'mage',k=k0||f,b=`fx_${no}_1_${c}_${el}_${f}`,i=no>'040'||this.TWO.has(k)?`fx_${no}_2_${c}_${el}_${f}`:null;// 띠 2번이 없으면 그 칸만 그리지 않는다
+    for(const id of ids.split(' '))this.M[id]={k,f,c,b,i,pk:c+'-'+el}}},
   on(){return typeof GFX==='undefined'||GFX.art!=='old'},
   now(){return performance.now()/1000},
   noLoad(){return location.hash==='#qa'&&!this.qaQ},// #qa에서는 파일을 받지 않는다 (줄 세우기 시험만 qaQ로 켬, 실제 받기는 load가 다시 막음)
@@ -78,18 +92,25 @@ FX31.cast=function(s,t,_o,sn){const o=P;const g=this.get(s.id);if(!g)return;cons
     for(let i=sn.b;i<bolts.length;i++)bolts[i].hid31=1;newRings();this.halve(sn.p)}
   else if(k==='field'){for(let i=sn.f;i<fields.length;i++)fields[i].a31=m}
   // v32: 불러낼 때 빛 — 새로 나온 동료(소환수) 발밑에서 한 번 (없으면 시전한 사람 앞)
-  else if(k==='summon'){const sc=.85+rank*.03,at=allies.slice(sn.al||0).filter(a=>a.s&&a.s.id===s.id);if(!at.length)at.push({x:o.x+Math.cos(P.face)*50,y:o.y+Math.sin(P.face)*50});
+  else if(k==='summon'){const sc=.85+rank*.03,nw=allies.slice(sn.al||0);let at=nw.filter(a=>a.s&&a.s.id===s.id);if(!at.length&&m.f==='recall')at=nw.filter(a=>a.s);if(!at.length)at.push({x:o.x+Math.cos(P.face)*50,y:o.y+Math.sin(P.face)*50});
     for(const a of at)this.add({st:m.b,pk:m.pk,x:a.x,y:a.y,z:0,d:.75,sc,ax:64,ay:100});newRings();this.halve(sn.p)}
+  // v33: 몸 둘레 빛(반복) — 무적(돌의 몸 · 물의 몸)은 무적 동안, 나머지는 시전 뒤 잠깐
+  else if(k==='aura'){const inv=m.f==='invuln';this.add({st:m.b,pk:m.pk,who:o,fol:1,loop:1,inv,x:o.x,y:o.y,z:26,d:inv?Math.max(.5,P.invT||s.dur||3):2.2,sc:.74,ax:64,ay:64})}
+  // v33: 크게 터짐 — 이번 시전에서 생긴 가장 큰 고리 자리(없으면 시전한 사람 자리)
+  else if(k==='burst'){const R=rings.slice(sn.r).filter(r=>!r.faint&&r.max>=40).sort((a,b)=>b.max-a.max).slice(0,2);if(!R.length)R.push({x:o.x,y:o.y,max:110});
+    for(const r of R)this.add({st:m.b,pk:m.pk,x:r.x,y:r.y,z:1,d:.7,sc:Math.max(.6,Math.min(2.6,this.isoK(r.max,.9))),ax:64,ay:64});this.halve(sn.p)}
+  // v33: 정령 사슬 — 잇는 순간 나와 소환수 자리에서 한 번 (사슬 줄기는 drawBolt가 그림으로)
+  else if(k==='spchain'){const pts=[o].concat(allies.filter(a=>a.j2&&!a.gone&&a.s&&a.s.cls==='mage').slice(0,6));for(const q of pts)this.add({st:m.i,pk:m.pk,x:q.x,y:q.y,z:24,d:.4,sc:.55,ax:64,ay:64})}
   else if(k==='strike'){for(let i=sn.pd;i<pend.length;i++){const q=pend[i];if(q.s&&q.s.mini)continue;const dl=Math.max(0,q.t-.45);this.add({st:m.b,pk:m.pk,x:q.x,y:q.y,z:0,d:.7,sc:Math.max(.8,Math.min(2.2,(q.s.rad||90)*2.2/this.C)),ax:64,ay:108,t0:time+dl})}}};
 // 투사체 몸통: 그림이 있으면 예전 몸통·꼬리·고리 대신 그림 (휘는 빛 꼬리는 그림에 들어 있음)
-{const _d=FXR.draw;FXR.draw=function(c,p,s,k,ox,oy,map){const g=p&&p.s&&!p.s.phys&&FX31.get(p.s.id);if(!g||g.m.k!=='bolt')return _d.apply(this,arguments);
+{const _d=FXR.draw;FXR.draw=function(c,p,s,k,ox,oy,map){const m0=p&&p.s&&FX31.M[p.s.id],g=m0&&(m0.c==='archer'||!p.s.phys)&&FX31.get(p.s.id);if(!g||g.m.k!=='bolt')return _d.apply(this,arguments);
   const F=FX31.fr(g.PK,g.m.b);if(!F)return _d.apply(this,arguments);if(!FXL.lod(s.x,s.y,40))return;
-  const r=p.r||6,mm=Math.max(.8,Math.min(1.3,Math.sqrt(r/7))),sc=(.42+.07*(((p.s.rank|0)||1)-1))*mm,ang=p._ang!=null?p._ang:Math.atan2((p.vx+p.vy)*KI/2,(p.vx-p.vy)*KI);
+  const r=p.r||6,mm=Math.max(.8,Math.min(1.3,Math.sqrt(r/7))),sc=g.m.c==='archer'?.36*(p.s.mult>=4||p.s.pierce?1.25:1):(.42+.07*(((p.s.rank|0)||1)-1))*mm,ang=p._ang!=null?p._ang:Math.atan2((p.vx+p.vy)*KI/2,(p.vx-p.vy)*KI);
   if(p._fxph==null)p._fxph=(FXR.n=(FXR.n+1)%97)*1.7;const age=(p._a31=(p._a31||0)+1),f=F[age<3?1:2];
   const pul=1+.05*Math.sin(time*18+p._fxph);c.globalCompositeOperation='source-over';FX31.img(c,g.PK,f,s.x,s.y,f[4]+f[2]*.72,f[5]+f[3]/2,sc*pul,sc*pul,ang,1);c.globalCompositeOperation='lighter';c.globalAlpha=1}}
 // 맞힘: 그림이 있으면 예전 빛 터짐 대신 그림 (땅 자국은 그대로)
 {const _h=FXR.hit;FXR.hit=function(p){const g=p&&p.s&&FX31.get(p.s.id,false);if(!g||!g.m.i||!FX31.fr(g.PK,g.m.i))return _h.apply(this,arguments);
-  const t=this.tier(p);FX31.add({st:g.m.i,pk:g.m.pk,x:p.x,y:p.y,z:p.z||0,d:[.26,.3,.36,.45,.6][t],sc:.42+.06*t+(p.s.aoe?.25:0),ax:64,ay:64});if(t>=3)decal(p.x,p.y,t>=4?34:22,p.s.el)}}
+  const t=this.tier(p);FX31.add({st:g.m.i,pk:g.m.pk,x:p.x,y:p.y,z:p.z||0,d:[.26,.3,.36,.45,.6][t],sc:(g.m.c==='archer'?.32:.42)+.06*t+(p.s.aoe?.25:0),ax:64,ay:64});if(t>=3)decal(p.x,p.y,t>=4?34:22,p.s.el)}}
 // 하늘에서 떨어지는 것: 떨어지는 그림이 잠깐 내려오고 땅에 맞는 그림 (예전 번개 줄기·빛기둥·작은 불덩이 대신)
 {const _sh=skyHit;skyHit=function(x,y,s,dmg,rad,hitR){const g=s&&FX31.get(s.id);if(!g||g.m.k!=='rain')return _sh.apply(this,arguments);
   const n0={b:bolts.length,pl:pillars.length,pd:pend.length,p:parts.length,r:rings.length},r=_sh.apply(this,arguments);
@@ -117,7 +138,7 @@ FX31.cast=function(s,t,_o,sn){const o=P;const g=this.get(s.id);if(!g)return;cons
 {const _cd=castDraw;castDraw=function(){_cd.apply(this,arguments);if(!FX31.on())return;try{S();FX31.drawGround(ctx,W2S)}catch(err){if(window.__QA)throw err}finally{G();ctx.globalCompositeOperation='lighter';ctx.globalAlpha=1}}}
 FX31.drawGround=function(c,map){c.globalCompositeOperation='source-over';
   for(const f of fields){const m=f.a31,PK=m&&this.P[m.pk];if(!PK)continue;const F=this.fr(PK,m.b);if(!F)continue;const s=map(f.x,f.y),sc=this.isoK(f.rad,.93);if(!FXL.lod(s.x,s.y,f.rad*1.2))continue;PK.used=this.now();
-    const fade=Math.min(1,f.t*2,(f.max-f.t)*4);this.img(c,PK,F[this.loopK(F,7,f.x*.01)],s.x,s.y,64,64,sc,sc,0,.95*fade)}
+    const fade=Math.min(1,f.t*2,(f.max-f.t)*4);this.img(c,PK,F[this.loopK(F,7,f.x*.01)],s.x,s.y,64,64,sc,sc,0,.95*fade*Math.max(.45,Math.min(1,260/(f.rad||100))))}// v33: 아주 넓은 장판은 옅게
   for(const o of this.inst)if(o.z===0&&!o.fall&&o.ay===64)this.one(c,o,map);c.globalAlpha=1};
 FX31.drawAir=function(c,map){c.globalCompositeOperation='source-over';
   const s=P&&P._s;if(s&&!P.dead){
@@ -129,9 +150,27 @@ FX31.drawAir=function(c,map){c.globalCompositeOperation='source-over';
   let dead=0;for(const o of this.inst){if(time-o.t0>=o.d){dead++;continue}if(o.z===0&&!o.fall&&o.ay===64)continue;this.one(c,o,map)}
   if(dead)this.inst=this.inst.filter(o=>time-o.t0<o.d);c.globalCompositeOperation='lighter';c.globalAlpha=1};
 // 한 번 재생되는 그림 하나
-FX31.one=function(c,o,map){const a=(time-o.t0)/o.d;if(a<0||a>=1)return;const PK=this.P[o.pk];if(!PK)return;const s=map(o.x,o.y);if(!FXL.lod(s.x,s.y-o.z,90*o.sc))return;
+FX31.one=function(c,o,map){const a=(time-o.t0)/o.d;if(a<0||a>=1)return;const PK=this.P[o.pk];if(!PK)return;
+  if(o.fol){const h=o.who||P;if(h.dead||(o.inv&&!(h.invT>0))){o.d=0;return}o.x=h.x;o.y=h.y}
+  if(o.loop){const F=this.fr(PK,o.st),el=time-o.t0;if(!F)return;const s=map(o.x,o.y);this.img(c,PK,F[this.loopK(F,8,o.x*.01)],s.x,s.y-o.z,o.ax,o.ay,o.sc,o.sc,0,.92*Math.min(1,el*5,(o.d-el)*3));return}
+  const s=map(o.x,o.y);if(!FXL.lod(s.x,s.y-o.z,90*o.sc))return;
   if(o.fall){const fa=(time-o.t0)/o.fall;if(fa<1){const F=this.fr(PK,o.st);if(F)this.img(c,PK,F[Math.min(2,1+(fa*2|0))],s.x,s.y-200*(1-fa),64,64,o.sc,o.sc,0,1);return}
     const F=this.fr(PK,o.st2);if(F)this.img(c,PK,F[this.kOf(F,(time-o.t0-o.fall)/(o.d-o.fall))],s.x,s.y,64,64,o.sc,o.sc,0,1);return}
   const F=this.fr(PK,o.st);if(!F)return;this.img(c,PK,F[this.kOf(F,a)],s.x,s.y-o.z,o.ax,o.ay,o.sc,o.sc,o.rot||0,1)};
 {const _u=update;update=function(dt){_u.apply(this,arguments);try{FX31.tick(dt)}catch(err){if(window.__QA)throw err}}}
+/* ----- v33: 금기 대해일(물벽이 나아가는 앞) · 금기 태풍(모이는 소용돌이) · 정령 사슬(번개 줄기) · 궁수 덫(놓인 덫 · 터짐) ----- */
+FX31.drawMP=function(c,map){if(typeof MPJ==='undefined')return;
+  for(const w of MPJ.waves){const g=w.s&&this.get(w.s.id);if(!g)continue;const F=this.fr(g.PK,g.m.b);if(!F)continue;const d=Math.min(w.d,w.len),s=map(w.x,w.y);if(d<20)continue;
+    const L=this.scrLen(w.a,d),sc=L/(this.C*.82),fade=Math.min(1,(w.len+60-w.d)/120);this.img(c,g.PK,F[this.kOf(F,Math.min(.99,w.d/w.len))],s.x,s.y-10,18,64,sc,Math.min(sc,2.4),this.scrAng(w.a),.9*fade)}
+  for(const q of MPJ.gales){const g=this.get(q.id||(q.s&&q.s.id));if(!g)continue;const F=this.fr(g.PK,g.m.b);if(!F)continue;const s=map(q.x,q.y),sc=this.scrLen(0,q.rad)/(this.C*.82);if(!FXL.lod(s.x,s.y,q.rad))continue;
+    for(let j=0;j<2;j++)this.img(c,g.PK,F[this.loopK(F,10,j*2)],s.x,s.y-12,18,64,sc,sc*.55,q.rot+j*Math.PI,.55+.3*(q.f||0))}};
+{const _a=FX31.drawAir;FX31.drawAir=function(c,map){try{this.drawMP(c,map)}catch(err){if(window.__QA)throw err}return _a.apply(this,arguments)}}
+if(typeof mpChainTick==='function'){const _t=mpChainTick;mpChainTick=function(dt){const n0=bolts.length,C=MPJ.chain,r=_t.apply(this,arguments);const m=C&&FX31.M.spiritchain;
+  if(m&&bolts.length>n0&&FX31.get('spiritchain'))for(let i=n0;i<bolts.length;i++)bolts[i].a31=m;return r}}
+{const _dt=FXP.drawTrap;FXP.drawTrap=function(c,tr,map,now){const id=tr&&tr.s&&tr.s.id,g=id&&FX31.get(id),F=g&&g.m.k==='trap'&&FX31.fr(g.PK,g.m.b);if(!F)return _dt.apply(this,arguments);
+  now=now==null?time:now;const s=tr.s,on=tr.age!=null?tr.age>=tr.arm:(tr.arm!=null?tr.arm:tr.armT||0)<=0,p=map(tr.x,tr.y),life=tr.t!=null?tr.t:tr.life!=null?tr.life:9;
+  const kk=id==='beastcage'?Math.max(1,Math.min(1.6,(s.rad||220)/180)):Math.max(1,Math.min(1.8,(s.rad||70)/55));
+  FX31.img(c,g.PK,F[0],p.x,p.y,64,74,.5*kk,.5*kk,0,Math.min(1,life*2)*(on?1:.6+.2*Math.sin(now*12)));c.globalAlpha=1}}
+queueMicrotask(()=>{if(typeof PFX==='undefined')return;const _t=PFX.trap;PFX.trap=function(tr,ev){const r=_t.apply(this,arguments);
+  if(ev==='boom'&&tr&&tr.s){const g=FX31.get(tr.s.id,false);if(g&&g.m.k==='trap'&&FX31.fr(g.PK,g.m.i))FX31.add({st:g.m.i,pk:g.m.pk,x:tr.x,y:tr.y,z:1,d:.5,sc:Math.max(.6,Math.min(2,(tr.s.rad||70)*2.2/FX31.C)),ax:64,ay:64})}return r}});
 window.__fx31=FX31;

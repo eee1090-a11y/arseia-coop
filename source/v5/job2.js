@@ -246,6 +246,7 @@ function j2Tick(dt){if(J2R.t>0){J2R.t-=dt;if(J2R.t<=0)J2R.n=0}
     const li=passSum('lowIas');if(li>0){const f=clamp((1-P.hp/maxHp())/.7,0,1);if(f>0)P.buffs._j2low={t:.6,max:.6,ias:li*f,n:''};else delete P.buffs._j2low}}}
 {const _u=update;update=function(dt){_u(dt);if(!paused)j2Tick(dt)}}
 // 덫이 터지면 지대가 되는 덫 (독 가시 덫)
-{const _pt=PFX.trap;PFX.trap=function(tr,ev){const r=_pt.apply(this,arguments);if(ev==='boom'&&tr&&tr.s&&tr.s.field&&!tr.s.ghost){const F=tr.s.field;fields.push({x:tr.x,y:tr.y,rad:tr.s.rad,t:F.dur,max:F.dur,tick:.2,dmg:tr.dmg*.5,s:Object.assign({},tr.s,{kind:'field',field:0,slow:F.slow?1:0})})}return r}}
+// v33 고침: fxphys.js가 게임을 다 실은 뒤(queueMicrotask) PFX.trap을 바꿔 끼워서, 여기서 바로 감싼 것이 지워져 독 가시 덫의 가시밭이 안 생겼다 → 같은 때 다음 차례에 감싼다
+queueMicrotask(()=>{const _pt=PFX.trap;PFX.trap=function(tr,ev){const r=_pt.apply(this,arguments);if(ev==='boom'&&tr&&tr.s&&tr.s.field&&!tr.s.ghost){const F=tr.s.field;fields.push({x:tr.x,y:tr.y,rad:tr.s.rad,t:F.dur,max:F.dur,tick:.2,dmg:tr.dmg*.5,s:Object.assign({},tr.s,{kind:'field',field:0,slow:F.slow?1:0})})}return r}})
 // 새 종류 이름 (스킬 창)
 function j2KindN(){if(typeof KINDN==='object'&&!KINDN.detonate)Object.assign(KINDN,{detonate:'터뜨리기',link:'이어짐',cleanse:'정화'})}
