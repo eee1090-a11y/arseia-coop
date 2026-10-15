@@ -21,7 +21,8 @@ if(typeof MOB==='object')MOB.on=function(){return M22.phone()};
 
 /* 카메라: b1 resize 뒤에 휴대폰 배율을 곱한다 (캔버스 픽셀 수는 그대로) */
 function m22Cam(skipBake){const k=M22.scale();if(k===1)return;const d0=DPR;
-  CZ=GFX.zoom*k*(window.__fb28?window.__fb28.zoom:1);DPR=Math.min(1.5,window.devicePixelRatio||1)*CZ;const cw=cv.clientWidth||innerWidth,ch=cv.clientHeight||innerHeight;
+  CZ=GFX.zoom*k*(window.__fb28?window.__fb28.zoom:1);DPR=Math.min(gfxDprCap(),window.devicePixelRatio||1)*CZ;const cw=cv.clientWidth||innerWidth,ch=cv.clientHeight||innerHeight;// [v34] 예전엔 1.5로 고정이라 휴대폰은 자동 해상도·「낮음」이 해상도를 못 낮췄다
+  
   W=cw/CZ;H=ch/CZ;cv.width=Math.round(cw*DPR/CZ);cv.height=Math.round(ch*DPR/CZ);lc.width=Math.ceil(W/2);lc.height=Math.ceil(H/2);
   if(d0!==DPR&&!skipBake)m22Rebake()}
 function m22Rebake(){try{if(P&&P.cls&&typeof heroBake==='function'){SC.bakeLeft=99;heroBake(P,Math.max(1,DPR)*HS*PK)}}catch(_){}}

@@ -4,6 +4,11 @@
    - 「화면」 설정 「그림: 새 그림 / 예전 그림」. 파일이 없거나 못 불러오면 예전 코드 그림 그대로.
    - 그림만 바뀐다: 크기·충돌·적중·수치·저장은 그대로. */
 const FL={P:{},want:{},mk:{},gtx0:{},tint:new Map()};
+// [v34 최적화] 색 입힌 그림 캐시: 500개가 넘으면 통째로 비우던 것을, 메모리 상한(PC 64MB · 휴대폰 32MB) 안에서 오래 안 쓴 것부터 버린다.
+// (전투에서 몬스터 종류·동작·방향이 많으면 500개를 넘겨 매번 비우고 다시 만들어 6초에 100~160개 캔버스를 새로 만들었다)
+const FLT={b:0,cap:(matchMedia('(pointer:coarse)').matches?32:64)*1048576,n:0,
+  get(k){const c=FL.tint.get(k);if(c){FL.tint.delete(k);FL.tint.set(k,c)}return c},
+  put(k,c){if(!FL.tint.size)this.b=0;FL.tint.set(k,c);this.b+=c.width*c.height*4;this.n++;for(const [kk,v] of FL.tint){if(this.b<=this.cap||FL.tint.size<=1)break;FL.tint.delete(kk);this.b-=v.width*v.height*4}return c}};
 // [f7r] 그림을 미리 풀어 둔 뒤(decode) 쓴다: 처음 그리는 프레임에서 멈칫하지 않게
 window.FLARE_PACK=function(name,meta,url){const im=new Image();const ok=()=>{if(FL.P[name])return;FL.P[name]={img:im,meta};flReady(name)};im.onload=()=>{im.decode?im.decode().then(ok,ok):ok()};im.onerror=()=>{FL.want[name]='fail'};im.src=url};
 function flWant(){return GFX.art!=='old'}
@@ -72,10 +77,10 @@ const FLK={wyvern:1.45}; // 날개 달린 비룡은 키보다 몸이 커 보여�
 const FLMH={wolf:'wolf',goblin:'goblin',skeleton:'skeleton',skelmage:'skeleton',zombie:'skeleton',ogre:'ogre',antlion:'scorpion',wyvern:'serpent'};
 // 원래 그림 색. 종류 색(col)이 이 색과 다를수록 그 색을 더 입힌다 (재 들개·붉은 전갈 같은 변형 구분)
 const FLREF={wolf:'#8a867f',goblin:'#5c8a3a',skeleton:'#b0a898',skelmage:'#b0a898',zombie:'#8a8a5a',ogre:'#7a6a46',antlion:'#9a7a52',wyvern:'#6a6a5a'};
-function flTinted(PK,key,col,s){const ck=key+col;let cv=FL.tint.get(ck);if(cv)return cv;if(FL.tint.size>500)FL.tint.clear();
+function flTinted(PK,key,col,s){const ck=key+col;let cv=FLT.get(ck);if(cv)return cv;
   const r=PK.meta.r[key];cv=document.createElement('canvas');cv.width=r[2];cv.height=r[3];const g=cv.getContext('2d');g.drawImage(PK.img,r[0],r[1],r[2],r[3],0,0,r[2],r[3]);
   g.globalCompositeOperation='color';g.globalAlpha=s;g.fillStyle=col;g.fillRect(0,0,r[2],r[3]);g.globalAlpha=1;g.globalCompositeOperation='destination-in';g.drawImage(PK.img,r[0],r[1],r[2],r[3],0,0,r[2],r[3]);
-  FL.tint.set(ck,cv);return cv}
+  return FLT.put(ck,cv)}
 function flTintAmt(id,col){if(!col)return 0;const a=Kit.hex(col),b=Kit.hex(FLREF[id]);const d=Math.hypot(a[0]-b[0],a[1]-b[1],a[2]-b[2]);return d<40?0:Math.min(.55,(d-40)/160)}
 const FLM=new WeakMap();
 function flMon(id,draw,g,e,t,st){const PK=flPack('m-'+id);if(!PK){flNeed('m-'+id);return false}const M=PK.meta.mon[id];if(!M)return false;
@@ -135,11 +140,11 @@ for(const dk of ['panther','yeti']){const _m=MON[dk];if(!_m)continue;
 // 흰 곰은 'color' 칠로는 갈색 곰(잿빛 고원곰·천둥뿔 스카른)이 나오지 않아 곱하기로 칠한다: 원래 색(FLREF)이면 그대로, 어두운 색일수록 그 색으로 어둡게
 const FLMUL={yeti:1};
 {const _ft=flTinted;flTinted=function(PK,key,col,s){const id=key.slice(0,key.indexOf('/'));if(!FLMUL[id]||!FLREF[id])return _ft.apply(this,arguments);
-  const ck=key+col+'*';let cv=FL.tint.get(ck);if(cv)return cv;if(FL.tint.size>500)FL.tint.clear();
+  const ck=key+col+'*';let cv=FLT.get(ck);if(cv)return cv;
   const r=PK.meta.r[key],a=Kit.hex(col),b=Kit.hex(FLREF[id]),m=[0,1,2].map(i=>Math.min(255,Math.round(a[i]/Math.max(1,b[i])*255)));
   cv=document.createElement('canvas');cv.width=r[2];cv.height=r[3];const g=cv.getContext('2d');g.drawImage(PK.img,r[0],r[1],r[2],r[3],0,0,r[2],r[3]);
   g.globalCompositeOperation='multiply';g.fillStyle='rgb('+m.join(',')+')';g.fillRect(0,0,r[2],r[3]);
-  g.globalCompositeOperation='destination-in';g.drawImage(PK.img,r[0],r[1],r[2],r[3],0,0,r[2],r[3]);FL.tint.set(ck,cv);return cv}}
+  g.globalCompositeOperation='destination-in';g.drawImage(PK.img,r[0],r[1],r[2],r[3],0,0,r[2],r[3]);return FLT.put(ck,cv)}}
 // 장식: 사막 대추야자·선인장 자리(0 A.D.엔 선인장이 없어 가시 많은 다육 덤불·아카시아 가시덤불), 바다 열대 야자·난파선, 들판 건초 더미
 // f7r 장식 짜임(FLTP 지역 테마 → 묶음 차례, FLNEW 새 묶음 종류)에 묶음만 뒤에 덧붙인다: 앞 묶음(Flare)에 없는 종류만 여기서 찾는다. 묶음이 없으면 예전 코드 그림
 // 산호·조개·용암 분기공·얼음 첨탑(coral·shell·vent·icespike)은 0 A.D.에 맞는 모델이 없어 코드 그림 그대로 (빙산·뾰족 바위로 만든 얼음 첨탑은 비닐 덩어리처럼 보여 뺐다). 만드는 법: f9a-qa/tools/render0ad_static.py (+ flora0ad.json) → pack0ad_flora.py
@@ -212,10 +217,10 @@ const FLDG={barrow:['barrow'],sewer:['sewer','#4a7a76',.35],fort:['fortgate','#7
   th_bell:['tower','#6a7080',.45],rt_cavern:['roots','#7ab89a',.3],ec_cathedral:['crypt','#5a4a7a',.45,'m']};
 const FLSUNK=new Set(['sunken','sunken2']),FLEMB=new Set(['forge']),FLHOLE=new Set(['barrow','circle','shrine','sewer']);
 // 색 입힌 그림 (모양·색마다 한 번 굽기)
-function flPkTint(PK,key,col,a,mode){const r=PK.meta.r[key];if(!col)return null;const ck='dg/'+key+col+a+(mode||'');let cv=FL.tint.get(ck);if(cv)return cv;if(FL.tint.size>500)FL.tint.clear();
+function flPkTint(PK,key,col,a,mode){const r=PK.meta.r[key];if(!col)return null;const ck='dg/'+key+col+a+(mode||'');let cv=FLT.get(ck);if(cv)return cv;
   cv=document.createElement('canvas');cv.width=r[2];cv.height=r[3];const g=cv.getContext('2d');g.drawImage(PK.img,r[0],r[1],r[2],r[3],0,0,r[2],r[3]);
   g.globalCompositeOperation=mode==='m'?'multiply':'color';g.globalAlpha=a;g.fillStyle=col;g.fillRect(0,0,r[2],r[3]);g.globalAlpha=1;
-  g.globalCompositeOperation='destination-in';g.drawImage(PK.img,r[0],r[1],r[2],r[3],0,0,r[2],r[3]);FL.tint.set(ck,cv);return cv}
+  g.globalCompositeOperation='destination-in';g.drawImage(PK.img,r[0],r[1],r[2],r[3],0,0,r[2],r[3]);return FLT.put(ck,cv)}
 function flPkDraw(c,PK,key,x,y,s,tc){const r=PK.meta.r[key],k=PK.meta.k*s;if(tc)c.drawImage(tc,0,0,r[2],r[3],x-r[4]*k,y-r[5]*k,r[2]*k,r[3]*k);else c.drawImage(PK.img,r[0],r[1],r[2],r[3],x-r[4]*k,y-r[5]*k,r[2]*k,r[3]*k)}
 const flLo=()=>typeof Q!=='undefined'&&Q.lvl===0;
 function flDgEnt(d){const c=d.cave;if(!c||c.w3k)return false;const PK=flPack('dgent');if(!PK){flNeed('dgent');return false}

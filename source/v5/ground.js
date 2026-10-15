@@ -293,8 +293,13 @@ function getChunkE(cx,cy){const want=clamp(Math.round(DPR*.9*20)/20,.8,1.4);if(w
   const k=cx*1000+cy;let c=chunks.get(k);if(c){c.used=frameN;return c}
   const cv2=document.createElement('canvas');cv2.width=cv2.height=Math.round(CH*chunkScale);const g2=cv2.getContext('2d');g2.scale(chunkScale,chunkScale);
   c={cv:cv2,used:frameN,fx:null,ready:false,pv:chunkPreview(cx,cy),cx,cy,ms:0};c.job=paintChunkG(g2,cx*CH,cy*CH);chunks.set(k,c);GJOBS.push(c);
-  if(chunks.size>64){let old=null,ou=1e12;for(const [kk,v] of chunks)if(v.used<ou&&v.ready){ou=v.used;old=kk}if(old!=null)chunks.delete(old)}
-  return c}
+  chunkTrim();return c}
+// [v34 최적화] 땅 조각 저장을 개수(64개)가 아니라 메모리로 막는다: PC 96MB · 휴대폰 40MB (조각 그림 + 화면 방향 그림).
+// 휴대폰은 화면이 선명해 조각 하나가 커서, 64개면 최대 약 180MB까지 쓸 수 있었다. 이번·지난 프레임에 그린 조각은 버리지 않는다.
+const CH_CAP=(matchMedia('(pointer:coarse)').matches?40:96)*1048576;
+function chunkMem(c){return(c.cv?c.cv.width*c.cv.height*4:0)+(c.iso?c.iso.cv.width*c.iso.cv.height*4:0)}
+function chunkTrim(){let m=0;for(const v of chunks.values())m+=chunkMem(v);
+  while(chunks.size>64||m>CH_CAP){let old=null,ou=1e12;for(const [kk,v] of chunks)if(v.used<ou&&v.ready&&v.used<frameN-1){ou=v.used;old=kk}if(old==null)break;m-=chunkMem(chunks.get(old));chunks.delete(old)}return m}
 // [v26 최적화] 땅 무늬 그림이 새로 도착하면(Flare 묶음) 다 구운 조각을 지우지 않고, 새로 다 구울 때까지 예전 그림을 그대로 보여 준다
 // (예전에는 모두 지워 흐린 미리보기로 돌아갔다가 다시 구웠다)
 function chunkStale(){for(const c of chunks.values()){if(c.ready)c.stale=1;else{c.job=null;chunks.delete(c.cx*1000+c.cy)}}for(const c of GJOBS)if(c.par)c.par.rb=null;GJOBS.length=0}
@@ -320,7 +325,7 @@ function drawGround(cx0,cx1,cy0,cy1){{const wk=DG||REG;if(wk!==chunkWorld){chunk
   for(let cy=cy0;cy<=cy1;cy++)for(let cx=cx0;cx<=cx1;cx++){if(!ok(cx,cy)||!inView(cx,cy))continue;const c=chunks.get(cx*1000+cy);if(!c)continue;
     if(c.ready&&c.stale){if(!c.rb)chunkRebake(c);c.rb.used=frameN}
     if(c.ready){if(!isoBlit(c,cx,cy))isoFallback(c,cx,cy);if(c.fx&&c.fx.length)GVIS.push(c)}else ctx.drawImage(c.pv,.5,.5,4,4,cx*CH,cy*CH,CH+1,CH+1)}
-  if(!miss&&GJOBS.length<2&&chunks.size<60){outer:for(let cy=cy0-1;cy<=cy1+1;cy++)for(let cx=cx0-1;cx<=cx1+1;cx++){if(!ok(cx,cy)||chunks.has(cx*1000+cy)||!inView(cx,cy,250))continue;getChunkE(cx,cy).used=frameN-1;break outer}}}
+  if(!miss&&GJOBS.length<2&&chunks.size<60&&chunkTrim()<CH_CAP*.85){outer:for(let cy=cy0-1;cy<=cy1+1;cy++)for(let cx=cx0-1;cx<=cx1+1;cx++){if(!ok(cx,cy)||chunks.has(cx*1000+cy)||!inView(cx,cy,250))continue;getChunkE(cx,cy).used=frameN-1;break outer}}}
 // [최적화] 다 구운 조각을 화면 방향(마름모)으로 한 번 더 구워 두고, 매 프레임에는 회전 없이 그대로 붙인다.
 // 회전·기울인 큰 그림을 매 프레임 그리는 비용이 프레임의 절반 가까이였다. 그림 내용은 같다.
 const ISO_PAD=2,ISO_MAX=28;

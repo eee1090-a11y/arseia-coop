@@ -23,8 +23,8 @@ function set24Fps(f){f=+f;if(!(f in SET24.FN))return;GFX.fps=f;gfxSave();set24Dr
 function set24Draw(){const el=SET24.el;if(!el||el.hidden)return;const seg=(k,cur,map,cls)=>Object.keys(map).map(v=>`<button type="button" class="s24seg${String(cur)===v?' on':''}" data-${cls}="${v}" aria-pressed="${String(cur)===v}">${map[v]}</button>`).join('');
   el.innerHTML=`<div class="s24h">그래픽 품질</div><div class="s24row">${seg('q',GFX.q||'auto',SET24.QN,'s24q')}</div>
     <div class="s24n">낮음일수록 가볍고 열이 덜 나요. 낮음: 화면을 조금 덜 선명하게 그리고 효과 · 빛과 안개를 줄여요${GFX.q==='auto'?` · 지금 효과 단계 ${Q.lvl}`:''}</div>
-    <div class="s24h">프레임 상한</div><div class="s24row">${seg('f',GFX.fps===30?30:60,SET24.FN,'s24f')}</div>
-    <div class="s24n">30으로 두면 그리는 횟수가 절반이라 노트북 · 휴대폰이 덜 뜨거워져요. 게임 속도는 같아요</div>
+    <div class="s24h">프레임 상한</div><div class="s24row">${seg('f',fps30()?30:60,SET24.FN,'s24f')}</div>
+    <div class="s24n">30으로 두면 그리는 횟수가 절반이라 노트북 · 휴대폰이 덜 뜨거워져요. 게임 속도는 같아요. 휴대폰은 처음에 30이에요</div>
     <div class="s24sep"></div>
     <button type="button" class="s24item" data-s24go="gfxBtn">화면 <small>빛 · 안개 · 카메라 · 그림</small></button>
     <button type="button" class="s24item" data-s24go="auBtn">소리 <small>배경음악 · 효과음 크기</small></button>

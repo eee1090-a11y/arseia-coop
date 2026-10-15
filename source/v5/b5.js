@@ -324,11 +324,14 @@ function stepSim(dt){if(!paused||NET.on){let r=dt,n=0;do{const d=Math.min(.05,r)
 // 움직이기 시작하면(키 · 마우스 · 터치, 몬스터가 쫓아옴, 마법) 바로 60으로 돌아온다. 같이하기 중에는 늘 60. 게임 속도는 같다.
 const IDLE={inp:0,px:0,py:0,t:0};
 for(const ev of ['keydown','pointerdown','pointermove','wheel','touchstart'])addEventListener(ev,()=>{IDLE.inp=performance.now();IDLE.t=0},{passive:true,capture:true});
-function idleTick(dt,now){let busy=now-IDLE.inp<1500||NET.on;if(!busy&&!P.dead&&(Math.abs(P.x-IDLE.px)+Math.abs(P.y-IDLE.py)>.5))busy=true;IDLE.px=P.x;IDLE.py=P.y;
+function idleTick(dt,now){let busy=now-IDLE.inp<1500;// [v34] 같이 하기 중에도 손을 놓고 주변이 조용하면 쉰다 (화면만 30장, 게임·통신 시간은 그대로)
+if(!busy&&!P.dead&&(Math.abs(P.x-IDLE.px)+Math.abs(P.y-IDLE.py)>.5))busy=true;IDLE.px=P.x;IDLE.py=P.y;
   if(!busy&&(projs.length||fields.length||pend.length||beams.length||bolts.length||rains.length))busy=true;
   if(!busy)for(const e of enemies)if(e.aggroed&&!e.dead){busy=true;break}
   IDLE.t=busy?0:IDLE.t+dt}
-function frameCapMs(){if(GFX.fps===30)return 33.3;if(!NET.on&&(IDLE.t>2||!document.hasFocus()))return 33.3;return 16.6}
+// [v34 최적화] 휴대폰은 프레임 상한을 고르지 않았으면 30(절전)이 기본 (설정에서 60을 고를 수 있음). 발열의 가장 큰 손잡이
+function fps30(){return GFX.fps===30||(!GFX.fps&&typeof M22==='object'&&M22.phone())}
+function frameCapMs(){if(fps30())return 33.3;if(IDLE.t>2||!document.hasFocus())return 33.3;return 16.6}
 const qTickMs=raw=>raw-Math.max(0,frameCapMs()-16.7);// 일부러 쉰 시간은 자동 품질에서 느림으로 치지 않음
 function frame(now){
   {const d=now-rafPrev;rafPrev=now;if(d>0&&d<100)rafPer+=(d-rafPer)*.1}
@@ -341,6 +344,7 @@ function frame(now){
   stepSim(dt);idleTick(dt,now);
   fpsTick(now);render();hudT-=dt;if(hudT<=0){hudT=1/15;updateHud()}
   mmT-=dt;if(mmT<=0){mmT=.15;drawMinimap()}
+  arTick(raw,performance.now()-now,cap);
   requestAnimationFrame(frame);
 }
 function start(data){

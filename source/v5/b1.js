@@ -11,12 +11,20 @@ const GFX={zoom:1,fog:true,q:'auto',fps:0};try{const v=JSON.parse(localStorage.g
 const fogOn=()=>GFX.fog&&GFX.q!=='low';// v24: 품질 「낮음」은 빛과 안개도 끈다 (켜기/끄기 저장값은 그대로)
 // [v25 최적화] 자동 해상도: 품질 「자동」에서 효과 단계를 0까지 내려도 계속 느리면 그리는 해상도를 1.5 → 1.25 → 1로 한 단계씩 내린다(고해상도·화면 배율 125~150% 기기만 해당).
 // 오래(30초) 넉넉하면 한 단계 올린다. 바꿀 때 한 번 다시 굽느라 잠깐 멈칫할 수 있어, 자주 바뀌지 않게 기다리는 시간을 길게 둔다.
-const AUTOR={cap:1.5,slowT:0,fastT:0};
+const AUTOR={cap:1.5,slowT:0,fastT:0,ema:16.7,wema:8};
 const gfxDprCap=()=>GFX.q==='low'?1:GFX.q==='mid'?1.25:GFX.q==='high'?1.5:AUTOR.cap;
-function autoResTick(ms,ema,lvl){if(GFX.q&&GFX.q!=='auto'){AUTOR.cap=1.5;return}if((window.devicePixelRatio||1)<=1.01)return;
-  if(lvl===0&&ema>26){AUTOR.slowT+=ms;AUTOR.fastT=0}else if(ema<14){AUTOR.fastT+=ms;AUTOR.slowT=0}else{AUTOR.slowT=0;AUTOR.fastT=0}
-  let c=AUTOR.cap;if(AUTOR.slowT>3000&&c>1){c-=.25;AUTOR.slowT=0}else if(AUTOR.fastT>30000&&c<1.5){c+=.25;AUTOR.fastT=0}
-  if(c!==AUTOR.cap){AUTOR.cap=c;resize();if(typeof P!=='undefined'&&P&&P.cls&&typeof heroBake==='function'){SC.bakeLeft=99;heroBake(P,Math.max(1,DPR)*HS*PK)}}}
+function autoResTick(ms,ema,lvl){}// [v34] 자동 해상도는 b5의 arTick(실제 프레임 간격 기준)으로 옮김
+// [v34 최적화] 자동 해상도: 예전에는 「효과 단계 0 + 흐름 26ms 넘음」에서만 낮췄는데, 효과 단계는 24ms에서 이미 0이 되므로
+// 24~26ms(초당 약 40장)에 끼면 해상도가 끝내 안 내려가 휴대폰이 쉬지 않고 최대로 돌았다(발열).
+// 이제 실제 프레임 간격이 목표(60장이면 16.7ms, 30장이면 33.3ms)의 1.25배를 2초 넘게 넘으면 한 단계 낮추고,
+// 한 단계 올려도(그리는 넓이 기준으로 예상) 목표의 45% 안에 들 만큼 30초 동안 여유가 있을 때만 올린다(오르내림 반복 방지).
+// 휴대폰은 1.25에서 시작한다. 「자동」일 때만.
+function arTick(raw,work,cap){if(GFX.q&&GFX.q!=='auto'){AUTOR.cap=1.5;return}if((window.devicePixelRatio||1)<=1.01||!(raw>0)||raw>250)return;
+  if(!AUTOR.init){AUTOR.init=1;AUTOR.ema=cap;AUTOR.wema=work;if(typeof M22==='object'&&M22.phone()&&AUTOR.cap>1.25){AUTOR.cap=1.25;resize();return}}
+  AUTOR.ema+=(raw-AUTOR.ema)*.05;AUTOR.wema+=(work-AUTOR.wema)*.05;let c=AUTOR.cap;const up=Math.pow((c+.25)/c,2);
+  if(AUTOR.ema>cap*1.25&&Q.lvl===0){AUTOR.slowT+=raw;AUTOR.fastT=0}else if(AUTOR.ema<cap*1.1&&AUTOR.wema*up<cap*.45){AUTOR.fastT+=raw;AUTOR.slowT=0}else{AUTOR.slowT=0;AUTOR.fastT=0}
+  if(AUTOR.slowT>2000&&c>1){c-=.25;AUTOR.slowT=0}else if(AUTOR.fastT>30000&&c<1.5){c+=.25;AUTOR.fastT=0}
+  if(c!==AUTOR.cap){AUTOR.cap=c;AUTOR.ema=cap;resize();if(typeof P!=='undefined'&&P&&P.cls&&typeof heroBake==='function'){SC.bakeLeft=99;heroBake(P,Math.max(1,DPR)*HS*PK)}}}
 let CZ=1;// 당기면 세계 좌표의 화면 크기(W,H)가 1/CZ로 줄고 DPR이 CZ배가 된다 → 캔버스 픽셀 수는 그대로
 function resize(){CZ=GFX.zoom;DPR=Math.min(gfxDprCap(),window.devicePixelRatio||1)*CZ;const cw=cv.clientWidth||innerWidth,ch=cv.clientHeight||innerHeight;W=cw/CZ;H=ch/CZ;cv.width=Math.round(cw*DPR/CZ);cv.height=Math.round(ch*DPR/CZ);lc.width=Math.ceil(W/2);lc.height=Math.ceil(H/2)}
 addEventListener('resize',resize);resize();

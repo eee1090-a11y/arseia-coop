@@ -352,12 +352,20 @@ const GFX={zoom:1,fog:true,q:'auto',fps:0};try{const v=JSON.parse(localStorage.g
 const fogOn=()=>GFX.fog&&GFX.q!=='low';// v24: 품질 「낮음」은 빛과 안개도 끈다 (켜기/끄기 저장값은 그대로)
 // [v25 최적화] 자동 해상도: 품질 「자동」에서 효과 단계를 0까지 내려도 계속 느리면 그리는 해상도를 1.5 → 1.25 → 1로 한 단계씩 내린다(고해상도·화면 배율 125~150% 기기만 해당).
 // 오래(30초) 넉넉하면 한 단계 올린다. 바꿀 때 한 번 다시 굽느라 잠깐 멈칫할 수 있어, 자주 바뀌지 않게 기다리는 시간을 길게 둔다.
-const AUTOR={cap:1.5,slowT:0,fastT:0};
+const AUTOR={cap:1.5,slowT:0,fastT:0,ema:16.7,wema:8};
 const gfxDprCap=()=>GFX.q==='low'?1:GFX.q==='mid'?1.25:GFX.q==='high'?1.5:AUTOR.cap;
-function autoResTick(ms,ema,lvl){if(GFX.q&&GFX.q!=='auto'){AUTOR.cap=1.5;return}if((window.devicePixelRatio||1)<=1.01)return;
-  if(lvl===0&&ema>26){AUTOR.slowT+=ms;AUTOR.fastT=0}else if(ema<14){AUTOR.fastT+=ms;AUTOR.slowT=0}else{AUTOR.slowT=0;AUTOR.fastT=0}
-  let c=AUTOR.cap;if(AUTOR.slowT>3000&&c>1){c-=.25;AUTOR.slowT=0}else if(AUTOR.fastT>30000&&c<1.5){c+=.25;AUTOR.fastT=0}
-  if(c!==AUTOR.cap){AUTOR.cap=c;resize();if(typeof P!=='undefined'&&P&&P.cls&&typeof heroBake==='function'){SC.bakeLeft=99;heroBake(P,Math.max(1,DPR)*HS*PK)}}}
+function autoResTick(ms,ema,lvl){}// [v34] 자동 해상도는 b5의 arTick(실제 프레임 간격 기준)으로 옮김
+// [v34 최적화] 자동 해상도: 예전에는 「효과 단계 0 + 흐름 26ms 넘음」에서만 낮췄는데, 효과 단계는 24ms에서 이미 0이 되므로
+// 24~26ms(초당 약 40장)에 끼면 해상도가 끝내 안 내려가 휴대폰이 쉬지 않고 최대로 돌았다(발열).
+// 이제 실제 프레임 간격이 목표(60장이면 16.7ms, 30장이면 33.3ms)의 1.25배를 2초 넘게 넘으면 한 단계 낮추고,
+// 한 단계 올려도(그리는 넓이 기준으로 예상) 목표의 45% 안에 들 만큼 30초 동안 여유가 있을 때만 올린다(오르내림 반복 방지).
+// 휴대폰은 1.25에서 시작한다. 「자동」일 때만.
+function arTick(raw,work,cap){if(GFX.q&&GFX.q!=='auto'){AUTOR.cap=1.5;return}if((window.devicePixelRatio||1)<=1.01||!(raw>0)||raw>250)return;
+  if(!AUTOR.init){AUTOR.init=1;AUTOR.ema=cap;AUTOR.wema=work;if(typeof M22==='object'&&M22.phone()&&AUTOR.cap>1.25){AUTOR.cap=1.25;resize();return}}
+  AUTOR.ema+=(raw-AUTOR.ema)*.05;AUTOR.wema+=(work-AUTOR.wema)*.05;let c=AUTOR.cap;const up=Math.pow((c+.25)/c,2);
+  if(AUTOR.ema>cap*1.25&&Q.lvl===0){AUTOR.slowT+=raw;AUTOR.fastT=0}else if(AUTOR.ema<cap*1.1&&AUTOR.wema*up<cap*.45){AUTOR.fastT+=raw;AUTOR.slowT=0}else{AUTOR.slowT=0;AUTOR.fastT=0}
+  if(AUTOR.slowT>2000&&c>1){c-=.25;AUTOR.slowT=0}else if(AUTOR.fastT>30000&&c<1.5){c+=.25;AUTOR.fastT=0}
+  if(c!==AUTOR.cap){AUTOR.cap=c;AUTOR.ema=cap;resize();if(typeof P!=='undefined'&&P&&P.cls&&typeof heroBake==='function'){SC.bakeLeft=99;heroBake(P,Math.max(1,DPR)*HS*PK)}}}
 let CZ=1;// 당기면 세계 좌표의 화면 크기(W,H)가 1/CZ로 줄고 DPR이 CZ배가 된다 → 캔버스 픽셀 수는 그대로
 function resize(){CZ=GFX.zoom;DPR=Math.min(gfxDprCap(),window.devicePixelRatio||1)*CZ;const cw=cv.clientWidth||innerWidth,ch=cv.clientHeight||innerHeight;W=cw/CZ;H=ch/CZ;cv.width=Math.round(cw*DPR/CZ);cv.height=Math.round(ch*DPR/CZ);lc.width=Math.ceil(W/2);lc.height=Math.ceil(H/2)}
 addEventListener('resize',resize);resize();
@@ -11319,8 +11327,13 @@ function getChunkE(cx,cy){const want=clamp(Math.round(DPR*.9*20)/20,.8,1.4);if(w
   const k=cx*1000+cy;let c=chunks.get(k);if(c){c.used=frameN;return c}
   const cv2=document.createElement('canvas');cv2.width=cv2.height=Math.round(CH*chunkScale);const g2=cv2.getContext('2d');g2.scale(chunkScale,chunkScale);
   c={cv:cv2,used:frameN,fx:null,ready:false,pv:chunkPreview(cx,cy),cx,cy,ms:0};c.job=paintChunkG(g2,cx*CH,cy*CH);chunks.set(k,c);GJOBS.push(c);
-  if(chunks.size>64){let old=null,ou=1e12;for(const [kk,v] of chunks)if(v.used<ou&&v.ready){ou=v.used;old=kk}if(old!=null)chunks.delete(old)}
-  return c}
+  chunkTrim();return c}
+// [v34 최적화] 땅 조각 저장을 개수(64개)가 아니라 메모리로 막는다: PC 96MB · 휴대폰 40MB (조각 그림 + 화면 방향 그림).
+// 휴대폰은 화면이 선명해 조각 하나가 커서, 64개면 최대 약 180MB까지 쓸 수 있었다. 이번·지난 프레임에 그린 조각은 버리지 않는다.
+const CH_CAP=(matchMedia('(pointer:coarse)').matches?40:96)*1048576;
+function chunkMem(c){return(c.cv?c.cv.width*c.cv.height*4:0)+(c.iso?c.iso.cv.width*c.iso.cv.height*4:0)}
+function chunkTrim(){let m=0;for(const v of chunks.values())m+=chunkMem(v);
+  while(chunks.size>64||m>CH_CAP){let old=null,ou=1e12;for(const [kk,v] of chunks)if(v.used<ou&&v.ready&&v.used<frameN-1){ou=v.used;old=kk}if(old==null)break;m-=chunkMem(chunks.get(old));chunks.delete(old)}return m}
 // [v26 최적화] 땅 무늬 그림이 새로 도착하면(Flare 묶음) 다 구운 조각을 지우지 않고, 새로 다 구울 때까지 예전 그림을 그대로 보여 준다
 // (예전에는 모두 지워 흐린 미리보기로 돌아갔다가 다시 구웠다)
 function chunkStale(){for(const c of chunks.values()){if(c.ready)c.stale=1;else{c.job=null;chunks.delete(c.cx*1000+c.cy)}}for(const c of GJOBS)if(c.par)c.par.rb=null;GJOBS.length=0}
@@ -11346,7 +11359,7 @@ function drawGround(cx0,cx1,cy0,cy1){{const wk=DG||REG;if(wk!==chunkWorld){chunk
   for(let cy=cy0;cy<=cy1;cy++)for(let cx=cx0;cx<=cx1;cx++){if(!ok(cx,cy)||!inView(cx,cy))continue;const c=chunks.get(cx*1000+cy);if(!c)continue;
     if(c.ready&&c.stale){if(!c.rb)chunkRebake(c);c.rb.used=frameN}
     if(c.ready){if(!isoBlit(c,cx,cy))isoFallback(c,cx,cy);if(c.fx&&c.fx.length)GVIS.push(c)}else ctx.drawImage(c.pv,.5,.5,4,4,cx*CH,cy*CH,CH+1,CH+1)}
-  if(!miss&&GJOBS.length<2&&chunks.size<60){outer:for(let cy=cy0-1;cy<=cy1+1;cy++)for(let cx=cx0-1;cx<=cx1+1;cx++){if(!ok(cx,cy)||chunks.has(cx*1000+cy)||!inView(cx,cy,250))continue;getChunkE(cx,cy).used=frameN-1;break outer}}}
+  if(!miss&&GJOBS.length<2&&chunks.size<60&&chunkTrim()<CH_CAP*.85){outer:for(let cy=cy0-1;cy<=cy1+1;cy++)for(let cx=cx0-1;cx<=cx1+1;cx++){if(!ok(cx,cy)||chunks.has(cx*1000+cy)||!inView(cx,cy,250))continue;getChunkE(cx,cy).used=frameN-1;break outer}}}
 // [최적화] 다 구운 조각을 화면 방향(마름모)으로 한 번 더 구워 두고, 매 프레임에는 회전 없이 그대로 붙인다.
 // 회전·기울인 큰 그림을 매 프레임 그리는 비용이 프레임의 절반 가까이였다. 그림 내용은 같다.
 const ISO_PAD=2,ISO_MAX=28;
@@ -11920,6 +11933,11 @@ window.__terr={GFX,gfxSet,terrGrid,terrEnsure,terrReach,terrReachLQ,terrFix,terr
    - 「화면」 설정 「그림: 새 그림 / 예전 그림」. 파일이 없거나 못 불러오면 예전 코드 그림 그대로.
    - 그림만 바뀐다: 크기·충돌·적중·수치·저장은 그대로. */
 const FL={P:{},want:{},mk:{},gtx0:{},tint:new Map()};
+// [v34 최적화] 색 입힌 그림 캐시: 500개가 넘으면 통째로 비우던 것을, 메모리 상한(PC 64MB · 휴대폰 32MB) 안에서 오래 안 쓴 것부터 버린다.
+// (전투에서 몬스터 종류·동작·방향이 많으면 500개를 넘겨 매번 비우고 다시 만들어 6초에 100~160개 캔버스를 새로 만들었다)
+const FLT={b:0,cap:(matchMedia('(pointer:coarse)').matches?32:64)*1048576,n:0,
+  get(k){const c=FL.tint.get(k);if(c){FL.tint.delete(k);FL.tint.set(k,c)}return c},
+  put(k,c){if(!FL.tint.size)this.b=0;FL.tint.set(k,c);this.b+=c.width*c.height*4;this.n++;for(const [kk,v] of FL.tint){if(this.b<=this.cap||FL.tint.size<=1)break;FL.tint.delete(kk);this.b-=v.width*v.height*4}return c}};
 // [f7r] 그림을 미리 풀어 둔 뒤(decode) 쓴다: 처음 그리는 프레임에서 멈칫하지 않게
 window.FLARE_PACK=function(name,meta,url){const im=new Image();const ok=()=>{if(FL.P[name])return;FL.P[name]={img:im,meta};flReady(name)};im.onload=()=>{im.decode?im.decode().then(ok,ok):ok()};im.onerror=()=>{FL.want[name]='fail'};im.src=url};
 function flWant(){return GFX.art!=='old'}
@@ -11988,10 +12006,10 @@ const FLK={wyvern:1.45}; // 날개 달린 비룡은 키보다 몸이 커 보여�
 const FLMH={wolf:'wolf',goblin:'goblin',skeleton:'skeleton',skelmage:'skeleton',zombie:'skeleton',ogre:'ogre',antlion:'scorpion',wyvern:'serpent'};
 // 원래 그림 색. 종류 색(col)이 이 색과 다를수록 그 색을 더 입힌다 (재 들개·붉은 전갈 같은 변형 구분)
 const FLREF={wolf:'#8a867f',goblin:'#5c8a3a',skeleton:'#b0a898',skelmage:'#b0a898',zombie:'#8a8a5a',ogre:'#7a6a46',antlion:'#9a7a52',wyvern:'#6a6a5a'};
-function flTinted(PK,key,col,s){const ck=key+col;let cv=FL.tint.get(ck);if(cv)return cv;if(FL.tint.size>500)FL.tint.clear();
+function flTinted(PK,key,col,s){const ck=key+col;let cv=FLT.get(ck);if(cv)return cv;
   const r=PK.meta.r[key];cv=document.createElement('canvas');cv.width=r[2];cv.height=r[3];const g=cv.getContext('2d');g.drawImage(PK.img,r[0],r[1],r[2],r[3],0,0,r[2],r[3]);
   g.globalCompositeOperation='color';g.globalAlpha=s;g.fillStyle=col;g.fillRect(0,0,r[2],r[3]);g.globalAlpha=1;g.globalCompositeOperation='destination-in';g.drawImage(PK.img,r[0],r[1],r[2],r[3],0,0,r[2],r[3]);
-  FL.tint.set(ck,cv);return cv}
+  return FLT.put(ck,cv)}
 function flTintAmt(id,col){if(!col)return 0;const a=Kit.hex(col),b=Kit.hex(FLREF[id]);const d=Math.hypot(a[0]-b[0],a[1]-b[1],a[2]-b[2]);return d<40?0:Math.min(.55,(d-40)/160)}
 const FLM=new WeakMap();
 function flMon(id,draw,g,e,t,st){const PK=flPack('m-'+id);if(!PK){flNeed('m-'+id);return false}const M=PK.meta.mon[id];if(!M)return false;
@@ -12051,11 +12069,11 @@ for(const dk of ['panther','yeti']){const _m=MON[dk];if(!_m)continue;
 // 흰 곰은 'color' 칠로는 갈색 곰(잿빛 고원곰·천둥뿔 스카른)이 나오지 않아 곱하기로 칠한다: 원래 색(FLREF)이면 그대로, 어두운 색일수록 그 색으로 어둡게
 const FLMUL={yeti:1};
 {const _ft=flTinted;flTinted=function(PK,key,col,s){const id=key.slice(0,key.indexOf('/'));if(!FLMUL[id]||!FLREF[id])return _ft.apply(this,arguments);
-  const ck=key+col+'*';let cv=FL.tint.get(ck);if(cv)return cv;if(FL.tint.size>500)FL.tint.clear();
+  const ck=key+col+'*';let cv=FLT.get(ck);if(cv)return cv;
   const r=PK.meta.r[key],a=Kit.hex(col),b=Kit.hex(FLREF[id]),m=[0,1,2].map(i=>Math.min(255,Math.round(a[i]/Math.max(1,b[i])*255)));
   cv=document.createElement('canvas');cv.width=r[2];cv.height=r[3];const g=cv.getContext('2d');g.drawImage(PK.img,r[0],r[1],r[2],r[3],0,0,r[2],r[3]);
   g.globalCompositeOperation='multiply';g.fillStyle='rgb('+m.join(',')+')';g.fillRect(0,0,r[2],r[3]);
-  g.globalCompositeOperation='destination-in';g.drawImage(PK.img,r[0],r[1],r[2],r[3],0,0,r[2],r[3]);FL.tint.set(ck,cv);return cv}}
+  g.globalCompositeOperation='destination-in';g.drawImage(PK.img,r[0],r[1],r[2],r[3],0,0,r[2],r[3]);return FLT.put(ck,cv)}}
 // 장식: 사막 대추야자·선인장 자리(0 A.D.엔 선인장이 없어 가시 많은 다육 덤불·아카시아 가시덤불), 바다 열대 야자·난파선, 들판 건초 더미
 // f7r 장식 짜임(FLTP 지역 테마 → 묶음 차례, FLNEW 새 묶음 종류)에 묶음만 뒤에 덧붙인다: 앞 묶음(Flare)에 없는 종류만 여기서 찾는다. 묶음이 없으면 예전 코드 그림
 // 산호·조개·용암 분기공·얼음 첨탑(coral·shell·vent·icespike)은 0 A.D.에 맞는 모델이 없어 코드 그림 그대로 (빙산·뾰족 바위로 만든 얼음 첨탑은 비닐 덩어리처럼 보여 뺐다). 만드는 법: f9a-qa/tools/render0ad_static.py (+ flora0ad.json) → pack0ad_flora.py
@@ -12128,10 +12146,10 @@ const FLDG={barrow:['barrow'],sewer:['sewer','#4a7a76',.35],fort:['fortgate','#7
   th_bell:['tower','#6a7080',.45],rt_cavern:['roots','#7ab89a',.3],ec_cathedral:['crypt','#5a4a7a',.45,'m']};
 const FLSUNK=new Set(['sunken','sunken2']),FLEMB=new Set(['forge']),FLHOLE=new Set(['barrow','circle','shrine','sewer']);
 // 색 입힌 그림 (모양·색마다 한 번 굽기)
-function flPkTint(PK,key,col,a,mode){const r=PK.meta.r[key];if(!col)return null;const ck='dg/'+key+col+a+(mode||'');let cv=FL.tint.get(ck);if(cv)return cv;if(FL.tint.size>500)FL.tint.clear();
+function flPkTint(PK,key,col,a,mode){const r=PK.meta.r[key];if(!col)return null;const ck='dg/'+key+col+a+(mode||'');let cv=FLT.get(ck);if(cv)return cv;
   cv=document.createElement('canvas');cv.width=r[2];cv.height=r[3];const g=cv.getContext('2d');g.drawImage(PK.img,r[0],r[1],r[2],r[3],0,0,r[2],r[3]);
   g.globalCompositeOperation=mode==='m'?'multiply':'color';g.globalAlpha=a;g.fillStyle=col;g.fillRect(0,0,r[2],r[3]);g.globalAlpha=1;
-  g.globalCompositeOperation='destination-in';g.drawImage(PK.img,r[0],r[1],r[2],r[3],0,0,r[2],r[3]);FL.tint.set(ck,cv);return cv}
+  g.globalCompositeOperation='destination-in';g.drawImage(PK.img,r[0],r[1],r[2],r[3],0,0,r[2],r[3]);return FLT.put(ck,cv)}
 function flPkDraw(c,PK,key,x,y,s,tc){const r=PK.meta.r[key],k=PK.meta.k*s;if(tc)c.drawImage(tc,0,0,r[2],r[3],x-r[4]*k,y-r[5]*k,r[2]*k,r[3]*k);else c.drawImage(PK.img,r[0],r[1],r[2],r[3],x-r[4]*k,y-r[5]*k,r[2]*k,r[3]*k)}
 const flLo=()=>typeof Q!=='undefined'&&Q.lvl===0;
 function flDgEnt(d){const c=d.cave;if(!c||c.w3k)return false;const PK=flPack('dgent');if(!PK){flNeed('dgent');return false}
@@ -12230,6 +12248,12 @@ window.__fl.twFolkSprite=(...a)=>twFolkSprite(...a);window.__fl.f12Look=f12Look;
 
 /* ---------- 패치노트: 새 버전이면 시작 화면에 요약, 게임 안에서는 버튼으로 다시 보기 ---------- */
 const PATCHES=[
+  {v:34,d:'2026-10-15',t:'휴대폰 발열 · 밀림 줄이기(휴대폰 기본 30프레임) · 궁수 2차 「명궁」 기술 다섯 개 새 모양',items:['휴대폰이 덜 뜨겁고 덜 밀려요. 휴대폰은 처음부터 초당 30장으로 그려요(게임 속도는 같아요). 「설정 ⚙ · 프레임 상한」에서 60을 고르면 예전처럼 60장이에요. PC는 그대로 60장이에요',
+    '휴대폰에서 「그래픽 품질: 자동 · 낮음」이 화면 선명도를 실제로 낮추지 못하던 것을 고쳤어요. 자동이면 버벅일 때 조금씩 낮추고, 여유가 30초 이어지면 다시 올려요',
+    '같이 하기 중에도 2초 넘게 손을 놓고 있으면 30장으로 쉬어요. 손을 대면 바로 60장으로 돌아와요',
+    '오래 놀아도 그림 · 땅 조각 기억이 한없이 늘지 않게 상한을 두었어요(PC · 휴대폰 따로). 오래 안 쓴 것부터 비우고 지금 보이는 것은 남겨요',
+    '궁수 2차 「명궁」 기술 다섯 개가 새 모양으로 바뀌었어요. 피어싱 블로 → 센트리 발리스타(쇠뇌 포대를 세워 10초 동안 알아서 쏨) · 스플리팅 애로우 → 퓨즈 애로우(꽂힌 폭약이 3초 뒤 터짐, 그 사이 내 화살이 맞을수록 커짐) · 엘리멘탈 레인 → 애로우 펜스(불 · 얼음 · 번개가 번갈아 치는 화살 울타리, 적을 밀어냄) · 리트리팅 샷 → 리트리트 넷(뒤로 뛰며 떠난 자리에 그물, 적을 묶음) · 보우 오브 헤븐은 「하늘의 활」로(12초 동안 하늘에서 빛 화살이 쏟아짐)',
+    '바뀐 다섯 기술에 찍었던 포인트는 한 번 돌려받으니 「명궁」 탭에서 다시 배우세요']},
   {v:33,d:'2026-10-15',t:'옹기여신의 설원 전용 그림 · 마법사 스킬 이펙트 29가지 더 · 궁수 스킬 이펙트 처음 · 독 가시 덫 고침',items:['옹기여신의 설원이 전용 그림으로 바뀌었어요(지금까지는 다른 그림의 색만 바꾼 임시 그림). 보스 옹기돼지 · 가짜코 여신, 들판 몬스터 넷(깨진 옹기 망령 · 가마 진흙덩이 · 신전 파수 기사 · 가짜코 숭배자), 준보스 둘(가마지기 거상 토우 · 심연을 여는 사제), 쉼터 사람 셋(신전지기 도담 · 순례자 코코 · 옹기 굽는 장인), 옹기여신 동상 · 신전 · 쉼터 성소, 옹기 · 실리콘 화살, 설원 바닥, 들판 소품(눈소나무 · 얼음바위 · 신전 돌 · 얼음가시 · 폐허 기둥 · 얼어붙은 뼈 · 옹기 항아리), 신전 던전의 바닥 · 벽 · 분홍 횃불 · 가마 · 깨진 옹기 무더기 · 입구 · 보스 방 바닥 문양. 그림만 바뀌고 크기 · 충돌 · 수치는 그대로예요. 그림은 그 지역에 들어설 때만 받아요',
     '마법사 스킬 이펙트 그림이 29가지(스킬 37개) 더 생겼어요: 솔라 레이 · 어스 팽 · 금기: 어스 오버턴 · 던 블레이드 · 메테오 · 템페스트 · 스톤 스킨 · 워터 폼 · 리와인드 · 저지먼트 썬더 · 선 폴 · 스팀 버스트 · 프로스트 골렘 · 스톰 호크 · 스톤 타이탄 · 스피릿 커뮤니언 · 아케인 오버로드 · 마나 리플럭스 · 어드벤트 오브 스피릿 킹 · 스피릿 버스트 · 메테오 스웜 · 서모닝 서클 · 엘리멘탈 릴리스 · 타임 리프트 · 스피릿 스론 · 스피릿 리전 · 엘리멘탈 소버린 · 스피릿 퓨전 · 워드 스피릿 · 금기: 타이달 웨이브 · 스피릿 체인 · 스피릿 프렌지 · 금기: 타이푼 · 프라이스 오브 팩트 · 스피릿 리콜 · 아케인 더블 · 서클 오브 엔딩. 이제 마법사는 스킬 121개가 새 그림이에요',
     '궁수 스킬 이펙트 그림이 처음 들어갔어요(스킬 44개). 화살: 퀵 샷 · 트래커 마크 · 멀티플 샷 · 피어싱 샷 · 차지 샷 · 래피드 샷 · 위크 스팟 · 트리플 샷 · 스나이프 · 스플리팅 애로우 · 넷 샷 · 마크 오브 데스 · 윈드 피어서 · 섀도 샤프트 · 익스포즈 위크니스 · 원 샷. 불화살: 플레임 애로우 · 익스플로시브 애로우 · 트리니티 샤프트. 덫(놓인 모습과 터질 때): 스네어 트랩 · 샤프넬 트랩 · 트랩 필드 · 비스트 케이지 · 블래스트 트랩 · 쏜 트랩 · 헌팅 도미니언 · 섀도 스네어 · 어비스 트랩. 강화(몸 둘레 빛): 킨 아이 · 카모플라주 · 헌팅 혼 · 데드아이 · 서바이버 · 프레데터 아이 · 엘리멘털 임뷰 · 트랩 토스 · 포커스 · 비스트 어웨이큰 · 섀도 베일 · 피어싱 게이즈 · 베놈 셰이드. 구르기 · 순간 이동: 이베이드 롤 · 리트리팅 샷 · 섀도 스텝',
@@ -20409,7 +20433,8 @@ if(typeof MOB==='object')MOB.on=function(){return M22.phone()};
 
 /* 카메라: b1 resize 뒤에 휴대폰 배율을 곱한다 (캔버스 픽셀 수는 그대로) */
 function m22Cam(skipBake){const k=M22.scale();if(k===1)return;const d0=DPR;
-  CZ=GFX.zoom*k*(window.__fb28?window.__fb28.zoom:1);DPR=Math.min(1.5,window.devicePixelRatio||1)*CZ;const cw=cv.clientWidth||innerWidth,ch=cv.clientHeight||innerHeight;
+  CZ=GFX.zoom*k*(window.__fb28?window.__fb28.zoom:1);DPR=Math.min(gfxDprCap(),window.devicePixelRatio||1)*CZ;const cw=cv.clientWidth||innerWidth,ch=cv.clientHeight||innerHeight;// [v34] 예전엔 1.5로 고정이라 휴대폰은 자동 해상도·「낮음」이 해상도를 못 낮췄다
+  
   W=cw/CZ;H=ch/CZ;cv.width=Math.round(cw*DPR/CZ);cv.height=Math.round(ch*DPR/CZ);lc.width=Math.ceil(W/2);lc.height=Math.ceil(H/2);
   if(d0!==DPR&&!skipBake)m22Rebake()}
 function m22Rebake(){try{if(P&&P.cls&&typeof heroBake==='function'){SC.bakeLeft=99;heroBake(P,Math.max(1,DPR)*HS*PK)}}catch(_){}}
@@ -21536,8 +21561,8 @@ function set24Fps(f){f=+f;if(!(f in SET24.FN))return;GFX.fps=f;gfxSave();set24Dr
 function set24Draw(){const el=SET24.el;if(!el||el.hidden)return;const seg=(k,cur,map,cls)=>Object.keys(map).map(v=>`<button type="button" class="s24seg${String(cur)===v?' on':''}" data-${cls}="${v}" aria-pressed="${String(cur)===v}">${map[v]}</button>`).join('');
   el.innerHTML=`<div class="s24h">그래픽 품질</div><div class="s24row">${seg('q',GFX.q||'auto',SET24.QN,'s24q')}</div>
     <div class="s24n">낮음일수록 가볍고 열이 덜 나요. 낮음: 화면을 조금 덜 선명하게 그리고 효과 · 빛과 안개를 줄여요${GFX.q==='auto'?` · 지금 효과 단계 ${Q.lvl}`:''}</div>
-    <div class="s24h">프레임 상한</div><div class="s24row">${seg('f',GFX.fps===30?30:60,SET24.FN,'s24f')}</div>
-    <div class="s24n">30으로 두면 그리는 횟수가 절반이라 노트북 · 휴대폰이 덜 뜨거워져요. 게임 속도는 같아요</div>
+    <div class="s24h">프레임 상한</div><div class="s24row">${seg('f',fps30()?30:60,SET24.FN,'s24f')}</div>
+    <div class="s24n">30으로 두면 그리는 횟수가 절반이라 노트북 · 휴대폰이 덜 뜨거워져요. 게임 속도는 같아요. 휴대폰은 처음에 30이에요</div>
     <div class="s24sep"></div>
     <button type="button" class="s24item" data-s24go="gfxBtn">화면 <small>빛 · 안개 · 카메라 · 그림</small></button>
     <button type="button" class="s24item" data-s24go="auBtn">소리 <small>배경음악 · 효과음 크기</small></button>
@@ -22889,6 +22914,204 @@ if(typeof wbDraw==='function'){const _w=wbDraw;wbDraw=function(vis,ents){const r
 // 바닥 문양: 땅 바로 위 (모든 물체 아래) · 은은히 숨 쉬는 보라 빛
 {const _df=drawDungeonFloor;drawDungeonFloor=function(){const r=_df.apply(this,arguments);if(DG&&DG.og33&&og33PK())for(const o of DG.og33){if(!o.flat)continue;const s=W2S(o.x,o.y);if(!onScreen(s,200))continue;
     ctx.save();S();ctx.globalAlpha=.75+.2*Math.sin(time*1.6);og33Draw(ctx,o.key,s.x,s.y+64*o.k,o.k);ctx.restore()}return r}}
+/* ---------- v34: 궁수 2차 호크아이 — 여러 발 · 꿰뚫기만 있던 기술을 다른 모양으로 (ongi33.js 뒤, qa.js 앞) ----------
+   사용자 요청(2026-10-15): 「궁수 2차스킬이 너무 개성이 없다는 피드백이 있었어. 여러발 아니면 피어싱 두 종류라고. 좀더 다양한 형태의 스킬들이 나왔으면 좋겠어」
+   · 호크아이 공격 기술 다섯을 새 모양으로 바꾼다. id · 위계 · 선행 · 마나 · 재사용은 그대로(단축칸 · 장비 옵션 · 저장 안전).
+     피어싱 블로(관통 일격)   → 센트리 발리스타(쇠뇌 포대): 설치형. 10초 동안 알아서 가까운 적을 쏜다.
+     스플리팅 애로우(분열 화살) → 퓨즈 애로우(꽂히는 폭약 화살): 연계형. 3초 뒤 터지고, 그 사이 내 공격이 맞을 때마다 폭발이 커진다.
+     엘리멘탈 레인(원소 화살비) → 애로우 펜스(화살 울타리): 지형형. 일자로 꽂힌 화살 벽 — 닿는 적은 맞고 밀려난다(불 · 얼음 · 번개 차례로).
+     리트리팅 샷(물러나며 쏘기) → 리트리트 넷(그물 깔고 물러서기): 이동기. 뒤로 뛰며 서 있던 자리에 그물을 남겨 묶는다.
+     보우 오브 헤븐(천궁)      → 하늘의 활: 소환형 마무리기. 12초 동안 빛의 활이 머리 위에 떠서 내가 노리는 적에게 빛 화살을 내리꽂는다.
+   · 그대로: 트리플 샷 · 스나이프 · 마크 오브 데스 · 애로우 볼텍스 · 포커스 · 패시브 둘. 레인저 갈래는 그대로(덫 · 연막 · 그물 · 미끼로 이미 모양이 다양).
+   · 위력(mult): 피어싱 블로 · 보우 오브 헤븐은 시전 시간이 있어 v24(×1+0.15×초) · v32(×1.1) 규칙으로 이미 오른 값을 「기술 위력」으로 그대로 두고,
+     한 발 · 한 번 내리꽂기의 피해를 그 위력의 몇 %로 정한다(A34.k). 나머지 셋은 새 배율.
+   · 새 종류(turret · fence · skybow)는 b3.js switch가 모르는 이름이라 기본 동작이 없고, 여기 a34Post가 시전 뒤에 처리한다.
+     같이 하기의 다른 사람 시전(GHOST)은 그림만(피해 0). 몬스터를 미는 일은 방장(혼자면 나)만.
+   · 저장: 바뀐 다섯 기술에 찍은 점수는 이 판을 처음 불러올 때 한 번 스킬 포인트로 돌려준다(rs27과 같은 방식, 저장 필드 rs34).
+     원래 점수는 rs34.old에 보관. 캐릭터 키는 지우거나 비우지 않는다(불러온 값의 사본만 고침). */
+const A34={ids:['pierceblow','splitarrow','elemrain','backshot','heavenbow'],
+  k:{pierceblow:.19,heavenbow:.09},// 기술 위력 대비 한 발(포대) · 한 번 내리꽂기(하늘의 활)의 피해
+  tur:[],fen:[],bomb:[],sky:[],net:[],fall:[],cx:null};
+{const S=SPELLS;
+  {const s=S.pierceblow;delete s.len;delete s.w;Object.assign(s,{kind:'turret',n:'센트리 발리스타',kn:'쇠뇌 포대',en:'Sentry Ballista',chant:'자리를 지켜라',
+    turret:{dur:10,iv:.8,reach:520,spd:950},desc:'겨눈 곳(가까이)에 작은 쇠뇌 포대를 세웁니다(0.6초). 10초 동안 0.8초마다 둘레의 가장 가까운 적에게 화살을 쏩니다. 포대는 하나만 세워 두며, 다시 쓰면 새 자리로 옮깁니다.'})}
+  {const s=S.splitarrow;delete s.split;Object.assign(s,{mult:1.2,n:'퓨즈 애로우',kn:'꽂히는 폭약 화살',en:'Fuse Arrow',
+    stick:{t:3,mult:2.6,per:.3,max:6,rad:120},desc:'폭약을 단 화살이 적에게 꽂힙니다. 3초 뒤 터져 둘레를 함께 칩니다. 터지기 전에 내 다른 공격이 그 적에게 맞을 때마다 폭발이 30%씩 커집니다(최대 6번). 적이 먼저 쓰러지면 그 자리에서 바로 터집니다.'})}
+  {const s=S.elemrain;for(const k of ['rate','srad','rad'])delete s[k];Object.assign(s,{kind:'fence',mult:1,n:'애로우 펜스',kn:'화살 울타리',en:'Arrow Fence',chant:'여기서 멈춰라!',
+    fence:{len:300,w:26,dur:6,iv:.5,push:46},desc:'겨눈 곳에 화살을 일자로 꽂아 6초 동안 울타리를 세웁니다(내가 겨눈 방향에 가로로). 울타리에 닿은 적은 0.5초마다 맞고 뒤로 밀려나며, 화살은 불(불태움) · 얼음(잠깐 얼림) · 번개(잠깐 기절) 차례로 효과가 붙습니다. 보스 · 준보스는 밀려나지 않습니다.'})}
+  {const s=S.backshot;delete s.shot;Object.assign(s,{n:'리트리트 넷',kn:'그물 깔고 물러서기',en:'Net Retreat',
+    net:{rad:140,root:2,bossRoot:.8,mult:1.5,life:2.2},desc:'뒤로 뛰어 거리를 벌리면서, 서 있던 자리에 그물을 펼칩니다. 그물 둘레(반경 140)의 적은 조금 맞고 2초 동안 묶입니다(보스 · 준보스는 0.8초). 쫓아오는 적을 떼어 낼 때.'})}
+  {const s=S.heavenbow;delete s.len;delete s.w;delete s.knock;Object.assign(s,{kind:'skybow',kn:'하늘의 활',
+    skybow:{dur:12,iv:.75,rad:70,reach:620,fall:.28},desc:'하늘의 활을 불러냅니다(시전 1.2초). 12초 동안 빛의 활이 머리 위에 떠서 0.75초마다 내가 겨누는 곳에서 가장 가까운 적(없으면 내 둘레의 가장 가까운 적)에게 빛 화살을 내리꽂습니다. 화살은 맞은 자리 둘레(반경 70)도 함께 칩니다. 재사용 60초.'})}
+  for(const id of A34.ids)if(NAMES_J2[id])NAMES_J2[id]=[S[id].n,S[id].chant||''];
+}
+['turret','fence'].forEach(k=>AIMED.add(k));
+setTimeout(()=>{try{if(typeof KINDN==='object')Object.assign(KINDN,{turret:'설치',fence:'울타리',skybow:'하늘 소환'})}catch(_){}},0);
+
+/* ===== 그림: 처음 한 번 굽기 ===== */
+const A34B=new Map();
+function a34Bake(k,w,h,f){let c=A34B.get(k);if(c)return c;c=document.createElement('canvas');c.width=w;c.height=h;try{f(c.getContext('2d'),w,h)}catch(_){}A34B.set(k,c);return c}
+const A34S={
+  turret(){return a34Bake('tur',64,64,(g)=>{g.translate(32,58);g.lineCap='round';
+    g.fillStyle='rgba(0,0,0,.35)';g.beginPath();g.ellipse(0,0,20,7,0,0,6.283);g.fill();
+    g.strokeStyle='#5a3a1c';g.lineWidth=4;for(const [x,y] of [[-16,2],[16,2],[0,-4]]){g.beginPath();g.moveTo(0,-26);g.lineTo(x,y);g.stroke()}
+    g.strokeStyle='#a8763e';g.lineWidth=2;for(const [x,y] of [[-16,2],[16,2]]){g.beginPath();g.moveTo(0,-26);g.lineTo(x*.92,y);g.stroke()}
+    const gr=g.createLinearGradient(0,-40,0,-24);gr.addColorStop(0,'#c89a5a');gr.addColorStop(1,'#6a4424');g.fillStyle=gr;g.fillRect(-14,-36,28,9);
+    g.strokeStyle='#2a1a0c';g.lineWidth=1.2;g.strokeRect(-14,-36,28,9);
+    g.strokeStyle='#dfe3ea';g.lineWidth=2.6;g.beginPath();g.moveTo(-6,-46);g.quadraticCurveTo(-24,-32,-6,-18);g.stroke();
+    g.strokeStyle='#f4ead2';g.lineWidth=1;g.beginPath();g.moveTo(-6,-46);g.lineTo(10,-32);g.lineTo(-6,-18);g.stroke();
+    g.strokeStyle='#e8c35a';g.lineWidth=2;g.beginPath();g.moveTo(-10,-32);g.lineTo(18,-32);g.stroke();g.fillStyle='#ffffff';g.beginPath();g.moveTo(22,-32);g.lineTo(16,-35);g.lineTo(16,-29);g.closePath();g.fill()})},
+  fenceArrow(el){return a34Bake('fa'+el,16,44,(g)=>{const c=EL[el]||'#e8e4d8';g.lineCap='round';
+    g.fillStyle='rgba(0,0,0,.35)';g.beginPath();g.ellipse(8,41,6,2.4,0,0,6.283);g.fill();
+    g.strokeStyle='#5a3a1c';g.lineWidth=2.6;g.beginPath();g.moveTo(8,41);g.lineTo(8,6);g.stroke();g.strokeStyle='#c89a5a';g.lineWidth=1;g.beginPath();g.moveTo(7.4,40);g.lineTo(7.4,8);g.stroke();
+    g.fillStyle=c;for(const sd of [-1,1]){g.beginPath();g.moveTo(8,4);g.lineTo(8+sd*6,1);g.lineTo(8+sd*6,10);g.lineTo(8,15);g.closePath();g.fill()}
+    g.strokeStyle='rgba(255,255,255,.7)';g.lineWidth=.8;g.beginPath();g.moveTo(8,4);g.lineTo(8,15);g.stroke();
+    g.fillStyle='#8a7350';g.beginPath();g.ellipse(8,40,4.5,1.8,0,0,6.283);g.fill()})},
+  net(){return a34Bake('net',120,60,(g)=>{g.translate(60,30);g.scale(1,.5);g.strokeStyle='rgba(232,224,200,.85)';g.lineWidth=2;
+    g.beginPath();g.arc(0,0,54,0,6.283);g.stroke();g.lineWidth=1.2;for(let k=-4;k<=4;k++){const d=k*12,h=Math.sqrt(Math.max(0,54*54-d*d));g.beginPath();g.moveTo(d,-h);g.lineTo(d,h);g.moveTo(-h,d);g.lineTo(h,d);g.stroke()}
+    g.fillStyle='#c9a46a';for(let k=0;k<8;k++){const a=k/8*6.283;g.beginPath();g.arc(Math.cos(a)*54,Math.sin(a)*54,3.4,0,6.283);g.fill()}})},
+  bow(){return a34Bake('sbow',96,72,(g)=>{g.translate(48,36);const gl=g.createRadialGradient(0,0,0,0,0,46);gl.addColorStop(0,'rgba(255,244,200,.55)');gl.addColorStop(1,'rgba(255,220,130,0)');g.fillStyle=gl;g.fillRect(-48,-36,96,72);
+    g.lineCap='round';g.strokeStyle='#fff6d8';g.lineWidth=4;g.beginPath();g.moveTo(-34,-6);g.quadraticCurveTo(0,-40,34,-6);g.stroke();
+    g.strokeStyle='#ffd76a';g.lineWidth=2;g.beginPath();g.moveTo(-34,-6);g.quadraticCurveTo(0,-40,34,-6);g.stroke();
+    g.strokeStyle='rgba(255,250,230,.9)';g.lineWidth=1;g.beginPath();g.moveTo(-34,-6);g.lineTo(0,14);g.lineTo(34,-6);g.stroke();
+    g.strokeStyle='#ffffff';g.lineWidth=2;g.beginPath();g.moveTo(0,14);g.lineTo(0,-30);g.stroke();g.fillStyle='#ffffff';g.beginPath();g.moveTo(0,-36);g.lineTo(-4,-28);g.lineTo(4,-28);g.closePath();g.fill();
+    g.fillStyle='rgba(255,240,200,.85)';for(const sd of [-1,1]){g.beginPath();g.moveTo(sd*34,-6);g.quadraticCurveTo(sd*46,-20,sd*44,-30);g.quadraticCurveTo(sd*40,-16,sd*30,-10);g.closePath();g.fill()}})},
+  bomb(){return a34Bake('bomb',24,24,(g)=>{g.translate(12,13);g.fillStyle='#3a2c22';g.beginPath();g.arc(0,0,7,0,6.283);g.fill();g.strokeStyle='#e8c35a';g.lineWidth=1.4;g.stroke();
+    g.strokeStyle='#c9a46a';g.lineWidth=1.6;g.beginPath();g.moveTo(3,-6);g.quadraticCurveTo(7,-11,10,-9);g.stroke()})}};
+
+/* ===== 시전 앞뒤 ===== */
+const a34Pw=(id,L,s,k)=>GHOST?0:physPower()*(s.mult||0)*physBuffMul()*physScale(id,L)*(k||1);
+function a34Pre(id,t){const s0=SPELLS[id];if(!s0||!A34.ids.includes(id))return null;
+  return {id,s0,t,cd0:P.cd[id]||0,CM:CAST_MOD,G:GHOST,ox:P.x,oy:P.y,tg:t||(GHOST?{x:P.x+Math.cos(P.face)*120,y:P.y+Math.sin(P.face)*120}:aimPoint())}}
+function a34Post(c){if(!c)return;const id=c.id,G=c.G;const did=c.CM?true:(P.cd[id]||0)>c.cd0+1e-9;if(!did)return;
+  const L=Math.max(1,skLv(id)),s=eff(id,L);if(G)s.ghost=1;const own=G||P;
+  const pose=(k,d)=>{if(typeof heroAtk==='function')heroAtk(own,k,d)};
+  if(s.kind==='turret'){const T=s.turret,p0=clampRange(c.tg,300),p=landAt(c.ox,c.oy,p0.x,p0.y);
+    for(const q of A34.tur)if(q.own===own)q.t=0;
+    A34.tur.push({x:p.x,y:p.y,t:T.dur,max:T.dur,cd:.35,iv:T.iv,reach:T.reach,spd:T.spd,a:Math.atan2(c.tg.y-c.oy,c.tg.x-c.ox),own,G:!!G,
+      dmg:a34Pw(id,L,s,A34.k.pierceblow),s:Object.assign({},s,{kind:'bolt',turret:0,a34tur:1,ghost:G?1:0})});
+    rings.push({x:p.x,y:p.y,r:6,max:50,life:.4,col:'#e8c35a'});burst(p.x,p.y,'#c9a46a',14,90,3,8);pose('bash',.3);
+    if(!G)msg(`${s.n}: 10초 동안 알아서 쏩니다`,'#e8c35a')}
+  else if(s.kind==='fence'){const F=s.fence,p0=clampRange(c.tg,520),p=G?p0:landAt(c.ox,c.oy,p0.x,p0.y),a=Math.atan2(c.tg.y-c.oy,c.tg.x-c.ox)+1.5708;
+    A34.fen.push({x:p.x,y:p.y,ux:Math.cos(a),uy:Math.sin(a),h:F.len/2,w:F.w,t:F.dur,max:F.dur,iv:F.iv,push:F.push,G:!!G,i:0,
+      dmg:a34Pw(id,L,s),s:Object.assign({},s,{kind:'field',fence:0,ghost:G?1:0}),hitT:new WeakMap(),seed:(R()*90)|0});
+    if(A34.fen.length>6)A34.fen.shift();
+    for(let i=-3;i<=3;i++)burst(p.x+Math.cos(a)*F.len/2*i/3,p.y+Math.sin(a)*F.len/2*i/3,'#c9a46a',5,90,2.5,10);shake=Math.max(shake,3);pose('volley',.45)}
+  else if(s.kind==='skybow'){const B=s.skybow;for(const q of A34.sky)if(q.own===own)q.t=0;
+    A34.sky.push({own,G:!!G,t:B.dur,max:B.dur,cd:.3,iv:B.iv,rad:B.rad,reach:B.reach,fall:B.fall,dmg:a34Pw(id,L,s,A34.k.heavenbow),
+      s:Object.assign({},s,{kind:'strike',skybow:0,ghost:G?1:0}),tgt:G?{x:c.tg.x,y:c.tg.y}:null});
+    rings.push({x:own.x,y:own.y,r:10,max:160,life:.8,col:'#ffe9a8'});burst(own.x,own.y,'#fff2c0',40,180,3,60);flash={col:'#ffe9a8',a:.18};pose('shout',.5);
+    if(!G)msg(`${s.n}: 12초 동안 하늘에서 빛 화살이 내리꽂힙니다`,'#ffe9a8')}
+  else if(id==='backshot'&&s.net){const N=s.net,x=c.ox,y=c.oy;A34.net.push({x,y,t:N.life,max:N.life,rad:N.rad});
+    rings.push({x,y,r:10,max:N.rad,life:.45,col:'#e8e0c8'});burst(x,y,'#e8e0c8',18,N.rad*1.2,2.5,10);
+    if(!G){const pw=physPower()*N.mult*physBuffMul()*physScale(id,L),ns=Object.assign({},s,{kind:'strike',net:0,phys:0,mult:N.mult});
+      for(const e of enemies)if(!e.dead&&Math.hypot(e.x-x,e.y-y)<N.rad+hR(e)){hurtE(e,pw*rnd(.9,1.1),ns);if(!e.dead)applyFx(e,{root:N.root,bossRoot:N.bossRoot,job2:'hawkeye'},{x,y})}}}}
+{const _tc=tryCast;tryCast=function(id,t){const c=a34Pre(id,t);if(!c)return _tc(id,t);const r=_tc(id,t);try{a34Post(c)}catch(err){if(window.__QA)throw err}return r}}
+{const _cr=_castRelease;_castRelease=function(cu){const c=cu&&a34Pre(cu.id,cu.tg);if(!c)return _cr(cu);_cr(cu);try{a34Post(c)}catch(err){if(window.__QA)throw err}}}
+
+/* ===== 꽂히는 폭약: 붙이기 · 키우기 ===== */
+const A34BOOM={id:'splitarrow',n:'폭약',cls:'archer',el:'phys',kind:'strike',rank:13,phys:0,a34boom:1};
+{const _he=hurtE;hurtE=function(e,amt,s){if(!e||e.dead||!s||s.ghost||GHOST||s.a34boom)return _he(e,amt,s);
+  e._miss=null;const r=_he(e,amt,s),hit=e._miss!==s;if(!hit)return r;// 빗나감은 cls2.js가 e._miss에 남긴다(허수아비처럼 생명력이 안 줄어드는 적도 맞은 것으로 셈)
+  if(s.stick&&s.id==='splitarrow'&&s.kind==='bolt'){const b=e.a34b;
+    if(b&&b.t>0)a34Grow(e,b);
+    else{const K=s.stick,B={e,t:K.t,n:0,max:K.max,per:K.per,rad:K.rad,dmg:amt*K.mult/(s.mult||1)};e.a34b=B;A34.bomb.push(B);ftext(e.x,e.y-20,'폭약','#ffb070',false,e.r*2+30)}}
+  else if(e.a34b&&e.a34b.t>0&&s.cls==='archer'&&P.cls==='archer'&&!s.proc&&s.kind!=='summon')a34Grow(e,e.a34b);
+  return r}}
+function a34Grow(e,b){if(b.n>=b.max||b.last===time)return;b.last=time;b.n++;ftext(e.x,e.y-20,`폭약 +${b.n}`,'#ffb070',false,e.r*2+30)}
+function a34Boom(b){const e=b.e,x=e.x,y=e.y,k=1+b.per*b.n;e.a34b=null;
+  rings.push({x,y,r:8,max:b.rad*(1+.1*b.n),life:.4,col:'#ffb070'});burst(x,y,'#ffb070',24+b.n*6,b.rad*2,4,16);burst(x,y,'#fff2c0',10,b.rad,3,16);decal(x,y,b.rad*.5,'fire');shake=Math.max(shake,3+b.n);
+  for(const o of enemies)if(!o.dead&&Math.hypot(o.x-x,o.y-y)<b.rad+hR(o))hurtE(o,b.dmg*k*rnd(.95,1.05),A34BOOM)}
+
+/* ===== 매 프레임 ===== */
+function a34Tick(dt){
+  // 쇠뇌 포대
+  for(const q of A34.tur){q.t-=dt;q.cd-=dt;if(q.t<=0)continue;let tg=null,bd=q.reach;for(const e of enemies){if(e.dead)continue;const d=Math.hypot(e.x-q.x,e.y-q.y);if(d<bd){bd=d;tg=e}}
+    if(!tg)continue;q.a=Math.atan2(tg.y-q.y,tg.x-q.x);if(q.cd>0)continue;q.cd=q.iv;
+    projs.push({x:q.x+Math.cos(q.a)*16,y:q.y+Math.sin(q.a)*16,z:28,vx:Math.cos(q.a)*q.spd,vy:Math.sin(q.a)*q.spd,r:6,dmg:q.dmg,owner:'p',s:q.s,life:q.reach/q.spd+.1,col:EL.phys,hit:null});
+    burst(q.x,q.y,'#e8e4d8',4,60,2,28)}
+  A34.tur=A34.tur.filter(q=>q.t>0);
+  // 화살 울타리: 닿은 적은 0.5초마다 맞고 밀려난다(보스 · 준보스는 안 밀림)
+  for(const f of A34.fen){f.t-=dt;if(f.t<=0||f.G)continue;const nx=-f.uy,ny=f.ux;
+    for(const e of enemies){if(e.dead)continue;const dx=e.x-f.x,dy=e.y-f.y,al=dx*f.ux+dy*f.uy,pe=dx*nx+dy*ny,r=hR(e);
+      if(Math.abs(al)>f.h+r||Math.abs(pe)>f.w+r)continue;
+      const t0=f.hitT.get(e);if(t0!=null&&time-t0<f.iv)continue;f.hitT.set(e,time);
+      const el=J2TRI[f.i++%3],ss=(f._tv||(f._tv={}))[el]||(f._tv[el]=Object.assign({},f.s,{el,burn:el==='fire'?1:0,freeze:el==='ice'?.4:0,stun:el==='storm'?.3:0}));
+      hurtE(e,f.dmg*rnd(.9,1.1),ss);if(e.dead)continue;applyFx(e,{freeze:ss.freeze,stun:ss.stun},e);burst(e.x,e.y,EL[el],8,90,2.5,16);
+      const T=TYPES[e.k]||{};if(T.boss||T.mini||NET.guest)continue;const sd=pe>=0?1:-1,k=f.push+Math.max(0,f.w+r-Math.abs(pe));moveBody(e,nx*sd*k,ny*sd*k)}}
+  A34.fen=A34.fen.filter(f=>f.t>0);
+  // 꽂히는 폭약
+  for(const b of A34.bomb){b.t-=dt;if(b.e.dead||b.t<=0){b.t=0;a34Boom(b)}}
+  A34.bomb=A34.bomb.filter(b=>b.t>0);
+  // 하늘의 활: 겨누는 곳에서 가장 가까운 적 → 없으면 내 둘레의 가장 가까운 적
+  for(const q of A34.sky){q.t-=dt;q.cd-=dt;const o=q.own;if(q.t<=0||!o||o.dead){q.t=0;continue}if(q.cd>0)continue;
+    const aim=q.G?q.tgt:aimPoint();let tg=null;if(aim){let bd=220;for(const e of enemies){if(e.dead||Math.hypot(e.x-o.x,e.y-o.y)>q.reach)continue;const d=Math.hypot(e.x-aim.x,e.y-aim.y);if(d<bd){bd=d;tg=e}}}
+    if(!tg){let bd=q.reach;for(const e of enemies){if(e.dead)continue;const d=Math.hypot(e.x-o.x,e.y-o.y);if(d<bd){bd=d;tg=e}}}
+    if(!tg)continue;q.cd=q.iv;A34.fall.push({sx:o.x,sy:o.y,x:tg.x,y:tg.y,e:tg,t:q.fall,max:q.fall,rad:q.rad,dmg:q.dmg,s:q.s})}
+  A34.sky=A34.sky.filter(q=>q.t>0);
+  for(const f of A34.fall){f.t-=dt;if(f.e&&!f.e.dead){f.x=f.e.x;f.y=f.e.y}if(f.t>0)continue;
+    rings.push({x:f.x,y:f.y,r:6,max:f.rad*1.3,life:.35,col:'#ffe9a8'});burst(f.x,f.y,'#fff2c0',18,f.rad*2,3.5,10);decal(f.x,f.y,f.rad*.4,'holy');
+    if(!f.s.ghost)for(const e of enemies)if(!e.dead&&Math.hypot(e.x-f.x,e.y-f.y)<f.rad+hR(e))hurtE(e,f.dmg*rnd(.9,1.1)*(e===f.e?1:.6),f.s)}
+  A34.fall=A34.fall.filter(f=>f.t>0);
+  for(const n of A34.net)n.t-=dt;A34.net=A34.net.filter(n=>n.t>0)}
+{const _u=update;update=function(dt){_u(dt);if(!paused||NET.on)try{a34Tick(dt)}catch(err){if(window.__QA)throw err}}}
+// 지역 · 던전을 옮기면 남은 것 정리
+function a34Clear(){A34.tur.length=0;A34.fen.length=0;A34.bomb.length=0;A34.sky.length=0;A34.net.length=0;A34.fall.length=0}
+{const _lr=loadRegion;loadRegion=function(){a34Clear();return _lr.apply(this,arguments)}}
+{const _ed=enterDungeon;enterDungeon=function(){a34Clear();return _ed.apply(this,arguments)}}
+{const _xd=leaveDungeon;leaveDungeon=function(){a34Clear();return _xd.apply(this,arguments)}}
+{const _ng=newGame;newGame=function(){a34Clear();return _ng.apply(this,arguments)}}
+
+/* ===== 그리기 (FXP.draw: 화면 좌표) ===== */
+{const _fd=FXP.draw;FXP.draw=function(c,map,now){_fd.call(this,c,map,now);try{a34Draw(c,map)}catch(err){if(window.__QA)throw err}}}
+function a34Draw(c,map){if(!A34.tur.length&&!A34.fen.length&&!A34.bomb.length&&!A34.sky.length&&!A34.net.length&&!A34.fall.length)return;
+  const op=c.globalCompositeOperation,ga=c.globalAlpha;c.globalCompositeOperation='source-over';
+  for(const n of A34.net){const p=map(n.x,n.y),k=n.rad/54,sp=A34S.net();c.globalAlpha=.7*Math.min(1,n.t*2,(n.max-n.t)*6);c.drawImage(sp,p.x-60*k,p.y-30*k,120*k,60*k)}
+  for(const f of A34.fen){const fade=Math.min(1,f.t*2,(f.max-f.t)*5),n=13;c.globalAlpha=fade;
+    for(let i=0;i<n;i++){const u=(i/(n-1)*2-1)*f.h,p=map(f.x+f.ux*u,f.y+f.uy*u),el=J2TRI[(i+f.seed)%3],sp=A34S.fenceArrow(el),up=Math.min(1,(f.max-f.t)*8);c.drawImage(sp,p.x-10,p.y-54*up,20,56*up)}}
+  for(const q of A34.tur){const p=map(q.x,q.y),sp=A34S.turret(),fl=Math.cos(q.a)-Math.sin(q.a)<0;c.globalAlpha=Math.min(1,q.t*2,(q.max-q.t)*6);
+    c.save();c.translate(p.x,p.y);if(fl)c.scale(-1,1);c.drawImage(sp,-32,-58);c.restore()}
+  for(const b of A34.bomb){const e=b.e;if(e.dead)continue;const p=map(e.x,e.y),bl=b.t<1?(Math.sin(time*30)>0?1:.5):1;c.globalAlpha=bl;c.drawImage(A34S.bomb(),p.x-12+e.r*.4,p.y-e.r*1.6-30,24,24)}
+  c.globalCompositeOperation='lighter';
+  for(const q of A34.sky){const o=q.own,p=map(o.x,o.y),bob=Math.sin(time*2.4)*4;c.globalAlpha=Math.min(1,q.t*2,(q.max-q.t)*4)*.95;c.drawImage(A34S.bow(),p.x-48,p.y-150+bob,96,72)}
+  for(const f of A34.fall){const k=1-f.t/f.max,a=map(f.sx,f.sy),b=map(f.x,f.y),x0=a.x,y0=a.y-150,x=x0+(b.x-x0)*k,y=y0+(b.y-y0)*k;c.globalAlpha=1;
+    c.strokeStyle='#fff6d8';c.lineWidth=3;c.lineCap='round';c.beginPath();c.moveTo(x0+(b.x-x0)*Math.max(0,k-.35),y0+(b.y-y0)*Math.max(0,k-.35));c.lineTo(x,y);c.stroke();
+    c.drawImage(Kit.glowCv('#ffe9a8'),x-14,y-14,28,28)}
+  c.globalAlpha=ga;c.globalCompositeOperation=op}
+
+/* ===== 스킬 창 숫자 ===== */
+{const _na=numsAt;numsAt=function(id,L){const out=_na(id,L);if(!A34.ids.includes(id))return out;const s=eff(id,Math.max(1,L||1)),Lv=Math.max(1,L||1);
+  const rng=d=>`${Math.round(d*.9)}~${Math.round(d*1.1)}`,base=physPower()*(s.mult||0)*physBuffMul()*physScale(id,Lv),put=(k,v)=>{const i=out.findIndex(r=>r[0]===k);if(i>=0)out[i]=[k,v];else out.unshift([k,v])};
+  if(id==='pierceblow'){put('피해',rng(base*A34.k.pierceblow)+' /한 발');out.splice(1,0,['포대',`${s.turret.dur}초 · ${s.turret.iv}초마다 한 발 · 사거리 ${s.turret.reach}`])}
+  if(id==='splitarrow'){put('피해',rng(base)+' (꽂힐 때)');out.splice(1,0,['폭발',`${rng(base*s.stick.mult)} · 범위 ${s.stick.rad} · ${s.stick.t}초 뒤`],['내 공격이 맞을 때마다',`폭발 +${Math.round(s.stick.per*100)}% (최대 ${s.stick.max}번)`])}
+  if(id==='elemrain'){put('피해',rng(base)+' /0.5초');out.splice(1,0,['울타리',`길이 ${s.fence.len} · ${s.fence.dur}초`],['밀어내기','닿으면 뒤로 (보스 · 준보스 제외)'])}
+  if(id==='backshot'){const N=s.net;put('피해',rng(physPower()*N.mult*physBuffMul()*physScale(id,Lv))+' (그물)');out.splice(1,0,['그물',`범위 ${N.rad} · 묶기 ${N.root}초 (보스 ${N.bossRoot}초)`])}
+  if(id==='heavenbow'){put('피해',rng(base*A34.k.heavenbow)+' /한 번');out.splice(1,0,['하늘의 활',`${s.skybow.dur}초 · ${s.skybow.iv}초마다 · 범위 ${s.skybow.rad}`])}
+  return out}}
+
+/* ===== 아이콘 ===== */
+Object.assign(ICP,{
+  pierceblow:c=>ICX.path('M16 17L8 29M16 17L24 29M16 17V29',ICC.woodD,1.8)+ICX.xbow(16,12,0,.85)+ICX.lines(25,8,-20,.4,c.hi,2),
+  splitarrow:c=>ICX.arrow(13,19,-45,.85)+`<circle cx="22" cy="10" r="4.6" fill="#3a2c22" stroke="${ICC.gold}" stroke-width="1"/>`+ICX.burst(25,6,.4,PAL.fire[0],6),
+  elemrain:c=>ICX.path('M3 27h26',ICC.woodD,1.6)+ICX.arrow(8,18,90,.55,PAL.fire[0],PAL.fire[0])+ICX.arrow(16,18,90,.55,PAL.ice[0],PAL.ice[0])+ICX.arrow(24,18,90,.55,PAL.storm[0],PAL.storm[0]),
+  backshot:c=>ICX.boot(9,11,0,.6)+ICX.lines(16,11,180,.45,c.hi,3)+ICX.path('M12 19l14 9M12 28l14-9M17 19v9M22 19v9M12 23.5h14',c.hi,1),
+  heavenbow:c=>ICX.wings(16,10,.75,ICC.feather)+ICX.bow(16,11,0,.7)+ICX.arrow(16,24,90,.55,'#ffe9a8','#ffe9a8')});
+
+/* ===== 저장: 바뀐 다섯 기술의 점수를 한 번 돌려주기 (rs27과 같은 방식) ===== */
+const REFUND34={archer:A34.ids.slice()};
+const rs34Clean=x=>{const o={v:1};if(x&&typeof x==='object'&&!Array.isArray(x)&&x.old&&typeof x.old==='object'&&!Array.isArray(x.old)){const old={};for(const k in x.old){const v=x.old[k]|0;if(v>0&&v<=99)old[k]=v}if(Object.keys(old).length)o.old=old}return o};
+function rs34Fix(d){if(!d||typeof d!=='object'||d.rs34||!(d.v>=4)||!d.sk||typeof d.sk!=='object'||!REFUND34[d.cls])return {d,n:0};
+  const sk=Object.assign({},d.sk),old={};let n=0;
+  for(const id of REFUND34[d.cls]){const v=clamp(sk[id]|0,0,MAXSK);if(v>0){old[id]=v;n+=v}delete sk[id]}
+  if(!n)return {d,n:0};
+  return {d:Object.assign({},d,{sk,sp:(d.sp|0)+n,rs34:{v:1,old}}),n,old}}
+{const _ld=load;load=function(d,slot){a34Clear();const f=rs34Fix(d);const ok=_ld.call(this,f.d,slot);
+  if(ok&&P){P.rs34=rs34Clean(f.d&&f.d.rs34);
+    if(f.n>0)setTimeout(()=>{msg(`호크아이 기술 다섯이 새 모양(포대 · 폭약 · 울타리 · 그물 · 하늘의 활)으로 바뀌었습니다. 찍었던 ${f.n}점을 스킬 포인트로 돌려받았습니다`,'#ffd76a');msg('스킬 트리(T)의 「명궁」 갈래에서 다시 찍으세요','#ffd76a')},800)}
+  return ok}}
+{const _sd=saveData;saveData=function(){const d=_sd.apply(this,arguments);try{if(d&&P)d.rs34=rs34Clean(P.rs34)}catch(err){if(window.__QA)throw err}return d}}
+
+setTimeout(()=>{try{if(window.__game)Object.assign(window.__game,{A34,REFUND34,rs34Fix})}catch(_){}},0);
 
 /* ---------- QA: 자가 점검 모드(#qa) ----------
    게임 IIFE 안, b5.js 바로 앞에 붙는다. location.hash가 '#qa'이고 qa0.js가 준비됐을 때만 동작한다.
@@ -22944,7 +23167,7 @@ function qStep(n,opt){opt=opt||{};const dt=opt.dt||1/60;
     const b=qBad();if(b.length)throw new QAFail(b.join(', ')+` (${i}프레임)`);if(opt.until&&opt.until(i))return i+1}
   if(opt.render==null&&!opt.renderEvery)render();return n}
 function qClear(){fb28Cancel();fb28Shots=[];enemies=[];projs=[];fields=[];rains=[];pend=[];loot=[];warns=[];arcs=[];allies=[];beams=[];pillars=[];bolts=[];rings=[];parts=[];texts=[];
-  P.storm=null;P.orbits=null;P.armor=null;P.hot=null;P.ward=null;P.shield=0;P.shieldT=0;P.buffs={};P.cd={};P.invT=0;castReset()}
+  P.storm=null;P.orbits=null;P.armor=null;P.hot=null;P.ward=null;P.shield=0;P.shieldT=0;P.buffs={};P.cd={};P.invT=0;castReset();if(typeof a34Clear==='function')a34Clear()/* v34: 호크아이 포대 · 울타리 · 폭약 · 하늘의 활 */}
 function qClosePanels(){try{if(!panel.hidden)closePanel()}catch(_){}bindId=null;const pt=$('#patch');if(pt)pt.hidden=true}
 // 새 캐릭터로 깨끗하게 시작 (게임의 newGame 경로)
 function qPrep(cls,o){o=o||{};qClosePanels();if(DG)leaveDungeon();if(REG.id!=='home')loadRegion('home');if(typeof K22!=='undefined'){K22.m.clear();K22.off=0}/* v22: 시험마다 던전 기억을 비움 */
@@ -26479,7 +26702,7 @@ qT(QM22,'귀환 두루마리: 휴대폰에서는 단축바(물약 옆)에서 빠
 qT(QM22,'카메라: 휴대폰 가로 ×0.75 · 세로 ×0.8(화면 설정 배율에 곱함) → 보이는 세계가 넓어짐 · 화면 좌표(rel ÷ CZ)로 몬스터 겨누기 · 마을 NPC 고르기 · 땅 범위 자리가 맞음 · PC는 그대로',()=>{qPrep('mage',{lvl:40});const z=GFX.zoom,out=[];
   qOk(Math.abs(CZ-z)<1e-9,'PC 배율 '+CZ);
   for(const [m,w,h,k] of [['L',844,390,.75],['P',390,844,.8]])qM22(m,w,h,()=>{qOk(Math.abs(CZ-z*k)<1e-6,`${m} 배율 ${CZ}`);qOk(Math.abs(W-w/CZ)<1&&Math.abs(H-h/CZ)<1,`${m} 세계 크기 ${W}×${H}`);
-    qOk(Math.abs(cv.width-Math.round(w*Math.min(1.5,devicePixelRatio||1)))<=1,'캔버스 픽셀 수가 바뀜 '+cv.width);
+    qOk(Math.abs(cv.width-Math.round(w*Math.min(gfxDprCap(),devicePixelRatio||1)))<=1,'캔버스 픽셀 수가 바뀜 '+cv.width);
     followCam();const e=qDummy(P.x+120,P.y-40);const s=W2S(e.x,e.y),c=qmR(cv),ev={clientX:c.left+s.x*CZ,clientY:c.top+(s.y-TYPES[e.k].r)*CZ};const p=rel(ev);
     qOk(Math.abs(p.x-s.x)<.5&&Math.abs(p.y-(s.y-TYPES[e.k].r))<.5,`${m} rel ${p.x},${p.y}`);const a=aimAt(p.x,p.y);qOk(a&&a.snap===e,`${m} 몬스터 겨누기 안 됨`);
     const g=S2W(s.x,s.y);qOk(Math.hypot(g.x-e.x,g.y-e.y)<1,`${m} 땅 자리 어긋남`);e.dead=true;
@@ -27007,7 +27230,7 @@ qT('전투','v26 선공 · 비선공: 비선공은 맞기 전까지 안 옴, 선
   qOk(!bad.length,'안 섞인 지역 '+bad.join());render();qClear();return `남부 비선공 ${home.filter(k=>AG26.P.has(k)).length}/${home.length}`});
 qT('전투','v26 궁수 사거리 1.5배 · 꿰뚫는 기술 2배: 퀵 샷 760 · 피어싱 샷 · 시즈 샷 1000에서 맞음, 그 너머는 못 맞힘, 마법사 · 덫 · 스캐터 발리는 그대로',()=>{qPrep('archer',{lvl:140});
   TYPES.qa_dummy=TYPES.qa_dummy||Object.assign({},TYPES.ogre,{n:'QA 허수아비',spd:0,dmg:0,xp:0,aggro:0,atk:1e9,ranged:false,undead:false,boss:0,mini:0});const hr=Math.max(TYPES.qa_dummy.r,R22_HW.ogre),out=[];
-  for(const [id,d] of [['quickshot',760],['piercearrow',1000],['fulldraw',1000],['siegeshot',1000],['pierceblow',1000]]){if(!SPELLS[id])continue;qOk(qR22Shot(id,d,2.4,3)>0,`${id} ${d}에서 못 맞힘`);
+  for(const [id,d] of [['quickshot',760],['piercearrow',1000],['fulldraw',1000],['siegeshot',1000],['pierceblow',1000]]){if(!SPELLS[id]||!['bolt','beam'].includes(SPELLS[id].kind))continue;/* v34: 피어싱 블로는 쇠뇌 포대(설치형)가 되어 이 사거리 점검에서 빠짐 */qOk(qR22Shot(id,d,2.4,3)>0,`${id} ${d}에서 못 맞힘`);
     const far=r22Cap(SPELLS[id])+hr+70+(SPELLS[id].kind==='beam'?(eff(id,10).w||0):0);qOk(!(qR22Shot(id,far,-.785,1)>0),`${id} ${Math.round(far)}에서 맞음`);out.push(id+' '+r22Cap(SPELLS[id]))}
   qOk(eff('wildrun',10).len===750&&eff('curvingshot',10).range===780,'길이 · 거리 1.5배 '+eff('wildrun',10).len+'/'+eff('curvingshot',10).range);
   qOk(eff('scattervolley',10).range===300&&TRAP_RANGE===380,'스캐터 · 덫이 바뀜');qOk(r22Cap(SPELLS.spark)===480&&r22Cap(SPELLS[Object.keys(SPELLS).find(id=>SPELLS[id].cls==='priest'&&SPELLS[id].kind==='bolt')])===480,'다른 직업 사거리가 바뀜');
@@ -28490,6 +28713,95 @@ qT('고친 버그 v33','독 가시 덫: 밟으면 6초 동안 독 가시밭이 �
   const s=Object.assign({},SPELLS.thorntrap,eff('thorntrap',5));traps.push({x:P.x+120,y:P.y,s,id:'thorntrap',own:0,dmg:10,arm:.1,life:30,age:1});const e=dgMob('wolf',P.x+120,P.y,60);e.hp=e.max=1e9;e.atkCd=1e9;
   qStep(6,{render:false});const f=fields.find(f=>f.s&&f.s.id==='thorntrap');qOk(f&&Math.abs(f.max-SPELLS.thorntrap.field.dur)<.01&&f.s.slow,'가시밭 '+JSON.stringify(f&&{t:f.max,slow:f.s.slow}));
   qStep(60,{render:false});qOk(e.taken>0||e.hp<e.max,'가시밭 피해');return '가시밭 '+(f?f.max+'초':'없음')});
+// ---------- v34 최적화: 휴대폰 발열 · 밀림 ----------
+function qDpr(v,fn){const d=Object.getOwnPropertyDescriptor(window,'devicePixelRatio');Object.defineProperty(window,'devicePixelRatio',{get:()=>v,configurable:true});
+  try{return fn()}finally{if(d)Object.defineProperty(window,'devicePixelRatio',d);else delete window.devicePixelRatio;resize()}}
+qT('성능','v34 휴대폰 해상도: 휴대폰 화면도 자동 해상도 · 「낮음」을 따름 (예전엔 1.5배 고정) · PC는 그대로',()=>{const q0=GFX.q,c0=AUTOR.cap,out=[];
+  try{qDpr(3,()=>{for(const [m,w,h] of [['L',844,390],['P',390,844]])qM22(m,w,h,()=>{const got=[];for(const [q,c] of [['auto',1.5],['auto',1],['low',1.5],['high',1]]){GFX.q=q;AUTOR.cap=c;resize();m22Cam(true);
+        const want=Math.round(w*gfxDprCap());qOk(Math.abs(cv.width-want)<=1,`${m} ${q}/${c}: 캔버스 ${cv.width} (기대 ${want})`);got.push(cv.width)}out.push(m+' '+got.join('/'))});
+      GFX.q='auto';AUTOR.cap=1;resize();qOk(Math.abs(cv.width-Math.round((cv.clientWidth||innerWidth)*1))<=1,'PC 자동 1배 '+cv.width)});
+    return out.join(' · ')}finally{GFX.q=q0;AUTOR.cap=c0;resize()}});
+qT('성능','v34 프레임 상한: 휴대폰은 고르지 않았으면 30 · 60을 고르면 60 · PC는 60 · 같이 하기 중에도 2초 쉬면 30',()=>{const f0=GFX.fps,t0=IDLE.t,i0=IDLE.inp,on0=NET.on;
+  try{IDLE.t=0;const r={};qM22('L',844,390,()=>{GFX.fps=0;r.ph0=frameCapMs();GFX.fps=60;r.ph60=frameCapMs()});GFX.fps=0;r.pc=frameCapMs();
+    qOk(r.ph0>33,'휴대폰 기본 '+r.ph0);qOk(r.ph60<17||!document.hasFocus(),'휴대폰 60 '+r.ph60);qOk(r.pc<17||!document.hasFocus(),'PC '+r.pc);
+    qClear();/* 앞 점검이 남긴 화살 · 몬스터가 있으면 「바쁨」으로 쳐서 쉬지 않음 */NET.on=true;IDLE.inp=performance.now()-5000;IDLE.t=0;for(let i=0;i<40;i++)idleTick(.1,performance.now());qOk(IDLE.t>2&&frameCapMs()>33,'같이 하기 중 쉼 '+IDLE.t.toFixed(1));
+    IDLE.inp=performance.now();idleTick(.1,performance.now());qOk(IDLE.t===0,'손을 대면 바로 60');
+    return `휴대폰 ${r.ph0}/${r.ph60} · PC ${r.pc} · 같이 하기 쉼 30`}finally{GFX.fps=f0;IDLE.t=t0;IDLE.inp=i0;NET.on=on0}});
+qT('성능','v34 자동 해상도: 목표 간격의 1.25배를 2초 넘게 넘으면 한 단계 낮춤(예전 24~26ms 끼임 없음) · 올리는 건 여유가 30초 이어질 때만 · 오르내림 반복 없음',()=>{const c0=AUTOR.cap,q0=GFX.q,l0=Q.lvl,s0={...AUTOR};
+  try{return qDpr(3,()=>{GFX.q='auto';Q.lvl=0;AUTOR.cap=1.5;AUTOR.init=1;AUTOR.ema=16.7;AUTOR.slowT=AUTOR.fastT=0;
+    for(let i=0;i<110;i++)arTick(25,12,16.6);qOk(AUTOR.cap===1.25,'25ms(초당 40장)에서 안 낮춤 '+AUTOR.cap);
+    for(let i=0;i<110;i++)arTick(25,12,16.6);qOk(AUTOR.cap===1,'두 번째 단계 '+AUTOR.cap);for(let i=0;i<300;i++)arTick(25,12,16.6);qOk(AUTOR.cap===1,'1배 아래로 안 감 '+AUTOR.cap);
+    for(let i=0;i<600;i++)arTick(17,8,16.6);qOk(AUTOR.cap===1,'1배에서 20ms 일이면 올리면 안 됨(올리면 다시 느려짐) '+AUTOR.cap);
+    for(let i=0;i<2200;i++)arTick(16.7,3,16.6);qOk(AUTOR.cap===1.25,'여유 30초 뒤 한 단계 올림 '+AUTOR.cap);
+    AUTOR.cap=1.5;AUTOR.ema=33.3;for(let i=0;i<200;i++)arTick(33.4,14,33.3);qOk(AUTOR.cap===1.5,'30장 상한에서 제때 그리면 그대로 '+AUTOR.cap);
+    GFX.q='high';arTick(60,40,16.6);qOk(AUTOR.cap===1.5,'자동이 아니면 손대지 않음');return '25ms → 1.25 → 1 · 여유 30초 → 1.25 · 30장 상한 그대로'})}
+  finally{Object.assign(AUTOR,s0);AUTOR.cap=c0;GFX.q=q0;Q.lvl=l0;resize()}});
+qT('성능','v34 색 입힌 그림 캐시: 통째로 비우지 않고 상한을 넘으면 오래 안 쓴 것부터 버림 · 방금 쓴 것은 남음',()=>{const keep=new Map(FL.tint),b0=FLT.b,c0=FLT.cap;
+  try{FL.tint.clear();FLT.cap=100*100*4*10;const mk=()=>{const c=document.createElement('canvas');c.width=c.height=100;return c};
+    for(let i=0;i<10;i++)FLT.put('k'+i,mk());qOk(FL.tint.size===10,'10개 '+FL.tint.size);FLT.get('k0');FLT.put('k10',mk());
+    qOk(FL.tint.has('k0')&&!FL.tint.has('k1')&&FL.tint.has('k10')&&FL.tint.size===10,'버린 것 '+[...FL.tint.keys()].join(','));qOk(FLT.b<=FLT.cap,'상한 '+FLT.b);return '상한 안 10개 · 오래된 k1 버림 · 방금 쓴 k0 남음'}
+  finally{FL.tint.clear();for(const [k,v] of keep)FL.tint.set(k,v);FLT.b=b0;FLT.cap=c0}});
+qT('성능','v34 땅 조각 저장: 메모리 상한(PC 96MB · 휴대폰 40MB)을 넘으면 안 보이는 조각부터 버림 · 이번 프레임에 그린 조각은 남김',()=>{qPrep('mage',{lvl:20});if(DG)leaveDungeon();loadRegion('plains');
+  for(let i=0;i<400&&GJOBS.length;i++)runChunkJobs(50);render();const vis=[...chunks.values()].filter(c=>c.used>=frameN-1);qOk(vis.length>0,'보이는 조각 없음');
+  const fake=[];for(let i=0;i<40;i++){const cv2=document.createElement('canvas');cv2.width=cv2.height=1600;const c={cv:cv2,used:frameN-50-i,ready:true,fx:[],cx:900+i,cy:900};chunks.set(c.cx*1000+c.cy,c);fake.push(c)}
+  const m=chunkTrim();qOk(m<=CH_CAP||[...chunks.values()].every(c=>c.used>=frameN-1),'상한 넘음 '+(m/1048576).toFixed(0)+'MB');qOk(vis.every(c=>chunks.get(c.cx*1000+c.cy)===c),'보이는 조각을 버림');
+  const left=fake.filter(c=>chunks.has(c.cx*1000+c.cy)).length;for(const c of fake)chunks.delete(c.cx*1000+c.cy);qOk(left<40,'하나도 안 버림');return `가짜 조각 40개 중 ${left}개 남김 · ${(m/1048576).toFixed(0)}MB ≤ ${(CH_CAP/1048576)|0}MB · 보이는 ${vis.length}개 그대로`});
+/* ===== v34: 궁수 2차 호크아이 — 여러 발 · 꿰뚫기 대신 설치 · 연계 · 울타리 · 그물 · 하늘의 활 ===== */
+const QA34='호크아이 v34';
+function qA34(){qPrep('archer',{lvl:92});P.job2='hawkeye';P.x=QA_SPOT.x;P.y=QA_SPOT.y;followCam();P.invT=1e9;if(typeof clsGearFor==='function')clsGearFor('tripleshot');P.st.dex=Math.max(P.st.dex||0,600);
+  for(const id of A34.ids.concat(['tripleshot','quickshot']))P.sk[id]=5;a34Clear()}
+const qA34Mob=(k,x,y)=>{const e=dgMob(k,x,y,60);e.hp=e.max=1e9;e.atkCd=1e9;e.stunT=1e9;return e};
+qT(QA34,'다섯 기술이 새 모양(설치 · 연계 폭약 · 울타리 · 그물 이동기 · 하늘의 활) · id · 위계 · 선행은 그대로 · 트리플 샷 · 스나이프 · 표식 · 볼텍스 · 레인저는 그대로',()=>{
+  const K={pierceblow:'turret',splitarrow:'bolt',elemrain:'fence',backshot:'blink',heavenbow:'skybow'};for(const id in K)qOk(SPELLS[id]&&SPELLS[id].kind===K[id]&&SPELLS[id].job2==='hawkeye',id+' '+(SPELLS[id]&&SPELLS[id].kind));
+  qOk(SPELLS.splitarrow.stick&&!SPELLS.splitarrow.split&&SPELLS.backshot.net&&!SPELLS.backshot.shot,'폭약 · 그물');
+  qOk(SPELLS.tripleshot.kind==='bolt'&&SPELLS.snipe.kind==='bolt'&&SPELLS.deathmark.mark&&SPELLS.arrowvortex.kind==='field'&&SPELLS.focus.kind==='buff','그대로 둔 호크아이');
+  qOk(['blasttrap','thorntrap','dominion'].every(id=>SPELLS[id].kind==='trap')&&SPELLS.smoke.kind==='field'&&SPELLS.netshot.kind==='bolt','레인저');
+  qOk((PRE.heavenbow||[]).includes('pierceblow')&&(PRE.arrowvortex||[]).includes('elemrain')&&(PRE.splitarrow||[]).includes('tripleshot'),'선행');
+  qOk(KINDN.turret&&KINDN.fence&&KINDN.skybow,'종류 이름');for(const id of A34.ids){const h=detailHtml(id);qOk(typeof h==='string'&&!/undefined|NaN/.test(h),id+' 설명 '+(h.match(/.{0,30}(undefined|NaN).{0,30}/)||[''])[0])}
+  const mix=['bolt','turret','fence','blink','skybow','field','buff'],ks=new Set(J2_SPELLS.filter(id=>SPELLS[id].job2==='hawkeye'&&SPELLS[id].kind!=='passive').map(id=>SPELLS[id].kind));
+  qOk(ks.size>=6,'호크아이 종류 '+[...ks].join());return [...ks].join(' · ')});
+qT(QA34,'센트리 발리스타: 겨눈 곳에 포대 하나 · 10초 동안 가까운 적을 알아서 쏨 · 다시 쓰면 옮김 · 끝나면 사라짐',()=>{qA34();const e=qDummy(P.x+400,P.y);
+  qOk(qCast('pierceblow',{x:P.x+150,y:P.y}),'시전');qOk(A34.tur.length===1&&!A34.tur[0].G,'포대 '+A34.tur.length);const q=A34.tur[0];qOk(Math.hypot(q.x-P.x-150,q.y-P.y)<5,'자리');
+  qStep(150,{render:true});qOk(e.hits>=2,'포대가 쏜 화살 맞음 '+e.hits);const h=e.hits;
+  qOk(qCast('pierceblow',{x:P.x+100,y:P.y+60}),'다시 시전');qOk(A34.tur.length===1,'포대 둘 '+A34.tur.length);
+  qStep(11*60,{render:false});qOk(!A34.tur.length,'10초 뒤에도 남음');return `맞힘 ${h}번`});
+qT(QA34,'퓨즈 애로우: 꽂힌 폭약이 3초 뒤 둘레(곁의 적까지)를 침 · 그 사이 내 공격이 맞으면 커짐 · 적이 먼저 쓰러지면 바로 터짐',()=>{qA34();const e=qDummy(P.x+200,P.y),e2=qDummy(P.x+200,P.y+70);
+  qCast('splitarrow',{x:e.x,y:e.y});qStep(40,{render:false,until:()=>A34.bomb.length});qOk(A34.bomb.length===1&&e.a34b,'폭약이 안 붙음');const b=A34.bomb[0];
+  for(let i=0;i<3;i++){qCast('quickshot',{x:e.x,y:e.y});qStep(20,{render:false})}qOk(b.n>=1,'내 공격이 맞아도 안 커짐 '+b.n);const t2=e2.taken;qOk(!t2,'곁의 적이 미리 맞음');
+  qStep(200,{render:true});qOk(!A34.bomb.length&&!e.a34b,'안 터짐');qOk(e2.taken>0,'곁의 적이 폭발에 안 맞음');
+  qClear();P.invT=1e9;const w=dgMob('wolf',P.x+200,P.y,60);w.hp=w.max=1e9;w.atkCd=1e9;w.stunT=1e9;const e3=qDummy(P.x+200,P.y-70);qCast('splitarrow',{x:w.x,y:w.y});qStep(40,{render:false,until:()=>w.a34b});qOk(w.a34b,'늑대에 폭약');
+  w.hp=0;killE(w);qStep(2,{render:false});qOk(!A34.bomb.length&&e3.taken>0,'쓰러진 자리에서 바로 안 터짐');return `커짐 ${b.n}번`});
+qT(QA34,'애로우 펜스: 일자 울타리 6초 · 닿은 적은 0.5초마다 맞고 뒤로 밀려남(보스는 안 밀림) · 불 · 얼음 · 번개 차례',()=>{qA34();const e=qDummy(P.x+200,P.y+30);
+  qOk(qCast('elemrain',{x:P.x+200,y:P.y}),'시전');qOk(A34.fen.length===1,'울타리');const f=A34.fen[0];qOk(Math.abs(f.ux)<.01&&Math.abs(Math.abs(f.uy)-1)<.01,'가로 방향 '+f.ux+','+f.uy);
+  qStep(80,{render:true});qOk(e.hits>=2,'울타리 피해 '+e.hits);qOk(f.i>=2,'원소 차례 '+f.i);
+  enemies.splice(enemies.indexOf(e),1);const w=qA34Mob('wolf',P.x+204,P.y-70),x0=w.x;qStep(40,{render:false});qOk(w.x>x0+20,`늑대가 안 밀림 ${Math.round(x0)}→${Math.round(w.x)}`);
+  const bk=Object.keys(TYPES).find(k=>TYPES[k].boss&&!TYPES[k].mirror),sk0=TYPES[bk].skills;let B,bx;try{TYPES[bk].skills=[];/* 보스 자기 기술(순간이동 등)로 움직이는 것은 빼고 본다 */B=qA34Mob(bk,P.x+204,P.y+110);qStep(2,{render:false});/* 처음 한 프레임에 자리 잡기(겹침 풀기)로 조금 움직임 */bx=B.x;qStep(40,{render:false})}finally{TYPES[bk].skills=sk0}qOk(Math.abs(B.x-bx)<1,'보스가 밀림 '+(B.x-bx)+' '+bk);qOk(B.hp<B.max,'보스가 울타리에 안 맞음');
+  qStep(6*60,{render:false});qOk(!A34.fen.length,'6초 뒤에도 남음');return `피해 ${e.hits}번 · 늑대 +${Math.round(w.x-x0)}`});
+qT(QA34,'리트리트 넷: 뒤로 뛰고, 서 있던 자리 둘레 적을 2초 묶음(보스 0.8초) · 그물 피해',()=>{qA34();const ox=P.x,oy=P.y,w=qA34Mob('wolf',P.x+60,P.y);w.stunT=0;const bk=Object.keys(TYPES).find(k=>TYPES[k].boss&&!TYPES[k].mirror),B=qA34Mob(bk,P.x,P.y+70);B.stunT=0;
+  qOk(qCast('backshot',{x:w.x,y:w.y}),'시전');qOk(Math.hypot(P.x-ox,P.y-oy)>150&&P.x<ox,'뒤로 안 뜀 '+Math.round(P.x-ox));qOk(w.rootT>1.5,'늑대 묶기 '+w.rootT);qOk(B.rootT>0&&B.rootT<=.8+1e-6,'보스 묶기 '+B.rootT);
+  qOk(w.hp<w.max,'그물 피해');qOk(A34.net.length===1,'그물 그림');qStep(30,{render:true});return `물러남 ${Math.round(Math.hypot(P.x-ox,P.y-oy))} · 묶기 ${w.rootT.toFixed(1)}초`});
+qT(QA34,'하늘의 활: 시전 1.2초 뒤 12초 동안 머리 위 활이 겨눈 쪽 적에게 빛 화살을 내리꽂음 · 끝나면 사라짐',()=>{qA34();const e=qDummy(P.x+220,P.y);
+  qOk(qCast('heavenbow',{x:e.x,y:e.y}),'시전');qOk(A34.sky.length===1&&A34.sky[0].own===P,'하늘의 활');qStep(150,{render:true});qOk(e.hits>=2,'내리꽂기 '+e.hits);
+  qStep(12*60,{render:false});qOk(!A34.sky.length,'12초 뒤에도 남음');return `내리꽂기 ${e.hits}번`});
+qT(QA34,'같이 하기: 동료 궁수의 다섯 기술은 내 화면에 그림만(피해 0 · 오류 0)',()=>{qA34();const e=qDummy(P.x+260,P.y);let seen=0;
+  try{const r=qPeerOn();Object.assign(r,{cls:'archer',gear:{staff:{rar:2,wt:'bow'}},x:P.x+80,tx:P.x+80,y:P.y,ty:P.y});
+    for(const id of A34.ids){netGhostCast({from:'qa_peer',sp:id,L:10,x:e.x,y:e.y});qStep(6,{render:true});seen+=A34.tur.length+A34.fen.length+A34.sky.length+A34.net.length}
+    qStep(120,{render:true});qOk(!e.taken,'동료 그림이 피해를 줌 '+e.taken);qOk(seen>0,'그림 없음');
+    qOk(A34.tur.every(q=>q.G)&&A34.sky.every(q=>q.G),'동료 포대 · 활 표시')}finally{qPeerOff()}return '그림 '+seen});
+qT('저장','v34 호크아이 다섯 기술: 예전 저장의 점수는 처음 한 번만 돌려받음(원래 값 rs34.old) · 다른 점수 · 전직 그대로 · 다시 불러와도 또 돌려받지 않음',()=>{
+  const F={v:5,slot:0,cls:'archer',lvl:95,xp:10,gold:4321,towns:['brenhill','willowen'],home:'brenhill',x:1500,y:3900,reg:'home',hp:900,mp:300,pot:{hp:2,mp:2},gear:{},bag:[],job2:'hawkeye',
+    sk:{quickshot:8,tripleshot:6,pierceblow:4,heavenbow:2,elemrain:3,arrowvortex:1,snipe:3,splitarrow:2,backshot:1},sp:2,st:{int:0,vit:20,spi:20},ap:0,diff:0,
+    bar:['quickshot','pierceblow','heavenbow','snipe'].concat(Array(17).fill(null)),uid:90,q:{i:0,st:0,c:{}}};
+  const raw=JSON.stringify(F);qOk(load(JSON.parse(raw),QA_SLOT),'불러오기 실패');
+  qOk(A34.ids.every(id=>!P.sk[id]),'돌려받을 점수가 남음 '+JSON.stringify(P.sk));qOk(P.sk.tripleshot===6&&P.sk.arrowvortex===1&&P.sk.snipe===3&&P.sk.quickshot===8,'남은 점수 '+JSON.stringify(P.sk));
+  qOk(P.sp===F.sp+12,`sp ${P.sp} (기대 ${F.sp+12})`);const sum=o=>Object.values(o).reduce((a,b)=>a+b,0);qOk(sum(P.sk)+P.sp===sum(F.sk)+F.sp,'전체 점수가 바뀜');
+  qOk(P.job2==='hawkeye'&&P.lvl===95&&P.gold===4321,'전직 · 레벨 · 금화');qOk(P.bar[1]==='pierceblow'&&P.bar[3]==='snipe','단축칸 '+P.bar.slice(0,4));
+  const d=JSON.parse(JSON.stringify(saveData()));qOk(d.rs34&&d.rs34.v===1&&d.rs34.old&&d.rs34.old.pierceblow===4&&d.rs34.old.heavenbow===2,'rs34 '+JSON.stringify(d.rs34));
+  d.sk.pierceblow=2;d.sp-=2;qOk(load(d,QA_SLOT)&&P.sk.pierceblow===2&&P.sp===d.sp,'다시 불러올 때 또 돌려받음');
+  qOk(JSON.stringify(JSON.parse(raw))===raw,'불러온 원본 저장이 바뀜');
+  qPrep('mage');const m=JSON.parse(JSON.stringify(saveData()));delete m.rs34;qOk(load(m,QA_SLOT)&&saveData().rs34.v===1&&!saveData().rs34.old,'다른 직업 rs34');
+  const bad=Object.assign(JSON.parse(raw),{rs34:'<x>'});qOk(load(bad,QA_SLOT)&&P.sk.pierceblow===4&&JSON.stringify(saveData().rs34)==='{"v":1}','손상된 rs34를 돌려받기 표시로 보고 그대로 둠');
+  return '돌려받음 12점'});
 window.__QA_RUN=qaRun;
 setTimeout(()=>{qaRun().catch(e=>{window.__QA_RESULT={fatal:String(e&&e.stack||e),results:[],summary:{total:0,pass:0,fail:1}}})},120);
 }
@@ -28905,11 +29217,14 @@ function stepSim(dt){if(!paused||NET.on){let r=dt,n=0;do{const d=Math.min(.05,r)
 // 움직이기 시작하면(키 · 마우스 · 터치, 몬스터가 쫓아옴, 마법) 바로 60으로 돌아온다. 같이하기 중에는 늘 60. 게임 속도는 같다.
 const IDLE={inp:0,px:0,py:0,t:0};
 for(const ev of ['keydown','pointerdown','pointermove','wheel','touchstart'])addEventListener(ev,()=>{IDLE.inp=performance.now();IDLE.t=0},{passive:true,capture:true});
-function idleTick(dt,now){let busy=now-IDLE.inp<1500||NET.on;if(!busy&&!P.dead&&(Math.abs(P.x-IDLE.px)+Math.abs(P.y-IDLE.py)>.5))busy=true;IDLE.px=P.x;IDLE.py=P.y;
+function idleTick(dt,now){let busy=now-IDLE.inp<1500;// [v34] 같이 하기 중에도 손을 놓고 주변이 조용하면 쉰다 (화면만 30장, 게임·통신 시간은 그대로)
+if(!busy&&!P.dead&&(Math.abs(P.x-IDLE.px)+Math.abs(P.y-IDLE.py)>.5))busy=true;IDLE.px=P.x;IDLE.py=P.y;
   if(!busy&&(projs.length||fields.length||pend.length||beams.length||bolts.length||rains.length))busy=true;
   if(!busy)for(const e of enemies)if(e.aggroed&&!e.dead){busy=true;break}
   IDLE.t=busy?0:IDLE.t+dt}
-function frameCapMs(){if(GFX.fps===30)return 33.3;if(!NET.on&&(IDLE.t>2||!document.hasFocus()))return 33.3;return 16.6}
+// [v34 최적화] 휴대폰은 프레임 상한을 고르지 않았으면 30(절전)이 기본 (설정에서 60을 고를 수 있음). 발열의 가장 큰 손잡이
+function fps30(){return GFX.fps===30||(!GFX.fps&&typeof M22==='object'&&M22.phone())}
+function frameCapMs(){if(fps30())return 33.3;if(IDLE.t>2||!document.hasFocus())return 33.3;return 16.6}
 const qTickMs=raw=>raw-Math.max(0,frameCapMs()-16.7);// 일부러 쉰 시간은 자동 품질에서 느림으로 치지 않음
 function frame(now){
   {const d=now-rafPrev;rafPrev=now;if(d>0&&d<100)rafPer+=(d-rafPer)*.1}
@@ -28922,6 +29237,7 @@ function frame(now){
   stepSim(dt);idleTick(dt,now);
   fpsTick(now);render();hudT-=dt;if(hudT<=0){hudT=1/15;updateHud()}
   mmT-=dt;if(mmT<=0){mmT=.15;drawMinimap()}
+  arTick(raw,performance.now()-now,cap);
   requestAnimationFrame(frame);
 }
 function start(data){
