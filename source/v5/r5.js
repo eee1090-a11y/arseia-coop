@@ -10,7 +10,7 @@ function drawAlly(a){const s=a._s;if(!onScreen(s,80))return;ctx.save();ctx.trans
     ctx.fillStyle='#7a6850';ctx.beginPath();ctx.moveTo(-16,-10);ctx.lineTo(16,-10);ctx.lineTo(13,-38+b);ctx.lineTo(-13,-38+b);ctx.closePath();ctx.fill();
     ctx.fillStyle='#5e5040';ell(-20+l,-22+b,7,11);ell(20+l,-22+b,7,11);ctx.fillStyle='#8a7860';ell(0,-46+b,10,8);
     ctx.globalCompositeOperation='lighter';ctx.fillStyle='rgba(255,190,90,.9)';circ(-3+a.fx*2,-47+b,1.8);circ(3+a.fx*2,-47+b,1.8);ctx.fillStyle='rgba(255,170,70,.5)';ctx.fillRect(-1.5,-34+b,3,14);ctx.fillRect(-6,-28+b,12,2.5);ctx.globalCompositeOperation='source-over'}
-  if(a.hurt>0)hurtFlash(0,-24,a.r*1.4,.5);const w=34,y=a.s.form==='hydra'?-58:-62;ctx.fillStyle='rgba(0,0,0,.7)';ctx.fillRect(-w/2-1,y-1,w+2,5);ctx.fillStyle='#6ad06a';ctx.fillRect(-w/2,y,w*clamp(a.hp/a.max,0,1),3);ctx.fillStyle='#c9a46a';ctx.fillRect(-w/2,y+4,w*clamp(a.t/a.s.dur,0,1),1.5);
+  if(a.hurt>0)hurtFlash(0,-24,a.r*1.4,.5);const w=34,y=a.s.form==='hydra'?-58:-62;if(a.s.form!=='hydra'){ctx.fillStyle='rgba(0,0,0,.7)';ctx.fillRect(-w/2-1,y-1,w+2,5);ctx.fillStyle='#6ad06a';ctx.fillRect(-w/2,y,w*clamp(a.hp/a.max,0,1),3)}/* v35 히드라는 생명력 막대 없음 · 남은 시간 줄만 */ctx.fillStyle='#c9a46a';ctx.fillRect(-w/2,y+4,w*clamp(a.t/a.s.dur,0,1),1.5);
   ctx.restore()}
 function drawCave(d){const s=d._s;ctx.save();ctx.translate(s.x,s.y);
   Kit.shadow(ctx,8,4,78,24,1);

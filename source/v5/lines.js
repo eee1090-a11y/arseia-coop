@@ -35,7 +35,7 @@ const SKILL_LINES={
   crystallance:'땅속의 수정이여, 창이 되어 솟아라',
   spacetwist:'이곳과 저곳이여, 서로를 비틀어라',
   lightrain:'흩어진 빛이여, 비가 되어 내려라',
-  hydra:'세 머리의 불도마뱀이여, 이 땅을 지켜라',
+  hydra:'세 머리 히드라여, 이 땅을 불태워라',
   // ===== 마법사 · 7위계 =====
   chainlightning:'번개여, 사슬처럼 이어 달려라',
   thunderrain:'먹구름이여, 벼락의 비를 퍼부어라',

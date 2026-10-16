@@ -8,8 +8,11 @@ const F29={clinic:'페이스라인성형외과',treeRatio:.85};
 // v30 (사용자 16:01 「가짜코 동상 아래 물도 위치가 어긋나있어」): 물 자리를 그림의 안쪽 바닥에 맞춘다.
 //  안쪽 바닥 = 타원 (86,171) 62×25 (그림 좌표 · 안쪽 벽 x 22~150, 뒤 y 145, 앞 테두리 y 198) · 받침 계단 타원 (91.5,190) 35×12 와 기둥 (69~116, 138~192)은 뺀다.
 //  예전(v29)은 (90,207) 66×20 이라 앞 테두리 위에 물이 그려지고 안쪽 바닥은 말라 보였다.
-const F29W={cx:86,cy:171,rx:62,ry:25,step:[91.5,190,35,12],col:[69,138,47,54]};
+// v35(사용자 2026-10-15 「가짜코동상 아래의 물은 여전히 위치가 안맞아」): 물 타원이 바닥보다 위(뒤쪽 안벽)와 왼쪽 테두리 윗면까지 덮었다.
+//  바닥(안벽 밑 ~ 앞 테두리 안쪽 끝)에 맞춰 (90.5,182) 62×23으로 내리고, 테두리 윗면 안쪽 끝 타원(rim)과 겹치는 곳만 물로 둔다(테두리를 절대 덮지 않게).
+const F29W={cx:90.5,cy:182,rx:62,ry:23,rim:[89.5,173.5,65,32],step:[91.5,190,35,12],col:[69,138,47,54]};
 function f29Mask(w,h){const m=document.createElement('canvas');m.width=w;m.height=h;const g=m.getContext('2d');g.fillStyle='#fff';g.beginPath();g.ellipse(F29W.cx,F29W.cy,F29W.rx,F29W.ry,0,0,Math.PI*2);g.fill();
+ g.globalCompositeOperation='destination-in';g.beginPath();g.ellipse(...F29W.rim,0,0,Math.PI*2);g.fill();
  g.globalCompositeOperation='destination-out';const s=F29W.step;g.beginPath();g.ellipse(s[0],s[1],s[2],s[3],0,0,Math.PI*2);g.fill();g.fillRect(...F29W.col);return m;}
 function f29Basin(g){g.beginPath();g.ellipse(F29W.cx,F29W.cy,F29W.rx,F29W.ry,0,0,Math.PI*2);}
 function f29Statue(c,PK,d,x,y,k){const r=PK.meta.r['076_statue_false_nose_single'];if(!r)return false;

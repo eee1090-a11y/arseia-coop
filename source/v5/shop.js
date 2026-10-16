@@ -151,7 +151,8 @@ const POT_T=[
   {n:'보통',hp:120,mp:70,lv:5,pr:60,pct:.05},
   {n:'큰',hp:240,mp:140,lv:12,pr:150,pct:.08},
   {n:'고급',hp:450,mp:260,lv:24,pr:360,pct:.15},
-  {n:'최상급',hp:800,mp:450,lv:36,pr:800,pct:.30}];
+  {n:'최상급',hp:800,mp:450,lv:36,pr:800,pct:.30,min:.75}];
+// v35(사용자 2026-10-15 「최상급 물약 … 75%정도까지는 채워줬으면 좋겠어」): 최상급은 적어도 최대 생명력·마나의 75%(min). 예전 식(800/450 + 30%)이 더 크면 그 값
 const POT_DEF=1,POT_PCT=.03,POT_DUR=3,POT_CD={hp:9,mp:7},POTN={hp:'생명력 물약',mp:'마나 물약'};
 const potName=(k,T)=>`${POT_T[T].n} ${POTN[k]}`;
 function potN(k,T){const p=P.pot||{};if(T===POT_DEF)return p[k]>0?p[k]|0:0;const a=p[k[0]+'t'];return Array.isArray(a)&&a[T]>0?a[T]|0:0}
@@ -159,7 +160,7 @@ function potSet(k,T,n){n=Math.max(0,n|0);if(T===POT_DEF){P.pot[k]=n;return}let a
 const potAdd=(k,T,n)=>potSet(k,T,potN(k,T)+n);
 function potTotal(k){let n=0;for(let T=0;T<POT_T.length;T++)n+=potN(k,T);return n}
 function potBest(k){for(let T=POT_T.length-1;T>=0;T--)if(potN(k,T)>0)return T;return -1}
-const potAmt=(k,T)=>Math.round(POT_T[T][k]+(k==='hp'?maxHp():maxMp())*(POT_T[T].pct!=null?POT_T[T].pct:POT_PCT));
+const potAmt=(k,T)=>{const M=k==='hp'?maxHp():maxMp(),p=POT_T[T];return Math.round(Math.max(p[k]+M*(p.pct!=null?p.pct:POT_PCT),M*(p.min||0)))};
 const potPriceT=(k,T)=>Math.round(POT_T[T].pr*(k==='mp'?.8:1));
 const potOpen=(t,T)=>POT_T[T].lv<=t.base+4+DIFF[P.diff].add;// 마을(지역) 레벨로 등급이 열린다
 const potCdLeft=k=>k==='hp'?Math.max(0,P.potCd||0):Math.max(0,P.potCdM||0);

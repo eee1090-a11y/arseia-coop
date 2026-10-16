@@ -355,7 +355,7 @@ function update(dt){
     }else if(p.ghost){if(!DG&&inSafe(p.x,p.y,20))p.life=0}else{
       if(NET.host)for(const r of NET.peers.values())if(p.life>0&&!r.dead&&netSame(r)&&Math.hypot(r.x-p.x,r.y-p.y)<r.r+p.r+2){p.life=0;netHit(r,p.dmg,p.src);burst(p.x,p.y,p.col,8,80,3,p.z)}
       if(p.life>0&&!P.dead&&Math.hypot(P.x-p.x,P.y-p.y)<P.r+p.r+2){p.life=0;hitPlayer(p.dmg,p.src);burst(p.x,p.y,p.col,8,80,3,p.z)}
-      for(const a of allies)if(p.life>0&&Math.hypot(a.x-p.x,a.y-p.y)<a.r+p.r){p.life=0;hurtAlly(a,p.dmg)}
+      for(const a of allies)if(p.life>0&&!(a.s&&a.s.form==='hydra')&&Math.hypot(a.x-p.x,a.y-p.y)<a.r+p.r){p.life=0;hurtAlly(a,p.dmg)}
       if(!DG&&inSafe(p.x,p.y,20))p.life=0;
     }
   }

@@ -155,7 +155,7 @@ const RENAME_V18={
   stormgust:    {n:'화이트 게일',      kn:'흰 돌풍',           en:'White Gale',            chant:'에아셀 베안 아르'},// 라그나로크
   lordvermilion:{n:'크림슨 썬더폴',    kn:'진홍 뇌우',         en:'Crimson Thunderfall',   chant:'타룬 카스 오르 엔테'},// 라그나로크
   frozenorb:    {n:'프로스트 글로브',  kn:'구르는 얼음 구슬',  en:'Frost Globe',           chant:'에아셀 엔 벨'},  // 디아블로 2
-  hydra:        {n:'파이어 살라만더',  kn:'세 머리 불도마뱀',  en:'Fire Salamander',       chant:'카스 넨 아르'},  // 디아블로 2
+  hydra:        {n:'히드라',          kn:'세 머리 히드라',     en:'Hydra',                 chant:'카스 넨 아르'},  // v35 사용자 요청으로 「파이어 살라만더」에서 다시 「히드라」
   arcanemissiles:{n:'아케인 시커',     kn:'뒤쫓는 마력탄',     en:'Arcane Seekers',        chant:'셀 벨 넨'},      // 월드 오브 워크래프트
   pyroblast:    {n:'인페르노 코어',    kn:'응축 화염탄',       en:'Inferno Core',          chant:'카스 아르 벨 에온'},// 월드 오브 워크래프트(한국어판 이름 그대로였음)
   hold:         {n:'홀딩 서클',        kn:'붙들기',            en:'Holding Circle'},                              // D&D 「홀드 퍼슨」
@@ -165,7 +165,7 @@ const RENAME_V18={
 };
 // 설명 끝에 붙어 있던 출처 표시 "(라그나로크)" 같은 것은 지운다. 키리에는 첫 문장이 원래 기도문 뜻이라 바꾼다.
 const DESC_FIX_V18={kyrie:s=>s.replace(/^주여 자비를\.\s*/,'빛의 고리가 몸을 감쌉니다. '),
-  hydra:s=>s.replace('세 머리 히드라를','세 머리 불도마뱀을').replace('세 머리 히드라','세 머리 불도마뱀'),guardianspirit:s=>s.replace('수호 천사가','지켜보는 날개가')};
+  guardianspirit:s=>s.replace('수호 천사가','지켜보는 날개가')};
 function applyRenameV18(){
   for(const id in RENAME_V18){const s=SPELLS[id],r=RENAME_V18[id];if(!s)continue;
     s.n=r.n;s.kn=r.kn;s.en=r.en;if(r.chant)s.chant=r.chant}

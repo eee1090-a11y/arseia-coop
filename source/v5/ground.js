@@ -273,7 +273,7 @@ function* paintGround(g,ox,oy,sc){
   g.setTransform(sc,0,0,sc,-ox*sc,-oy*sc);
   for(const t of TOWNS){const SAFE=tSafe(t);if(t.x+SAFE+20<ox||t.x-SAFE-20>ox+CH||t.y+SAFE+20<oy||t.y-SAFE-20>oy+CH)continue;
     const pc=[...(AREAS[t.id]&&AREAS[t.id].plaza||[130,120,104])];
-    for(let k=0;k<44;k++){const a=k/44*6.283,x=t.x+Math.cos(a)*76,y=t.y+Math.sin(a)*76;if(x<ox-20||x>ox+CH+20||y<oy-20||y>oy+CH+20)continue;gPut(g,sc,ox,oy,gSpr('pebble',2+k%2,[pc[0]*.85,pc[1]*.85,pc[2]*.85]),x,y,1.6);g.setTransform(sc,0,0,sc,-ox*sc,-oy*sc)}
+    for(let k=0;k<44;k++){const a=k/44*6.283,R=t.ringR||76,x=t.x+Math.cos(a)*R,y=t.y+Math.sin(a)*R;if(x<ox-20||x>ox+CH+20||y<oy-20||y>oy+CH+20)continue;gPut(g,sc,ox,oy,gSpr('pebble',2+k%2,[pc[0]*.85,pc[1]*.85,pc[2]*.85]),x,y,1.6);g.setTransform(sc,0,0,sc,-ox*sc,-oy*sc)}
     g.setLineDash([14,18]);g.lineCap='round';for(const [w,c] of [[7,'rgba(214,178,98,.07)'],[2.6,'rgba(226,192,110,.26)']]){g.strokeStyle=c;g.lineWidth=w;g.beginPath();g.arc(t.x,t.y,SAFE,0,6.283);g.stroke()}g.setLineDash([])}
   g.setTransform(sc,0,0,sc,0,0);
   // 물결 반짝임 자리 (매 프레임에는 미리 구운 몇 장을 번갈아 붙이기만 한다)

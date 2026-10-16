@@ -193,7 +193,7 @@ function qChanTable0(){const rows=[];const NOALT=new Set(['summon','orbit','armo
       rows.push({id,heal:1,mine,alt,altId,ratio:alt>0?mine/alt:99,mult:s0.heal});continue}
     const single=qCHAN_SINGLE(id);const candidates=Object.keys(SPELLS).filter(k=>SPELLS[k].cls===s0.cls&&SPELLS[k].rank===s0.rank&&k!==id&&!chanOf(k)&&isDmg(SPELLS[k])&&!NOALT.has(SPELLS[k].kind)&&!SPELLS[k].aspd);P.sk={[id]:10};/* 두 쪽 모두 해당 기술 10점만 두고 비교한다. 후보마다 점수가 쌓여 한쪽에만 시너지가 붙지 않게. 기준 1.25배는 그대로. */const T=chanPlan(id,10).dur+(typeof recOf==='function'?recOf(id):0),mine=qChanDmg(id,single)/T;let alt=0,altId='';
     for(const k of candidates){
-      P.sk={[k]:10};const v=qChanDmg(k,single)/qCycle(k);if(v>alt){alt=v;altId=k}}
+      qPrep(s0.cls,{lvl:60});/* v35: 후보마다 새 캐릭터 — 앞 후보가 남긴 장비(보조 무기 등)가 다음 후보 피해를 올려 표가 순서에 따라 흔들렸음 (꿰뚫는 창 1,900 ↔ 2,300) */P.sk={[k]:10};const v=qChanDmg(k,single)/qCycle(k);if(v>alt){alt=v;altId=k}}
     rows.push({id,single,mine,alt,altId,ratio:alt>0?mine/alt:99,mult:s0.mult})}
   qClear();return rows}
 qT('채널링 균형','채널링 마법은 같은 시간 동안 같은 위계·같은 직업의 채널링 아닌 가장 센 공격보다 피해가 1.25배 이상',()=>{const rows=qChanTable();
@@ -329,11 +329,12 @@ qT('시전','시전 시간: 메테오는 1초 동안 외운 뒤에 나가고, �
   qStep(30,{render:true});const bar=$('#castbar');qOk(bar&&!bar.hidden&&/메테오/.test(bar.textContent),'시전 막대가 안 보임');qOk(!pend.length&&!(P.cd.meteor>0),'0.5초에 벌써 나감');
   const n=qStep(40,{render:false,until:()=>!CAST.cur});qOk(!CAST.cur&&P.cd.meteor>0&&pend.length===1,`다 외워도 안 나감 (${n}프레임)`);qOk(P.mp<mp-c+5,`마나 ${qR(mp)}→${qR(P.mp)} (값 ${c})`);
   qOk(bar.hidden,'끝났는데 막대가 남음');qStep(90,{render:false,until:()=>e.taken>0});qOk(e.taken>0,'메테오 피해 0');return `${30+n}프레임에 시전 · 피해 ${Math.round(e.taken)}`});
-qT('시전','움직이면 시전이 끊기고 마나는 들지 않음 · 다른 마법을 쓰면 끊김 · 맞아도 안 끊김',()=>{const e=qCastPrep('mage','meteor');P.sk.spark=10;const mp=P.mp;
+qT('시전','움직이면 시전이 끊기고 마나는 들지 않음 · 다른 마법을 누르면 끊지 않고 다 외운 뒤 씀(v35) · 맞아도 안 끊김',()=>{const e=qCastPrep('mage','meteor');P.sk.spark=10;const mp=P.mp;
   tryCast('meteor',e);qStep(20,{render:false});keys.add('KeyD');qStep(2,{render:false});keys.delete('KeyD');
   qOk(!CAST.cur&&!(P.cd.meteor>0)&&!pend.length,'움직여도 안 끊김');qOk(P.mp>=mp-1e-6,`마나가 듦 ${qR(mp)}→${qR(P.mp)}`);qStep(80,{render:false});qOk(!pend.length,'끊긴 마법이 나중에 나감');
   tryCast('meteor',e);qStep(10,{render:false});hitPlayer(5);qStep(1,{render:false});qOk(CAST.cur,'맞아서 끊김');
-  tryCast('spark',e);qOk(!CAST.cur&&P.cd.spark>0&&!(P.cd.meteor>0),'다른 마법을 써도 안 끊김');
+  tryCast('spark',e);qOk(CAST.cur&&CAST.cur.id==='meteor'&&!(P.cd.spark>0)&&CAST.q&&CAST.q.id==='spark','다른 마법을 누르니 끊김(v35부터 기다렸다가 씀)');
+  qStep(80,{render:false,until:()=>P.cd.spark>0});qOk(!CAST.cur&&P.cd.meteor>0&&P.cd.spark>0,'다 외운 뒤 기다리던 마법을 안 씀');
   P.x+=1;keys.add('KeyW');qStep(1,{render:false});tryCast('meteor',e);qOk(!CAST.cur,'움직이는 중에 시전이 시작됨');keys.delete('KeyW');return '끊김 · 마나 그대로'});
 qT('시전','채널링(v20): 키를 한 번 누르면 틱마다 마나가 들며 이어지고(떼도 안 멈춤) · 다시 새로 누르면 멈추고 지대도 사라짐 · 누르고 있어도 다시 시작 안 함',()=>{const e=qCastPrep('mage','blizzard');const i=SLOTS.findIndex(s=>s.code);P.bar[i]='blizzard';buildBar();
   const p=chanPlan('blizzard',skLv('blizzard')),c=costOf('blizzard'),tc=c/p.N,mp0=P.mp;mouse.active=false;
@@ -4410,7 +4411,7 @@ qT(QMP,'마력 분신: 분신이 공격 마법을 따라 씀(피해 절반) · �
   const qClear2=()=>{projs.length=0;enemies.length=0};const a=hit();qOk(qCast('manaclone'),'시전 안 됨');qOk(MPJ.clone&&allies.includes(MPJ.clone),'분신 없음');const b=hit();
   qOk(b/a>1.35&&b/a<1.65,`분신 있을 때 ${qR(b/a)}배 (1.5배여야)`);const n0=projs.length;P.cd={};tryCast('forbidtide',{x:P.x+300,y:P.y});qMPstep(100);qOk(MPJ.waves.length<=1,'금기를 따라 함');
   render();qMPstep(Math.ceil(10*60));qOk(!MPJ.clone,'10초 뒤에도 남음');void n0;qClear();return `피해 ×${qR(b/a)}`});
-qT(QMP,'종언의 원: 6초 채널링 · 네 원소가 차례로 · 끝까지 버티면 마지막 한 방 · 중간에 끊으면 없음',()=>{qMPPrep('mage','finalcircle');const run=cut=>{qClear();P.x=QMP_SPOT.x;P.y=QMP_SPOT.y;P.cd={};const e=qDummy(P.x+260,P.y);let fin=0;const els=new Set();
+qT(QMP,'종언의 원: 6초 채널링 · 네 원소가 차례로 · 끝까지 버티면 마지막 한 방 · 중간에 끊으면 없음',()=>{qMPPrep('mage','finalcircle');const run=cut=>{qClear();QA.reseed(29);/* v36: 빗줄기 자리가 무작위라 전체 #qa에서 가끔 한 원소가 허수아비를 비껴감 → 씨앗 고정 */P.x=QMP_SPOT.x;P.y=QMP_SPOT.y;P.cd={};const e=qDummy(P.x+260,P.y);let fin=0;const els=new Set();
     qMPSpy((o,a,s)=>{if(o!==e||!s||s.id!=='finalcircle')return;if(s.kind==='strike')fin+=a;else els.add(s.el)},()=>{qCast('finalcircle',{x:e.x,y:e.y});qMPstep(cut?120:Math.ceil(6.3*60),{each:i=>{P.mp=maxMp();if(cut&&i===110)castStop()}})});return{fin,els,t:e.taken}};
   const a=run(false),b=run(true);qOk(a.fin>0,'마지막 한 방 없음');qOk(['fire','ice','storm','earth'].every(k=>a.els.has(k)),'원소 '+[...a.els]);qOk(b.fin===0,'끊었는데 마지막 한 방');qOk(a.fin>a.t*.15,`마지막 한 방 비중 ${qR(a.fin/a.t)}`);const sw=eff('finalcircle',10);qOk(rainSR(sw,sw.rad)>=sw.rad*.55&&rainDK(sw,sw.rad)<1,'한 줄기가 안 넓어짐');
   qClear();return `합 ${Math.round(a.t)} · 마지막 ${Math.round(a.fin)} (${Math.round(a.fin/a.t*100)}%)`});
@@ -5218,7 +5219,7 @@ qT('의뢰 v30','추적: 흔적을 차례로 찾으면 범인(정예)이 나오�
   for(let i=0;i<4;i++){const sp=Q30Q.q30Spot(q,'s'+i,g,g.steps[i]);q30Go({x:sp.x+160,y:sp.y});q30Go(sp)}qOk(S.a.h30r1.c.g0===4,'흔적 '+S.a.h30r1.c.g0);
   q30Tk(3);const f=enemies.find(e=>e.q30==='h30r1');qOk(f&&f.elite&&f.k===g.foe,'범인 없음');qOk(sqGoalText(q,0).includes('쓰러뜨리기'),'글');f.hp=0;killE(f);q30Tk(2);qOk(sqAllDone(q),'끝나지 않음');loadRegion('home');return '흔적 4 · 범인 Lv'+f.lvl});
 qT('의뢰 v30','지키기: 다가가면 시작 · 떠나면 실패 후 다시 · 버티면 끝 · 몬스터가 물건을 친다',()=>{const S=q30Prep();loadRegion('h29_reed');const q=q30Acc('h30r2'),g=q.goals[0],w=Q30Q.q30Spot(q,'w',g,g.at);
-  q30Go({x:w.x+400,y:w.y});qOk(!Q30Q.Q30.run.h30r2,'멀리서 시작');q30Go({x:w.x+60,y:w.y});qOk(Q30Q.Q30.run.h30r2,'시작 안 함');q30Go({x:w.x+1200,y:w.y});qOk(!Q30Q.Q30.run.h30r2&&!sqAllDone(q),'떠나도 계속');
+  q30Go({x:w.x+400,y:w.y});qOk(!Q30Q.Q30.run.h30r2,'멀리서 시작');q30Go({x:w.x+60,y:w.y});qOk(Q30Q.Q30.run.h30r2,'시작 안 함');q30Go({x:w.x+1200,y:w.y});q30Tk(Math.ceil(DEF35.grace*30)+3);qOk(!Q30Q.Q30.run.h30r2&&!sqAllDone(q),'떠나도 계속');
   q30Go({x:w.x+60,y:w.y});const run=Q30Q.Q30.run.h30r2;qOk(run&&run.t>g.secs-1,'다시 시작 안 함');const e=Q30Q.TICK&&dgMob(g.mobs[0],w.x+10,w.y,72);q30Tk(45);qOk(run.hp<g.hp,'물건이 맞지 않음');e.hp=0;killE(e);
   let n=0;for(let s=0;s<g.secs*30+60&&!sqAllDone(q);s++){q30Tk(1);for(const x of enemies)if(!x.dead&&Math.hypot(x.x-w.x,x.y-w.y)<260){x.hp=0;killE(x)}n++}
   qOk(sqAllDone(q),'끝나지 않음 '+(run.hp|0));loadRegion('home');return `물건 ${Math.round(run.hp)}/${g.hp} · ${Math.round(n/30)}초`});
@@ -5289,7 +5290,7 @@ qT('휴대폰 v30','의뢰 알림판 0.7초 길게 눌러 옮기기 · 짧게는
   finally{FB28.pos=p0;fb28Restore()}return '0.7초 · 끌기 · 되돌리기'});
 qT('화면·마을 v30','가짜코 동상 물: 안쪽 바닥에 있고 앞 테두리·기둥·받침 계단은 덮지 않음',()=>{qPrep('mage');const cv0=document.createElement('canvas');cv0.width=180;cv0.height=250;const PK={img:cv0,meta:{r:{'076_statue_false_nose_single':[0,0,180,250,92.5,239]}}},g=cv0.getContext('2d');
   f29Statue(g,PK,HOME.decor.find(d=>d.k==='statue'),92.5,239,1);const a=(x,y)=>g.getImageData(x,y,1,1).data[3];
-  qOk(a(40,172)>0&&a(140,170)>0&&a(30,165)>0,'안쪽 바닥에 물 없음');qOk(a(90,207)===0&&a(40,205)===0,'앞 테두리에 물');qOk(a(92,170)===0&&a(92,195)===0,'기둥·계단에 물');return '안쪽 바닥만'});
+  qOk(a(40,172)>0&&a(140,170)>0&&a(34,176)>0,'안쪽 바닥에 물 없음');qOk(a(90,207)===0&&a(40,205)===0,'앞 테두리에 물');qOk(a(92,170)===0&&a(92,195)===0,'기둥·계단에 물');return '안쪽 바닥만'});
 qT('던전 v31','벽 쪽으로 밀친 몬스터가 벽에 박히지 않음 · 벽에 걸린 몬스터는 빈 바닥으로 나옴 · 그 뒤 다시 쫓아오고 마법에 맞음 (사용자 23:41)',()=>{qPrep('mage',{lvl:20});P.sk.firebolt=Math.max(1,P.sk.firebolt||0);
   try{enterDungeon(HOME.caves.find(c=>c.cave&&c.cave.id==='barrow'));enemies.length=0;const P0y=P.y;let wx=P.x;while(dgFree(wx,P.y,0)&&wx<P.x+3000)wx+=4;qOk(wx<P.x+3000,'벽 못 찾음');
     const e=dgMob('wolf',wx-60,P.y,20);applyFx(e,{knock:160},{x:e.x-50,y:e.y});qOk(dgFree(e.x,e.y,Math.min(e.r,30))&&e.x<wx,'밀쳐서 벽에 박힘 '+Math.round(e.x-wx));qOk(e.x>wx-60,'밀치기가 아예 안 됨');
@@ -5688,6 +5689,115 @@ qT('저장','v34 호크아이 다섯 기술: 예전 저장의 점수는 처음 �
   qPrep('mage');const m=JSON.parse(JSON.stringify(saveData()));delete m.rs34;qOk(load(m,QA_SLOT)&&saveData().rs34.v===1&&!saveData().rs34.old,'다른 직업 rs34');
   const bad=Object.assign(JSON.parse(raw),{rs34:'<x>'});qOk(load(bad,QA_SLOT)&&P.sk.pierceblow===4&&JSON.stringify(saveData().rs34)==='{"v":1}','손상된 rs34를 돌려받기 표시로 보고 그대로 둠');
   return '돌려받음 12점'});
+/* ===== v35: 그림 어긋남 (던전 입구 빛 · 마을 한가운데 분수/동상과 경계석) ===== */
+const QA35='고친 버그 v35';
+function qGX35(packs,fn){const sv={},on={},art=GFX.art,di=ctx.drawImage,tr=ctx.translate,calls=[];if(art==='old')GFX.art='new';
+  for(const [n,r] of Object.entries(packs)){sv[n]=FL.P[n];on[n]=CG.on[n];const cv=document.createElement('canvas');cv.width=cv.height=256;FL.P[n]={img:cv,meta:{sp:{},tex:{},r}};delete CG.on[n]}
+  ctx.drawImage=function(){calls.push({k:'img',a:[...arguments].slice(1)});return di.apply(this,arguments)};ctx.translate=function(x,y){calls.push({k:'tr',a:[x,y]});return tr.apply(this,arguments)};
+  try{return fn(calls)}finally{ctx.drawImage=di;ctx.translate=tr;for(const n in packs){if(sv[n])FL.P[n]=sv[n];else delete FL.P[n];if(on[n])CG.on[n]=on[n];else delete CG.on[n]}
+    for(const k in CG.dg)delete CG.dg[k];if(art===undefined)delete GFX.art;else GFX.art=art}}
+qT(QA35,'던전 입구: 문 안을 채우는 빛이 문 구멍 한가운데에 놓임 (예전엔 입구 기준점에 세워 오른쪽 벽 · 바닥에 떠 있었음) · 입구 17종 모두 자리 값이 있음',()=>{
+  const kinds=[...new Set(Object.values(FLDG).map(a=>a[0]))];const miss=kinds.filter(k=>!GX35[k]);qOk(!miss.length,'자리 값 없는 입구 '+miss.join());qOk(Object.keys(GX35).length>=17,'입구 '+Object.keys(GX35).length+'종');
+  // 그림 묶음의 실제 기준점 · 크기와 그림에서 잰 문 구멍 가운데 (구조물 그림 왼쪽 위 기준)
+  const T={fortgate:{n:216,s:[158,179,121.5,169.4],g:[53,89,40,81.2],door:[72,104]},crypt:{n:218,s:[158,186,98.5,176.3],g:[53,105,38.5,96.9],door:[72.5,119.5]},cave:{n:223,s:[158,139,97,130.2],g:[53,66,34,59.7],door:[66,74]}};
+  const r={};for(const [k,v] of Object.entries(T)){r[`${v.n}_dgent_${k}_structure`]=[0,0,...v.s];r[`${v.n}_dgent_${k}_glow`]=[0,0,...v.g]}
+  const out=[];return qGX35({'cg-dgent':r},calls=>{for(const [k,v] of Object.entries(T)){const id=Object.keys(FLDG).find(i=>FLDG[i][0]===k);qOk(id,k+' 던전 없음');if(!id)continue;
+      calls.length=0;const d={k:'cave',x:0,y:0,cave:{id,torch:'#ff9a40'},_s:{x:400,y:300}};qOk(cgDgEnt(d)===true,k+' 그림으로 안 그림');const im=calls.filter(c=>c.k==='img'&&c.a.length===8);qOk(im.length>=2,k+' 그린 수 '+im.length);if(im.length<2)continue;
+      const g=im[im.length-1].a,gx=g[4]+g[6]/2,gy=g[5]+g[7]/2,wx=400-v.s[2]+v.door[0],wy=300-v.s[3]+v.door[1],e=Math.hypot(gx-wx,gy-wy);
+      qOk(e<5,`${k}: 빛 가운데 ${gx.toFixed(0)},${gy.toFixed(0)} · 문 ${wx.toFixed(0)},${wy.toFixed(0)} (어긋남 ${e.toFixed(1)})`);out.push(k+' '+e.toFixed(1))}
+    return '어긋남 '+out.join(' · ')})});
+qT(QA35,'마을 한가운데: 분수 · 브렌힐 동상 그림의 받침 가운데가 마을 중심(둥근 경계석의 가운데)에 놓임 · 동상 둘레 경계석은 받침보다 넓음',()=>{
+  const out=[];return qGX35({'cg-decor':{'071_twl_fountain':[0,0,180,124,90.5,114.5]},'cg-town':{'076_statue_false_nose_single':[0,0,180,250,92.5,239]}},calls=>{
+    // 분수 그림: 받침 바닥 원의 가운데는 그림 위에서 83.5 (아래 끝 117 − 반폭 67의 절반)
+    const f={k:'fountain',x:0,y:0,s:1,_s:{x:400,y:300}};qOk(cgLand(f)===true,'분수를 그림으로 안 그림');const a=calls.find(c=>c.k==='img'&&c.a.length===8);qOk(a,'분수 그림 없음');
+    if(a){const cy=a.a[5]+83.5,cx=a.a[4]+89;qOk(Math.abs(cy-300)<2.5&&Math.abs(cx-400)<4,`분수 받침 가운데 ${cx.toFixed(1)},${cy.toFixed(1)} (마을 중심 400,300)`);out.push('분수 '+(cy-300).toFixed(1))}
+    qOk(f._s.x===400&&f._s.y===300,'분수 자리 값이 바뀜');
+    // 동상 그림: 받침 바닥 원의 가운데는 그림 위에서 203 (아래 끝 243 − 반폭 80의 절반)
+    calls.length=0;const PK=cgPK(CG.TOWN);qOk(PK,'동상 묶음');if(PK){cgDec(ctx,{k:'statue',x:0,y:0},400,300,1);const t=calls.find(c=>c.k==='tr');qOk(t,'동상 안 그림');
+      if(t){const cy=t.a[1]+203;qOk(Math.abs(cy-300)<2.5,'동상 받침 가운데 '+cy.toFixed(1));out.push('동상 '+(cy-300).toFixed(1))}}
+    const B=TOWNS.find(t=>t.id==='brenhill');qOk(B&&B.ringR*.75*Math.SQRT2>80+6,'브렌힐 경계석 반폭 '+(B&&B.ringR*.75*Math.SQRT2).toFixed(0)+' (받침 반폭 80)');
+    const H=TOWNS.find(t=>t.id!=='brenhill');qOk(!H||(H.ringR||76)*.75*Math.SQRT2>67+6,'분수 마을 경계석');
+    return out.join(' · ')+' · 경계석 브렌힐 '+B.ringR})});
+qT(QA35,'히드라: 이름이 「히드라」(파이어 살라만더 아님) · 생명력 막대 없음 · 몬스터가 노리지 않음(어그로 대상 아님) · 맞지 않음 · 몬스터 투사체가 히드라에 막히지 않음 · 지속 시간이 지나면 사라짐',()=>{
+  const s=SPELLS.hydra;qOk(s.n==='히드라'&&s.en==='Hydra'&&!/살라만더|불도마뱀/.test(s.n+s.kn+s.desc+(SKILL_LINES.hydra||'')),'이름 '+s.n+' / '+s.kn+' / '+(SKILL_LINES.hydra||''));
+  qPrep('mage',{lvl:40});P.sk.hydra=5;P.x=QA_SPOT.x;P.y=QA_SPOT.y;followCam();P.invT=1e9;qOk(qCast('hydra',{x:P.x+300,y:P.y}),'시전');const h=allies.find(a=>a.s&&a.s.form==='hydra');qOk(h,'히드라 없음');if(!h)return'';
+  const e=dgMob('wolf',h.x+40,h.y,20);e.hp=e.max=1e9;e.aggroed=1;const r=enemyTarget(e);qOk(r.tg===P,'몬스터가 노리는 대상: '+(r.tg===P?'나':r.tg===h?'히드라':'?'));
+  const hp0=h.hp;hurtAlly(h,9999);qOk(h.hp===hp0&&!h.gone,'히드라가 피해를 받음 '+hp0+'→'+h.hp);
+  const p={owner:'e',x:h.x,y:h.y,vx:0,vy:0,life:1,r:8,dmg:50,col:'#f80',z:20,src:e};projs.push(p);qStep(1,{render:false});qOk(h.hp===hp0&&p.life>0,'히드라가 투사체를 막음 '+p.life.toFixed(2));projs=projs.filter(x=>x!==p);
+  const fs=[],fr=ctx.fillRect;ctx.fillRect=function(){fs.push(String(ctx.fillStyle));return fr.apply(this,arguments)};try{h._s=W2S(h.x,h.y);drawAlly(h)}finally{ctx.fillRect=fr}
+  qOk(!fs.some(c=>c.toLowerCase()==='#6ad06a'),'생명력 막대를 그림');
+  e.dead=true;enemies=enemies.filter(x=>x!==e);const T=h.t;qStep(Math.ceil((T+1)*60),{render:false});qOk(!allies.includes(h),`지속 ${T.toFixed(1)}초 뒤에도 남음`);return `노리는 대상 나 · 피해 0 · 막대 없음 · ${T.toFixed(1)}초 뒤 사라짐`});
+qT(QA35,'상위 스킬 범위 ≥ 하위 스킬 범위: 같은 직업 · 같은 모양(부채꼴 / 둘레 원 / 도는 원)에서 위계가 높을수록 좁지 않음 · 제로 도메인 > 앱솔루트 제로 · 글레이셜 에이지가 멀리 넓게 맞음',()=>{
+  const bad=[],grp={};
+  for(const [id,s] of Object.entries(SPELLS)){if(!['mage','priest','warrior','archer'].includes(s.cls)||!(s.mult>0)||(s.rank|0)<5||id==='hook')continue;
+    const sh=s.kind==='cone'?'cone':s.kind==='nova'?(chanOf(id)?'spin':'nova'):null;if(!sh)continue;(grp[s.cls+'/'+sh]=grp[s.cls+'/'+sh]||[]).push(id)}
+  const reach=(id,L)=>{const e=eff(id,L);return e.kind==='cone'?e.range:e.rad};let n=0;
+  for(const g in grp){const a=grp[g].sort((x,y)=>SPELLS[x].rank-SPELLS[y].rank);
+    for(let i=0;i<a.length;i++)for(let j=i+1;j<a.length;j++){if(SPELLS[a[j]].rank>SPELLS[a[i]].rank){n++;if(reach(a[j],1)<reach(a[i],1))bad.push(`${SPELLS[a[j]].n}(${reach(a[j],1)}) < ${SPELLS[a[i]].n}(${reach(a[i],1)})`)}}}
+  qOk(!bad.length,'위가 더 좁음: '+bad.join(', '));qOk(n>=10,'비교한 짝이 너무 적음 '+n);
+  // 제로 도메인(3차 전 2차 기술)은 앱솔루트 제로를 끝까지 올린 것보다도 넓다
+  qOk(reach('absolutezero',1)>reach('frozenground',20),`제로 도메인 ${reach('absolutezero',1)} · 앱솔루트 제로(20레벨) ${reach('frozenground',20)}`);
+  // 글레이셜 에이지(9위계 부채꼴)의 넓이가 앱솔루트 제로(7위계 둘레 원)보다 작지 않다 · 부채꼴도 레벨이 오르면 길어진다
+  const g1=eff('glacier',1);qOk(.5*g1.ang*g1.range*g1.range>=Math.PI*reach('frozenground',1)**2,'글레이셜 에이지 넓이가 앱솔루트 제로보다 작음');qOk(eff('glacier',20).range>g1.range,'부채꼴이 레벨로 안 길어짐');
+  qOk(eff('hook',20).range===SPELLS.hook.range,'갈고리 길이가 바뀜');
+  // 실제로 맞는지: 글레이셜 에이지(10레벨) — 겨눈 쪽에서 0.85 라디안 벗어난 430 거리의 적(예전 330 · 0.65 라디안 밖)
+  const e=qCastPrep('mage','glacier');const far=qDummy(...Object.values(qAt(Math.atan2(e.y-P.y,e.x-P.x)+.85,430)));qOk(qCast('glacier',e),'글레이셜 에이지 시전');qOk(far.hits>0,'글레이셜 에이지가 멀리 옆의 적을 못 맞힘');
+  // 제로 도메인(10레벨) — 380 거리의 적(예전 363 밖)
+  qClear();qPrep('mage',{lvl:60});P.job2='archmage';P.sk.absolutezero=10;qMana('absolutezero');P.mp=maxMp();P.x=QA_SPOT.x;P.y=QA_SPOT.y;followCam();const z=qDummy(P.x+380,P.y);qOk(qCast('absolutezero',z),'제로 도메인 시전');qOk(z.hits>0,'제로 도메인이 380 거리의 적을 못 맞힘');
+  return `비교 ${n}쌍 · 제로 도메인 ${reach('absolutezero',1)} > 앱솔루트 제로 ${reach('frozenground',20)}(20레벨) · 글레이셜 ${g1.range}/${g1.ang}`});
+qT(QA35,'지키기 원: 원(반지름 450, 예전 그림 150의 3배) 안에서는 멀리 피해 다녀도 계속 · 원 밖에 잠깐(5초 안) 나갔다 와도 이어짐 · 5초 넘게 밖이면 실패 · 몬스터는 원 바깥에서 나옴 · 원을 크게 그림',()=>{const S=q30Prep();loadRegion('h29_reed');const q=q30Acc('h30r2'),g=q.goals[0],w=Q30Q.q30Spot(q,'w',g,g.at);
+  try{qOk(DEF35.zone>=150*2.5,'원 반지름 '+DEF35.zone);q30Go({x:w.x+60,y:w.y});const run=Q30Q.Q30.run.h30r2;qOk(run,'시작 안 함');
+    // 원 안 가장자리(420)에서 3초
+    P.x=w.x;P.y=w.y+420;q30Tk(90);qOk(Q30Q.Q30.run.h30r2===run,'원 안(420)에서 실패');
+    // 원 밖(600)에 3초 나갔다가 돌아오면 이어짐
+    P.x=w.x+600;P.y=w.y;q30Tk(90);qOk(Q30Q.Q30.run.h30r2===run&&run.out>2.5,'원 밖 3초에 끊김 '+(run.out||0).toFixed(1));P.x=w.x+100;P.y=w.y;q30Tk(3);qOk(Q30Q.Q30.run.h30r2===run&&!run.out,'돌아와도 밖으로 침');
+    // 몬스터가 원 바깥에서 나옴
+    const before=new Set(enemies);run.wv=0;q30Tk(2);const nw=enemies.filter(e=>!before.has(e)&&e.q30w==='h30r2');qOk(nw.length>0,'몬스터가 안 나옴');qOk(nw.every(e=>Math.hypot(e.x-w.x,e.y-w.y)>DEF35.zone),'원 안에서 나옴 '+nw.map(e=>Math.round(Math.hypot(e.x-w.x,e.y-w.y))).join(','));
+    // 원 그림: 반지름 450 → 화면 반폭 약 477
+    const m=Q30Q.Q30.mo.get('h30r2/ward');qOk(m&&m.on,'표시 없음');let big=0;const el=ctx.ellipse;ctx.ellipse=function(x,y,rx){if(rx>=DEF35.zone)big++;return el.apply(this,arguments)};try{m._s={x:400,y:300};drawRegionDecor(m)}finally{ctx.ellipse=el}qOk(big>0,'큰 원을 안 그림');
+    // 6초 넘게 밖이면 실패
+    P.x=w.x+700;P.y=w.y;q30Tk(Math.ceil(DEF35.grace*30)+6);qOk(!Q30Q.Q30.run.h30r2&&!sqAllDone(q),'원 밖에 오래 있어도 계속');
+    return `원 ${DEF35.zone} · 밖 ${DEF35.grace}초까지 · 몬스터 ${nw.map(e=>Math.round(Math.hypot(e.x-w.x,e.y-w.y))).join('/')} 거리에서`}
+  finally{for(const e of enemies)if(e.q30w==='h30r2'){e.hp=0;e.dead=true}loadRegion('home')}});
+qT(QA35,'최상급 물약: 최대 생명력 · 마나의 75% 이상 회복(예전 30%+고정) · 작은~고급은 그대로 · 등급 순서 유지',()=>{const bad=[];
+  for(const cls of ['mage','priest','warrior','archer'])for(const L of [40,70,100,140]){qPrep(cls,{lvl:L});P.st.spi+=L*3;P.st.vit+=L*3;
+    const H=maxHp(),M=maxMp();if(potAmt('hp',4)<H*.75-1)bad.push(`${cls}${L} 생명 ${potAmt('hp',4)}/${H}`);if(potAmt('mp',4)<M*.75-1)bad.push(`${cls}${L} 마나 ${potAmt('mp',4)}/${M}`);
+    for(let T=0;T<4;T++)for(const k of ['hp','mp']){const p=POT_T[T],v=Math.round(p[k]+(k==='hp'?H:M)*p.pct);if(potAmt(k,T)!==v)bad.push(`${cls}${L} ${p.n} ${k} 바뀜`)}}
+  qOk(!bad.length,bad.slice(0,6).join(', '));qPrep('mage',{lvl:100});return `마법사 100: 최상급 마나 ${potAmt('mp',4)}/${maxMp()} · 생명 ${potAmt('hp',4)}/${maxHp()}`});
+qT(QA35,'가짜코 동상 물: 바닥에만 · 왼쪽·앞 테두리 윗면과 뒤쪽 안벽 위쪽을 덮지 않음 (사용자 14:04 「물은 여전히 위치가 안맞아」)',()=>{const M=f29Mask(180,250),g=M.getContext('2d'),a=(x,y)=>g.getImageData(x,y,1,1).data[3];
+  const wet=[[50,185],[130,180],[40,178],[140,182]],dry=[[20,175],[60,150],[90,210],[160,175],[30,160]];
+  qOk(wet.every(p=>a(...p)>0),'바닥에 물 없음 '+wet.filter(p=>!(a(...p)>0)).join(' / '));qOk(dry.every(p=>a(...p)===0),'테두리·안벽에 물 '+dry.filter(p=>a(...p)>0).join(' / '));
+  return `물 ${F29W.cx},${F29W.cy} ${F29W.rx}×${F29W.ry} · 테두리 안쪽만`});
+qT(QA35,'시전 중 다른 기술: 시전을 끝까지 마치고 바로 그 기술을 씀 · 채널링도 같음 · 움직이거나 귀환 두루마리를 펴면 시전과 기다리던 기술이 함께 취소',()=>{
+  const e=qCastPrep('mage','meteor');P.sk.spark=10;P.sk.blizzard=10;qMana('blizzard');const order=[];const co=castOrig;
+  // 1) 시전: 메테오(1초) 중에 스파크 → 메테오가 먼저, 그다음 스파크
+  P.mp=maxMp();P.cd={};tryCast('meteor',e);qStep(20,{render:false});tryCast('spark',e);qOk(CAST.cur&&CAST.cur.id==='meteor','스파크를 누르니 메테오가 끊김');qOk(!(P.cd.spark>0),'스파크가 메테오보다 먼저 나감');
+  const bar=document.getElementById('castbar');qOk(bar&&/→ /.test(bar.textContent),'시전 막대에 다음 기술 이름 없음 '+(bar&&bar.textContent));
+  let tM=-1,tS=-1,n=0;qStep(120,{render:false,each:()=>{n++;if(tM<0&&P.cd.meteor>0)tM=n;if(tS<0&&P.cd.spark>0)tS=n}});const rf=Math.ceil(recOf('meteor')*60)+3;qOk(tM>0&&tS>=tM&&tS-tM<=rf,`순서 메테오 ${tM} · 스파크 ${tS}프레임 (메테오 뒤 짧은 숨 고르기 ${rf}프레임 안)`);qOk(!CAST.q,'기다림이 남음');
+  // 2) 채널링: 블리자드(누르지 않고 부르면 끝까지) 중에 스파크 → 채널링 끝난 뒤 스파크
+  qClear();P.mp=maxMp();P.cd={};P.invT=1e9;tryCast('blizzard',e);qOk(CAST.ch,'채널링 시작 안 됨');tryCast('spark',e);qOk(CAST.ch&&!(P.cd.spark>0),'채널링 중에 스파크가 끊고 나감');
+  qStep(600,{render:false,until:()=>!CAST.ch});qStep(2,{render:false});qOk(!CAST.ch&&P.cd.spark>0,'채널링이 끝났는데 스파크를 안 씀');
+  // 3) 움직이면 취소
+  qClear();P.mp=maxMp();P.cd={};tryCast('meteor',e);qStep(10,{render:false});tryCast('spark',e);keys.add('KeyD');qStep(2,{render:false});keys.delete('KeyD');
+  qOk(!CAST.cur&&!CAST.q,'움직였는데 시전 · 기다림이 남음');qStep(80,{render:false});qOk(!(P.cd.spark>0)&&!(P.cd.meteor>0),'움직여서 취소했는데 나감');
+  // 4) 귀환 두루마리를 펴면 취소
+  qClear();P.mp=maxMp();P.cd={};P.x=QA_SPOT.x;P.y=QA_SPOT.y;P.pot.tp=Math.max(1,tpCount());tryCast('meteor',e);qStep(10,{render:false});tryCast('spark',e);useScroll();
+  qOk(!CAST.cur&&!CAST.q&&TPC,'귀환을 폈는데 시전 · 기다림이 남거나 귀환이 안 펴짐');TPC=null;qStep(80,{render:false});qOk(!(P.cd.spark>0)&&!(P.cd.meteor>0),'귀환으로 취소했는데 나감');
+  return `메테오 ${tM} → 스파크 ${tS}프레임 · 채널링 뒤 · 움직임 · 귀환 취소`});
+/* v35: 마법사 스킬 이펙트 그림 — 같이 하기 서버(server.js)가 v31~v34 동안 img/fx-*.js를 404로 막아, 그 주소로 하면 그림이 하나도 안 나왔음.
+   서버 쪽은 apptest 「img 그림 파일 모두 받아짐」이 실제 서버로 확인. 여기서는 게임 쪽: 빠진 마법사 기술 0 · 받는 이름이 서버 규칙 안 · 모든 기술이 그림으로 그려짐 */
+qT('이펙트 v35','마법사 기술 그림 빠짐 없음: 지속 효과(패시브)를 뺀 모든 마법사 기술에 그림 짝이 있고 · 그림 묶음 이름이 같이 하기 서버가 내주는 이름(img/flare-·fx- + 소문자·숫자·-·_)에 맞고 · 묶음이 있으면 기술마다 실제로 새 그림이 그려짐',()=>qFX31(()=>{
+  const mage=Object.values(SPELLS).filter(s=>s.cls==='mage'&&s.kind!=='passive');const miss=mage.filter(s=>!FX31.M[s.id]).map(s=>s.n);
+  qOk(mage.length>=100,'마법사 기술 수 '+mage.length);qOk(!miss.length,'그림 짝이 없는 마법사 기술: '+miss.join(', '));
+  const SERVED=/^(?:flare|fx)-[a-z0-9_-]+\.js$/,pks=[...new Set(Object.values(FX31.M).map(m=>m.pk))],bad=pks.filter(pk=>!SERVED.test('fx-'+pk+'.js'));
+  qOk(!bad.length,'서버가 안 내주는 이름: '+bad.join());qOk(/'img\/fx-'\+pk\+'\.js'/.test(String(FX31.load)),'그림 받는 주소 모양이 바뀜 (server.js 규칙도 같이 볼 것)');
+  FX31.P=qFX31Fake();const none=[],chg=[];
+  for(const s of mage){if(s.charge){chg.push(s.n);continue}/* 모으기 채널링(누르고 있는 동안)은 「이펙트 v33」이 따로 봄 */qPrep('mage',{lvl:140});if(s.job3)qJob3On(s.job3);else if(s.job2)P.job2=s.job2;passT=-1;P.sk[s.id]=10;P.invT=1e9;P.x=QA_SPOT.x;P.y=QA_SPOT.y;followCam();FX31.inst=[];
+    const e=qDummy(P.x+170,P.y+30,{lvl:140});qDummy(P.x+230,P.y+80,{lvl:140});let tg={x:e.x,y:e.y};if(s.swap){P.sk.fireelem=10;qCast('fireelem',{x:P.x+80,y:P.y});const fe=allies.find(a=>a.s&&a.s.id==='fireelem');if(fe){fe.x=P.x+300;fe.y=P.y;tg={x:fe.x,y:fe.y}}FX31.inst=[]}/* 자리 바꾸기는 소환수가 있어야 씀 */
+    const d0=FX31.n.draw;qCast(s.id,tg);
+    for(let i=0;i<40&&FX31.n.draw===d0;i++)qStep(4,{renderEvery:2,each:()=>{P.mp=maxMp()}});if(FX31.n.draw===d0)none.push(s.n)}
+  qOk(!none.length,'새 그림이 안 그려진 기술: '+none.join(', '));
+  return '마법사 기술 '+mage.length+'가지 모두 그림 짝 · 그려짐(모으기 '+chg.length+'가지는 v33에서) · 묶음 '+pks.length+'개 이름 서버 규칙 안'}));
 window.__QA_RUN=qaRun;
 setTimeout(()=>{qaRun().catch(e=>{window.__QA_RESULT={fatal:String(e&&e.stack||e),results:[],summary:{total:0,pass:0,fail:1}}})},120);
 }

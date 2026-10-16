@@ -1,7 +1,7 @@
 /* ---------- v30: 몹 잡기 말고 다른 의뢰 다섯 가지 · 같은 던전 다시 들어가기 없애기 (사용자 2026-10-13) ----------
    · track 추적: 흔적을 차례로 찾아가면(110 안) 끝에 범인(정예)이 나타난다. 쓰러뜨리면 끝.
    · defend 지키기: 자리에 다가가면(150 안) 시작. 정해진 시간 동안 몰려오는 몬스터에게서 물건(체력)을 지킨다.
-       물건이 부서지거나 · 쓰러지거나 · 멀리(800) 떠나면 실패, 다시 다가가면 처음부터.
+       물건이 부서지거나 · 쓰러지거나 · 지키기 원(450) 밖에 5초 넘게 있으면 실패(v35, 예전 800 떠나면 바로), 다시 다가가면 처음부터.
    · ritual 봉인: 돌(등불·가마)을 정해진 순서대로 밟는다(70 안). 틀리면 모두 꺼지고 힌트 + 몬스터 둘.
    · riddle 수수께끼: 의뢰인 대화 창에서 물음 셋에 답한다. 틀리면 잠깐 뒤 다시.
    · chase 추격: 달아나는 사람을 붙잡는다(62 안). 끝까지 달아나면 처음 자리로 돌아간다.
@@ -10,6 +10,10 @@
        → 「고분의 왕」을 마친 뒤 「늑대 송곳니」를 받아도 고분에 다시 들어가지 않는다. 처음 불러올 때는 끝낸 의뢰의 목표로 채운다.
      「고분의 속삭임」(입구 살펴보기)을 마치면 마을로 돌아가지 않고 바로 「고분의 왕」을 받는다.
    · 저장: 새 칸 mk 하나(없으면 빈 칸). 지우는 코드 없음. */
+/* v35(사용자 2026-10-15 「지키기 류는 현재 원이 너무 작아서 미사일을 피하면서 몹을 잡을수가 없어. 최소한 원이 2-3배 정도는 커져야」):
+   지키기 원 = 지켜야 할 자리(반지름 DEF35.zone 450, 예전 그림 원 150의 3배). 원 밖에 나가도 DEF35.grace 5초 안에 돌아오면 이어서 함(예전: 800 넘게 떠나면 바로 실패).
+   몬스터는 원 바깥(480~580)에서 나와 걸어 들어온다(예전 330~430). */
+const DEF35={zone:450,grace:5,sp:[480,580]};
 const Q30={pos:{},mo:new Map(),run:{},ch:{},on:{},pen:{},foe:{},lock:0,T:new Set(['track','defend','ritual','riddle','chase'])};
 for(const q of Q30_SQ)for(const g of q.goals)if(g.type==='ritual'&&!g.n)g.n=g.stones.length;
 Object.assign(FLDG,{h30_dock:['sunken2','#6a9a9a',.3],h30_glass:['forge','#c8583a',.35],h30_vein:['roots','#4a9aa8',.35],h30_shrine:['icecave','#cfe8ff',.25],h30_belltower:['tower','#8a8268',.4],h30_seal:['crypt','#5a4a7a',.45,'m']});
@@ -52,15 +56,16 @@ const Q30TICK={
     if(dist(P,sp)>900)return;const p=q30Near(sp.x,sp.y,90,180)||sp,f=q30Mob(g.foe,p.x,p.y,{elite:1,agg:1});if(!f)return;f.q30=q.id;Q30.foe[q.id]=f;
     burst(p.x,p.y,'#ffb05a',24,120,3,20)},
   defend(q,j,g,dt){const w=q30Spot(q,'w',g,g.at),run=Q30.run[q.id];
-    q30Mark(q.id+'/ward',{kind:'ward',x:w.x,y:w.y,lb:run?g.what:`${g.what} · 가까이 가면 시작`,on:!!run,hp:run?run.hp:g.hp,max:g.hp,t:run?run.t:g.secs,hurt:run?run.hurt:0});
-    if(!run){if(!P.dead&&dist(P,w)<150){Q30.run[q.id]={t:g.secs,hp:g.hp,wv:1.5,hurt:0};banner={t:`${g.what} 지키기`,sub:`${g.secs}초 동안 버티세요 · 곁을 떠나면 실패`,col:'#9fe0ff',life:2.4,max:2.4};msg(`${g.what}을(를) 지키기 시작했습니다. ${g.secs}초 동안 곁에서 버티세요`,'#9fe0ff')}return}
+    q30Mark(q.id+'/ward',{kind:'ward',x:w.x,y:w.y,lb:run?g.what:`${g.what} · 가까이 가면 시작`,on:!!run,hp:run?run.hp:g.hp,max:g.hp,t:run?run.t:g.secs,hurt:run?run.hurt:0,out:run?run.out||0:0});
+    if(!run){if(!P.dead&&dist(P,w)<150){Q30.run[q.id]={t:g.secs,hp:g.hp,wv:1.5,hurt:0};banner={t:`${g.what} 지키기`,sub:`${g.secs}초 동안 버티세요 · 큰 원 밖에 5초 넘게 있으면 실패`,col:'#9fe0ff',life:2.4,max:2.4};msg(`${g.what}을(를) 지키기 시작했습니다. ${g.secs}초 동안 곁에서 버티세요`,'#9fe0ff')}return}
     run.t-=dt;run.wv-=dt;run.hurt=Math.max(0,run.hurt-dt);
     if(run.wv<=0&&q30Host()){run.wv=3.5;const live=enemies.filter(e=>!e.dead&&e.q30w===q.id).length;
-      for(let i=0,n=Math.min(6-live,2+(R()<.5?1:0));i<n;i++){const p=q30Near(w.x,w.y,330,430);if(!p)continue;const e=q30Mob(g.mobs[(R()*g.mobs.length)|0],p.x,p.y);if(e)e.q30w=q.id}}
+      for(let i=0,n=Math.min(6-live,2+(R()<.5?1:0));i<n;i++){const p=q30Near(w.x,w.y,DEF35.sp[0],DEF35.sp[1]);if(!p)continue;const e=q30Mob(g.mobs[(R()*g.mobs.length)|0],p.x,p.y);if(e)e.q30w=q.id}}
     for(const e of enemies){if(e.dead)continue;if(e.q30w===q.id&&!e.aggroed){e.wx=w.x;e.wy=w.y;e.wt=5}
       if(Math.hypot(e.x-w.x,e.y-w.y)>e.r*(e.sc||1)+46)continue;e._q30T=(e._q30T==null?.5:e._q30T)-dt;
       if(e._q30T<=0){e._q30T=((TYPES[e.k]&&TYPES[e.k].atk)||1.2)*1.1;const dm=Math.ceil(g.hp*(e.elite||e.boss?.06:.035));run.hp-=dm;run.hurt=.2;ftext(w.x,w.y,'-'+dm,'#ff9a7a',false,60)}}
-    if(run.hp<=0)return q30DefFail(q.id,`${g.what}이(가) 부서져`);if(P.dead)return q30DefFail(q.id,'쓰러져');if(dist(P,w)>800)return q30DefFail(q.id,'자리를 떠나');
+    if(run.hp<=0)return q30DefFail(q.id,`${g.what}이(가) 부서져`);if(P.dead)return q30DefFail(q.id,'쓰러져');
+    if(dist(P,w)>DEF35.zone){if(!(run.out>0))msg(`지키기 원 밖입니다 · ${DEF35.grace}초 안에 ${g.what} 곁(원 안)으로 돌아오세요`,'#ffd34d');run.out=(run.out||0)+dt;if(run.out>=DEF35.grace)return q30DefFail(q.id,'원 밖에 오래 있어')}else run.out=0;
     if(run.t<=0){delete Q30.run[q.id];sqProgress(q,j,1,true);rings.push({x:w.x,y:w.y,r:10,max:200,life:1,col:'#9fe0ff'});burst(w.x,w.y,'#9fe0ff',30,150,3,30);
       banner={t:'지켜 냈다!',sub:`${g.what}이(가) 무사합니다`,col:'#9fe0ff',life:2.4,max:2.4}}},
   ritual(q,j,g,dt){const c=q30C(q,j),lit=g.order.slice(0,c);let on=-1;
@@ -125,7 +130,7 @@ function q30ReachChain(){const st=qState(),q=qCur();if(!q||st.st!==2||!q.goals.l
     lbl(d.lb,d.lit?'#ffd98a':'#c8c8d8',52);return true}
   if(d.kind==='ward'){ctx.fillStyle='rgba(0,0,0,.35)';ctx.beginPath();ctx.ellipse(s.x+4,s.y+2,18,8,0,0,6.283);ctx.fill();ctx.fillStyle='#4a3a2a';ctx.fillRect(s.x-3,s.y-46,6,46);ctx.fillStyle='#2a2018';ctx.fillRect(s.x-9,s.y-52,18,8);
     ctx.globalCompositeOperation='lighter';glow(s.x,s.y-58,d.on?44+pul*10:30,'#ffd98a');ctx.globalCompositeOperation='source-over';ctx.fillStyle='#fff0c0';ctx.beginPath();ctx.arc(s.x,s.y-58,5,0,6.283);ctx.fill();
-    if(d.hurt>0)hurtFlash(s.x,s.y-40,26,.5);if(!d.on)ell(70+pul*8,'#9fe0ff',2,.7);else ell(150,'rgba(159,224,255,.5)',1.5,.5);
+    if(d.hurt>0)hurtFlash(s.x,s.y-40,26,.5);if(!d.on)ell(70+pul*8,'#9fe0ff',2,.7);else{const R=DEF35.zone*1.06;ell(R,d.out>0?'#ffd34d':'rgba(159,224,255,.75)',2.5,d.out>0?.6+.4*pul:.55);ctx.globalAlpha=.07;ctx.fillStyle='#9fe0ff';ctx.beginPath();ctx.ellipse(s.x,s.y,R,R/2,0,0,6.283);ctx.fill();ctx.globalAlpha=pa}
     if(d.on){const y=s.y-86,f=clamp(d.hp/d.max,0,1);ctx.fillStyle='rgba(0,0,0,.65)';ctx.fillRect(s.x-30,y,60,6);ctx.fillStyle=f<.3?'#ff5a4a':'#9fe0ff';ctx.fillRect(s.x-30,y,60*f,6);
       ctx.font='700 13px '+FONT;ctx.textAlign='center';ctx.lineWidth=3;ctx.strokeStyle='rgba(0,0,0,.85)';const tx=`${Math.max(0,Math.ceil(d.t))}초`;ctx.strokeText(tx,s.x,y-6);ctx.fillStyle='#fff0c0';ctx.fillText(tx,s.x,y-6)}
     lbl(d.lb,'#9fe0ff',d.on?110:70);return true}
