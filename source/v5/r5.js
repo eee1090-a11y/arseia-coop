@@ -27,8 +27,9 @@ function drawV5Glow(){
   if(DG)for(const p of DG.portals){ctx.globalAlpha=.6;ctx.strokeStyle='#9fe0ff';ctx.lineWidth=3;for(let k=0;k<3;k++){ctx.beginPath();ctx.arc(p.x,p.y,22+k*10+Math.sin(time*3+k)*3,time*2+k,time*2+k+4.2);ctx.stroke()}ctx.globalAlpha=.25;ctx.fillStyle='#6ac8ff';circ(p.x,p.y,34)}
   ctx.globalAlpha=1;S();
   if(DG)for(const t of DG.torches){const s=W2S(t.x,t.y);if(!onScreen(s,60))continue;ctx.globalAlpha=.7;glow(s.x,s.y-82+Math.sin(time*13+t.x)*1.5,16+Math.sin(time*9+t.y)*2,DG.d.torch);drawTorchFlame(s,t)}
-  if(P.orbits&&!P.dead){const o=P.orbits,c=EL[o.s.el];for(let i=0;i<o.n;i++){const a=o.a+i*6.283/o.n,s=W2S(P.x+Math.cos(a)*o.rad,P.y+Math.sin(a)*o.rad);ctx.globalAlpha=.95;glow(s.x,s.y-20,13,c);ctx.globalAlpha=.4;glow(s.x,s.y-20,24,c)}}
-  if(P.armor&&!P.dead){const s=W2S(P.x,P.y),c=EL[P.armor.s.el];ctx.globalAlpha=.28+.08*Math.sin(time*6);glow(s.x,s.y-20,P.armor.aura?60:36,c);if(P.armor.aura){ctx.globalAlpha=.25;ctx.strokeStyle=c;ctx.lineWidth=2;G();ctx.beginPath();ctx.arc(P.x,P.y,P.armor.aura,0,6.283);ctx.stroke();S()}}
+  /* v37: 새 그림이 있으면 예전 구슬 빛 · 갑옷 빛은 그리지 않음(겹침 없앰). 갑옷 범위 선은 그대로 */const a37=id=>typeof FX31!=='undefined'&&FX31.on()&&!!FX31.get(id,false);
+  if(P.orbits&&!P.dead&&!a37(P.orbits.s.id)){const o=P.orbits,c=EL[o.s.el];for(let i=0;i<o.n;i++){const a=o.a+i*6.283/o.n,s=W2S(P.x+Math.cos(a)*o.rad,P.y+Math.sin(a)*o.rad);ctx.globalAlpha=.95;glow(s.x,s.y-20,13,c);ctx.globalAlpha=.4;glow(s.x,s.y-20,24,c)}}
+  if(P.armor&&!P.dead){const s=W2S(P.x,P.y),c=EL[P.armor.s.el];ctx.globalAlpha=.28+.08*Math.sin(time*6);if(!a37(P.armor.s.id))glow(s.x,s.y-20,P.armor.aura?60:36,c);if(P.armor.aura){ctx.globalAlpha=.25;ctx.strokeStyle=c;ctx.lineWidth=2;G();ctx.beginPath();ctx.arc(P.x,P.y,P.armor.aura,0,6.283);ctx.stroke();S()}}
   for(const e of enemies)if(e.cast>0){const s=e._s||W2S(e.x,e.y);ctx.globalAlpha=.5;glow(s.x,s.y-e.r*(e.sc||1),e.r*1.6,'#ff5a3a')}
   ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over'}
 function drawV5Labels(){ctx.textAlign='center';ctx.font='700 13px '+FONT;ctx.lineWidth=3;ctx.strokeStyle='rgba(0,0,0,.85)';

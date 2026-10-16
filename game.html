@@ -6645,7 +6645,7 @@ function render(){
   ctx.globalCompositeOperation='lighter';ctx.lineCap='round';ctx.lineJoin='round';
   for(const p of projs){const s=P3(p);if(p.owner==='e'){drawEProj(p,s);continue}FXR.draw(ctx,p,s,DPR,DPR*shx,DPR*shy,W2S)}
   FXR.drawImpacts(ctx,DPR,DPR*shx,DPR*shy,W2S);FXB.draw(ctx,W2S);if(typeof FXP!=='undefined')FXP.draw(ctx,W2S);ctx.globalAlpha=1;
-  for(const m of pend){if(!m.s.fall)continue;const k=1-m.t/m.max,s=W2S(m.x,m.y),big=m.s.mini?12:Math.max(26,m.s.rad*.3);glow(s.x-(m.s.mini?90:220)*(1-k),s.y-(m.s.mini?220:420)*(1-k),big,m.s.el==='light'?'#fff1a0':'#ff8a2a')}
+  for(const m of pend){if(!m.s.fall)continue;if(m.s.id&&typeof FX31!=='undefined'&&FX31.on()&&FX31.get(m.s.id,false))continue;/* v37: 새 그림이 있으면 예전 떨어지는 빛 안 그림 */const k=1-m.t/m.max,s=W2S(m.x,m.y),big=m.s.mini?12:Math.max(26,m.s.rad*.3);glow(s.x-(m.s.mini?90:220)*(1-k),s.y-(m.s.mini?220:420)*(1-k),big,m.s.el==='light'?'#fff1a0':'#ff8a2a')}
   for(const b of pillars){const a=clamp(b.life/b.max,0,1),s=W2S(b.x,b.y),w=b.w*1.1;const pe=SC.get('fx/pillar/'+b.col,16,128,8,128,g=>{const gr=g.createLinearGradient(0,0,0,128);gr.addColorStop(0,'rgba(0,0,0,0)');gr.addColorStop(1,b.col);g.fillStyle=gr;g.fillRect(0,0,16,128)},{force:1,scale:1});ctx.globalAlpha=a;ctx.drawImage(pe.cv,s.x-w/2,s.y-460,w,460);ctx.fillStyle='#fff';ctx.fillRect(s.x-w/6,s.y-460,w/3,460);ctx.globalAlpha=a*.6;ctx.fillStyle=b.col;ell(s.x,s.y,w*.9,w*.45)}
   ctx.globalAlpha=1;
   for(const b of beams)drawBeam(b);
@@ -6841,8 +6841,9 @@ function drawV5Glow(){
   if(DG)for(const p of DG.portals){ctx.globalAlpha=.6;ctx.strokeStyle='#9fe0ff';ctx.lineWidth=3;for(let k=0;k<3;k++){ctx.beginPath();ctx.arc(p.x,p.y,22+k*10+Math.sin(time*3+k)*3,time*2+k,time*2+k+4.2);ctx.stroke()}ctx.globalAlpha=.25;ctx.fillStyle='#6ac8ff';circ(p.x,p.y,34)}
   ctx.globalAlpha=1;S();
   if(DG)for(const t of DG.torches){const s=W2S(t.x,t.y);if(!onScreen(s,60))continue;ctx.globalAlpha=.7;glow(s.x,s.y-82+Math.sin(time*13+t.x)*1.5,16+Math.sin(time*9+t.y)*2,DG.d.torch);drawTorchFlame(s,t)}
-  if(P.orbits&&!P.dead){const o=P.orbits,c=EL[o.s.el];for(let i=0;i<o.n;i++){const a=o.a+i*6.283/o.n,s=W2S(P.x+Math.cos(a)*o.rad,P.y+Math.sin(a)*o.rad);ctx.globalAlpha=.95;glow(s.x,s.y-20,13,c);ctx.globalAlpha=.4;glow(s.x,s.y-20,24,c)}}
-  if(P.armor&&!P.dead){const s=W2S(P.x,P.y),c=EL[P.armor.s.el];ctx.globalAlpha=.28+.08*Math.sin(time*6);glow(s.x,s.y-20,P.armor.aura?60:36,c);if(P.armor.aura){ctx.globalAlpha=.25;ctx.strokeStyle=c;ctx.lineWidth=2;G();ctx.beginPath();ctx.arc(P.x,P.y,P.armor.aura,0,6.283);ctx.stroke();S()}}
+  /* v37: 새 그림이 있으면 예전 구슬 빛 · 갑옷 빛은 그리지 않음(겹침 없앰). 갑옷 범위 선은 그대로 */const a37=id=>typeof FX31!=='undefined'&&FX31.on()&&!!FX31.get(id,false);
+  if(P.orbits&&!P.dead&&!a37(P.orbits.s.id)){const o=P.orbits,c=EL[o.s.el];for(let i=0;i<o.n;i++){const a=o.a+i*6.283/o.n,s=W2S(P.x+Math.cos(a)*o.rad,P.y+Math.sin(a)*o.rad);ctx.globalAlpha=.95;glow(s.x,s.y-20,13,c);ctx.globalAlpha=.4;glow(s.x,s.y-20,24,c)}}
+  if(P.armor&&!P.dead){const s=W2S(P.x,P.y),c=EL[P.armor.s.el];ctx.globalAlpha=.28+.08*Math.sin(time*6);if(!a37(P.armor.s.id))glow(s.x,s.y-20,P.armor.aura?60:36,c);if(P.armor.aura){ctx.globalAlpha=.25;ctx.strokeStyle=c;ctx.lineWidth=2;G();ctx.beginPath();ctx.arc(P.x,P.y,P.armor.aura,0,6.283);ctx.stroke();S()}}
   for(const e of enemies)if(e.cast>0){const s=e._s||W2S(e.x,e.y);ctx.globalAlpha=.5;glow(s.x,s.y-e.r*(e.sc||1),e.r*1.6,'#ff5a3a')}
   ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over'}
 function drawV5Labels(){ctx.textAlign='center';ctx.font='700 13px '+FONT;ctx.lineWidth=3;ctx.strokeStyle='rgba(0,0,0,.85)';
@@ -10726,7 +10727,7 @@ const FXP={fx:[],rng:mulberry(4817),seen:new Map(),links:[],stuck:[],
   /* ----- 매 프레임: 끝난 내려찍기(pend) 찾기 · 표식 ----- */
   tick(){for(const m of pend)if(m.s&&(m.s.phys||m.s.el==='phys')&&!this.seen.has(m))this.seen.set(m,{x:m.x,y:m.y,s:m.s});
     for(const [m,v] of this.seen)if(!pend.includes(m)){this.seen.delete(m);const s=v.s;
-      this.add({k:'land',x:v.x,y:v.y,rad:s.rad||100,d:.5,el:s.el,claw:s.id==='apexhunt',spear:s.id==='heavycrash'});
+      this.add({k:'land',x:v.x,y:v.y,rad:s.rad||100,d:.5,el:s.el,claw:s.id==='apexhunt',spear:s.id==='heavycrash',sid:s.id});
       if(s.cls==='warrior')decals.push({crack:this.crack(v.x,v.y,(s.rad||100)*.6),life:4,max:4,w:12})}
     for(const r of rains)if(r.s&&r.s.phys&&!r._fxp){r._fxp=1;r._fn=0}},
   /* ----- 스프라이트 ----- */
@@ -12487,6 +12488,7 @@ window.__fl.twFolkSprite=(...a)=>twFolkSprite(...a);window.__fl.f12Look=f12Look;
 
 /* ---------- 패치노트: 새 버전이면 시작 화면에 요약, 게임 안에서는 버튼으로 다시 보기 ---------- */
 const PATCHES=[
+  {v:37,d:'2026-10-16',t:'이펙트 정리: 번개 계열 · 엘리멘탈 쿼텟 예전 이펙트로 · 겹침 없앰 · 화살 가늘게 · 범위에 맞춘 크기',items:["마법사 번개 계열 14가지와 엘리멘탈 쿼텟은 새 그림을 빼고 예전 이펙트로 되돌렸어요: 스파크 체인, 체인 라이트닝, 프로스트 볼트 체인, 라이트닝 볼트, 스카이 렌더, 볼트 핸드, 헤일스톰, 크림슨 썬더폴, 아이 오브 스톰, 템페스트, 저지먼트 썬더, 스톰 호크, 스피릿 체인, 금기: 타이푼, 엘리멘탈 쿼텟", "엘리멘탈 쿼텟의 동그란 구슬은 그림 크기만 절반(50%)으로 줄였어요. 맞는 범위와 피해는 그대로예요", "새 그림과 예전 이펙트가 한꺼번에 겹쳐 보이던 것을 없앴어요. 새 그림이 있는 기술은 새 그림만 나와요(설정에서 예전 그림을 고르면 예전 이펙트만 나와요).", "겹침을 없앤 마법사 기술 21가지. 시전할 때 예전 빛: 아케인 실드, 마나 리스토어, 스톤 스킨, 플레임 맨틀, 아이스 실드, 프로스트 아머, 워터 폼, 에어 월, 스톤 셸, 리와인드, 엘리멘탈 배리어, 아케인 오버로드, 스피릿 커뮤니언, 마나 리플럭스, 워드 스피릿, 스피릿 프렌지, 프라이스 오브 팩트 / 몸 둘레를 도는 예전 구슬 빛: 댄싱 플레임, 워터 오브 / 몸을 감싸는 예전 갑옷 빛: 플레임 맨틀, 프로스트 아머 / 하늘에서 떨어지는 예전 불빛: 선 폴, 메테오", "겹침을 없앤 궁수 기술 40가지. 하늘에서 떨어지는 예전 화살: 애로우 레인, 스카이 볼리 / 예전 몸짓 그림(외침 고리 · 구르기 잔상 · 내려앉는 먼지 · 빛줄기 · 반짝임): 차지 샷, 시즈 샷, 이베이드 롤, 파이어 트랩, 아이스 트랩, 샤프넬 트랩, 트랩 필드, 팰컨 컴패니언, 울프 컴패니언, 팰컨 다이브, 헌팅 혼, 와일드 런, 에이펙스 헌트, 스나이프, 리트리트 넷, 블래스트 트랩, 쏜 트랩, 헌팅 도미니언, 어스바인드, 원 샷, 섀도 스네어, 섀도 스텝, 드리븐 헌트, 어비스 트랩 / 시전할 때 예전 빛: 킨 아이, 데드아이, 엘리멘털 임뷰, 카모플라주, 서바이버, 헌팅 혼, 프레데터 아이, 포커스, 트랩 토스, 비스트 어웨이큰, 피어싱 게이즈, 섀도 베일, 베놈 셰이드 / 덫이 터질 때 예전 고리: 스네어 트랩, 파이어 트랩, 아이스 트랩, 샤프넬 트랩, 트랩 필드, 비스트 케이지, 블래스트 트랩, 쏜 트랩, 헌팅 도미니언, 섀도 스네어, 어비스 트랩", "궁수 화살 그림을 다시 가늘게 했어요(두께 40%, 길이 1.1배) — 22가지: 퀵 샷, 트래커 마크, 멀티플 샷, 피어싱 샷, 차지 샷, 래피드 샷, 위크 스팟, 트리플 샷, 스나이프, 퓨즈 애로우, 넷 샷, 마크 오브 데스, 윈드 피어서, 섀도 샤프트, 익스포즈 위크니스, 원 샷, 플레임 애로우, 익스플로시브 애로우, 트리니티 샤프트, 프로스트 애로우, 프리징 애로우, 시킹 샤프트", "범위 공격은 이펙트 그림의 폭이 땅에 그려지는 범위 원의 폭과 같아지게 크기를 맞췄어요. 범위 원은 그대로 보여요. 마법사 46가지: 파이어 월, 파이어 볼, 스톤 레인, 마나 리스토어, 블리자드, 어스퀘이크, 앱솔루트 제로, 타임 스톱, 선 폴, 플레임 버스트, 파이어스톰, 워터 서지, 월풀, 더스트 데빌, 훨윈드, 어스 서지, 볼더 스로, 퀵샌드, 그레이트 퀘이크, 어스 팽, 마운틴 라이즈, 홀딩 서클, 스페이스 트위스트, 라이트 레인, 디멘션 프리즌, 스타폴, 크리핑 프로스트, 매직 미사일, 메테오, 인페르노 코어, 스팀 버스트, 마그마 필드, 메테오 스웜, 엘리멘탈 콜랩스, 제로 도메인, 아크 테스트먼트, 스피릿 버스트, 서모닝 서클, 금기: 씨 오브 플레임, 엘리멘탈 릴리스, 타임 리프트, 금기: 어스 오버턴, 서클 오브 엔딩, 팩트 커맨드, 스피릿 퓨전, 스피릿 스론", "범위에 맞춘 궁수 기술 32가지: 애로우 레인, 데드아이, 스카이 볼리, 플레임 애로우, 익스플로시브 애로우, 프리징 애로우, 썬더스톰 애로우, 엘리멘털 임뷰, 트리니티 샤프트, 스네어 트랩, 파이어 트랩, 칼트롭, 아이스 트랩, 샤프넬 트랩, 트랩 필드, 비스트 케이지, 팰컨 컴패니언, 팰컨 다이브, 에이펙스 헌트, 애로우 볼텍스, 블래스트 트랩, 쏜 트랩, 스모크 스크린, 체인 디토네이션, 루어, 헌팅 도미니언, 어스바인드, 섀도 스네어, 헌팅 그라운드, 드리븐 헌트, 어비스 트랩, 나이트 헌트"]},
   {v:36,d:'2026-10-15',t:'지역 의뢰 99개 · 마을마다 특색 의뢰 · 현상금 게시판 15곳 더 · 장비 「마법 부여」',items:['마을 28곳에 의뢰 99개를 새로 넣었어요. 잡기 · 모으기만이 아니라 추적, 지키기, 봉인(돌을 순서대로 깨우기), 수수께끼, 추격을 레벨대마다 고루 섞었어요. 의뢰가 하나도 없던 마을 9곳(물안개 나루, 숯가마 마을, 옹기여신 성소, 순례자의 천막, 얼음 등대 야영지, 뇌운 수도원, 뿌리 파수막, 꺼진 등대지기의 집, 마지막 철야)에는 의뢰가 5개씩 생겼고, 그중 8곳에는 의뢰를 주는 마을 사람 2명씩이 새로 왔어요. 새 사냥터 쉼터 6곳에는 잡기 · 모으기 · 특색 의뢰를 하나씩, 20~59레벨 지역 마을 12곳에는 특수 의뢰를 3개씩 더했어요','마을마다 그 지역에서만 하는 「특색」 의뢰가 하나씩 있어요(의뢰 이름표에 「특색」). 골드미어 「폭풍 오는 밤의 큰 풍차」, 엘드홀트 「고목 넷의 나이테 노래」, 사하르 오아시스 「모래바람이 지우기 전에」, 프로스트헤임 「눈사람을 돌려놓는 발자국」, 타말 신전촌 「숲이 대답하는 북」, 엠버홀드 「금 간 흑요석 방벽」, 펄 하버 「썰물 길 말뚝」, 까마귀샘 「선돌 틈의 속삭임」, 바람목 산채 「능선 봉화 올리기」, 먼지문 「성문 터의 거인 비문」, 갈매기 등대 「바람에 실린 쇳내」, 마지막 등불 「균열까지 이어진 등불」, 물안개 나루 「가라앉은 종의 뱃노래」, 숯가마 마을 「사흘째 밤의 숯가마」, 옹기여신 성소 「옹기여신의 다섯 손길」, 순례자의 천막 「재에 묻혀 가는 발자국」, 얼음 등대 야영지 「얼음 위의 별 도둑」, 뇌운 수도원 「번개 받는 쇠기둥」, 뿌리 파수막 「땅울림을 거슬러」, 꺼진 등대지기의 집 「왕의 행차 길 봉화」, 마지막 철야 「마지막 촛불」, 달물결 쉼터 「달을 닮은 나루돌」, 유리길 초소 「유리로 굳은 발자국」, 푸른 맥 파수막 「수정 나무에 맥 잇기」, 눈잠 쉼터 「왼손을 벽에 대고」, 종원 지킴터 「어른 종부터 울려라」, 새벽 파수막 「새벽 파수의 맹세」','현상금 게시판이 15곳에 새로 섰어요. 물안개 나루, 숯가마 마을, 옹기여신 성소, 순례자의 천막, 얼음 등대 야영지, 뇌운 수도원, 뿌리 파수막, 꺼진 등대지기의 집, 마지막 철야, 달물결 쉼터, 유리길 초소, 푸른 맥 파수막, 눈잠 쉼터, 종원 지킴터, 새벽 파수막이에요. 이제 브렌힐(바로 옆 헤이븐 게시판을 써요)과 아르덴(왕도라 몬스터가 없어요)을 뺀 모든 마을에 게시판이 있어요. 날마다 그 지역 몬스터 셋이 현상금으로 붙어요','무기상 · 방어구상(둘 다 없는 야영지는 잡화점)에 「마법 부여」 칸이 생겼어요. 내 장비 하나를 고르고, 붙이고 싶은 옵션을 골라 금화를 내면 그 옵션 한 줄이 정해진 값으로 붙어요(무작위 아님). 무기, 보조 무기(전사 · 궁수), 갑옷, 모자, 반지 두 개, 목걸이 모든 부위에 하나씩 붙일 수 있고, 다시 부여하면 그 줄만 바뀌어요. 원래 옵션은 그대로예요. 값은 지금 내 레벨에서 떨어지는 장비 옵션 평균의 약 70%예요(예: 30레벨이면 원소 피해 9%, 생명력 109)','마법 부여로 고를 수 있는 옵션과 최소 레벨: 1레벨 주 능력치(마법사 · 사제 지능, 전사 힘, 궁수 민첩), 생명력, 마나, 마나 회복 · 5레벨 내 직업 기술의 원소 피해 %(전사 · 궁수는 「사격」 같은 물리 피해 %도) · 10레벨 치명타 %, 이동 속도 %, 개별 스킬 +1 · 20레벨(전사 · 궁수) 공격력, 공격 속도 %, 명중, 막기 %(전사), 회피 %(궁수) · 30레벨 재사용 대기 감소 %, 마나 소모 감소 % · 35레벨 개별 스킬 +2 · 60레벨 개별 스킬 +3, 계열(한 갈래 전체) +1. 계열 +1은 개별 +3과 같은 무게예요. 모든 마법 레벨, 맞을 때 터지는 발동 효과, 피해 흡수, 처치 시 마나, 받는 피해 감소, 3차 기술은 고를 수 없어요','마법 부여 값: 금화 40 + 3 × 레벨²(30레벨 2,740 · 60레벨 10,840), 개별 스킬 · 계열은 두 배예요. 저장된 예전 장비는 「마법 부여 없음」으로 읽어요','궁수 기술 24가지에 새 이펙트 그림이 들어갔어요: 팰컨 컴패니언, 울프 컴패니언, 프로스트 애로우, 프리징 애로우, 파이어 트랩, 칼트롭, 스모크 스크린, 루어, 애로우 볼텍스, 헌팅 그라운드, 나이트 헌트, 아이스 트랩, 팰컨 다이브, 에이펙스 헌트, 드리븐 헌트, 리코셰, 애로우 레인, 스카이 볼리, 썬더스톰 애로우, 시즈 샷, 와일드 런, 체인 디토네이션, 어스바인드, 시킹 샤프트. 썬더스톰 애로우는 하늘 번개 줄기는 그대로 두고 땅에 맞는 벼락 그림을 더했어요']},
   {v:35,d:'2026-10-15',t:'상위 부채꼴 · 둘레 기술 범위 넓힘 · 지키기 원 3배 · 최상급 물약 75% · 시전 중 다른 기술을 눌러도 안 끊김 · 마법사 「히드라」는 깔아 두는 불 장판처럼 · 던전 입구 빛 · 마을 한가운데 분수와 돌 원 어긋남 고침',items:['지키기 의뢰의 원이 3배로 커졌어요(반지름 450). 원 안에서는 마음껏 피해 다니며 싸워도 되고, 원 밖에 잠깐 나가도 5초 안에 돌아오면 이어서 해요(원이 노랗게 깜빡이며 알려 줘요). 몬스터는 원 바깥에서 나와 걸어 들어와요','최상급 생명력 · 마나 물약이 최대 생명력 · 마나의 75% 이상을 채워 줘요(예전엔 고정량 + 30%라 높은 레벨에서 절반쯤). 작은 ~ 고급 물약과 값 · 마시는 간격은 그대로예요','높은 위계 · 높은 레벨에 배우는 부채꼴(앞쪽) 기술과 내 둘레 원 기술의 범위를 넓혔어요. 같은 모양이면 위 기술이 아래 기술보다 좁지 않아요. 부채꼴 기술도 이제 스킬 레벨을 올리면 둘레 기술처럼 조금씩 길어져요(레벨마다 1.5%). 바뀐 기술 20가지(길이 · 벌어지는 각도 / 둘레 반지름, 1레벨 기준): 마법사 글레이셜 에이지 330 · 74도 → 450 · 120도, 리버스 커런트 300 · 86도 → 360 · 97도, 드래곤 브레스 270 · 57도 → 340 · 74도, 던 블레이드 230 · 80도 → 300 · 92도, 제로 도메인 320 → 420(앱솔루트 제로 240보다 훨씬 넓게), 마운틴 라이즈 300 → 320, 타임 스톱 240 → 260, 아이 오브 스톰 190 → 220, 어스퀘이크 170 → 210 · 사제 선라이즈 300 · 92도 → 420 · 115도, 홀리 웨이브 300 · 52도 → 320 · 69도, 홀리 노바 300 → 320, 크로스 오브 포 윈즈 230 → 300, 벨 오브 컨페션 200 → 320 · 전사 미리어드 슬래시 240 · 103도 → 300 · 115도, 플러리 오브 스틸 150 · 80도 → 190 · 92도, 그랜드 챌린지 300 → 340, 로어 오브 테러 250 → 340, 그라운드 스톰프 180 → 200, 레이지 스핀 130 → 150, 월윈드 슬래시 150 → 190','시전(외우는 시간이 있는 기술)이나 채널링 중에 다른 기술을 눌러도 이제 끊기지 않아요. 하던 시전을 끝까지 마치고, 그다음 바로 누른 기술이 나가요(여러 번 누르면 마지막에 누른 것). 시전 막대에 「메테오 · 시전 0.7초 → 스파크」처럼 다음에 나갈 기술이 보여요. 시전을 멈추는 건 움직이기와 귀환 두루마리 펴기 둘뿐이에요','마법사 「파이어 살라만더」의 이름이 다시 「히드라」가 됐어요. 히드라는 이제 깔아 두는 불 장판처럼 생명력이 없어서, 몬스터가 히드라를 노리거나 때리지 않고 나에게 와요. 몬스터 화살 · 마법도 히드라에 막히지 않아요. 불덩이를 쏘는 것과 지속 시간, 3마리까지는 그대로예요',
     '던전 입구 17종 모두, 문 안을 채우는 빛이 문 구멍에 맞게 들어가요(예전엔 문 옆 벽이나 바닥에 떠 있었어요). 환상 열석은 돌 고리 가운데 바닥이 빛나요',
@@ -22683,7 +22685,10 @@ const FX31={P:{},want:{},busy:0,busyT:0,q:[],inst:[],nd:0,t:0,C:128,
     ['112','phys','nova','earthbind',0,'archer'],['113','phys','homing','curvingshot','bolt','archer']],
   TWO:new Set(['bolt','chain','beam','rain']),M:{},n:{draw:0,fall:0,evict:0,load:0},
   init(){for(const [no,el,f,ids,k0,c0] of this.T){const c=c0||'mage',k=k0||f,b=`fx_${no}_1_${c}_${el}_${f}`,i=no>'040'||this.TWO.has(k)?`fx_${no}_2_${c}_${el}_${f}`:null;// 띠 2번이 없으면 그 칸만 그리지 않는다
-    for(const id of ids.split(' '))this.M[id]={k,f,c,b,i,pk:c+'-'+el}}},
+    for(const id of ids.split(' '))this.M[id]={k,f,c,b,i,pk:c+'-'+el}}
+    for(const id of this.OLD)delete this.M[id]},
+  // v37(사용자 요청): 마법사 번개 계열 14가지 · 엘리멘탈 쿼텟은 새 그림보다 예전 이펙트가 낫다 → 짝을 빼서 예전 그대로 그림
+  OLD:'static chainlightning frostchain lightning rendingsky shockinggrasp hail lordvermilion eyeofstorm callstorm heavenbolt stormhawk spiritchain forbidgale quadorb'.split(' '),
   on(){return typeof GFX==='undefined'||GFX.art!=='old'},
   now(){return performance.now()/1000},
   noLoad(){return location.hash==='#qa'&&!this.qaQ},// #qa에서는 파일을 받지 않는다 (줄 세우기 시험만 qaQ로 켬, 실제 받기는 load가 다시 막음)
@@ -22717,6 +22722,9 @@ const FX31={P:{},want:{},busy:0,busyT:0,q:[],inst:[],nd:0,t:0,C:128,
   loopK(F,fps,ph){return((time*fps+(ph||0))|0)%F.length},
   // 땅 위 둥근 범위(세계 반지름 r)를 덮는 배율: 고리 그림이 칸 너비의 cov만큼 찬다
   isoK(r,cov){return 2*r*KI*1.4142/(this.C*(cov||.86))},
+  // v37: 범위 맞춤 — 땅의 둥근 범위(세계 반지름 r, 화면에선 가로 2·r·KI·√2인 타원)와 그림의 실제 가로 폭(띠에서 가장 넓은 칸)이 같아지는 배율
+  visW(PK,stem){const c=PK.vw||(PK.vw={});if(c[stem]==null){const F=this.fr(PK,stem);c[stem]=F?Math.max(8,...F.map(f=>f[2])):this.C*.86}return c[stem]},
+  fit(PK,stem,r){return Math.max(.2,Math.min(10,2*(r||60)*KI*1.4142/this.visW(PK,stem)))},
   scrAng(a){return Math.atan2((Math.cos(a)+Math.sin(a))*KI/2,(Math.cos(a)-Math.sin(a))*KI)},
   scrLen(a,L){return L*Math.hypot((Math.cos(a)-Math.sin(a))*KI,(Math.cos(a)+Math.sin(a))*KI/2)},
   add(o){o.t0=o.t0!=null?o.t0:time;this.inst.push(o);if(this.inst.length>60)this.inst.shift();return o},
@@ -22729,10 +22737,10 @@ window.FX_PACK=function(name,meta,url){FX31.got(name,meta,url)};
 {const _fc=FXP.cast;FXP.cast=function(s,t,actor){const r=_fc.apply(this,arguments);const sn=FX31.snap;FX31.snap=null;
   try{if(s&&sn&&sn.id===s.id)FX31.cast(s,t,actor||P,sn)}catch(err){if(window.__QA)throw err}return r}}
 // 같이 하기 유령 시전에서도 이때의 P가 시전한 사람 자리 (net.js가 P를 잠깐 바꿔 둔다)
-FX31.cast=function(s,t,_o,sn){const o=P;const g=this.get(s.id);if(!g)return;const {m}=g,k=m.k,rank=Math.max(1,Math.min(9,s.rank||1));
+FX31.cast=function(s,t,_o,sn){const o=P;const g=this.get(s.id);if(!g)return;if(FXB.fx.length>sn.fx)FXB.fx.splice(sn.fx);/* v37: 예전 시전 빛(고리·화살표·기둥)은 새 그림이 대신 */const {m,PK}=g,k=m.k,rank=Math.max(1,Math.min(9,s.rank||1));
   const newRings=()=>{if(rings.length>sn.r)rings.splice(sn.r,rings.length-sn.r).filter(r=>r.faint).forEach(r=>rings.push(r))};
   if(k==='cone'){const a=P.face,L=this.scrLen(a,s.range||160);this.add({st:m.b,pk:m.pk,x:o.x,y:o.y,z:16,d:.42,rot:this.scrAng(a),sc:L/(this.C*.82),ax:18,ay:64});this.halve(sn.p)}
-  else if(k==='nova'){this.add({st:m.b,pk:m.pk,x:o.x,y:o.y,z:0,d:.55,sc:this.isoK(s.rad||100),ax:64,ay:64});newRings();this.halve(sn.p)}
+  else if(k==='nova'){this.add({st:m.b,pk:m.pk,x:o.x,y:o.y,z:0,d:.55,sc:this.fit(PK,m.b,s.rad||100),ax:64,ay:64});newRings();this.halve(sn.p)}
   else if(k==='blink'){const sc=.62+rank*.03;this.add({st:m.b,pk:m.pk,x:sn.x,y:sn.y,z:0,d:.45,sc,ax:64,ay:104});this.add({st:m.b,pk:m.pk,x:o.x,y:o.y,z:0,d:.45,sc,ax:64,ay:104,t0:time+.06});newRings();this.halve(sn.p)}
   else if(k==='heal'){const sc=.7+rank*.03;this.add({st:m.b,pk:m.pk,x:o.x,y:o.y,z:0,d:.8,sc,ax:64,ay:108});if(FXB.fx.length>sn.fx)FXB.fx.splice(sn.fx);newRings();this.halve(sn.p)}
   else if(k==='chain'){for(let i=sn.b;i<bolts.length;i++){const b=bolts[i];b.a31=m;if(m.i)this.add({st:m.i,pk:m.pk,x:b.b.x,y:b.b.y,z:b.b.z||16,d:.3,sc:.42+rank*.03,ax:64,ay:64,t0:time+(b.delay||0)})}newRings();this.halve(sn.p)}
@@ -22746,28 +22754,28 @@ FX31.cast=function(s,t,_o,sn){const o=P;const g=this.get(s.id);if(!g)return;cons
   else if(k==='aura'){const inv=m.f==='invuln';this.add({st:m.b,pk:m.pk,who:o,fol:1,loop:1,inv,x:o.x,y:o.y,z:26,d:inv?Math.max(.5,P.invT||s.dur||3):2.2,sc:.74,ax:64,ay:64})}
   // v33: 크게 터짐 — 이번 시전에서 생긴 가장 큰 고리 자리(없으면 시전한 사람 자리)
   else if(k==='burst'){const R=rings.slice(sn.r).filter(r=>!r.faint&&r.max>=40).sort((a,b)=>b.max-a.max).slice(0,2);if(!R.length)R.push({x:o.x,y:o.y,max:110});
-    for(const r of R)this.add({st:m.b,pk:m.pk,x:r.x,y:r.y,z:1,d:.7,sc:Math.max(.6,Math.min(2.6,this.isoK(r.max,.9))),ax:64,ay:64});this.halve(sn.p)}
+    for(const r of R)this.add({st:m.b,pk:m.pk,x:r.x,y:r.y,z:1,d:.7,sc:this.fit(PK,m.b,r.max),ax:64,ay:64});this.halve(sn.p)}
   // v33: 정령 사슬 — 잇는 순간 나와 소환수 자리에서 한 번 (사슬 줄기는 drawBolt가 그림으로)
   else if(k==='spchain'){const pts=[o].concat(allies.filter(a=>a.j2&&!a.gone&&a.s&&a.s.cls==='mage').slice(0,6));for(const q of pts)this.add({st:m.i,pk:m.pk,x:q.x,y:q.y,z:24,d:.4,sc:.55,ax:64,ay:64})}
-  else if(k==='strike'){for(let i=sn.pd;i<pend.length;i++){const q=pend[i];if(q.s&&q.s.mini)continue;const dl=Math.max(0,q.t-.45);this.add({st:m.b,pk:m.pk,x:q.x,y:q.y,z:0,d:.7,sc:Math.max(.8,Math.min(2.2,(q.s.rad||90)*2.2/this.C)),ax:64,ay:108,t0:time+dl})}}};
+  else if(k==='strike'){for(let i=sn.pd;i<pend.length;i++){const q=pend[i];if(q.s&&q.s.mini)continue;const dl=Math.max(0,q.t-.45);this.add({st:m.b,pk:m.pk,x:q.x,y:q.y,z:0,d:.7,sc:this.fit(PK,m.b,q.s.rad||90),ax:64,ay:108,t0:time+dl})}}};
 // 투사체 몸통: 그림이 있으면 예전 몸통·꼬리·고리 대신 그림 (휘는 빛 꼬리는 그림에 들어 있음)
 {const _d=FXR.draw;FXR.draw=function(c,p,s,k,ox,oy,map){const m0=p&&p.s&&FX31.M[p.s.id],g=m0&&(m0.c==='archer'||!p.s.phys)&&FX31.get(p.s.id);if(!g||g.m.k!=='bolt')return _d.apply(this,arguments);
   const F=FX31.fr(g.PK,g.m.b);if(!F)return _d.apply(this,arguments);if(!FXL.lod(s.x,s.y,40))return;
   const r=p.r||6,mm=Math.max(.8,Math.min(1.3,Math.sqrt(r/7))),sc=g.m.c==='archer'?.36*(p.s.mult>=4||p.s.pierce?1.25:1):(.42+.07*(((p.s.rank|0)||1)-1))*mm,ang=p._ang!=null?p._ang:Math.atan2((p.vx+p.vy)*KI/2,(p.vx-p.vy)*KI);
   if(p._fxph==null)p._fxph=(FXR.n=(FXR.n+1)%97)*1.7;const age=(p._a31=(p._a31||0)+1),f=F[age<3?1:2];
-  const pul=1+.05*Math.sin(time*18+p._fxph);c.globalCompositeOperation='source-over';FX31.img(c,g.PK,f,s.x,s.y,f[4]+f[2]*.72,f[5]+f[3]/2,sc*pul,sc*pul,ang,1);c.globalCompositeOperation='lighter';c.globalAlpha=1}}
+  const pul=1+.05*Math.sin(time*18+p._fxph);c.globalCompositeOperation='source-over';const th=g.m.c==='archer'?.4:1;/* v37: 화살은 가늘게(두께 40%, 길이 1.1배) */FX31.img(c,g.PK,f,s.x,s.y,f[4]+f[2]*.72,f[5]+f[3]/2,sc*pul*(th<1?1.1:1),sc*pul*th,ang,1);c.globalCompositeOperation='lighter';c.globalAlpha=1}}
 // 맞힘: 그림이 있으면 예전 빛 터짐 대신 그림 (땅 자국은 그대로)
 {const _h=FXR.hit;FXR.hit=function(p){const g=p&&p.s&&FX31.get(p.s.id,false);if(!g||!g.m.i||!FX31.fr(g.PK,g.m.i))return _h.apply(this,arguments);
-  const t=this.tier(p);FX31.add({st:g.m.i,pk:g.m.pk,x:p.x,y:p.y,z:p.z||0,d:[.26,.3,.36,.45,.6][t],sc:(g.m.c==='archer'?.32:.42)+.06*t+(p.s.aoe?.25:0),ax:64,ay:64});if(t>=3)decal(p.x,p.y,t>=4?34:22,p.s.el)}}
+  const t=this.tier(p);FX31.add({st:g.m.i,pk:g.m.pk,x:p.x,y:p.y,z:p.z||0,d:[.26,.3,.36,.45,.6][t],sc:p.s.aoe?FX31.fit(g.PK,g.m.i,p.s.aoe):(g.m.c==='archer'?.32:.42)+.06*t,ax:64,ay:64});if(t>=3)decal(p.x,p.y,t>=4?34:22,p.s.el)}}
 // 하늘에서 떨어지는 것: 떨어지는 그림이 잠깐 내려오고 땅에 맞는 그림 (예전 번개 줄기·빛기둥·작은 불덩이 대신)
 {const _sh=skyHit;skyHit=function(x,y,s,dmg,rad,hitR){const g=s&&FX31.get(s.id);if(!g||(g.m.k!=='rain'&&g.m.k!=='zap'))return _sh.apply(this,arguments);
   const n0={b:bolts.length,pl:pillars.length,pd:pend.length,p:parts.length,r:rings.length},r=_sh.apply(this,arguments);
   // v36: 벼락(zap)은 하늘에서 내려오는 예전 번개 줄기를 남기고, 땅에 맞는 자리에 그림을 더한다
   if(g.m.k!=='zap'){bolts.length>n0.b&&bolts.splice(n0.b);pillars.length>n0.pl&&pillars.splice(n0.pl)}for(let i=pend.length-1;i>=n0.pd;i--)if(pend[i].s&&pend[i].s.mini)pend.splice(i,1);
   for(let i=rings.length-1;i>=n0.r;i--)if(!rings[i].faint)rings.splice(i,1);FX31.halve(n0.p);
-  const sc=Math.max(.45,Math.min(1.1,(rad||40)*2.4/FX31.C));
+  const sc=FX31.fit(g.PK,g.m.i||g.m.b,hitR||rad||40),scF=Math.max(.45,Math.min(1.1,(rad||40)*2.4/FX31.C));// v37: 땅에 맞는 그림은 맞는 범위에 맞춤, 떨어지는 그림은 예전 크기
   // v36: 내리치는 그림 한 장만 있는 것(궁수 썬더스톰 애로우): 떨어지는 칸 없이 그 자리에 벼락 한 번
-  if(g.m.k==='zap')FX31.add({st:g.m.b,pk:g.m.pk,x,y,z:0,d:.45,sc:Math.max(.8,Math.min(1.6,(rad||60)*2.6/FX31.C)),ax:64,ay:108});else FX31.add({st:g.m.b,st2:g.m.i,pk:g.m.pk,x,y,z:0,d:.5,fall:.14,sc,ax:64,ay:64});FX31.n.fall++;return r}}
+  if(g.m.k==='zap')FX31.add({st:g.m.b,pk:g.m.pk,x,y,z:0,d:.45,sc:FX31.fit(g.PK,g.m.b,hitR||rad||60),ax:64,ay:108});else FX31.add({st:g.m.b,st2:g.m.i,pk:g.m.pk,x,y,z:0,d:.5,fall:.14,sc,scF,ax:64,ay:64});FX31.n.fall++;return r}}
 // 번개 줄기(연쇄): 그림 줄기를 두 점 사이에 늘여 붙인다. 광선과 같이 생긴 예전 번개는 숨긴다
 {const _db=drawBolt;drawBolt=function(b){if(b.hid31&&FX31.on())return;const m=b.a31,PK=m&&FX31.P[m.pk];if(!m||!PK||!FX31.on())return _db.apply(this,arguments);if(b.delay>0)return;
   const F=FX31.fr(PK,m.b);if(!F)return _db.apply(this,arguments);const A=P3(b.a),B=P3(b.b),L=Math.hypot(B.x-A.x,B.y-A.y);if(L<2)return;
@@ -22789,7 +22797,7 @@ FX31.cast=function(s,t,_o,sn){const o=P;const g=this.get(s.id);if(!g)return;cons
 {const _cd=castDraw;castDraw=function(){_cd.apply(this,arguments);if(!FX31.on())return;try{S();FX31.drawGround(ctx,W2S)}catch(err){if(window.__QA)throw err}finally{G();ctx.globalCompositeOperation='lighter';ctx.globalAlpha=1}}}
 FX31.drawGround=function(c,map){c.globalCompositeOperation='source-over';
   // v36: 3차 궁수 경계(헌팅 그라운드 · 나이트 헌트)는 따로 그리는 동안 fields에서 잠깐 빠지고(jwFields) 시전 앞뒤를 거치지 않아, 여기서 짝을 붙인다
-  for(const f of (typeof jwFields==='function'?jwFields():fields)){if(!f.a31&&f.s&&f.s.j3wa){const g=this.get(f.s.id);if(g&&g.m.k==='field')f.a31=g.m}const m=f.a31,PK=m&&this.P[m.pk];if(!PK)continue;const F=this.fr(PK,m.b);if(!F)continue;const s=map(f.x,f.y),sc=this.isoK(f.rad,.93);if(!FXL.lod(s.x,s.y,f.rad*1.2))continue;PK.used=this.now();
+  for(const f of (typeof jwFields==='function'?jwFields():fields)){if(!f.a31&&f.s&&f.s.j3wa){const g=this.get(f.s.id);if(g&&g.m.k==='field')f.a31=g.m}const m=f.a31,PK=m&&this.P[m.pk];if(!PK)continue;const F=this.fr(PK,m.b);if(!F)continue;const s=map(f.x,f.y),sc=this.fit(PK,m.b,f.rad);if(!FXL.lod(s.x,s.y,f.rad*1.2))continue;PK.used=this.now();
     const fade=Math.min(1,f.t*2,(f.max-f.t)*4);this.img(c,PK,F[this.loopK(F,7,f.x*.01)],s.x,s.y,64,64,sc,sc,0,.95*fade*Math.max(.45,Math.min(1,260/(f.rad||100))))}// v33: 아주 넓은 장판은 옅게
   for(const o of this.inst)if(o.z===0&&!o.fall&&o.ay===64)this.one(c,o,map);c.globalAlpha=1};
 FX31.drawAir=function(c,map){c.globalCompositeOperation='source-over';
@@ -22806,7 +22814,7 @@ FX31.one=function(c,o,map){const a=(time-o.t0)/o.d;if(a<0||a>=1)return;const PK=
   if(o.fol){const h=o.who||P;if(h.dead||(o.inv&&!(h.invT>0))){o.d=0;return}o.x=h.x;o.y=h.y}
   if(o.loop){const F=this.fr(PK,o.st),el=time-o.t0;if(!F)return;const s=map(o.x,o.y);this.img(c,PK,F[this.loopK(F,8,o.x*.01)],s.x,s.y-o.z,o.ax,o.ay,o.sc,o.sc,0,.92*Math.min(1,el*5,(o.d-el)*3));return}
   const s=map(o.x,o.y);if(!FXL.lod(s.x,s.y-o.z,90*o.sc))return;
-  if(o.fall){const fa=(time-o.t0)/o.fall;if(fa<1){const F=this.fr(PK,o.st);if(F)this.img(c,PK,F[Math.min(2,1+(fa*2|0))],s.x,s.y-200*(1-fa),64,64,o.sc,o.sc,0,1);return}
+  if(o.fall){const fa=(time-o.t0)/o.fall;if(fa<1){const F=this.fr(PK,o.st);if(F)this.img(c,PK,F[Math.min(2,1+(fa*2|0))],s.x,s.y-200*(1-fa),64,64,o.scF||o.sc,o.scF||o.sc,0,1);return}
     const F=this.fr(PK,o.st2);if(F)this.img(c,PK,F[this.kOf(F,(time-o.t0-o.fall)/(o.d-o.fall))],s.x,s.y,64,64,o.sc,o.sc,0,1);return}
   const F=this.fr(PK,o.st);if(!F)return;this.img(c,PK,F[this.kOf(F,a)],s.x,s.y-o.z,o.ax,o.ay,o.sc,o.sc,o.rot||0,1)};
 {const _u=update;update=function(dt){_u.apply(this,arguments);try{FX31.tick(dt)}catch(err){if(window.__QA)throw err}}}
@@ -22824,10 +22832,26 @@ if(typeof mpChainTick==='function'){const _t=mpChainTick;mpChainTick=function(dt
   const kk=id==='beastcage'?Math.max(1,Math.min(1.6,(s.rad||220)/180)):Math.max(1,Math.min(1.8,(s.rad||70)/55));
   FX31.img(c,g.PK,F[0],p.x,p.y,64,74,.5*kk,.5*kk,0,Math.min(1,life*2)*(on?1:.6+.2*Math.sin(now*12)));c.globalAlpha=1}}
 queueMicrotask(()=>{if(typeof PFX==='undefined')return;const _t=PFX.trap;PFX.trap=function(tr,ev){const r=_t.apply(this,arguments);
-  if(ev==='boom'&&tr&&tr.s){const g=FX31.get(tr.s.id,false);if(g&&g.m.k==='trap'&&FX31.fr(g.PK,g.m.i))FX31.add({st:g.m.i,pk:g.m.pk,x:tr.x,y:tr.y,z:1,d:.5,sc:Math.max(.6,Math.min(2,(tr.s.rad||70)*2.2/FX31.C)),ax:64,ay:64})}return r}});
+  if(ev==='boom'&&tr&&tr.s){const g=FX31.get(tr.s.id,false);if(g&&g.m.k==='trap'&&FX31.fr(g.PK,g.m.i))FX31.add({st:g.m.i,pk:g.m.pk,x:tr.x,y:tr.y,z:1,d:.5,sc:FX31.fit(g.PK,g.m.i,tr.s.rad||70),ax:64,ay:64})}return r}});
 // v36: 3차 궁수 「시킹 샤프트」(휘는 마탄)는 투사체가 아니라 J3W.hom — 머리에 화살 그림 (꼬리 선은 그대로)
 if(typeof jwUpright==='function'){const _ju=jwUpright;jwUpright=function(c,map){const r=_ju.apply(this,arguments);try{if(J3W.hom.length&&FX31.on()){const g=FX31.get('curvingshot'),F=g&&FX31.fr(g.PK,g.m.b);
-  if(F){c.globalCompositeOperation='source-over';for(const h of J3W.hom){const s=map(h.x,h.y);if(!FXL.lod(s.x,s.y-22,40))continue;const f=F[h.life>4.3?1:2],sc=.45;FX31.img(c,g.PK,f,s.x,s.y-22,f[4]+f[2]*.72,f[5]+f[3]/2,sc,sc,FX31.scrAng(h.a),1)}c.globalCompositeOperation='lighter';c.globalAlpha=1}}}catch(err){if(window.__QA)throw err}return r}}
+  if(F){c.globalCompositeOperation='source-over';for(const h of J3W.hom){const s=map(h.x,h.y);if(!FXL.lod(s.x,s.y-22,40))continue;const f=F[h.life>4.3?1:2],sc=.45;FX31.img(c,g.PK,f,s.x,s.y-22,f[4]+f[2]*.72,f[5]+f[3]/2,sc*1.1,sc*.4,FX31.scrAng(h.a),1)}c.globalCompositeOperation='lighter';c.globalAlpha=1}}}catch(err){if(window.__QA)throw err}return r}}
+// v37: 엘리멘탈 쿼텟의 동그란 구슬(예전 그림)을 절반 크기로. 맞는 범위(p.r)는 그대로, 그림만 머리 자리를 중심으로 줄이고 꼬리 길이는 그대로
+{const _d=FXR.draw;FXR.draw=function(c,p,s,k,ox,oy,map){if(!(p&&p.s&&p.s.j3q!=null))return _d.apply(this,arguments);const h=.5,z=p.z||0;
+  const map2=(x,y)=>{const b=map(x,y);return{x:s.x+(b.x-s.x)/h,y:s.y+(b.y-s.y)/h-z*(1/h-1)}};
+  c.setTransform(k*h,0,0,k*h,ox+k*s.x*(1-h),oy+k*s.y*(1-h));try{return _d.call(this,c,p,s,k*h,ox+k*s.x*(1-h),oy+k*s.y*(1-h),map2)}finally{c.setTransform(k,0,0,k,ox,oy)}}}
+/* ----- v37(사용자 요청): 새 그림이 있는 기술은 예전 그림을 겹쳐 그리지 않는다 -----
+   궁수 예전 효과(FXP): 시전 때 생긴 효과에 기술 이름(sid)을 붙여 두고, 그 기술 그림이 있으면 그리지 않는다.
+   쏟아지는 화살(화살비) · 내려찍기 별빛과 고리 · 짐승 떼/거대 화살 · 구르기 고리 · 소환/강화 외침 고리 · 덫 터짐 고리.
+   상태 표시(덫에 묶인 우리 · 올가미)와 튕기는 화살(리코셰, 새 그림은 맞는 자리에만 있음)은 그대로 둔다. */
+{const _c=FXP.cast;FXP.cast=function(s){const p=this._sid;this._sid=s&&s.id;try{return _c.apply(this,arguments)}finally{this._sid=p}}}
+{const _a=FXP.add;FXP.add=function(o){if(o&&this._sid&&!o.sid)o.sid=this._sid;return _a.apply(this,arguments)}}
+FX31.KEEPFXP=new Set(['cagec','snarec','toss']);
+{const _o=FXP.drawOne;FXP.drawOne=function(c,f){if(f&&f.sid&&!FX31.KEEPFXP.has(f.k)&&FX31.on()&&FX31.get(f.sid,false))return;return _o.apply(this,arguments)}}
+{const _dr=FXP.draw;FXP.draw=function(){const sw=[];if(FX31.on())for(const r of rains)if(r.s&&FX31.get(r.s.id,false)){sw.push([r,r.s]);r.s={id:r.s.id}}
+  try{return _dr.apply(this,arguments)}finally{for(const [r,s0] of sw)r.s=s0}}}
+{const _tb=FXP.trapBoom;FXP.trapBoom=function(tr){const id=tr&&tr.s&&tr.s.id,art=id&&FX31.on()&&FX31.get(id,false),n0=rings.length,p=this._sid;this._sid=id;
+  try{return _tb.apply(this,arguments)}finally{this._sid=p;if(art&&rings.length>n0)rings.splice(n0)}}}
 window.__fx31=FX31;
 /* ---------- v32 옹기여신의 설원 (움직임 · 그림) · 자료는 ongi32d.js ----------
    · 쉼터 한가운데 분수 → 「옹기여신 동상」(가짜코 동상 그림을 흙빛으로 · 그림이 없으면 코드 그림 + 이름판).
@@ -28855,7 +28879,7 @@ function qFX31Fake(){const cv=document.createElement('canvas');cv.width=cv.heigh
   return P0}
 function qFX31(fn){const sv={P:FX31.P,want:FX31.want,q:FX31.q.slice(),busy:FX31.busy,cap:FX31.cap,art:GFX.art};FX31.inst=[];
   try{return fn()}finally{FX31.P=sv.P;FX31.want=sv.want;FX31.q=sv.q;FX31.busy=sv.busy;FX31.cap=sv.cap;FX31.qaQ=0;if(sv.art===undefined)delete GFX.art;else GFX.art=sv.art;FX31.inst=[];qClear()}}
-const QFX31_K={bolt:'firebolt',cone:'gust',nova:'frozenground',chain:'static',beam:'steamjet',field:'firewall',rain:'stonerain',strike:'spacetwist',blink:'blink',heal:'arcaneheal',shield:'shieldcircle',armor:'flamemantle',orbit:'dancingflames',summon:'fireelem'};
+const QFX31_K={bolt:'firebolt',cone:'gust',nova:'frozenground',beam:'steamjet',field:'firewall',rain:'stonerain',strike:'spacetwist',blink:'blink',heal:'arcaneheal',shield:'shieldcircle',armor:'flamemantle',orbit:'dancingflames',summon:'fireelem'};
 function qFX31Cast(id){qPrep('mage',{lvl:140});P.sk[id]=10;P.x=QA_SPOT.x;P.y=QA_SPOT.y;followCam();const e=qDummy(P.x+170,P.y+30,{lvl:140});const e2=qDummy(P.x+230,P.y+80,{lvl:140});qCast(id,{x:e.x,y:e.y});return e}
 qT('이펙트 v31','그림 묶음이 없을 때: 13가지 모양 대표 스킬이 예전 그림 그대로 · 오류 0 · 새 그림은 한 장도 안 그림 · #qa에서는 파일을 받지 않음(줄만 섬)',()=>qFX31(()=>{FX31.P={};FX31.want={};FX31.q=[];const d0=FX31.n.draw,out=[];
   for(const k in QFX31_K){const id=QFX31_K[k];qFX31Cast(id);qStep(24,{renderEvery:3,each:()=>{P.mp=maxMp()}});out.push(k)}
@@ -28866,7 +28890,7 @@ qT('이펙트 v31','그림 묶음이 있을 때: 13가지 모양이 새 그림�
   for(const k in QFX31_K){const id=QFX31_K[k];const d0=FX31.n.draw;qFX31Cast(id);if(k==='strike'||k==='rain')qStep(40,{render:false,each:()=>{P.mp=maxMp()}});
     qStep(30,{renderEvery:2,each:()=>{P.mp=maxMp()}});out.push(k+' '+(FX31.n.draw-d0));qOk(FX31.n.draw>d0,k+'('+id+') 새 그림이 안 그려짐')}
   qFX31Cast('frozenground');qOk(!rings.some(r=>!r.faint),'고리 마법에 예전 고리가 남음');
-  qFX31Cast('steamjet');qOk(beams.length&&beams.every(b=>b.a31),'광선에 그림 표시가 없음');qFX31Cast('static');qOk(bolts.length&&bolts.every(b=>b.a31),'연쇄 번개에 그림 표시가 없음');
+  qFX31Cast('steamjet');qOk(beams.length&&beams.every(b=>b.a31),'광선에 그림 표시가 없음');qFX31Cast('static');qOk(bolts.length&&!bolts.some(b=>b.a31),'v37: 번개 계열(스파크 체인)은 예전 그림이어야 함');
   qFX31Cast('arcaneheal');qOk(!FXB.fx.some(f=>f.k==='heal'),'치유 빛기둥이 남음');
   qFX31Cast('shieldcircle');qOk(P.shield>0,'보호막이 안 걸림');render();qOk(P.shield>0,'그린 뒤 보호막 흡수량이 사라짐');
   GFX.art='old';const d1=FX31.n.draw;qFX31Cast('frozenground');qStep(20,{renderEvery:2});qOk(FX31.n.draw===d1&&rings.some(r=>!r.faint),'「예전 그림」인데 새 그림을 그림');
@@ -29118,20 +29142,20 @@ qT('옹기그림 v33','그림 묶음이 있을 때: 몬스터 6 · 보스 2 · �
   leaveDungeon();qOk(OG33.T&&GTX.snow===OG33.T,'던전에서 나오면 설원 바닥');GFX.art='old';qOk(!og33PK()&&qOG33Px(es[0])===0,'「예전 그림」인데 새 그림');delete GFX.art;
   loadRegion('home');qOk(GTX.snow!==OG33.T,'다른 지역에서 옹기 바닥');return '새 그림 '+seen.size+'가지'}));
 qT('이펙트 v33','짝: 마법사 새 29가지(솔라 레이~서클 오브 엔딩) · 궁수 5가지(화살 16 · 불화살 3 · 덫 9 · 강화 13 · 구르기 3)가 실제 스킬 · 묶음 이름 fx-archer-phys/fire',()=>{
-  const MG='sunflame jaws forbidupheave dawnblade meteor callstorm stonebody bodyofwater rewind heavenbolt sunfall steamburst frostgolem stormhawk stonetitan communion overload manaflux spiritadvent spiritburst meteorswarm summoncircle elemrelease timerift spiritthrone spiritlegion spiritsovereign spiritfusion wardspirit forbidtide spiritchain spiritfrenzy forbidgale pactprice spiritreturn manaclone finalcircle'.split(' ');
+  const MG='sunflame jaws forbidupheave dawnblade meteor stonebody bodyofwater rewind sunfall steamburst frostgolem stonetitan communion overload manaflux spiritadvent spiritburst meteorswarm summoncircle elemrelease timerift spiritthrone spiritlegion spiritsovereign spiritfusion wardspirit forbidtide spiritfrenzy pactprice spiritreturn manaclone finalcircle'.split(' ');/* v37: 번개 계열 callstorm heavenbolt stormhawk spiritchain forbidgale은 예전 그림으로 되돌림 */for(const id of 'callstorm heavenbolt stormhawk spiritchain forbidgale'.split(' '))qOk(!FX31.M[id],id+' 되돌렸는데 짝이 있음');
   for(const id of MG)qOk(FX31.M[id]&&FX31.M[id].c==='mage'&&SPELLS[id].cls==='mage',id+' 짝 없음');
   const AR={'archer-phys':['quickshot','fanshot','fulldraw','streamshot','oneshot','hawkeye','snaretrap','abysstrap','evaderoll','shadowstep'],'archer-fire':['flamearrow','burstarrow','trinityarrow']};
   for(const pk in AR)for(const id of AR[pk])qOk(FX31.M[id]&&FX31.M[id].pk===pk&&SPELLS[id].cls==='archer',id+' 궁수 짝 '+(FX31.M[id]&&FX31.M[id].pk));
   const n=k=>Object.values(FX31.M).filter(m=>m.c==='archer'&&m.f===k).length;/* v36: 궁수 새 그림 24가지가 더해져 화살 21 · 덫 11, 전체 189 */qOk(n('bolt')===21&&n('trap')===11&&n('buff')===13&&n('blink')===3,'궁수 짝 수 '+[n('bolt'),n('trap'),n('buff'),n('blink')]);
-  qOk(Object.keys(FX31.M).length===189,'짝 수 '+Object.keys(FX31.M).length);return `짝 ${Object.keys(FX31.M).length} (마법사 ${Object.values(FX31.M).filter(m=>m.c==='mage').length} · 궁수 ${Object.values(FX31.M).filter(m=>m.c==='archer').length})`});
+  /* v37: 189 - 되돌린 15 = 174 */qOk(Object.keys(FX31.M).length===174,'짝 수 '+Object.keys(FX31.M).length);return `짝 ${Object.keys(FX31.M).length} (마법사 ${Object.values(FX31.M).filter(m=>m.c==='mage').length} · 궁수 ${Object.values(FX31.M).filter(m=>m.c==='archer').length})`});
 qT('이펙트 v33','그림 묶음이 있을 때: 새 그리는 방식(몸 둘레 빛 · 크게 터짐 · 물벽 · 태풍 · 정령 사슬 · 덫 · 화살 · 구르기)이 새 그림으로 · 무적 빛은 무적이 끝나면 사라짐 · 같이 하기 오류 0',()=>qFX31(()=>{FX31.P=qFX31Fake();const out=[];
   const run=(cls,id,n,pre)=>{qPrep(cls,{lvl:140});P.sk[id]=10;P.x=QA_SPOT.x;P.y=QA_SPOT.y;followCam();if(MPJ){MPJ.waves.length=0;MPJ.gales.length=0;MPJ.chain=null}traps.length=0;FX31.inst=[];
     if(cls==='archer'&&typeof clsGearFor==='function')clsGearFor(id);if(pre)pre();const e=qDummy(P.x+170,P.y+30,{lvl:140});const d0=FX31.n.draw;qCast(id,{x:e.x,y:e.y});qStep(n||30,{renderEvery:2,each:()=>{P.mp=maxMp()}});const d=FX31.n.draw-d0;out.push(id+' '+d);qOk(d>0,id+' 새 그림이 안 그려짐');return e};
   run('mage','stonebody',10);qOk(FX31.inst.some(o=>o.inv&&o.fol),'무적 빛');P.invT=0;render();qOk(!FX31.inst.some(o=>o.inv&&time-o.t0<o.d),'무적이 끝났는데 빛이 남음');
   for(const id of ['communion','spiritburst','rewind','sunflame','dawnblade','meteor','frostgolem','summoncircle'])run('mage',id,40);
   run('mage','forbidtide',60);
-  qPrep('mage',{lvl:140});P.x=QA_SPOT.x;P.y=QA_SPOT.y;followCam();MPJ.gales.length=0;{const d0=FX31.n.draw;mpMkGale(P.x+120,P.y,eff('forbidgale',10),10,true,false);qStep(20,{renderEvery:2});MPJ.gales.length=0;out.push('forbidgale '+(FX31.n.draw-d0));qOk(FX31.n.draw>d0,'태풍 소용돌이 새 그림')}
-  run('mage','spiritchain',40);qOk(bolts.some(b=>b.a31===FX31.M.spiritchain),'정령 사슬 줄기');
+  qPrep('mage',{lvl:140});P.x=QA_SPOT.x;P.y=QA_SPOT.y;followCam();MPJ.gales.length=0;{const d0=FX31.n.draw;mpMkGale(P.x+120,P.y,eff('forbidgale',10),10,true,false);qStep(20,{renderEvery:2});MPJ.gales.length=0;out.push('forbidgale '+(FX31.n.draw-d0));qOk(FX31.n.draw===d0,'v37: 태풍은 예전 그림이어야 함')}
+  qPrep('mage',{lvl:140});P.sk.spiritchain=10;qCast('spiritchain',{x:P.x+100,y:P.y});qStep(40,{renderEvery:2,each:()=>{P.mp=maxMp()}});qOk(!bolts.some(b=>b.a31),'v37: 정령 사슬은 예전 그림이어야 함');
   run('archer','quickshot',12);run('archer','flamearrow',12);run('archer','hawkeye',20);run('archer','evaderoll',20);
   run('archer','snaretrap',10);qOk(traps.length>0,'덫이 안 놓임');const tr=traps[0];tr.age=9;const e=dgMob('wolf',tr.x,tr.y,140);e.hp=e.max=1e9;const n0=FX31.inst.length;qStep(3,{renderEvery:1});
   qOk(FX31.inst.length>n0||FX31.inst.some(o=>o.st===FX31.M.snaretrap.i),'덫 터짐 그림');
@@ -29388,12 +29412,12 @@ qT(QA36,'지역 의뢰 자료: 주는 사람이 그 마을에 있음 · 몬스�
 /* v35: 마법사 스킬 이펙트 그림 — 같이 하기 서버(server.js)가 v31~v34 동안 img/fx-*.js를 404로 막아, 그 주소로 하면 그림이 하나도 안 나왔음.
    서버 쪽은 apptest 「img 그림 파일 모두 받아짐」이 실제 서버로 확인. 여기서는 게임 쪽: 빠진 마법사 기술 0 · 받는 이름이 서버 규칙 안 · 모든 기술이 그림으로 그려짐 */
 qT('이펙트 v35','마법사 기술 그림 빠짐 없음: 지속 효과(패시브)를 뺀 모든 마법사 기술에 그림 짝이 있고 · 그림 묶음 이름이 같이 하기 서버가 내주는 이름(img/flare-·fx- + 소문자·숫자·-·_)에 맞고 · 묶음이 있으면 기술마다 실제로 새 그림이 그려짐',()=>qFX31(()=>{
-  const mage=Object.values(SPELLS).filter(s=>s.cls==='mage'&&s.kind!=='passive');const miss=mage.filter(s=>!FX31.M[s.id]).map(s=>s.n);
+  const mage=Object.values(SPELLS).filter(s=>s.cls==='mage'&&s.kind!=='passive');const miss=mage.filter(s=>!FX31.M[s.id]&&!FX31.OLD.includes(s.id)).map(s=>s.n);/* v37: 사용자가 예전 그림으로 되돌린 15가지는 짝 없음 */
   qOk(mage.length>=100,'마법사 기술 수 '+mage.length);qOk(!miss.length,'그림 짝이 없는 마법사 기술: '+miss.join(', '));
   const SERVED=/^(?:flare|fx)-[a-z0-9_-]+\.js$/,pks=[...new Set(Object.values(FX31.M).map(m=>m.pk))],bad=pks.filter(pk=>!SERVED.test('fx-'+pk+'.js'));
   qOk(!bad.length,'서버가 안 내주는 이름: '+bad.join());qOk(/'img\/fx-'\+pk\+'\.js'/.test(String(FX31.load)),'그림 받는 주소 모양이 바뀜 (server.js 규칙도 같이 볼 것)');
   FX31.P=qFX31Fake();const none=[],chg=[];
-  for(const s of mage){if(s.charge){chg.push(s.n);continue}/* 모으기 채널링(누르고 있는 동안)은 「이펙트 v33」이 따로 봄 */qPrep('mage',{lvl:140});if(s.job3)qJob3On(s.job3);else if(s.job2)P.job2=s.job2;passT=-1;P.sk[s.id]=10;P.invT=1e9;P.x=QA_SPOT.x;P.y=QA_SPOT.y;followCam();FX31.inst=[];
+  for(const s of mage){if(FX31.OLD.includes(s.id))continue;if(s.charge){chg.push(s.n);continue}/* 모으기 채널링(누르고 있는 동안)은 「이펙트 v33」이 따로 봄 */qPrep('mage',{lvl:140});if(s.job3)qJob3On(s.job3);else if(s.job2)P.job2=s.job2;passT=-1;P.sk[s.id]=10;P.invT=1e9;P.x=QA_SPOT.x;P.y=QA_SPOT.y;followCam();FX31.inst=[];
     const e=qDummy(P.x+170,P.y+30,{lvl:140});qDummy(P.x+230,P.y+80,{lvl:140});let tg={x:e.x,y:e.y};if(s.swap){P.sk.fireelem=10;qCast('fireelem',{x:P.x+80,y:P.y});const fe=allies.find(a=>a.s&&a.s.id==='fireelem');if(fe){fe.x=P.x+300;fe.y=P.y;tg={x:fe.x,y:fe.y}}FX31.inst=[]}/* 자리 바꾸기는 소환수가 있어야 씀 */
     const d0=FX31.n.draw;qCast(s.id,tg);
     for(let i=0;i<40&&FX31.n.draw===d0;i++)qStep(4,{renderEvery:2,each:()=>{P.mp=maxMp()}});if(FX31.n.draw===d0)none.push(s.n)}
@@ -29416,6 +29440,39 @@ qT('이펙트 v36','궁수 새 그림 24가지: 짝이 실제 궁수 기술이�
   qPrep('archer',{lvl:140});FX31.inst=[];const b0=bolts.length;skyHit(QA_SPOT.x+100,QA_SPOT.y,SPELLS.thunderarrow,1,60);
   qOk(bolts.length>b0,'썬더스톰 애로우 하늘 번개 줄기가 빠짐');qOk(FX31.inst.some(o=>o.st===FX31.M.thunderarrow.b),'썬더스톰 애로우 땅 벼락 그림 없음');
   return '궁수 새 짝 '+NEW.length+'가지 모두 그려짐 · 묶음 '+pks.join(' ')+' · 번개 줄기 + 벼락 그림'}));
+qT('이펙트 v37','사용자 요청: ① 마법사 번개 계열 14가지 · 엘리멘탈 쿼텟은 예전 그림(짝 없음, 새 그림 0) ② 쿼텟 구슬은 그림만 절반(맞는 범위 그대로) ③ 궁수 화살 그림은 가늘게(두께 40%) ④ 범위 공격 그림 폭 = 범위 원 폭 ⑤ 새 그림이 있으면 예전 화살비 · 내려찍기 별빛 · 시전 빛이 겹치지 않음',()=>qFX31(()=>{const out=[];
+  const OLD='static chainlightning frostchain lightning rendingsky shockinggrasp hail lordvermilion eyeofstorm callstorm heavenbolt stormhawk spiritchain forbidgale quadorb'.split(' ');
+  qOk(FX31.OLD.slice().sort().join()===OLD.slice().sort().join(),'되돌린 목록 '+FX31.OLD.join());const storm=Object.values(SPELLS).filter(s=>s.cls==='mage'&&s.el==='storm'&&s.kind!=='passive').map(s=>s.id);
+  qOk(storm.every(id=>OLD.includes(id)),'번개 계열인데 새 그림: '+storm.filter(id=>!OLD.includes(id)).join());for(const id of OLD)qOk(SPELLS[id]&&!FX31.M[id],id+' 짝이 남음');
+  FX31.P=qFX31Fake();
+  for(const id of ['static','lightning','hail','eyeofstorm','quadorb']){FX31.inst=[];fields.length=0;if(typeof J3W!=='undefined')J3W.hom.length=0;const d0=FX31.n.draw,st=new Set(),_fr=FX31.fr;FX31.fr=function(PK,stem){st.add(stem);return _fr.apply(this,arguments)};try{qFX31Cast(id);qStep(30,{renderEvery:2,each:()=>{P.mp=maxMp()}})}finally{FX31.fr=_fr}qOk(FX31.n.draw===d0,id+' 새 그림을 그림 '+(FX31.n.draw-d0)+' '+[...st].join())}
+  out.push('되돌림 '+OLD.length);
+  // ② 쿼텟 구슬: 같은 투사체를 j3q 있이/없이 그려 가장 큰 그림 배율 비교
+  {const sc=[];const _di=ctx.drawImage;let mx=0;ctx.drawImage=function(){const m=ctx.getTransform(),w=arguments.length>=5?arguments[arguments.length-2]:arguments[0].width;mx=Math.max(mx,Math.abs(m.a)*w);return _di.apply(this,arguments)};
+    try{for(const q of [null,0]){qPrep('mage',{lvl:140});P.x=QA_SPOT.x;P.y=QA_SPOT.y;followCam();const ss=Object.assign({},SPELLS.quadorb,{el:'fire',quad:0});if(q!=null)ss.j3q=q;
+      const p={x:P.x+60,y:P.y,z:20,vx:500,vy:0,r:10,dmg:1,owner:'p',s:ss,life:1,col:EL.fire,hit:null,tr:null};mx=0;S();FXR.draw(ctx,p,P3(p),DPR,DPR*shx,DPR*shy,W2S);G();sc.push(mx)}}finally{ctx.drawImage=_di}
+    qOk(sc[0]>0&&Math.abs(sc[1]/sc[0]-.5)<.06,'쿼텟 구슬 크기 비 '+(sc[1]/sc[0]).toFixed(2));out.push('구슬 '+(sc[1]/sc[0]).toFixed(2))}
+  // ③ 화살: 몸통 그림 세로/가로 배율
+  {let ar=null;const _im=FX31.img;FX31.img=function(c,PK,f,x,y,ax,ay,sx,sy){if(ar==null)ar=sy/sx;return _im.apply(this,arguments)};
+    try{qPrep('archer',{lvl:140});P.x=QA_SPOT.x;P.y=QA_SPOT.y;followCam();const p={x:P.x+60,y:P.y,z:20,vx:500,vy:0,r:6,dmg:1,owner:'p',s:SPELLS.quickshot,life:1,col:'#fff',hit:null};S();FXR.draw(ctx,p,P3(p),DPR,DPR*shx,DPR*shy,W2S);G()}finally{FX31.img=_im}
+    qOk(ar!=null&&Math.abs(ar-.4/1.1)<.02,'화살 두께 비 '+ar);out.push('화살 '+(ar||0).toFixed(2))}
+  // ④ 범위 맞춤: 칸 폭 100인 가짜 그림으로, 그림 폭(배율×100)이 범위 원의 화면 폭(2·r·KI·√2)과 같음
+  {const W=r=>2*r*KI*1.4142,wide=id=>{const m=FX31.M[id],pk=FX31.P[m.pk];pk.vw={};for(const st of [m.b,m.i])if(st)pk.meta.r[st]=[0,1,2,3,4,5].map(()=>[0,0,100,60,14,34])};
+    for(const id of ['quake','meteor','stonerain','arrowrain','earthbind'])wide(id);const bad=[];
+    const chk=(id,r,o)=>{if(!o){bad.push(id+' 그림 없음');return}const w=(o.sc)*100;if(Math.abs(w/W(r)-1)>.03)bad.push(id+' '+Math.round(w)+'/'+Math.round(W(r)))};
+    for(const [cls,id,st] of [['mage','quake','b'],['mage','meteor','b'],['mage','stonerain','i'],['archer','arrowrain','i'],['archer','earthbind','b']]){qPrep(cls,{lvl:140});if(cls==='archer'&&typeof clsGearFor==='function')clsGearFor(id);P.sk[id]=10;P.x=QA_SPOT.x;P.y=QA_SPOT.y;followCam();FX31.inst=[];
+      const e=qDummy(P.x+170,P.y+30,{lvl:140});const sk=[];const _sh=skyHit;skyHit=function(x,y,s,dmg,rad,hitR){sk.push(hitR||rad);return _sh.apply(this,arguments)};
+      try{qCast(id,{x:e.x,y:e.y});qStep(90,{render:false,each:()=>{P.mp=maxMp()}})}finally{skyHit=_sh}
+      const m=FX31.M[id],o=FX31.inst.find(o=>o.st===(st==='i'?m.i:m.b)||o.st2===m.i);const s=eff(id,10);
+      chk(id,st==='i'?(sk[0]||s.rad):(s.rad||100),o&&(o.st2===m.i?{sc:o.sc}:o))}
+    qOk(!bad.length,'범위와 그림 폭이 다름: '+bad.join(', '));out.push('범위 맞춤 5')}
+  // ⑤ 겹침 없음: 화살비의 예전 쏟아지는 화살 · 강화(오라) 시전 빛
+  {FX31.P=qFX31Fake();let n=0;const _as=FXP.arrowSpr;FXP.arrowSpr=function(){n++;return _as.apply(this,arguments)};
+    try{for(const on of [1,0]){if(!on)GFX.art='old';qPrep('archer',{lvl:140});if(typeof clsGearFor==='function')clsGearFor('arrowrain');P.sk.arrowrain=10;P.x=QA_SPOT.x;P.y=QA_SPOT.y;followCam();const e=qDummy(P.x+170,P.y+30,{lvl:140});
+      n=0;qCast('arrowrain',{x:e.x,y:e.y});qStep(30,{renderEvery:1,each:()=>{P.mp=maxMp()}});out.push((on?'새':'예전')+' 화살 '+n);qOk(on?n===0:n>0,(on?'새 그림인데 예전 화살비가 겹침 ':'예전 그림인데 화살비 없음 ')+n);delete GFX.art}}
+    finally{FXP.arrowSpr=_as}
+    for(const on of [1,0]){if(!on)GFX.art='old';qPrep('archer',{lvl:140});P.sk.hawkeye=10;FXB.fx.length=0;qCast('hawkeye',{x:P.x,y:P.y});qOk(on?FXB.fx.length===0:FXB.fx.length>0,(on?'새 그림인데 예전 시전 빛':'예전 그림인데 시전 빛 없음')+' '+FXB.fx.length);delete GFX.art}}
+  return out.join(' · ')}));
 window.__QA_RUN=qaRun;
 setTimeout(()=>{qaRun().catch(e=>{window.__QA_RESULT={fatal:String(e&&e.stack||e),results:[],summary:{total:0,pass:0,fail:1}}})},120);
 }

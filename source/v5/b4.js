@@ -82,7 +82,7 @@ function render(){
   ctx.globalCompositeOperation='lighter';ctx.lineCap='round';ctx.lineJoin='round';
   for(const p of projs){const s=P3(p);if(p.owner==='e'){drawEProj(p,s);continue}FXR.draw(ctx,p,s,DPR,DPR*shx,DPR*shy,W2S)}
   FXR.drawImpacts(ctx,DPR,DPR*shx,DPR*shy,W2S);FXB.draw(ctx,W2S);if(typeof FXP!=='undefined')FXP.draw(ctx,W2S);ctx.globalAlpha=1;
-  for(const m of pend){if(!m.s.fall)continue;const k=1-m.t/m.max,s=W2S(m.x,m.y),big=m.s.mini?12:Math.max(26,m.s.rad*.3);glow(s.x-(m.s.mini?90:220)*(1-k),s.y-(m.s.mini?220:420)*(1-k),big,m.s.el==='light'?'#fff1a0':'#ff8a2a')}
+  for(const m of pend){if(!m.s.fall)continue;if(m.s.id&&typeof FX31!=='undefined'&&FX31.on()&&FX31.get(m.s.id,false))continue;/* v37: 새 그림이 있으면 예전 떨어지는 빛 안 그림 */const k=1-m.t/m.max,s=W2S(m.x,m.y),big=m.s.mini?12:Math.max(26,m.s.rad*.3);glow(s.x-(m.s.mini?90:220)*(1-k),s.y-(m.s.mini?220:420)*(1-k),big,m.s.el==='light'?'#fff1a0':'#ff8a2a')}
   for(const b of pillars){const a=clamp(b.life/b.max,0,1),s=W2S(b.x,b.y),w=b.w*1.1;const pe=SC.get('fx/pillar/'+b.col,16,128,8,128,g=>{const gr=g.createLinearGradient(0,0,0,128);gr.addColorStop(0,'rgba(0,0,0,0)');gr.addColorStop(1,b.col);g.fillStyle=gr;g.fillRect(0,0,16,128)},{force:1,scale:1});ctx.globalAlpha=a;ctx.drawImage(pe.cv,s.x-w/2,s.y-460,w,460);ctx.fillStyle='#fff';ctx.fillRect(s.x-w/6,s.y-460,w/3,460);ctx.globalAlpha=a*.6;ctx.fillStyle=b.col;ell(s.x,s.y,w*.9,w*.45)}
   ctx.globalAlpha=1;
   for(const b of beams)drawBeam(b);

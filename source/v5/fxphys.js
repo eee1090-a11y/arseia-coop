@@ -67,7 +67,7 @@ const FXP={fx:[],rng:mulberry(4817),seen:new Map(),links:[],stuck:[],
   /* ----- 매 프레임: 끝난 내려찍기(pend) 찾기 · 표식 ----- */
   tick(){for(const m of pend)if(m.s&&(m.s.phys||m.s.el==='phys')&&!this.seen.has(m))this.seen.set(m,{x:m.x,y:m.y,s:m.s});
     for(const [m,v] of this.seen)if(!pend.includes(m)){this.seen.delete(m);const s=v.s;
-      this.add({k:'land',x:v.x,y:v.y,rad:s.rad||100,d:.5,el:s.el,claw:s.id==='apexhunt',spear:s.id==='heavycrash'});
+      this.add({k:'land',x:v.x,y:v.y,rad:s.rad||100,d:.5,el:s.el,claw:s.id==='apexhunt',spear:s.id==='heavycrash',sid:s.id});
       if(s.cls==='warrior')decals.push({crack:this.crack(v.x,v.y,(s.rad||100)*.6),life:4,max:4,w:12})}
     for(const r of rains)if(r.s&&r.s.phys&&!r._fxp){r._fxp=1;r._fn=0}},
   /* ----- 스프라이트 ----- */
