@@ -1,0 +1,952 @@
+{
+ "folk": {
+  "goldmere": [
+   "gm_berta:풍차지기 베르타",
+   "gm_corwin:들판 순찰대장 코윈",
+   "gm_pell:밀 농부 펠",
+   "gm_nim:꼬마 님"
+  ],
+  "dustgate": [
+   "dg_haska:발굴단장 하스카",
+   "dg_ottel:기계공 오텔",
+   "dg_rue:물지기 루",
+   "dg_pip:꼬마 발굴꾼 모리"
+  ],
+  "sahar": [
+   "sh_zarin:대상 우두머리 자린",
+   "sh_mehra:샘지기 메라",
+   "sh_ilan:향료상 일란",
+   "sh_dalia:물동이 소녀 달리아"
+  ],
+  "rookwell": [
+   "rw_maud:선돌지기 할멈 모드",
+   "rw_fenn:까마귀지기 펜",
+   "rw_osk:양치기 오스크",
+   "rw_wenna:주막 아낙 웬나"
+  ],
+  "elderhold": [
+   "el_orein:사냥대장 오레인",
+   "el_muna:뿌리 약사 무나",
+   "el_taren:나무지기 타렌",
+   "el_pio:꼬마 피오"
+  ],
+  "windcrag": [
+   "wc_dalmo:산채 우두머리 달모",
+   "wc_bera:치즈 장인 베라",
+   "wc_kesh:늙은 광부 케시",
+   "wc_tomi:염소치기 토미"
+  ],
+  "frostheim": [
+   "fh_oddvar:항구 파수꾼 오드바르",
+   "fh_brynja:장작꾼 브륀야",
+   "fh_saga:룬 새기는 노파 사가",
+   "fh_kalle:꼬마 칼레"
+  ],
+  "emberhold": [
+   "eh_hadrel:성벽 대장 하드렐",
+   "eh_tilla:흑요석 대장장이 틸라",
+   "eh_seren:불길 점술사 세렌",
+   "eh_gusta:노병 구스타"
+  ],
+  "tamal": [
+   "tm_ahar:북지기 아하르",
+   "tm_solel:약초꾼 소엘",
+   "tm_chera:신전지기 체라",
+   "tm_paco:꼬마 파코"
+  ],
+  "gullhaven": [
+   "gh_ordem:등대지기 오르뎀",
+   "gh_ivka:바람 점쟁이 이브카",
+   "gh_torben:그물 수선공 토르벤",
+   "gh_moi:견습 등대지기 모이"
+  ],
+  "pearlport": [
+   "pp_irene:항구장 이레네",
+   "pp_dalla:진주잡이 달라",
+   "pp_umber:늙은 선원 움베르",
+   "pp_kiri:꼬마 키리"
+  ],
+  "lastlight": [
+   "ll_breda:초소장 브레다",
+   "ll_tesal:등불지기 테살",
+   "ll_miro:기록관 미로",
+   "ll_gurt:파수병 구르트"
+  ],
+  "h29_reed_camp": [
+   "r30_osen:나루지기 오센",
+   "r30_yuna:갈대 피리꾼 유나"
+  ],
+  "h29_kiln_camp": [
+   "k30_verka:유리장인 베르카",
+   "k30_dan:초소병 단"
+  ],
+  "h29_crystal_camp": [
+   "c30_seol:맥 읽는 이 세올",
+   "c30_bodo:광석꾼 보도"
+  ],
+  "h29_snow_camp": [
+   "s30_amel:순례자 아멜",
+   "s30_tor:얼음길 안내인 토르"
+  ],
+  "h29_bell_camp": [
+   "b30_hesse:종지기의 딸 헤세",
+   "b30_garn:지킴이 가른"
+  ],
+  "h29_veil_camp": [
+   "v30_lumen:새벽 사제 루멘",
+   "v30_orsa:파수대장 오르사"
+  ],
+  "ongi_camp": [
+   "og_mira:신전지기 도담",
+   "og_koko:순례자 코코"
+  ]
+ },
+ "mobs": {
+  "plains": [
+   "p_wolf:초원 늑대 우두머리/24",
+   "p_raider:평원 약탈 기사/25",
+   "p_ogre:바위 오우거/27",
+   "p_storm:폭풍 정령/30"
+  ],
+  "forest": [
+   "f_slime:독 포자 덩어리/26",
+   "f_were:늑대인간/27",
+   "f_golem:이끼 골렘/29",
+   "f_dryad:타락한 숲 정령/32"
+  ],
+  "desert": [
+   "d_scorp:붉은 전갈/32",
+   "d_mummy:모래 미라/33",
+   "d_sand:모래 정령/35",
+   "d_viper:사막 독사/38"
+  ],
+  "ice": [
+   "i_yeti:설인/36",
+   "i_wraith:서리 망령/37",
+   "i_elem:얼음 정령/39",
+   "i_knight:서리 기사/42"
+  ],
+  "jungle": [
+   "j_lizard:도마뱀 주술사/40",
+   "j_panther:그림자 표범/41",
+   "j_viper:거대 비단뱀/43",
+   "j_golem:신전 수호석상/46"
+  ],
+  "lava": [
+   "l_imp:불 임프/46",
+   "l_golem:용암 골렘/47",
+   "l_elem:화염 정령/49",
+   "l_knight:지옥 기사/52"
+  ],
+  "sea": [
+   "s_crab:산호 게/52",
+   "s_drown:익사자/53",
+   "s_serp:바다뱀/55",
+   "s_siren:세이렌/58"
+  ],
+  "moor": [
+   "h_hound:황야 들개/29",
+   "h_cairn:돌무덤 전사/30",
+   "h_keen:곡하는 망령/31",
+   "h_troll:이끼 트롤/33"
+  ],
+  "highland": [
+   "k_bear:잿빛 고원곰/34",
+   "k_harpy:산바람 하피/35",
+   "k_rogue:변절한 산사람/36",
+   "k_shaman:눈보라 무당/38"
+  ],
+  "canyon": [
+   "c_dust:먼지 회오리/38",
+   "c_bandit:협곡 도적/39",
+   "c_scorp:바위 갈퀴벌레/40",
+   "c_automaton:고대 파수 인형/41"
+  ],
+  "cliffs": [
+   "t_harpy:폭풍 하피/44",
+   "t_drake:절벽 비룡/45",
+   "t_cultist:폭풍 숭배자/46",
+   "t_sentinel:번개 수호석/48"
+  ],
+  "abyss": [
+   "v_shade:심연의 그림자/54",
+   "v_maw:삼키는 공허/55",
+   "v_knight:공허 기사/56",
+   "v_seer:균열 예언자/58"
+  ],
+  "plateau": [
+   "a_hound:잿불 사냥개/60",
+   "a_knight:재 맹세 기사/62",
+   "a_brute:잿더미 거인/64",
+   "a_cinder:불씨 망령/66"
+  ],
+  "capital": [
+   "z_panther:왕도의 잿빛 표범/80",
+   "z_guard:불 꺼진 근위병/82",
+   "z_golem:잿불 석상/84",
+   "z_mage:재가 된 궁정 마법사/86"
+  ],
+  "mistlake": [
+   "lk_crab:호수 집게/27",
+   "lk_toad:안개 두꺼비/28",
+   "lk_nixie:물안개 요정/30",
+   "lk_elem:호수 물 정령/32"
+  ],
+  "scorch": [
+   "sc_kobold:숯 캐는 코볼트/33",
+   "sc_salamander:불도마뱀/34",
+   "sc_imp:불똥 요정/35",
+   "sc_golem:달군 바위 골렘/37"
+  ],
+  "starsea": [
+   "ss_wolf:서리 갈기 늑대/60",
+   "ss_crab:빙해 껍질 거북/62",
+   "ss_wight:별빛 얼음 망령/64",
+   "ss_giant:얼음 바다 거인/66"
+  ],
+  "thunder": [
+   "th_roc:천둥새/70",
+   "th_monk:첨봉 수도승/72",
+   "th_wyvern:번개 비룡/74",
+   "th_cloud:뇌운 정령/76"
+  ],
+  "roots": [
+   "rt_beetle:수정 등딱지 벌레/80",
+   "rt_pilgrim:뿌리에 묶인 순례자/82",
+   "rt_shaman:땅울림 무당/84",
+   "rt_golem:뿌리 감긴 거상/86"
+  ],
+  "eclipse": [
+   "ec_hound:눈먼 사냥개/88",
+   "ec_paladin:맹세 잃은 성기사/89",
+   "ec_maw:빛 삼키는 아가리/91",
+   "ec_shade:빛 먹는 그림자/93"
+  ],
+  "h29_reed": [
+   "h29_reed_0:갈대 비늘 사냥수/70",
+   "h29_reed_1:달물결 갑각수/70",
+   "h29_reed_2:나루 안개술사/72",
+   "h29_reed_3:침수된 수호석/74"
+  ],
+  "h29_kiln": [
+   "h29_kiln_0:유리등 도마뱀/70",
+   "h29_kiln_1:숯길 방랑 기사/70",
+   "h29_kiln_2:붉은 불티 요정/72",
+   "h29_kiln_3:유리껍질 거상/74"
+  ],
+  "h29_crystal": [
+   "h29_crystal_0:수정 뿔 벌레/80",
+   "h29_crystal_1:맥을 잃은 순례자/80",
+   "h29_crystal_2:푸른 맥 주술사/82",
+   "h29_crystal_3:수정뿌리 거상/84"
+  ],
+  "h29_snow": [
+   "h29_snow_0:눈잠 갑각수/80",
+   "h29_snow_1:얼어붙은 순례병/80",
+   "h29_snow_2:길잃은 서리 무당/82",
+   "h29_snow_3:순례길 얼음 거상/84"
+  ],
+  "h29_bell": [
+   "h29_bell_0:종원 사냥개/90",
+   "h29_bell_1:침묵의 종지기/90",
+   "h29_bell_2:깨진 종의 아가리/92",
+   "h29_bell_3:무음의 잔영/94"
+  ],
+  "h29_veil": [
+   "h29_veil_0:봉인그늘 사냥개/90",
+   "h29_veil_1:새벽 맹세 기사/90",
+   "h29_veil_2:봉인을 삼키는 짐승/92",
+   "h29_veil_3:빛바랜 봉인 망령/94"
+  ],
+  "ongi": [
+   "og_0:깨진 옹기 망령/37",
+   "og_1:가마 진흙덩이/36",
+   "og_2:신전 파수 기사/38",
+   "og_3:가짜코 숭배자/38"
+  ]
+ },
+ "dungeons": {
+  "plains": [
+   "pl_cellar:풍차 아래 곡물굴(28)",
+   "pl_spire:폭풍 첨탑(33)"
+  ],
+  "forest": [
+   "fo_hollow:썩은 뿌리 굴(30)",
+   "fo_grove:달그림자 성역(35)"
+  ],
+  "desert": [
+   "de_tomb:모래 왕의 무덤(36)",
+   "de_hive:붉은 둥지(41)"
+  ],
+  "ice": [
+   "ic_cave:울부짖는 얼음굴(40)",
+   "ic_hall:서리 왕의 전당(45)"
+  ],
+  "jungle": [
+   "ju_temple:덩굴 삼킨 신전(44)",
+   "ju_pit:그림자 구덩이(49)"
+  ],
+  "lava": [
+   "la_forge:흑요석 대장간(50)",
+   "la_heart:화산의 심장(55)"
+  ],
+  "sea": [
+   "se_wreck:난파선 무덤(56)",
+   "se_palace:가라앉은 궁전(60)"
+  ],
+  "moor": [
+   "mo_barrow:선돌 아래 무덤(33)",
+   "mo_circle:마녀의 돌원(38)"
+  ],
+  "highland": [
+   "hi_mine:버려진 은광(38)",
+   "hi_eyrie:하피 둥지 봉우리(43)"
+  ],
+  "canyon": [
+   "ca_vault:거인의 보물고(42)",
+   "ca_foundry:잊힌 거인 공방(47)"
+  ],
+  "cliffs": [
+   "cl_lighthouse:꺼진 등대(48)",
+   "cl_nest:비룡 둥지(53)"
+  ],
+  "abyss": [
+   "ab_rift:균열 아래 회랑(58)",
+   "ab_throne:공허의 옥좌(60)"
+  ],
+  "mistlake": [
+   "lk_abbey:가라앉은 종탑 수도원(31)"
+  ],
+  "scorch": [
+   "sc_kiln:꺼지지 않는 숯가마(37)"
+  ],
+  "starsea": [
+   "ss_grotto:별이 잠든 빙굴(70)"
+  ],
+  "thunder": [
+   "th_bell:번개 맞은 종루(80)"
+  ],
+  "roots": [
+   "rt_cavern:수정 뿌리 동굴(90)"
+  ],
+  "eclipse": [
+   "ec_cathedral:꺼진 대성당(96)"
+  ],
+  "h29_reed": [
+   "h30_dock:가라앉은 나루 창고(75)"
+  ],
+  "h29_kiln": [
+   "h30_glass:붉은 유리 가마굴(77)"
+  ],
+  "h29_crystal": [
+   "h30_vein:맥이 모이는 수정굴(85)"
+  ],
+  "h29_snow": [
+   "h30_shrine:얼어붙은 순례자의 성소(87)"
+  ],
+  "h29_bell": [
+   "h30_belltower:부서진 종탑 지하(95)"
+  ],
+  "h29_veil": [
+   "h30_seal:봉인 아래 회랑(98)"
+  ],
+  "ongi": [
+   "og32_abyss:옹기여신 신전 · 심연의 입구(42)"
+  ]
+ },
+ "existing_quests": {
+  "brenhill": [
+   "cat lvl1 [일상] 길 잃은 고양이 보리 (find)",
+   "bread lvl2 [배달] 갓 구운 빵 배달 (talk)",
+   "bell lvl1 [일상] 저녁 종 울리기 (use)",
+   "herb lvl2 [채집] 은방울풀 캐기 (gather)",
+   "fang lvl3 [수집] 늑대 송곳니 (kill:m_wolfking)",
+   "wolfd lvl2 [매일] 동쪽 길 순찰 (kill:wolf/ashhound)",
+   "esc1 lvl3 [호위] 행상인 리나 호위 (escort)",
+   "h30l1 lvl4 [추격] 사과 서리꾼 (chase@home)",
+   "h30l3 lvl9 [봉인] 잠든 표지석 (ritual@home)",
+   "ctm1 lvl5 [위계 시험] 첫 번째 말 (gather)",
+   "ctm2 lvl10 [위계 시험] 그릇 비우기 (kill:goblin/slime,talk)",
+   "ctp1 lvl5 [위계 시험] 첫 기도 (kill:ashhound,use)",
+   "ctp2 lvl10 [위계 시험] 물 밑의 사제 (kill:m_drowned,talk)",
+   "ctw1 lvl5 [위계 시험] 첫 방패 (kill:m_wolfking)",
+   "ctw2 lvl10 [위계 시험] 훈련장 입문 (kill:goblin/slime,talk)",
+   "cta1 lvl5 [위계 시험] 첫 사냥 (collect:wolf)",
+   "cta2 lvl10 [위계 시험] 망루의 눈 (kill:goblin/slime,talk)"
+  ],
+  "haven": [
+   "drift lvl5 [채집] 강가 표류목 (gather)",
+   "slime lvl5 [수집] 끈적한 점액 (collect:slime)",
+   "esc2 lvl8 [호위] 순례자 엘라 호위 (escort)",
+   "keg lvl6 [일상] 맥주통 나르기 (use,use)",
+   "cargo lvl10 [수집] 찢긴 짐 꾸러미 (collect:ashhound)",
+   "h30l2 lvl8 [지키기] 나루 횃불 지키기 (defend@home)",
+   "h30l5 lvl18 [추적] 사라진 길잡이 (track@home)"
+  ],
+  "arden": [
+   "letter lvl12 [배달] 봉인된 서신 (talk)",
+   "ess lvl14 [매일] 망령의 푸른 정수 (collect:wraith)",
+   "h30l4 lvl14 [수수께끼] 학자의 세 수수께끼 (riddle)",
+   "ctm3 lvl16 [위계 시험] 그을린 주문서 (collect:ashsoldier,talk)",
+   "ctm4 lvl23 [위계 시험] 잿빛 기사의 룬 (collect:ashknight)",
+   "ctm5 lvl31 [위계 시험] 바람과 모래의 정령 (kill:p_storm/d_sand)",
+   "ctm6 lvl38 [위계 시험] 두 원소의 결투 (trial)",
+   "ctm7 lvl45 [위계 시험] 불 속의 영창 (kill:l_imp/l_golem)",
+   "ctp3 lvl16 [위계 시험] 잿빛 병사의 안식 (kill:ashsoldier,use)",
+   "ctp4 lvl23 [위계 시험] 재의 행렬 (kill:apostle)",
+   "ctp5 lvl31 [위계 시험] 모래 속의 잠 (kill:d_mummy/ashsoldier)",
+   "ctp6 lvl38 [위계 시험] 성묘 지키기 (trial)",
+   "ctp7 lvl45 [위계 시험] 신전의 저주 (kill:j_lizard/j_golem)",
+   "ctw3 lvl16 [위계 시험] 잿빛 기사와의 대련 (kill:ashknight)",
+   "ctw4 lvl23 [위계 시험] 배신자의 칼 (kill:m_herdin)",
+   "ctw5 lvl31 [위계 시험] 사막의 집게 (kill:d_scorp/d_mummy)",
+   "ctw6 lvl38 [위계 시험] 포위전 (trial)",
+   "ctw7 lvl45 [위계 시험] 바위를 부수는 팔 (kill:l_golem/l_imp)",
+   "cta3 lvl16 [위계 시험] 요새 정찰 (kill:ashsoldier)",
+   "cta4 lvl23 [위계 시험] 평원의 우두머리 (kill:p_wolf)",
+   "cta5 lvl31 [위계 시험] 고목 숲의 늑대인간 (kill:f_were/f_dryad)",
+   "cta6 lvl38 [위계 시험] 바람 위의 표적 (kill:j_panther,trial)",
+   "cta7 lvl45 [위계 시험] 불씨 떨구기 (kill:l_imp/l_golem)",
+   "j2m1 lvl50 [전직] 위계 너머의 자격 (collect:l_elem/i_elem)",
+   "j2m2 lvl50 [전직] 불의 군주에게서 (kill:r_ifrit)",
+   "j2m3a lvl50 [전직 · 갈래] 원소의 시험 (아크메이지) (trial)",
+   "j2m3b lvl50 [전직 · 갈래] 정령과의 계약 (서머너) (trial)",
+   "j2p1 lvl50 [전직] 네 성소의 순례 (use,use,use,use)",
+   "j2p2 lvl50 [전직] 얼어붙은 영혼들 (kill:i_wraith/s_drown)",
+   "j2p3a lvl50 [전직 · 갈래] 이단 심문 (대심문관) (trial)",
+   "j2p3b lvl50 [전직 · 갈래] 성지 수호 (대주교) (trial)",
+   "j2w1 lvl50 [전직] 기사의 자격 (kill:i_knight,kill:l_knight)",
+   "j2w2 lvl50 [전직] 빙원의 군주 (kill:r_hrimnir)",
+   "j2w3a lvl50 [전직 · 갈래] 성문 지키기 (가디언 나이트) (trial)",
+   "j2w3b lvl50 [전직 · 갈래] 투기장 연승 (버서커) (trial)",
+   "j2a1 lvl50 [전직] 먼 땅 정찰 (use,use,use,use)",
+   "j2a2 lvl50 [전직] 정글의 큰 사냥감 (kill:r_kali)",
+   "j2a3a lvl50 [전직 · 갈래] 명궁 시험 (호크아이) (trial)",
+   "j2a3b lvl50 [전직 · 갈래] 덫 사냥 (레인저) (trial)",
+   "j3m0 lvl85 [3차 전직] 재로 쓴 이름 (kill:b_elgaros)",
+   "j3m1 lvl92 [3차 전직] 옛 대가의 흔적 (j3room)",
+   "j3m2 lvl96 [3차 전직] 이름의 첫 글자 (kill:b_elgaros)",
+   "j3m3a lvl100 [3차 전직 · 갈래] 갈래의 시험 (대마법사) (j3trial)",
+   "j3m3b lvl100 [3차 전직 · 갈래] 갈래의 시험 (정령왕의 계약자) (j3trial)",
+   "j3m4 lvl120 [3차 전직] 왕도의 문 (j3hook)",
+   "j3m5 lvl135 [3차 전직] 재의 왕좌 (j3hook)",
+   "j3p0 lvl85 [3차 전직] 재로 쓴 이름 (kill:b_elgaros)",
+   "j3p1 lvl92 [3차 전직] 옛 대가의 흔적 (j3room)",
+   "j3p2 lvl96 [3차 전직] 이름의 첫 글자 (kill:b_elgaros)",
+   "j3p3a lvl100 [3차 전직 · 갈래] 갈래의 시험 (빛의 집행자) (j3trial)",
+   "j3p3b lvl100 [3차 전직 · 갈래] 갈래의 시험 (성자) (j3trial)",
+   "j3p4 lvl120 [3차 전직] 왕도의 문 (j3hook)",
+   "j3p5 lvl135 [3차 전직] 재의 왕좌 (j3hook)",
+   "j3w0 lvl85 [3차 전직] 재로 쓴 이름 (kill:b_elgaros)",
+   "j3w1 lvl92 [3차 전직] 옛 대가의 흔적 (j3room)",
+   "j3w2 lvl96 [3차 전직] 이름의 첫 글자 (kill:b_elgaros)",
+   "j3w3a lvl100 [3차 전직 · 갈래] 갈래의 시험 (성벽의 군주) (j3trial)",
+   "j3w3b lvl100 [3차 전직 · 갈래] 갈래의 시험 (전쟁군주) (j3trial)",
+   "j3w4 lvl120 [3차 전직] 왕도의 문 (j3hook)",
+   "j3w5 lvl135 [3차 전직] 재의 왕좌 (j3hook)",
+   "j3a0 lvl85 [3차 전직] 재로 쓴 이름 (kill:b_elgaros)",
+   "j3a1 lvl92 [3차 전직] 옛 대가의 흔적 (j3room)",
+   "j3a2 lvl96 [3차 전직] 이름의 첫 글자 (kill:b_elgaros)",
+   "j3a3a lvl100 [3차 전직 · 갈래] 갈래의 시험 (신궁) (j3trial)",
+   "j3a3b lvl100 [3차 전직 · 갈래] 갈래의 시험 (그림자 사냥꾼) (j3trial)",
+   "j3a4 lvl120 [3차 전직] 왕도의 문 (j3hook)",
+   "j3a5 lvl135 [3차 전직] 재의 왕좌 (j3hook)",
+   "affm lvl16 [소속] 어느 탑에 설 것인가 (pick)",
+   "affp lvl16 [소속] 어느 신의 등불을 들 것인가 (pick)",
+   "affw lvl16 [소속] 누구의 깃발 아래 (pick)",
+   "affa lvl16 [소속] 누구와 함께 쏠 것인가 (pick)",
+   "a3q1 lvl60 [3막] 문틀이 마른 까닭 (talk,kill:a3_inkwraith)",
+   "a3q2 lvl62 [3막] 숨긴 자 (kill:am_archivist,kill:ab_hollowelder)",
+   "a3q3 lvl64 [3막] 북쪽으로 (talk)",
+   "a3q10 lvl82 [3막] 두 개의 답 (talk)",
+   "a3q12 lvl88 [3막] 반쪽 열쇠, 반쪽 답 (questDone)",
+   "q21_mentor_m lvl110 [스승의 시험] 스승의 마지막 시험 (kill:q21_wellfoul,c21trial)",
+   "q21_mentor_p lvl110 [스승의 시험] 스승의 마지막 시험 (kill:q21_wellfoul,c21trial)",
+   "q21_mentor_w lvl110 [스승의 시험] 스승의 마지막 시험 (kill:q21_wellfoul,c21trial)",
+   "q21_mentor_a lvl110 [스승의 시험] 스승의 마지막 시험 (kill:q21_wellfoul,c21trial)"
+  ],
+  "goldmere": [
+   "gm1 lvl25 [처치] 수확 수레를 지켜라 (kill:p_raider)",
+   "gm2 lvl26 [채집] 풍차 날개를 묶을 갈대 (gather)",
+   "gm3 lvl28 [던전] 곡물굴의 긁는 소리 (kill:m_quik/m_scarecrow,kill:b_mordun)",
+   "gm4 lvl33 [토벌] 폭풍들판의 왕 (collect:p_storm,kill:r_grumba)",
+   "gm5 lvl26 [매일] 밀밭 사이의 늑대 (kill:p_wolf/p_raider)"
+  ],
+  "dustgate": [
+   "dg1 lvl39 [수집] 도둑맞은 발굴 도구 (collect:c_bandit)",
+   "dg2 lvl40 [배달] 거인의 톱니바퀴 (talk)",
+   "dg3 lvl42 [던전] 거인의 보물고 (kill:m_keymaster/m_sarkan,kill:b_titanguard)",
+   "dg4 lvl47 [토벌] 성문의 마지막 파수꾼 (collect:c_automaton,kill:r_vorn)",
+   "dg5 lvl40 [매일] 우물 곁의 먼지 회오리 (kill:c_dust)"
+  ],
+  "sahar": [
+   "sh1 lvl33 [처치] 대상길의 붉은 전갈 (kill:d_scorp)",
+   "sh2 lvl34 [채집] 샘을 맑히는 모래 백합 (gather)",
+   "sh3 lvl36 [던전] 샘으로 내려오는 죽은 자들 (kill:m_nefer/m_aken,kill:b_setra)",
+   "sh4 lvl41 [토벌] 모래 여왕의 대상길 (collect:d_viper,kill:r_sakra)",
+   "sh5 lvl34 [매일] 모래 왕의 몰약 (collect:d_mummy)"
+  ],
+  "rookwell": [
+   "rw1 lvl30 [처치] 양 우리를 노리는 들개 (kill:h_hound)",
+   "rw2 lvl31 [배달] 까마귀 깃펜 꾸러미 (talk)",
+   "rw3 lvl33 [던전] 선돌 아래의 안개 왕비 (kill:m_bran/m_crowmother,kill:b_morwen)",
+   "rw4 lvl38 [토벌] 돌무덤 거인 (collect:h_cairn,kill:r_crombal)",
+   "rw5 lvl31 [매일] 까마귀들의 잠 (kill:h_keen)"
+  ],
+  "elderhold": [
+   "el1 lvl27 [처치] 야영지 불빛 지키기 (kill:f_were/f_slime)",
+   "el2 lvl28 [배달] 고목 수액 연고 (talk)",
+   "el3 lvl30 [던전] 썩은 뿌리의 근원 (kill:m_sporemom/m_thornhound,kill:b_gulrak)",
+   "el4 lvl35 [토벌] 잠들지 못한 수호자 (kill:r_eldrak)",
+   "el5 lvl28 [매일] 포자 주머니 모으기 (collect:f_slime)",
+   "a3q11a lvl84 [3막] 잊은 노래 (kill:am_rootmother,kill:ab_greyqueen)"
+  ],
+  "windcrag": [
+   "wc1 lvl35 [처치] 산을 버린 자들 (kill:k_rogue)",
+   "wc2 lvl36 [채집] 서리 백리향 (gather)",
+   "wc3 lvl38 [던전] 은광의 목소리 (kill:m_volk/m_shaftghost,kill:b_grak)",
+   "wc4 lvl42 [토벌] 천둥뿔이 울 때 (kill:r_skarn,collect:r_skarn)",
+   "wc5 lvl36 [매일] 치즈 시렁 지키기 (kill:k_harpy)",
+   "a3q7 lvl74 [3막] 검은 탑의 문 (kill:a3_runepillar,kill:a3_ashacolyte)",
+   "a3q8 lvl78 [3막] 아홉째 기둥 (kill:a3_towerknight,kill:am_ninth)",
+   "a3q9 lvl80 [3막] 침묵의 탑 수문장 (kill:ab_silencewarden)",
+   "a3q13 lvl92 [3막] 탑 꼭대기로 (kill:a3_ashbody)",
+   "a3q14 lvl94 [3막] 모두 모여 (talk)",
+   "a3q15 lvl96 [3막] 재의 이름 (kill:ab_ashname)"
+  ],
+  "frostheim": [
+   "fh1 lvl37 [처치] 바다에서 걸어 나온 것들 (kill:i_wraith)",
+   "fh2 lvl38 [배달] 불에게 보내는 얼음 (talk)",
+   "fh3 lvl40 [던전] 우는 얼음굴 (kill:m_frostfang/m_svea,kill:b_glacius)",
+   "fh4 lvl44 [토벌] 빙원의 군주 (kill:r_hrimnir)",
+   "fh5 lvl38 [매일] 장작길 트기 (kill:i_yeti)",
+   "a3q4 lvl66 [3막] 서리 고개 (kill:a3_frostfang,kill:am_fallward)",
+   "a3q5 lvl70 [3막] 눈을 깜빡이는 사람들 (use,use,use,kill:a3_stillwraith)",
+   "a3q6 lvl72 [3막] 멈춘 폭포의 왕 (kill:ab_stillking)"
+  ],
+  "emberhold": [
+   "eh1 lvl47 [처치] 성벽을 갉는 것들 (kill:l_imp/l_elem)",
+   "eh2 lvl48 [채집] 잿더미 위의 초록 (gather)",
+   "eh3 lvl50 [던전] 옛 대장간 되찾기 (kill:m_durg/m_slag,kill:b_bargum)",
+   "eh4 lvl55 [토벌] 용암을 부르는 군주 (kill:r_ifrit)",
+   "eh5 lvl48 [매일] 용암 핵 모으기 (collect:l_golem)",
+   "a3q11b lvl84 [3막] 맞추는 망치 (kill:am_forgeghost,kill:ab_deepwarden)"
+  ],
+  "tamal": [
+   "tm1 lvl41 [처치] 흉내 내는 북소리 (kill:j_lizard)",
+   "tm2 lvl42 [채집] 달빛 덩굴꽃 (gather)",
+   "tm3 lvl44 [던전] 덩굴 삼킨 신전 (kill:m_kuru/m_vinestone,kill:b_itzma)",
+   "tm4 lvl49 [토벌] 북소리를 삼키는 그림자 (kill:r_kali)",
+   "tm5 lvl42 [매일] 비단뱀 허물 모으기 (collect:j_viper)"
+  ],
+  "gullhaven": [
+   "gh1 lvl45 [처치] 찢긴 그물 (kill:t_harpy)",
+   "gh2 lvl46 [배달] 폭풍 일지 사본 (talk)",
+   "gh3 lvl48 [던전] 꺼진 등대 (kill:m_holn/m_gale,kill:b_serak)",
+   "gh4 lvl53 [토벌] 폭풍의 화신 (collect:t_cultist,kill:r_volrak)",
+   "gh5 lvl46 [매일] 벼랑길 비룡 쫓기 (kill:t_drake/t_sentinel)"
+  ],
+  "pearlport": [
+   "pp1 lvl53 [수집] 산호 게 껍데기 (collect:s_crab)",
+   "pp2 lvl54 [배달] 바다뱀 독주머니 (talk)",
+   "pp3 lvl56 [던전] 난파선 무덤 (kill:m_morten/m_bosun,kill:b_kragul)",
+   "pp4 lvl59 [토벌] 바다 저편의 노래 (collect:s_siren,kill:r_merrow)",
+   "pp5 lvl54 [매일] 부두로 기어오르는 익사자 (kill:s_drown)"
+  ],
+  "lastlight": [
+   "ll1 lvl55 [처치] 등불을 갉는 그림자 (kill:v_shade)",
+   "ll2 lvl56 [채집] 빛이끼 기름 (gather)",
+   "ll3 lvl58 [던전] 돌아오지 않은 순찰대 (kill:m_erebo/m_weaver,kill:b_azar)",
+   "ll4 lvl59 [토벌] 등불을 노려보는 눈 (collect:v_seer,kill:r_nyxar)",
+   "ll5 lvl56 [매일] 등불 기둥 지키기 (kill:v_maw)"
+  ],
+  "h29_reed_camp": [
+   "h30r1 lvl70 [추적] 물안개 속 발자국 (track@h29_reed)",
+   "h30r2 lvl72 [지키기] 나루 등불 지키기 (defend@h29_reed)",
+   "h30r3 lvl75 [던전] 가라앉은 나루 창고 (kill:m30_dbel/m30_reedwyrm,kill:b30_osmen)"
+  ],
+  "h29_kiln_camp": [
+   "h30k1 lvl71 [추격] 유리 도둑을 잡아라 (chase@h29_kiln)",
+   "h30k2 lvl73 [봉인] 식은 가마 다시 지피기 (ritual@h29_kiln)",
+   "h30k3 lvl77 [던전] 붉은 유리 가마굴 (kill:m30_kasel/m30_meltstone,kill:b30_barka)"
+  ],
+  "h29_crystal_camp": [
+   "h30c1 lvl80 [수수께끼] 수정이 묻는 말 (riddle)",
+   "h30c2 lvl82 [추적] 끊긴 마나의 맥 (track@h29_crystal)",
+   "h30c3 lvl85 [던전] 맥이 모이는 수정굴 (kill:m30_qmother/m30_iona,kill:b30_selas)"
+  ],
+  "h29_snow_camp": [
+   "h30s1 lvl81 [지키기] 순례자의 마지막 기도 (defend@h29_snow)",
+   "h30s2 lvl83 [봉인] 얼음 등불 다섯 (ritual@h29_snow)",
+   "h30s3 lvl87 [던전] 얼어붙은 순례자의 성소 (kill:m30_hanel/m30_frostwyrm,kill:b30_orel)"
+  ],
+  "h29_bell_camp": [
+   "h30b1 lvl90 [추격] 종 조각을 훔친 그림자 (chase@h29_bell)",
+   "h30b2 lvl92 [수수께끼] 소리 없는 종의 물음 (riddle)",
+   "h30b3 lvl95 [던전] 부서진 종탑 지하 (kill:m30_murk/m30_bellguard,kill:b30_amur)"
+  ],
+  "h29_veil_camp": [
+   "h30v1 lvl91 [추적] 새벽 순찰대의 흔적 (track@h29_veil)",
+   "h30v2 lvl94 [봉인] 다섯 봉인석 (ritual@h29_veil)",
+   "h30v3 lvl96 [지키기] 새벽이 올 때까지 (defend@h29_veil)",
+   "h30v4 lvl98 [던전] 봉인 아래 회랑 (kill:m30_heiren/m30_kail,kill:b30_nocta)"
+  ]
+ },
+ "towns": [
+  {
+   "id": "brenhill",
+   "n": "브렌힐",
+   "base": 1,
+   "reg": "home"
+  },
+  {
+   "id": "haven",
+   "n": "헤이븐 교차로",
+   "base": 10,
+   "reg": "home"
+  },
+  {
+   "id": "goldmere",
+   "n": "골드미어",
+   "base": 24,
+   "reg": "plains"
+  },
+  {
+   "id": "elderhold",
+   "n": "엘드홀트",
+   "base": 26,
+   "reg": "forest"
+  },
+  {
+   "id": "sahar",
+   "n": "사하르 오아시스",
+   "base": 32,
+   "reg": "desert"
+  },
+  {
+   "id": "frostheim",
+   "n": "프로스트헤임",
+   "base": 36,
+   "reg": "ice"
+  },
+  {
+   "id": "tamal",
+   "n": "타말 신전촌",
+   "base": 40,
+   "reg": "jungle"
+  },
+  {
+   "id": "emberhold",
+   "n": "엠버홀드",
+   "base": 46,
+   "reg": "lava"
+  },
+  {
+   "id": "pearlport",
+   "n": "펄 하버",
+   "base": 52,
+   "reg": "sea"
+  },
+  {
+   "id": "rookwell",
+   "n": "까마귀샘",
+   "base": 29,
+   "reg": "moor"
+  },
+  {
+   "id": "windcrag",
+   "n": "바람목 산채",
+   "base": 34,
+   "reg": "highland"
+  },
+  {
+   "id": "dustgate",
+   "n": "먼지문",
+   "base": 38,
+   "reg": "canyon"
+  },
+  {
+   "id": "gullhaven",
+   "n": "갈매기 등대",
+   "base": 44,
+   "reg": "cliffs"
+  },
+  {
+   "id": "lastlight",
+   "n": "마지막 등불",
+   "base": 54,
+   "reg": "abyss"
+  },
+  {
+   "id": "pilgrimtent",
+   "n": "순례자의 천막",
+   "base": 60,
+   "reg": "plateau"
+  },
+  {
+   "id": "keeperhouse",
+   "n": "꺼진 등대지기의 집",
+   "base": 80,
+   "reg": "capital"
+  },
+  {
+   "id": "mistford",
+   "n": "물안개 나루",
+   "base": 27,
+   "reg": "mistlake"
+  },
+  {
+   "id": "charkiln",
+   "n": "숯가마 마을",
+   "base": 33,
+   "reg": "scorch"
+  },
+  {
+   "id": "frostlamp",
+   "n": "얼음 등대 야영지",
+   "base": 60,
+   "reg": "starsea"
+  },
+  {
+   "id": "stormcloister",
+   "n": "뇌운 수도원",
+   "base": 70,
+   "reg": "thunder"
+  },
+  {
+   "id": "rootwatch",
+   "n": "뿌리 파수막",
+   "base": 80,
+   "reg": "roots"
+  },
+  {
+   "id": "lastvigil",
+   "n": "마지막 철야",
+   "base": 88,
+   "reg": "eclipse"
+  },
+  {
+   "id": "arden",
+   "n": "아르덴",
+   "base": 16,
+   "reg": "royal"
+  },
+  {
+   "id": "h29_reed_camp",
+   "n": "달물결 쉼터",
+   "base": 70,
+   "reg": "h29_reed"
+  },
+  {
+   "id": "h29_kiln_camp",
+   "n": "유리길 초소",
+   "base": 70,
+   "reg": "h29_kiln"
+  },
+  {
+   "id": "h29_crystal_camp",
+   "n": "푸른 맥 파수막",
+   "base": 80,
+   "reg": "h29_crystal"
+  },
+  {
+   "id": "h29_snow_camp",
+   "n": "눈잠 쉼터",
+   "base": 80,
+   "reg": "h29_snow"
+  },
+  {
+   "id": "h29_bell_camp",
+   "n": "종원 지킴터",
+   "base": 90,
+   "reg": "h29_bell"
+  },
+  {
+   "id": "h29_veil_camp",
+   "n": "새벽 파수막",
+   "base": 90,
+   "reg": "h29_veil"
+  },
+  {
+   "id": "ongi_camp",
+   "n": "옹기여신 성소",
+   "base": 36,
+   "reg": "ongi"
+  }
+ ],
+ "regions": [
+  {
+   "k": "home",
+   "n": "아르세이아 남부",
+   "lv": 1
+  },
+  {
+   "k": "plains",
+   "n": "황금 평원",
+   "lv": 24,
+   "town": "골드미어"
+  },
+  {
+   "k": "forest",
+   "n": "고목의 숲",
+   "lv": 26,
+   "town": "엘드홀트"
+  },
+  {
+   "k": "desert",
+   "n": "붉은 사막",
+   "lv": 32,
+   "town": "사하르 오아시스"
+  },
+  {
+   "k": "ice",
+   "n": "북부 빙원",
+   "lv": 36,
+   "town": "프로스트헤임"
+  },
+  {
+   "k": "jungle",
+   "n": "타말 정글",
+   "lv": 40,
+   "town": "타말 신전촌"
+  },
+  {
+   "k": "lava",
+   "n": "잿불 용암지대",
+   "lv": 46,
+   "town": "엠버홀드"
+  },
+  {
+   "k": "sea",
+   "n": "산호 군도",
+   "lv": 52,
+   "town": "펄 하버"
+  },
+  {
+   "k": "moor",
+   "n": "바람의 황야",
+   "lv": 29,
+   "town": "까마귀샘"
+  },
+  {
+   "k": "highland",
+   "n": "서리바람 고원",
+   "lv": 34,
+   "town": "바람목 산채"
+  },
+  {
+   "k": "canyon",
+   "n": "망각의 협곡",
+   "lv": 38,
+   "town": "먼지문"
+  },
+  {
+   "k": "cliffs",
+   "n": "폭풍 절벽",
+   "lv": 44,
+   "town": "갈매기 등대"
+  },
+  {
+   "k": "abyss",
+   "n": "심연의 균열",
+   "lv": 54,
+   "town": "마지막 등불"
+  },
+  {
+   "k": "plateau",
+   "n": "재가 내리는 고원",
+   "lv": 60,
+   "town": "순례자의 천막"
+  },
+  {
+   "k": "capital",
+   "n": "불 꺼진 왕도",
+   "lv": 80,
+   "town": "꺼진 등대지기의 집"
+  },
+  {
+   "k": "mistlake",
+   "n": "은안개 호수",
+   "lv": 27,
+   "town": "물안개 나루"
+  },
+  {
+   "k": "scorch",
+   "n": "그을린 언덕",
+   "lv": 33,
+   "town": "숯가마 마을"
+  },
+  {
+   "k": "starsea",
+   "n": "별이 언 바다",
+   "lv": 60,
+   "town": "얼음 등대 야영지"
+  },
+  {
+   "k": "thunder",
+   "n": "천둥 우는 첨봉",
+   "lv": 70,
+   "town": "뇌운 수도원"
+  },
+  {
+   "k": "roots",
+   "n": "대지의 뿌리",
+   "lv": 80,
+   "town": "뿌리 파수막"
+  },
+  {
+   "k": "eclipse",
+   "n": "빛이 꺼진 성역",
+   "lv": 88,
+   "town": "마지막 철야"
+  },
+  {
+   "k": "royal",
+   "n": "왕도 아르덴",
+   "lv": 16,
+   "town": "아르덴"
+  },
+  {
+   "k": "h29_reed",
+   "n": "달물결 갈대벌",
+   "lv": 70,
+   "town": "달물결 쉼터"
+  },
+  {
+   "k": "h29_kiln",
+   "n": "붉은 유리 황야",
+   "lv": 70,
+   "town": "유리길 초소"
+  },
+  {
+   "k": "h29_crystal",
+   "n": "푸른 맥 수정림",
+   "lv": 80,
+   "town": "푸른 맥 파수막"
+  },
+  {
+   "k": "h29_snow",
+   "n": "눈잠든 순례길",
+   "lv": 80,
+   "town": "눈잠 쉼터"
+  },
+  {
+   "k": "h29_bell",
+   "n": "메아리 없는 종원",
+   "lv": 90,
+   "town": "종원 지킴터"
+  },
+  {
+   "k": "h29_veil",
+   "n": "새벽 봉인의 벌판",
+   "lv": 90,
+   "town": "새벽 파수막"
+  },
+  {
+   "k": "ongi",
+   "n": "옹기여신의 설원",
+   "lv": 36,
+   "town": "옹기여신 성소"
+  }
+ ]
+}

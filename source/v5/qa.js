@@ -193,7 +193,7 @@ function qChanTable0(){const rows=[];const NOALT=new Set(['summon','orbit','armo
       rows.push({id,heal:1,mine,alt,altId,ratio:alt>0?mine/alt:99,mult:s0.heal});continue}
     const single=qCHAN_SINGLE(id);const candidates=Object.keys(SPELLS).filter(k=>SPELLS[k].cls===s0.cls&&SPELLS[k].rank===s0.rank&&k!==id&&!chanOf(k)&&isDmg(SPELLS[k])&&!NOALT.has(SPELLS[k].kind)&&!SPELLS[k].aspd);P.sk={[id]:10};/* 두 쪽 모두 해당 기술 10점만 두고 비교한다. 후보마다 점수가 쌓여 한쪽에만 시너지가 붙지 않게. 기준 1.25배는 그대로. */const T=chanPlan(id,10).dur+(typeof recOf==='function'?recOf(id):0),mine=qChanDmg(id,single)/T;let alt=0,altId='';
     for(const k of candidates){
-      qPrep(s0.cls,{lvl:60});/* v35: 후보마다 새 캐릭터 — 앞 후보가 남긴 장비(보조 무기 등)가 다음 후보 피해를 올려 표가 순서에 따라 흔들렸음 (꿰뚫는 창 1,900 ↔ 2,300) */P.sk={[k]:10};const v=qChanDmg(k,single)/qCycle(k);if(v>alt){alt=v;altId=k}}
+      qPrep(s0.cls,{lvl:60});/* v36: 후보마다 새 캐릭터 — 앞 후보가 남긴 장비(보조 무기 등)가 다음 후보 피해를 올려 표가 순서에 따라 흔들렸음 (꿰뚫는 창 1,900 ↔ 2,300) */P.sk={[k]:10};const v=qChanDmg(k,single)/qCycle(k);if(v>alt){alt=v;altId=k}}
     rows.push({id,single,mine,alt,altId,ratio:alt>0?mine/alt:99,mult:s0.mult})}
   qClear();return rows}
 qT('채널링 균형','채널링 마법은 같은 시간 동안 같은 위계·같은 직업의 채널링 아닌 가장 센 공격보다 피해가 1.25배 이상',()=>{const rows=qChanTable();
@@ -1107,7 +1107,7 @@ qT('월드','지역 의뢰: 선행(req) 전엔 잠김 · 끝나면 열림 · 채
   for(const d of sp){qOk(wxCanReach(ok,d.x,d.y),'못 닿는 채집 자리');const L=sqUseLive(d);if(sqAllDone(g2))break;qOk(L&&/캐기|줍기/.test(L.label),`라벨 ${L&&L.label}`);P.x=d.x;P.y=d.y+30;qStep(1,{render:false});
     qOk(act==='tw_use'||sqUseLive(d),'채집 자리 act 없음');sqUse(d)}
   qOk(sqAllDone(g2),'채집이 안 끝남');const m=sqMarks(false);qStep(2);loadRegion('home');return `자리 ${sp.length}곳 · 표시 ${m.length}`});
-qT('월드','지역 마을 의뢰 60개(+v30 새 사냥터 24개): 주는 사람 · 받는 사람이 마을에 있고, 목표 자리가 있고 닿음 (던전/둥지/채집)',()=>{qPrep('mage',{lvl:60});qOk(WX_SQ.length===60+Q30_SQ.length&&Q30_SQ.length===24,`${WX_SQ.length}개`);const bad=[],kinds={};
+qT('월드','지역 마을 의뢰 60개(+v30 새 사냥터 24개 · v36 지역 의뢰): 주는 사람 · 받는 사람이 마을에 있고, 목표 자리가 있고 닿음 (던전/둥지/채집)',()=>{qPrep('mage',{lvl:60});qOk(WX_SQ.length===60+Q30_SQ.length+Q36_SQ.length&&Q30_SQ.length===24,`${WX_SQ.length}개`);const bad=[],kinds={};
   for(const q of WX_SQ){const T=ALLTOWNS.find(t=>t.id===q.town);if(!T){bad.push(q.id+' 마을 없음');continue}kinds[q.kind]=(kinds[q.kind]||0)+1;
     {const f=sqFolk(q.giver),g=sqFolk(sqTurn(q));if(!f||f.town!==T)bad.push(`${q.id}: 주는 사람 ${q.giver} 없음`);if(!g||!ALLTOWNS.includes(g.town))bad.push(`${q.id}: 받는 사람 ${sqTurn(q)} 없음`)}
     P.lvl=Math.max(60,q.lvl|0);const s=sqState();if(q.req)s.d[q.req]=1;s.a={};qOk(sqAvail(q)==='ok',`${q.id} ${sqAvail(q)}`);sqAccept(q.id);
@@ -1982,12 +1982,12 @@ qT('책 v20','얻는 곳: 아르덴 잡화점(책 칸 · 금화) · 던전 주�
 const h2i=h=>{const i=h.indexOf('<h2>반지와 목걸이');return i<0?1e9:i};
 qT('책 v20','읽기 쪽지 · 서고 창이 휴대폰 폭(390)에 맞음 · 게임을 멈추지 않음',()=>{qPrep('mage',{lvl:10});bookGain('w8');const r=BKC.getBoundingClientRect(),cs=getComputedStyle(BKC);qOk(!BKC.hidden&&r.width<=Math.min(440,innerWidth-24)+1,`쪽지 폭 ${r.width}`);qOk(cs.position==='fixed'&&cs.overflowY==='auto','쪽지 스크롤');
   qOk(!paused,'쪽지가 게임을 멈춤');bkT=.05;qStep(6);qOk(BKC.hidden,'쪽지가 저절로 닫히지 않음');openCodex();cxSub='books';renderPanel();qOk(pbody.innerHTML.includes('밤마다 골목이 바뀌는 도시'),'서고에 읽은 책 없음');cxSub='items';qClosePanels();return '440px 이하 · 22초 뒤 닫힘'});
-qT('현상금 v20','게시판 13곳(헤이븐 + 지역 12) · 걸어서 닿고 마을 사람과 안 겹침 · 날짜+게시판이 같으면 같은 현상금 · 셋 모두 다른 몬스터',()=>{qPrep('archer',{lvl:40});const ids=Object.keys(BTY_BOARDS);qOk(ids.length===13,'게시판 '+ids.length);
+qT('현상금 v20','게시판 28곳(v20 13곳 + v36 15곳) · 걸어서 닿고 마을 사람과 안 겹침 · 날짜+게시판이 같으면 같은 현상금 · 셋 모두 다른 몬스터',()=>{qPrep('archer',{lvl:40});const ids=Object.keys(BTY_BOARDS);qOk(ids.length===28,'게시판 '+ids.length);
   for(const id of ids){const d=BTY_PROP[id];qOk(d,id+' 게시판 없음');const t=v20Town(id),L=v20L(t.reg||'home');qOk(L.decor.includes(d),id+' 장식에 없음');const Pt=wxTownParts(L,t);
     for(const f of Pt.folk)qOk(Math.hypot(f.hx-d.x,f.hy-d.y)>=WXT.npc,`${id} 게시판이 ${f.n}와 겹침`);if(L.lq){const ok=L.okT||(L.okT=wxReach(L.lq,t.x,t.y));qOk(wxCanReach(ok,d.x,d.y),id+' 게시판에 못 닿음')}
     qOk(sqUseLive(d)&&/현상금 게시판/.test(sqUseLive(d).label),id+' 라벨');const a=btyToday('2026-10-08',id),b=btyToday('2026-10-08',id),c=btyToday('2026-10-09',id);
     qOk(JSON.stringify(a)===JSON.stringify(b),id+' 같은 날 다름');qOk(a.length===3&&new Set(a.map(x=>x.k)).size===3,id+' 셋');qOk(JSON.stringify(a)!==JSON.stringify(c),id+' 날이 바뀌어도 같음');for(const x of a)qOk(TYPES[x.k],x.k)}
-  sqUse(BTY_PROP.haven);qOk(!panel.hidden&&tab==='quest'&&pbody.innerHTML.includes('오늘의 현상금')&&(pbody.innerHTML.match(/data-v20a="btytake"/g)||[]).length===3,'게시판 창');qClosePanels();return '13곳'});
+  sqUse(BTY_PROP.haven);qOk(!panel.hidden&&tab==='quest'&&pbody.innerHTML.includes('오늘의 현상금')&&(pbody.innerHTML.match(/data-v20a="btytake"/g)||[]).length===3,'게시판 창');qClosePanels();return ids.length+'곳'});
 qT('현상금 v20','받기 → 지도 고리 · 가까이 가면 나타남(생명력 ×7 · 피해 ×1.4 · 크기 ×1.45 · 들판 기준) · 잡으면 증표 +1 · 알림판 · 일지',()=>{qPrep('archer',{lvl:20});loadRegion('home');const s=btyState(),b=btyToday(s.day,'haven')[0];
   V20A.btytake(b.id);qOk(btyActive().length===1,'받지 못함');qOk(sqMarks(false).some(m=>m.col==='#ffb05a'&&m.kind==='ring'),'지도 고리 없음');qOk(sqHudBlocks().some(x=>x.t.includes('현상금')),'알림판 없음');qOk(sqLogHtml().includes(btyName(b)),'일지 없음');
   const sp=btySpot(b);qOk(sp&&!sp.rough&&!blockedAt(sp.x,sp.y),'자리 없음');{let f=null;for(let a=0;a<6.283&&!f;a+=.3){const x=sp.x+Math.cos(a)*800,y=sp.y+Math.sin(a)*800;if(!blockedAt(x,y)&&!blockedAt(x+30,y)&&!blockedAt(x-30,y))f={x,y}}qOk(f,'먼 자리 없음');P.x=f.x;P.y=f.y}qStep(20);qOk(!btyLive(b.id),`멀리서 나타남 ${Math.round(Math.hypot(P.x-sp.x,P.y-sp.y))} ${REG.id}/${sp.reg} ${btyLive(b.id)&&Math.round(Math.hypot(btyLive(b.id).x-sp.x,btyLive(b.id).y-sp.y))}`);P.x=sp.x+100;P.y=sp.y;qStep(20);const e=btyLive(b.id);qOk(e,'가까이 가도 안 나타남');
@@ -3261,7 +3261,8 @@ qT(QQ22,'1막 12개를 차례로 끝까지: 목표 자리가 늘 있고(입구 �
     qOk(P.q.st===2,q.t+' 완료 아님');questFinish();r.push(q.t)}qOk(P.q.i===12,'1막 끝 아님');return r.length+'개'}finally{qClosePanels()}});
 qT(QQ22,'겹치는 반복 목표(같은 들판 몬스터 N마리 · 그 몬스터 전리품) 줄임: 직업마다 앞 → 뒤',()=>{qPrep('mage',{lvl:30});
   const B={mage:{grind:51,pair:2,dup:12},priest:{grind:52,pair:2,dup:14},warrior:{grind:52,pair:2,dup:11},archer:{grind:52,pair:2,dup:12}},r=[];let b0=0,a0=0;
-  for(const c in B){const a=q22Rep(c),b=B[c];b0+=b.grind;a0+=a.grind;qOk(a.pair===0,`${c} 잡고 또 그 전리품 ${a.pair}`);qOk(a.dup<=2,`${c} 겹침 ${a.dup} ${a.dl.join(' ')}`);qOk(a.grind<=b.grind-8&&a.grind>=Math.round(a.vis*.15),`${c} 반복 목표 의뢰 ${b.grind}→${a.grind}`);
+  const s36=new Set(typeof Q36_SQ==='object'?Q36_SQ.map(q=>q.id):[]);/* v36: 주인이 잡기 · 모으기를 다른 의뢰와 고루 섞어 달라 함 → v22 줄인 것(옛 의뢰)은 그대로 보고, 전체에서 잡기 · 모으기가 40%를 넘지 않음 */
+  for(const c in B){const A=q22Rep(c),a=q22Rep(c,s36),b=B[c];b0+=b.grind;a0+=a.grind;qOk(A.pair===0,`${c} 잡고 또 그 전리품(v36 포함) ${A.pair}`);qOk(A.dup<=2,`${c} 겹침(v36 포함) ${A.dup} ${A.dl.join(' ')}`);qOk(A.grind<=A.vis*.4,`${c} 반복 목표 비율 ${A.grind}/${A.vis}`);qOk(a.pair===0,`${c} 잡고 또 그 전리품 ${a.pair}`);qOk(a.dup<=2,`${c} 겹침 ${a.dup} ${a.dl.join(' ')}`);qOk(a.grind<=b.grind-8&&a.grind>=Math.round(a.vis*.15),`${c} 반복 목표 의뢰 ${b.grind}→${a.grind}`);
     r.push(`${c} 반복 ${b.grind}→${a.grind}/${a.vis} · 겹침 ${b.dup}→${a.dup} · 잡고+전리품 ${b.pair}→${a.pair}`)}
   return r.join(' | ')+` · 합 ${b0}→${a0} (${Math.round((1-a0/b0)*100)}% 줄임)`});
 qT(QQ22,'의뢰 스킬 포인트 합은 그대로 (메인 6 · 직업마다 마을/시험/전직 28) · 바꾼 의뢰의 보상 그대로',()=>{qPrep('mage',{lvl:30});const m=QUESTS.reduce((a,q)=>a+(q.rw.sp|0),0);qOk(m===6,'메인 '+m);
@@ -5339,8 +5340,8 @@ qT('이펙트 v31','같이 하기: 동료 마법사가 쓴 13가지 모양이 �
     const ok=out.filter(x=>x.endsWith('✓')).length;qOk(ok>=10,'동료 시전 새 그림이 적음 '+out.join(' '));return out.join(' ')}
   finally{qPeerOff()}}));
 qT('이펙트 v31','스킬 짝: 그림이 있는 스킬 81개가 모두 마법사의 실제 스킬이고 모양(종류)이 그림과 맞음 · 그림 없는 스킬은 예전 그대로(짝 없음) · 띠 이름이 묶음 이름과 맞음',()=>{
-  const ids=Object.keys(FX31.M),KIND={bolt:['bolt'],cone:['cone'],nova:['nova'],shield:['shield'],chain:['chain'],orbit:['orbit'],blink:['blink'],beam:['beam'],field:['field'],armor:['armor'],rain:['rain','storm'],heal:['heal'],strike:['strike'],summon:['summon','recall','clone'],
-    aura:['invuln','buff','ward'],burst:['detonate','fuse'],wave:['wave'],gale:['gale'],spchain:['spchain'],trap:['trap']};/* v33: 궁수 짝 · 새 그리는 방식 */
+  const ids=Object.keys(FX31.M),KIND={bolt:['bolt','homing'],cone:['cone'],nova:['nova'],shield:['shield'],chain:['chain'],orbit:['orbit'],blink:['blink'],beam:['beam'],field:['field'],armor:['armor'],rain:['rain','storm'],heal:['heal'],strike:['strike'],summon:['summon','recall','clone'],
+    aura:['invuln','buff','ward'],burst:['detonate','fuse'],wave:['wave'],gale:['gale'],spchain:['spchain'],trap:['trap'],zap:['storm']};/* v33: 궁수 짝 · 새 그리는 방식 · v36: 벼락(zap) · 휘는 화살(homing 기술은 화살 그림) */
   qOk(ids.length>=81,'짝 수 '+ids.length);for(const id of ids){const s=SPELLS[id],m=FX31.M[id];qOk(s&&s.cls===m.c&&(m.c==='mage'||m.c==='archer'),id+' 짝 직업이 다름');qOk(s&&KIND[m.k]&&KIND[m.k].includes(s.kind),id+' 모양 다름 '+(s&&s.kind)+'/'+m.k);
     qOk(m.b.includes('_'+m.c+'_'+m.pk.split('-')[1]+'_')&&m.pk.startsWith(m.c+'-')&&(!m.i||m.i.replace('_2_','_1_')===m.b),id+' 띠 이름 '+m.b)}
   const keep=Object.values(SPELLS).filter(s=>!FX31.M[s.id]).length;qOk(!FX31.M.slash&&!FX31.M.heal&&!Object.keys(FX31.M).some(id=>SPELLS[id]&&(SPELLS[id].cls==='warrior'||SPELLS[id].cls==='priest')),'전사·사제 스킬에 짝');
@@ -5579,8 +5580,8 @@ qT('이펙트 v33','짝: 마법사 새 29가지(솔라 레이~서클 오브 엔�
   for(const id of MG)qOk(FX31.M[id]&&FX31.M[id].c==='mage'&&SPELLS[id].cls==='mage',id+' 짝 없음');
   const AR={'archer-phys':['quickshot','fanshot','fulldraw','streamshot','oneshot','hawkeye','snaretrap','abysstrap','evaderoll','shadowstep'],'archer-fire':['flamearrow','burstarrow','trinityarrow']};
   for(const pk in AR)for(const id of AR[pk])qOk(FX31.M[id]&&FX31.M[id].pk===pk&&SPELLS[id].cls==='archer',id+' 궁수 짝 '+(FX31.M[id]&&FX31.M[id].pk));
-  const n=k=>Object.values(FX31.M).filter(m=>m.c==='archer'&&m.f===k).length;qOk(n('bolt')===19&&n('trap')===9&&n('buff')===13&&n('blink')===3,'궁수 짝 수 '+[n('bolt'),n('trap'),n('buff'),n('blink')]);
-  qOk(Object.keys(FX31.M).length===165,'짝 수 '+Object.keys(FX31.M).length);return `짝 ${Object.keys(FX31.M).length} (마법사 ${Object.values(FX31.M).filter(m=>m.c==='mage').length} · 궁수 ${Object.values(FX31.M).filter(m=>m.c==='archer').length})`});
+  const n=k=>Object.values(FX31.M).filter(m=>m.c==='archer'&&m.f===k).length;/* v36: 궁수 새 그림 24가지가 더해져 화살 21 · 덫 11, 전체 189 */qOk(n('bolt')===21&&n('trap')===11&&n('buff')===13&&n('blink')===3,'궁수 짝 수 '+[n('bolt'),n('trap'),n('buff'),n('blink')]);
+  qOk(Object.keys(FX31.M).length===189,'짝 수 '+Object.keys(FX31.M).length);return `짝 ${Object.keys(FX31.M).length} (마법사 ${Object.values(FX31.M).filter(m=>m.c==='mage').length} · 궁수 ${Object.values(FX31.M).filter(m=>m.c==='archer').length})`});
 qT('이펙트 v33','그림 묶음이 있을 때: 새 그리는 방식(몸 둘레 빛 · 크게 터짐 · 물벽 · 태풍 · 정령 사슬 · 덫 · 화살 · 구르기)이 새 그림으로 · 무적 빛은 무적이 끝나면 사라짐 · 같이 하기 오류 0',()=>qFX31(()=>{FX31.P=qFX31Fake();const out=[];
   const run=(cls,id,n,pre)=>{qPrep(cls,{lvl:140});P.sk[id]=10;P.x=QA_SPOT.x;P.y=QA_SPOT.y;followCam();if(MPJ){MPJ.waves.length=0;MPJ.gales.length=0;MPJ.chain=null}traps.length=0;FX31.inst=[];
     if(cls==='archer'&&typeof clsGearFor==='function')clsGearFor(id);if(pre)pre();const e=qDummy(P.x+170,P.y+30,{lvl:140});const d0=FX31.n.draw;qCast(id,{x:e.x,y:e.y});qStep(n||30,{renderEvery:2,each:()=>{P.mp=maxMp()}});const d=FX31.n.draw-d0;out.push(id+' '+d);qOk(d>0,id+' 새 그림이 안 그려짐');return e};
@@ -5752,6 +5753,7 @@ qT(QA35,'지키기 원: 원(반지름 450, 예전 그림 150의 3배) 안에서�
     // 원 밖(600)에 3초 나갔다가 돌아오면 이어짐
     P.x=w.x+600;P.y=w.y;q30Tk(90);qOk(Q30Q.Q30.run.h30r2===run&&run.out>2.5,'원 밖 3초에 끊김 '+(run.out||0).toFixed(1));P.x=w.x+100;P.y=w.y;q30Tk(3);qOk(Q30Q.Q30.run.h30r2===run&&!run.out,'돌아와도 밖으로 침');
     // 몬스터가 원 바깥에서 나옴
+    /* v36: 이미 6마리가 살아 있으면 새로 안 나옴(무작위로 가끔) → 먼저 치움 */for(const e of enemies)if(e.q30w==='h30r2'){e.hp=0;e.dead=true}
     const before=new Set(enemies);run.wv=0;q30Tk(2);const nw=enemies.filter(e=>!before.has(e)&&e.q30w==='h30r2');qOk(nw.length>0,'몬스터가 안 나옴');qOk(nw.every(e=>Math.hypot(e.x-w.x,e.y-w.y)>DEF35.zone),'원 안에서 나옴 '+nw.map(e=>Math.round(Math.hypot(e.x-w.x,e.y-w.y))).join(','));
     // 원 그림: 반지름 450 → 화면 반폭 약 477
     const m=Q30Q.Q30.mo.get('h30r2/ward');qOk(m&&m.on,'표시 없음');let big=0;const el=ctx.ellipse;ctx.ellipse=function(x,y,rx){if(rx>=DEF35.zone)big++;return el.apply(this,arguments)};try{m._s={x:400,y:300};drawRegionDecor(m)}finally{ctx.ellipse=el}qOk(big>0,'큰 원을 안 그림');
@@ -5784,6 +5786,63 @@ qT(QA35,'시전 중 다른 기술: 시전을 끝까지 마치고 바로 그 기�
   qClear();P.mp=maxMp();P.cd={};P.x=QA_SPOT.x;P.y=QA_SPOT.y;P.pot.tp=Math.max(1,tpCount());tryCast('meteor',e);qStep(10,{render:false});tryCast('spark',e);useScroll();
   qOk(!CAST.cur&&!CAST.q&&TPC,'귀환을 폈는데 시전 · 기다림이 남거나 귀환이 안 펴짐');TPC=null;qStep(80,{render:false});qOk(!(P.cd.spark>0)&&!(P.cd.meteor>0),'귀환으로 취소했는데 나감');
   return `메테오 ${tM} → 스파크 ${tS}프레임 · 채널링 뒤 · 움직임 · 귀환 취소`});
+const QA36='새 기능 v36';
+qT(QA36,'현상금 게시판: 브렌힐 · 아르덴 말고 모든 마을에 게시판 · 고레벨 지역도 날마다 그 지역 몬스터 셋 · 게시판이 마을에 서 있음 · 받으면 그 지역에 나타남',()=>{qPrep('mage',{lvl:95});const miss=[],bad=[];
+  for(const t of ALLTOWNS){if(t.id==='brenhill'||t.id==='arden')continue;const B=BTY_BOARDS[t.id];if(!B){miss.push(t.n);continue}
+    const L=btyToday(v20Day(),t.id);if(L.length!==3||!L.every(b=>TYPES[b.k]&&B.mobs.includes(b.k)))bad.push(t.n+' 오늘 '+L.length);if(!BTY_PROP[t.id])bad.push(t.n+' 게시판 없음')}
+  qOk(!miss.length,'게시판 없는 마을: '+miss.join(', '));qOk(!bad.length,bad.join(', '));
+  for(const id of ['h29_bell_camp','lastvigil','stormcloister'])qOk(BTY_BOARDS[id]&&REGIONS[BTY_BOARDS[id].reg],'고레벨 '+id);
+  // 받아서 그 지역에서 나타나기
+  const s=btyState();s.took=[];s.done=[];const b=btyToday(v20Day(),'h29_bell_camp')[0];loadRegion('h29_bell');try{V20A.btytake(b.id);qOk(s.took.includes(b.id),'받기');const sp=btySpot(b);qOk(sp&&sp.reg==='h29_bell','자리 '+(sp&&sp.reg));
+    P.x=sp.x;P.y=sp.y;const e=btySpawn(b);qOk(e&&e.bty===b.id&&e.elite,'나타나지 않음');if(e){e.dead=true}}finally{s.took=[];loadRegion('home')}
+  return `게시판 ${Object.keys(BTY_BOARDS).length}곳`});
+qT(QA36,'마법 부여: 모든 부위에 한 줄만 · 다시 붙이면 바뀜 · 강한 옵션은 레벨 제한(개별 스킬 +1/10 · +2/35 · +3/60 · 계열 +1/60) · 모든 마법 레벨·발동·흡혈 없음 · 입었을 때만 능력치 · 저장에 남음',()=>{
+  const bad=[];for(const cls of ['mage','priest','warrior','archer']){const os=enOpts(cls);
+    if(os.some(o=>o.k==='all'||o.k.startsWith('proc_')||o.k==='ls'||o.k==='mk'||o.k==='dr'))bad.push(cls+' 금지 옵션');
+    if(!os.some(o=>o.k.startsWith('el_')||o.k==='pdmg'))bad.push(cls+' 원소/물리 없음');if(!os.some(o=>o.k.startsWith('tr_')&&o.lv>=60))bad.push(cls+' 계열 레벨');
+    if(os.some(o=>o.k.startsWith('sk_')&&isJ3(o.k.slice(3))))bad.push(cls+' 3차 기술')}
+  qOk(!bad.length,bad.join(', '));qOk(enVal('sk_spark',9)===0&&enVal('sk_spark',10)===1&&enVal('sk_spark',35)===2&&enVal('sk_spark',60)===3&&enVal('tr_0',59)===0&&enVal('tr_0',60)===1,'스킬 단계');
+  qOk(enVal('el_fire',60)<rollStat('el_fire',60)+5,'원소 값이 장비보다 큼');
+  qPrep('mage',{lvl:9});P.gold=1e6;const mk=sl=>{const it=QA_ITEM(uid++,sl,1,'시험 '+sl,9,sl==='staff'?{int:10}:{hp:50});return it};
+  const st=mk('staff');P.gear.staff=st;v20GsBump();gsKey='';qOk(/10레벨/.test(enWhy(st,'sk_spark')),'9레벨인데 스킬 부여');qOk(enWhy(st,'el_fire')==='','9레벨 원소 부여 안 됨 '+enWhy(st,'el_fire'));
+  const g0=P.gold;qOk(enDo(st,'el_fire'),'부여 안 됨');qOk(P.gold<g0&&stat('el_fire')>=enVal('el_fire',9),'능력치에 안 더해짐 '+stat('el_fire'));
+  qOk(enDo(st,'mp'),'다시 부여');qOk(st.en.k==='mp'&&!(stat('el_fire')>0),'한 줄이 아님 '+JSON.stringify(st.en));
+  P.lvl=60;P.sk.spark=1;const L0=skLv('spark');qOk(enDo(st,'sk_spark')&&skLv('spark')===L0+3,'개별 +3 '+L0+'→'+skLv('spark'));
+  // 모든 부위
+  for(const sl of ['robe','hat','ring','ring2','amulet']){const it=mk(sl==='ring2'?'ring':sl);P.gear[sl]=it;qOk(enDo(it,'hp'),sl+' 부여 안 됨')}
+  // 가방에 있으면 더하지 않음
+  const bagIt=mk('ring');P.bag.push(bagIt);const h0=maxHp();enDo(bagIt,'hp');v20GsBump();gsKey='';qOk(maxHp()===h0,'가방 장비가 능력치에 더해짐');
+  // 저장
+  const d=JSON.parse(JSON.stringify(saveData()));qOk(d.gear.staff.en&&d.gear.staff.en.k==='sk_spark'&&d.gear.staff.en.v===3,'저장에 없음');
+  // 툴팁
+  qOk(/마법 부여/.test(statLine(st)),'툴팁 줄 없음');
+  // 가게
+  actTown=ALLTOWNS.find(t=>(t.shops||[]).some(x=>x.type==='weapon'));actShop='weapon';qOk(shopHtml().includes('마법 부여'),'무기상에 없음');actShop='general';qOk(!shopHtml().includes('v20box en36'),'잡화점에 보임');
+  return `원소 9레벨 ${enVal('el_fire',9)}% · 60레벨 개별 +3 · 계열 +1`});
+// v36 지역 의뢰: 분포 · 특색 의뢰 · 자료가 맞는지 · 걸어서 닿는지
+const Q36SP=new Set(['track','defend','ritual','riddle','chase','escort']);
+const q36Kinds=qs=>{const o={kill:0,collect:0,sp:new Set()};for(const q of qs)for(const g of q.goals){if(g.type==='kill')o.kill++;else if(g.type==='collect'||g.type==='gather')o.collect++;else if(Q36SP.has(g.type))o.sp.add(g.type)}return o};
+qT(QA36,'지역 의뢰: 의뢰가 없던 마을 9곳에 4개 넘게 · 브렌힐 말고 모든 마을에 의뢰 4개 넘게 · 20~99레벨 10레벨마다 잡기 · 모으기 · 특수 의뢰 2종 넘게 · 새 의뢰를 받은 마을마다 특색 의뢰 꼭 하나',()=>{qPrep('mage',{lvl:60});const bad=[];
+  const by={};for(const q of SQ)if(q.town&&!q.daily)(by[q.town]=by[q.town]||[]).push(q);
+  for(const id of ['pilgrimtent','keeperhouse','mistford','charkiln','frostlamp','stormcloister','rootwatch','lastvigil','ongi_camp'])if(!((by[id]||[]).length>=4))bad.push(id+' '+(by[id]||[]).length+'개');
+  for(const t of ALLTOWNS){if(t.id==='brenhill'||t.id==='arden')continue;if(!((by[t.id]||[]).length>=4))bad.push(t.id+' '+(by[t.id]||[]).length+'개')}
+  for(let b=20;b<100;b+=10){const k=q36Kinds(SQ.filter(q=>q.town&&q.lvl>=b&&q.lvl<b+10));if(!k.kill||!k.collect||k.sp.size<2)bad.push(`${b}~${b+9}: 잡기 ${k.kill} 모으기 ${k.collect} 특수 ${[...k.sp]}`)}
+  const tw=[...new Set(Q36_SQ.map(q=>q.town))];for(const id of tw){const s=Q36_SQ.filter(q=>q.town===id&&q.sig);if(s.length!==1)bad.push(id+' 특색 '+s.length);else{if(!/^특색/.test(s[0].kind))bad.push(s[0].id+' 이름표');if(s[0].goals.every(g=>g.type==='kill'||g.type==='collect'))bad.push(s[0].id+' 특색이 잡기/모으기')}}
+  qOk(!bad.length,bad.join(' / '));return `새 의뢰 ${Q36_SQ.length}개 · 마을 ${tw.length}곳 · 특색 ${Q36_SQ.filter(q=>q.sig).length}`});
+qT(QA36,'지역 의뢰 자료: 주는 사람이 그 마을에 있음 · 몬스터가 그 지역 것 · 수수께끼 정답 하나(보기 셋) · 봉인 순서가 돌을 한 번씩 · 흔적 · 돌 · 지킬 자리 · 달아나는 길이 모두 걸어서 닿음 · 새 마을 사람도 닿음 · 보상 공식',()=>{qPrep('mage',{lvl:100});const bad=[];let n=0;
+  for(const q of Q36_SQ){const T=ALLTOWNS.find(t=>t.id===q.town);if(!T){bad.push(q.id+' 마을 없음');continue}const f=sqFolk(q.giver);if(!f||f.town!==T)bad.push(q.id+' 주는 사람');
+    const mobs=(REGIONS[T.reg]||{}).mobs||[];if(q.req&&!SQBY[q.req])bad.push(q.id+' 앞 의뢰 없음');
+    if(q.rw.gold!==Math.round(q.lvl*q.lvl*.1+q.lvl*4))bad.push(q.id+' 금화 '+q.rw.gold);
+    for(const g of q.goals){if(g.k)for(const k of g.k)if(!TYPES[k]||!mobs.includes(k))bad.push(q.id+' 몬스터 '+k);
+      if(g.foe&&!TYPES[g.foe])bad.push(q.id+' 적 '+g.foe);for(const k of g.mobs||[])if(!TYPES[k])bad.push(q.id+' 몹 '+k);
+      if(g.type==='riddle'){if(g.npc!==q.giver)bad.push(q.id+' 묻는 사람');for(const r of g.qs)if(r[1].length!==3||!(r[2]>=0&&r[2]<=2)||new Set(r[1]).size!==3)bad.push(q.id+' 물음 '+r[0])}
+      if(g.type==='ritual'&&(g.order.length!==g.stones.length||[...g.order].sort().join()!==g.stones.map((_,i)=>i).join()||g.n!==g.stones.length))bad.push(q.id+' 봉인 순서');
+      if(g.type==='track'&&g.n!==g.steps.length+1)bad.push(q.id+' 추적 셈');
+      if(g.reg&&g.reg!=='home'){if(!REGIONS[g.reg]||!RCACHE[g.reg]){bad.push(q.id+' 지역 '+g.reg);continue}const ok=terrReach(g.reg),b=g.from?ALLTOWNS.find(t=>t.id===g.from):RCACHE[g.reg].town;
+        const pts=[...(g.steps||[]),...(g.at?[g.at]:[]),...(g.stones||[]),...(g.path||[]),...(g.start?[g.start]:[])];
+        for(const a of pts){const r=a[0]*Math.PI/180,x=clamp(b.x+Math.cos(r)*a[1],150,WORLD-150),y=clamp(b.y+Math.sin(r)*a[1],150,WORLD-150);n++;if(!wxCanReach(ok,x,y))bad.push(q.id+' 못 닿음 '+JSON.stringify(a.slice(0,2)))}}}}
+  for(const id in Q36_FOLK){const f=sqFolk(id);if(!f||!f.town){bad.push(id+' 마을 사람 없음');continue}const ok=terrReach(f.town.reg);n++;if(!wxCanReach(ok,f.hx,f.hy))bad.push(id+' 못 닿음')}
+  qOk(!bad.length,bad.slice(0,12).join(' / '));return `${Q36_SQ.length}개 · 자리 ${n}곳`});
 /* v35: 마법사 스킬 이펙트 그림 — 같이 하기 서버(server.js)가 v31~v34 동안 img/fx-*.js를 404로 막아, 그 주소로 하면 그림이 하나도 안 나왔음.
    서버 쪽은 apptest 「img 그림 파일 모두 받아짐」이 실제 서버로 확인. 여기서는 게임 쪽: 빠진 마법사 기술 0 · 받는 이름이 서버 규칙 안 · 모든 기술이 그림으로 그려짐 */
 qT('이펙트 v35','마법사 기술 그림 빠짐 없음: 지속 효과(패시브)를 뺀 모든 마법사 기술에 그림 짝이 있고 · 그림 묶음 이름이 같이 하기 서버가 내주는 이름(img/flare-·fx- + 소문자·숫자·-·_)에 맞고 · 묶음이 있으면 기술마다 실제로 새 그림이 그려짐',()=>qFX31(()=>{
@@ -5798,6 +5857,23 @@ qT('이펙트 v35','마법사 기술 그림 빠짐 없음: 지속 효과(패시�
     for(let i=0;i<40&&FX31.n.draw===d0;i++)qStep(4,{renderEvery:2,each:()=>{P.mp=maxMp()}});if(FX31.n.draw===d0)none.push(s.n)}
   qOk(!none.length,'새 그림이 안 그려진 기술: '+none.join(', '));
   return '마법사 기술 '+mage.length+'가지 모두 그림 짝 · 그려짐(모으기 '+chg.length+'가지는 v33에서) · 묶음 '+pks.length+'개 이름 서버 규칙 안'}));
+qT('이펙트 v36','궁수 새 그림 24가지: 짝이 실제 궁수 기술이고 · 묶음 4개(fx-archer-phys/fire/ice/storm) 이름이 서버 규칙 안 · 묶음이 있으면 기술마다 자기 그림이 실제로 그려짐(시킹 샤프트 · 헌팅 그라운드 · 나이트 헌트 포함) · 썬더스톰 애로우는 하늘 번개 줄기를 남기고 땅 벼락 그림을 더함 · 그림이 바뀐 윈드 애로우 · 애로우 펜스 · 보우 오브 헤븐은 짝 없음',()=>qFX31(()=>{
+  const NEW='falcon wolfcall icearrow glacialarrow firetrap caltrops smoke lure arrowvortex huntground nighthunt frosttrap falcondive apexhunt drivehunt ricochet arrowrain skyvolley thunderarrow siegeshot wildrun detonate earthbind curvingshot'.split(' ');
+  for(const id of NEW)qOk(FX31.M[id]&&FX31.M[id].c==='archer'&&SPELLS[id]&&SPELLS[id].cls==='archer',id+' 궁수 짝 없음');
+  for(const id of ['shockarrow','elemrain','heavenbow'])qOk(!FX31.M[id],id+' 모양이 바뀐 기술에 예전 그림 짝');
+  const pks=[...new Set(NEW.map(id=>FX31.M[id].pk))].sort();qOk(pks.join()==='archer-fire,archer-ice,archer-phys,archer-storm','묶음 '+pks.join());
+  qOk(pks.every(pk=>/^(?:flare|fx)-[a-z0-9_-]+\.js$/.test('fx-'+pk+'.js')),'서버가 안 내주는 이름');
+  FX31.P=qFX31Fake();const none=[],out=[];let own=null,last=null,nOwn=0;const _fr=FX31.fr,_im=FX31.img;
+  FX31.fr=function(PK,st){last=st;return _fr.apply(this,arguments)};FX31.img=function(c,PK,f){if(f&&own&&own.has(last))nOwn++;return _im.apply(this,arguments)};
+  try{for(const id of NEW){const s=SPELLS[id],m=FX31.M[id];qPrep('archer',{lvl:140});if(s.job3)qJob3On(s.job3);else if(s.job2)P.job2=s.job2;passT=-1;P.sk[id]=10;P.invT=1e9;
+      if(typeof clsGearFor==='function')clsGearFor(id);P.x=QA_SPOT.x;P.y=QA_SPOT.y;followCam();FX31.inst=[];own=new Set([m.b,m.i].filter(Boolean));nOwn=0;
+      const e=qDummy(P.x+170,P.y+30,{lvl:140});qDummy(P.x+230,P.y+80,{lvl:140});qCast(id,{x:e.x,y:e.y});
+      for(let i=0;i<60&&!nOwn;i++)qStep(4,{renderEvery:2,each:()=>{P.mp=maxMp()}});if(!nOwn)none.push(s.n)}}
+  finally{FX31.fr=_fr;FX31.img=_im}
+  qOk(!none.length,'자기 그림이 안 그려진 기술: '+none.join(', '));
+  qPrep('archer',{lvl:140});FX31.inst=[];const b0=bolts.length;skyHit(QA_SPOT.x+100,QA_SPOT.y,SPELLS.thunderarrow,1,60);
+  qOk(bolts.length>b0,'썬더스톰 애로우 하늘 번개 줄기가 빠짐');qOk(FX31.inst.some(o=>o.st===FX31.M.thunderarrow.b),'썬더스톰 애로우 땅 벼락 그림 없음');
+  return '궁수 새 짝 '+NEW.length+'가지 모두 그려짐 · 묶음 '+pks.join(' ')+' · 번개 줄기 + 벼락 그림'}));
 window.__QA_RUN=qaRun;
 setTimeout(()=>{qaRun().catch(e=>{window.__QA_RESULT={fatal:String(e&&e.stack||e),results:[],summary:{total:0,pass:0,fail:1}}})},120);
 }

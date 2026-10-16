@@ -17,7 +17,7 @@ Object.assign(WPOS,WX_WPOS);
 // 처치 목표가 있는 곳: 던전 준보스·보스 → 그 동굴, 둥지 우두머리 → 둥지, 지역 들판 몬스터 → 그 지역 들판
 const WXZ={};
 function wxRegZone(id,k){const L=RCACHE[id],T=L&&L.town,D=REGIONS[id];if(!T)return null;const t=TYPES[k],dd=SAFE+Math.max(0,(t.min||D.base)+1-D.base)*360+120,
-  ax=L.lair.x-T.x,ay=L.lair.y-T.y,l=Math.hypot(ax,ay)||1;let x=T.x+ax/l*dd,y=T.y+ay/l*dd;
+  Lr=L.lair||{x:WORLD/2,y:WORLD/2},/* v36: 둥지 없는 지역(새 사냥터 · 옹기 설원)은 지도 가운데 쪽으로 */ax0=Lr.x-T.x,ay0=Lr.y-T.y,far=Math.hypot(ax0,ay0)>60,ax=far?ax0:1,ay=far?ay0:0,l=Math.hypot(ax,ay)||1;let x=T.x+ax/l*dd,y=T.y+ay/l*dd;
   const ok=L.okT||(L.okT=wxReach(L.lq,T.x,T.y));// 섬 지역: 마을에서 걸어서 닿는 땅이 나올 때까지 마을 쪽으로
   for(let k2=0;k2<40&&L.lq&&(wxLiq(L,x,y)||!wxCanReach(ok,x,y));k2++){x+=(T.x-x)*.1;y+=(T.y-y)*.1}
   return{reg:id,x,y,label:`${D.n} 들판 · ${t.n} 출몰`,zone:1}}

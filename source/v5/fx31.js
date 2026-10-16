@@ -32,7 +32,13 @@ const FX31={P:{},want:{},busy:0,busyT:0,q:[],inst:[],nd:0,t:0,C:128,
     ['095','phys','bolt','quickshot trackmark fanshot piercearrow fulldraw streamshot weakspot tripleshot snipe splitarrow netshot deathmark windpierce shadowarrow exposeweak oneshot',0,'archer'],
     ['096','phys','buff','hawkeye camouflage huntinghorn deadeye survivor predatoreye imbue traptoss focus beastawaken shadowhide piercinggaze poisonshade','aura','archer'],
     ['097','phys','trap','snaretrap shrapneltrap trapfield beastcage blasttrap thorntrap dominion shadowtrap abysstrap',0,'archer'],
-    ['098','fire','bolt','flamearrow burstarrow trinityarrow',0,'archer'],['099','phys','blink','evaderoll backshot shadowstep',0,'archer']],
+    ['098','fire','bolt','flamearrow burstarrow trinityarrow',0,'archer'],['099','phys','blink','evaderoll backshot shadowstep',0,'archer'],
+    // v36: 궁수 22장(100~113). 윈드 애로우(shockarrow)는 바람 화살이 되어 번개 그림(103)을 쓰지 않음 · 애로우 펜스(elemrain) · 보우 오브 헤븐(heavenbow)은 모양이 바뀌어 새로 그리는 중
+    ['100','phys','summon','falcon wolfcall',0,'archer'],['101','ice','bolt','icearrow glacialarrow',0,'archer'],['102','fire','trap','firetrap',0,'archer'],
+    ['104','phys','field','caltrops smoke lure arrowvortex huntground nighthunt',0,'archer'],['105','ice','trap','frosttrap',0,'archer'],
+    ['106','phys','strike','falcondive apexhunt drivehunt',0,'archer'],['107','phys','chain','ricochet',0,'archer'],['108','phys','rain','arrowrain skyvolley',0,'archer'],
+    ['109','storm','strike','thunderarrow','zap','archer'],['110','phys','beam','siegeshot wildrun',0,'archer'],['111','phys','detonate','detonate','burst','archer'],
+    ['112','phys','nova','earthbind',0,'archer'],['113','phys','homing','curvingshot','bolt','archer']],
   TWO:new Set(['bolt','chain','beam','rain']),M:{},n:{draw:0,fall:0,evict:0,load:0},
   init(){for(const [no,el,f,ids,k0,c0] of this.T){const c=c0||'mage',k=k0||f,b=`fx_${no}_1_${c}_${el}_${f}`,i=no>'040'||this.TWO.has(k)?`fx_${no}_2_${c}_${el}_${f}`:null;// 띠 2번이 없으면 그 칸만 그리지 않는다
     for(const id of ids.split(' '))this.M[id]={k,f,c,b,i,pk:c+'-'+el}}},
@@ -112,11 +118,14 @@ FX31.cast=function(s,t,_o,sn){const o=P;const g=this.get(s.id);if(!g)return;cons
 {const _h=FXR.hit;FXR.hit=function(p){const g=p&&p.s&&FX31.get(p.s.id,false);if(!g||!g.m.i||!FX31.fr(g.PK,g.m.i))return _h.apply(this,arguments);
   const t=this.tier(p);FX31.add({st:g.m.i,pk:g.m.pk,x:p.x,y:p.y,z:p.z||0,d:[.26,.3,.36,.45,.6][t],sc:(g.m.c==='archer'?.32:.42)+.06*t+(p.s.aoe?.25:0),ax:64,ay:64});if(t>=3)decal(p.x,p.y,t>=4?34:22,p.s.el)}}
 // 하늘에서 떨어지는 것: 떨어지는 그림이 잠깐 내려오고 땅에 맞는 그림 (예전 번개 줄기·빛기둥·작은 불덩이 대신)
-{const _sh=skyHit;skyHit=function(x,y,s,dmg,rad,hitR){const g=s&&FX31.get(s.id);if(!g||g.m.k!=='rain')return _sh.apply(this,arguments);
+{const _sh=skyHit;skyHit=function(x,y,s,dmg,rad,hitR){const g=s&&FX31.get(s.id);if(!g||(g.m.k!=='rain'&&g.m.k!=='zap'))return _sh.apply(this,arguments);
   const n0={b:bolts.length,pl:pillars.length,pd:pend.length,p:parts.length,r:rings.length},r=_sh.apply(this,arguments);
-  bolts.length>n0.b&&bolts.splice(n0.b);pillars.length>n0.pl&&pillars.splice(n0.pl);for(let i=pend.length-1;i>=n0.pd;i--)if(pend[i].s&&pend[i].s.mini)pend.splice(i,1);
+  // v36: 벼락(zap)은 하늘에서 내려오는 예전 번개 줄기를 남기고, 땅에 맞는 자리에 그림을 더한다
+  if(g.m.k!=='zap'){bolts.length>n0.b&&bolts.splice(n0.b);pillars.length>n0.pl&&pillars.splice(n0.pl)}for(let i=pend.length-1;i>=n0.pd;i--)if(pend[i].s&&pend[i].s.mini)pend.splice(i,1);
   for(let i=rings.length-1;i>=n0.r;i--)if(!rings[i].faint)rings.splice(i,1);FX31.halve(n0.p);
-  const sc=Math.max(.45,Math.min(1.1,(rad||40)*2.4/FX31.C));FX31.add({st:g.m.b,st2:g.m.i,pk:g.m.pk,x,y,z:0,d:.5,fall:.14,sc,ax:64,ay:64});FX31.n.fall++;return r}}
+  const sc=Math.max(.45,Math.min(1.1,(rad||40)*2.4/FX31.C));
+  // v36: 내리치는 그림 한 장만 있는 것(궁수 썬더스톰 애로우): 떨어지는 칸 없이 그 자리에 벼락 한 번
+  if(g.m.k==='zap')FX31.add({st:g.m.b,pk:g.m.pk,x,y,z:0,d:.45,sc:Math.max(.8,Math.min(1.6,(rad||60)*2.6/FX31.C)),ax:64,ay:108});else FX31.add({st:g.m.b,st2:g.m.i,pk:g.m.pk,x,y,z:0,d:.5,fall:.14,sc,ax:64,ay:64});FX31.n.fall++;return r}}
 // 번개 줄기(연쇄): 그림 줄기를 두 점 사이에 늘여 붙인다. 광선과 같이 생긴 예전 번개는 숨긴다
 {const _db=drawBolt;drawBolt=function(b){if(b.hid31&&FX31.on())return;const m=b.a31,PK=m&&FX31.P[m.pk];if(!m||!PK||!FX31.on())return _db.apply(this,arguments);if(b.delay>0)return;
   const F=FX31.fr(PK,m.b);if(!F)return _db.apply(this,arguments);const A=P3(b.a),B=P3(b.b),L=Math.hypot(B.x-A.x,B.y-A.y);if(L<2)return;
@@ -137,7 +146,8 @@ FX31.cast=function(s,t,_o,sn){const o=P;const g=this.get(s.id);if(!g)return;cons
 // 땅에 깔리는 것(장판·고리): 시전 표시 바로 다음, 장판 테두리 아래
 {const _cd=castDraw;castDraw=function(){_cd.apply(this,arguments);if(!FX31.on())return;try{S();FX31.drawGround(ctx,W2S)}catch(err){if(window.__QA)throw err}finally{G();ctx.globalCompositeOperation='lighter';ctx.globalAlpha=1}}}
 FX31.drawGround=function(c,map){c.globalCompositeOperation='source-over';
-  for(const f of fields){const m=f.a31,PK=m&&this.P[m.pk];if(!PK)continue;const F=this.fr(PK,m.b);if(!F)continue;const s=map(f.x,f.y),sc=this.isoK(f.rad,.93);if(!FXL.lod(s.x,s.y,f.rad*1.2))continue;PK.used=this.now();
+  // v36: 3차 궁수 경계(헌팅 그라운드 · 나이트 헌트)는 따로 그리는 동안 fields에서 잠깐 빠지고(jwFields) 시전 앞뒤를 거치지 않아, 여기서 짝을 붙인다
+  for(const f of (typeof jwFields==='function'?jwFields():fields)){if(!f.a31&&f.s&&f.s.j3wa){const g=this.get(f.s.id);if(g&&g.m.k==='field')f.a31=g.m}const m=f.a31,PK=m&&this.P[m.pk];if(!PK)continue;const F=this.fr(PK,m.b);if(!F)continue;const s=map(f.x,f.y),sc=this.isoK(f.rad,.93);if(!FXL.lod(s.x,s.y,f.rad*1.2))continue;PK.used=this.now();
     const fade=Math.min(1,f.t*2,(f.max-f.t)*4);this.img(c,PK,F[this.loopK(F,7,f.x*.01)],s.x,s.y,64,64,sc,sc,0,.95*fade*Math.max(.45,Math.min(1,260/(f.rad||100))))}// v33: 아주 넓은 장판은 옅게
   for(const o of this.inst)if(o.z===0&&!o.fall&&o.ay===64)this.one(c,o,map);c.globalAlpha=1};
 FX31.drawAir=function(c,map){c.globalCompositeOperation='source-over';
@@ -173,4 +183,7 @@ if(typeof mpChainTick==='function'){const _t=mpChainTick;mpChainTick=function(dt
   FX31.img(c,g.PK,F[0],p.x,p.y,64,74,.5*kk,.5*kk,0,Math.min(1,life*2)*(on?1:.6+.2*Math.sin(now*12)));c.globalAlpha=1}}
 queueMicrotask(()=>{if(typeof PFX==='undefined')return;const _t=PFX.trap;PFX.trap=function(tr,ev){const r=_t.apply(this,arguments);
   if(ev==='boom'&&tr&&tr.s){const g=FX31.get(tr.s.id,false);if(g&&g.m.k==='trap'&&FX31.fr(g.PK,g.m.i))FX31.add({st:g.m.i,pk:g.m.pk,x:tr.x,y:tr.y,z:1,d:.5,sc:Math.max(.6,Math.min(2,(tr.s.rad||70)*2.2/FX31.C)),ax:64,ay:64})}return r}});
+// v36: 3차 궁수 「시킹 샤프트」(휘는 마탄)는 투사체가 아니라 J3W.hom — 머리에 화살 그림 (꼬리 선은 그대로)
+if(typeof jwUpright==='function'){const _ju=jwUpright;jwUpright=function(c,map){const r=_ju.apply(this,arguments);try{if(J3W.hom.length&&FX31.on()){const g=FX31.get('curvingshot'),F=g&&FX31.fr(g.PK,g.m.b);
+  if(F){c.globalCompositeOperation='source-over';for(const h of J3W.hom){const s=map(h.x,h.y);if(!FXL.lod(s.x,s.y-22,40))continue;const f=F[h.life>4.3?1:2],sc=.45;FX31.img(c,g.PK,f,s.x,s.y-22,f[4]+f[2]*.72,f[5]+f[3]/2,sc,sc,FX31.scrAng(h.a),1)}c.globalCompositeOperation='lighter';c.globalAlpha=1}}}catch(err){if(window.__QA)throw err}return r}}
 window.__fx31=FX31;

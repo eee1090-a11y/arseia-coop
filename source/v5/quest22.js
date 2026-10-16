@@ -82,8 +82,8 @@ const q22PreClean=v=>{const o={};if(v&&typeof v==='object'&&!Array.isArray(v))fo
 // #qa 도움: 겹치는 임무 세기 (직업마다 보이는 의뢰: 메인 + 마을 의뢰 + 그 직업의 시험·전직)
 // 「반복 목표」 = 들판 몬스터 한 종류만 5마리 이상 잡거나 그 몬스터의 전리품을 모으는 목표.
 // 겹침 = 같은 몬스터가 두 의뢰 이상의 반복 목표에 나옴(두 번째부터 셈) · 한 의뢰 안에서 같은 몬스터를 잡고 또 그 전리품을 모음
-function q22Rep(cls){const field=k=>TYPES[k]&&!TYPES[k].mini&&!TYPES[k].boss,one=g=>g.k&&(g.type==='kill'||g.type==='get'||g.type==='collect')&&(g.n||1)>=5&&g.k.filter(field).length===1&&g.k.every(field);
-  const vis=[...QUESTS.map((q,i)=>({id:'Q'+i,q})),...SQ.map(q=>({id:q.id,q}))].filter(a=>!a.q.cls||a.q.cls===cls);
+function q22Rep(cls,skip){const field=k=>TYPES[k]&&!TYPES[k].mini&&!TYPES[k].boss,one=g=>g.k&&(g.type==='kill'||g.type==='get'||g.type==='collect')&&(g.n||1)>=5&&g.k.filter(field).length===1&&g.k.every(field);
+  const vis=[...QUESTS.map((q,i)=>({id:'Q'+i,q})),...SQ.map(q=>({id:q.id,q}))].filter(a=>(!a.q.cls||a.q.cls===cls)&&!(skip&&skip.has(a.id)));/* skip: 셈에서 뺄 의뢰 id (v36 시험) */
   const by={};let grind=0,pair=0;for(const a of vis){const G=a.q.goals||[];if(G.some(one))grind++;const ks=new Set();
     for(const g of G){const any=g.k&&(g.type==='kill'||g.type==='get'||g.type==='collect')&&(g.n||1)>=5;if(!any)continue;for(const k of g.k.filter(field)){if(ks.has(k))pair++;ks.add(k)}}
     for(const g of G)if(one(g))(by[g.k[0]]=by[g.k[0]]||new Set()).add(a.id)}
