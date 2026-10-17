@@ -53,7 +53,7 @@ function qStep(n,opt){opt=opt||{};const dt=opt.dt||1/60;
     const b=qBad();if(b.length)throw new QAFail(b.join(', ')+` (${i}프레임)`);if(opt.until&&opt.until(i))return i+1}
   if(opt.render==null&&!opt.renderEvery)render();return n}
 function qClear(){fb28Cancel();fb28Shots=[];enemies=[];projs=[];fields=[];rains=[];pend=[];loot=[];warns=[];arcs=[];allies=[];beams=[];pillars=[];bolts=[];rings=[];parts=[];texts=[];
-  P.storm=null;P.orbits=null;P.armor=null;P.hot=null;P.ward=null;P.shield=0;P.shieldT=0;P.buffs={};P.cd={};P.invT=0;castReset();if(typeof a34Clear==='function')a34Clear()/* v34: 호크아이 포대 · 울타리 · 폭약 · 하늘의 활 */}
+  P.storm=null;P.orbits=null;P.armor=null;P.hot=null;P.ward=null;P.shield=0;P.shieldT=0;P.buffs={};P.cd={};P.invT=0;castReset();if(typeof a34Clear==='function')a34Clear()/* v34: 호크아이 포대 · 울타리 · 폭약 · 하늘의 활 */;if(typeof a38Clear==='function')a38Clear()/* v38: 원소 궁술 */}
 function qClosePanels(){try{if(!panel.hidden)closePanel()}catch(_){}bindId=null;const pt=$('#patch');if(pt)pt.hidden=true}
 // 새 캐릭터로 깨끗하게 시작 (게임의 newGame 경로)
 function qPrep(cls,o){o=o||{};qClosePanels();if(DG)leaveDungeon();if(REG.id!=='home')loadRegion('home');if(typeof K22!=='undefined'){K22.m.clear();K22.off=0}/* v22: 시험마다 던전 기억을 비움 */
@@ -191,9 +191,9 @@ function qChanTable0(){const rows=[];const NOALT=new Set(['summon','orbit','armo
     if(!isDmg(s0)){const T=chanPlan(id,10).dur+(typeof recOf==='function'?recOf(id):0);P.sk[id]=10;const mine=qChanHeal(id)/T;let alt=0,altId='';
       for(const k of Object.keys(SPELLS).filter(k=>SPELLS[k].cls===s0.cls&&SPELLS[k].rank===s0.rank&&k!==id&&!chanOf(k)&&(SPELLS[k].kind==='heal'||SPELLS[k].kind==='hot'||(SPELLS[k].kind==='field'&&SPELLS[k].heal)))){P.sk[k]=10;const v=qChanHeal(k)/qCycle(k);if(v>alt){alt=v;altId=k}}
       rows.push({id,heal:1,mine,alt,altId,ratio:alt>0?mine/alt:99,mult:s0.heal});continue}
-    const single=qCHAN_SINGLE(id);const candidates=Object.keys(SPELLS).filter(k=>SPELLS[k].cls===s0.cls&&SPELLS[k].rank===s0.rank&&k!==id&&!chanOf(k)&&isDmg(SPELLS[k])&&!NOALT.has(SPELLS[k].kind)&&!SPELLS[k].aspd);P.sk={[id]:10};/* 두 쪽 모두 해당 기술 10점만 두고 비교한다. 후보마다 점수가 쌓여 한쪽에만 시너지가 붙지 않게. 기준 1.25배는 그대로. */const T=chanPlan(id,10).dur+(typeof recOf==='function'?recOf(id):0),mine=qChanDmg(id,single)/T;let alt=0,altId='';
+    const single=qCHAN_SINGLE(id);const candidates=Object.keys(SPELLS).filter(k=>SPELLS[k].cls===s0.cls&&SPELLS[k].rank===s0.rank&&k!==id&&!chanOf(k)&&isDmg(SPELLS[k])&&!NOALT.has(SPELLS[k].kind)&&!SPELLS[k].aspd);P.sk={[id]:10};/* 두 쪽 모두 해당 기술 10점만 두고 비교한다. 후보마다 점수가 쌓여 한쪽에만 시너지가 붙지 않게. 기준 1.25배는 그대로. */const T=chanPlan(id,10).dur+(typeof recOf==='function'?recOf(id):0),mine=(QA.reseed(3838),qChanDmg(id,single))/T;let alt=0,altId='';
     for(const k of candidates){
-      qPrep(s0.cls,{lvl:60});/* v36: 후보마다 새 캐릭터 — 앞 후보가 남긴 장비(보조 무기 등)가 다음 후보 피해를 올려 표가 순서에 따라 흔들렸음 (꿰뚫는 창 1,900 ↔ 2,300) */P.sk={[k]:10};const v=qChanDmg(k,single)/qCycle(k);if(v>alt){alt=v;altId=k}}
+      qPrep(s0.cls,{lvl:60});/* v36: 후보마다 새 캐릭터 — 앞 후보가 남긴 장비(보조 무기 등)가 다음 후보 피해를 올려 표가 순서에 따라 흔들렸음 (꿰뚫는 창 1,900 ↔ 2,300) */P.sk={[k]:10};QA.reseed(3838);/* v38: 재는 쪽마다 같은 난수로 — 앞 점검 수에 따라 난수 차례가 밀려 꿰뚫는 창이 2,010 ↔ 2,273으로 흔들렸음 */const v=qChanDmg(k,single)/qCycle(k);if(v>alt){alt=v;altId=k}}
     rows.push({id,single,mine,alt,altId,ratio:alt>0?mine/alt:99,mult:s0.mult})}
   qClear();return rows}
 qT('채널링 균형','채널링 마법은 같은 시간 동안 같은 위계·같은 직업의 채널링 아닌 가장 센 공격보다 피해가 1.25배 이상',()=>{const rows=qChanTable();
@@ -5342,7 +5342,7 @@ qT('이펙트 v31','같이 하기: 동료 마법사가 쓴 13가지 모양이 �
 qT('이펙트 v31','스킬 짝: 그림이 있는 스킬 81개가 모두 마법사의 실제 스킬이고 모양(종류)이 그림과 맞음 · 그림 없는 스킬은 예전 그대로(짝 없음) · 띠 이름이 묶음 이름과 맞음',()=>{
   const ids=Object.keys(FX31.M),KIND={bolt:['bolt','homing'],cone:['cone'],nova:['nova'],shield:['shield'],chain:['chain'],orbit:['orbit'],blink:['blink'],beam:['beam'],field:['field'],armor:['armor'],rain:['rain','storm'],heal:['heal'],strike:['strike'],summon:['summon','recall','clone'],
     aura:['invuln','buff','ward'],burst:['detonate','fuse'],wave:['wave'],gale:['gale'],spchain:['spchain'],trap:['trap'],zap:['storm']};/* v33: 궁수 짝 · 새 그리는 방식 · v36: 벼락(zap) · 휘는 화살(homing 기술은 화살 그림) */
-  qOk(ids.length>=81,'짝 수 '+ids.length);for(const id of ids){const s=SPELLS[id],m=FX31.M[id];qOk(s&&s.cls===m.c&&(m.c==='mage'||m.c==='archer'),id+' 짝 직업이 다름');qOk(s&&KIND[m.k]&&KIND[m.k].includes(s.kind),id+' 모양 다름 '+(s&&s.kind)+'/'+m.k);
+  qOk(ids.length>=81,'짝 수 '+ids.length);for(const id of ids){const s=SPELLS[id],m=FX31.M[id];qOk(s&&s.cls===m.c&&(m.c==='mage'||m.c==='archer'),id+' 짝 직업이 다름');qOk(s&&KIND[m.k]&&(KIND[m.k].includes(s.kind)||({kz38:'trap',orb38:'bolt'})[s.kind]===m.k/* v38: 킬 존은 덫을 깔고, 글레이셜 오브는 화살 조각을 뿌림 */),id+' 모양 다름 '+(s&&s.kind)+'/'+m.k);
     qOk(m.b.includes('_'+m.c+'_'+m.pk.split('-')[1]+'_')&&m.pk.startsWith(m.c+'-')&&(!m.i||m.i.replace('_2_','_1_')===m.b),id+' 띠 이름 '+m.b)}
   const keep=Object.values(SPELLS).filter(s=>!FX31.M[s.id]).length;qOk(!FX31.M.slash&&!FX31.M.heal&&!Object.keys(FX31.M).some(id=>SPELLS[id]&&(SPELLS[id].cls==='warrior'||SPELLS[id].cls==='priest')),'전사·사제 스킬에 짝');
   return `그림 있는 스킬 ${ids.length} · 예전 그대로 ${keep}`});
@@ -5499,7 +5499,7 @@ qT(QA32,'더블 스트림: 8초 동안 퀵 샷·호밍 애로우가 한 발 더(
 qT(QA32,'시전 시간이 있는 궁수 공격 스킬 위력 10% 상향 (차지 샷 · 시즈 샷 · 스나이프 · 원 샷 등) · 시전 없는 스킬 · 다른 직업은 그대로',()=>{
   const ids=AR32_CAST.ids,want=Object.keys(SPELLS).filter(id=>SPELLS[id].cls==='archer'&&CAST_T[id]>0&&!CHAN[id]&&SPELLS[id].mult>0);
   qOk(ids.length===want.length&&ids.length>=15,'대상 '+ids.length+'/'+want.length);for(const id of ['fulldraw','siegeshot','snipe','oneshot','arrowrain','burstarrow'])qOk(ids.includes(id),'빠짐 '+id);
-  qOk(Math.abs(SPELLS.fulldraw.mult-4.95)<1e-6&&Math.abs(SPELLS.siegeshot.mult-7.7)<1e-6&&Math.abs(SPELLS.snipe.mult-9.9)<1e-6,`배율 ${SPELLS.fulldraw.mult} ${SPELLS.siegeshot.mult} ${SPELLS.snipe.mult}`);
+  qOk(Math.abs(SPELLS.fulldraw.mult-4.95)<1e-6&&Math.abs(SPELLS.siegeshot.mult-7.7)<1e-6&&Math.abs(SPELLS.snipe.mult-6.6)<1e-6/* v38: 반드시 치명타라 9→6, ×1.1 */,`배율 ${SPELLS.fulldraw.mult} ${SPELLS.siegeshot.mult} ${SPELLS.snipe.mult}`);
   qOk(!ids.includes('quickshot')&&!ids.includes('powershot')&&!ids.includes('skyvolley'),'시전 없는 스킬이 오름');qOk(SPELLS.quickshot.mult===1,'퀵 샷');
   return ids.length+'개 ×1.1'});
 qT(QA32,'친구 피드백: 애로우 레인(하늘 화살비)과 원소 사격 불화살이 겹침 → 원소 쪽 「블레이즈 필드」는 땅에 꽂혀 타오르는 장판(얼음·바람과 같은 꼴) · 찍은 점수 그대로',()=>{
@@ -5580,8 +5580,8 @@ qT('이펙트 v33','짝: 마법사 새 29가지(솔라 레이~서클 오브 엔�
   for(const id of MG)qOk(FX31.M[id]&&FX31.M[id].c==='mage'&&SPELLS[id].cls==='mage',id+' 짝 없음');
   const AR={'archer-phys':['quickshot','fanshot','fulldraw','streamshot','oneshot','hawkeye','snaretrap','abysstrap','evaderoll','shadowstep'],'archer-fire':['flamearrow','burstarrow','trinityarrow']};
   for(const pk in AR)for(const id of AR[pk])qOk(FX31.M[id]&&FX31.M[id].pk===pk&&SPELLS[id].cls==='archer',id+' 궁수 짝 '+(FX31.M[id]&&FX31.M[id].pk));
-  const n=k=>Object.values(FX31.M).filter(m=>m.c==='archer'&&m.f===k).length;/* v36: 궁수 새 그림 24가지가 더해져 화살 21 · 덫 11, 전체 189 */qOk(n('bolt')===21&&n('trap')===11&&n('buff')===13&&n('blink')===3,'궁수 짝 수 '+[n('bolt'),n('trap'),n('buff'),n('blink')]);
-  /* v37: 189 - 되돌린 15 = 174 */qOk(Object.keys(FX31.M).length===174,'짝 수 '+Object.keys(FX31.M).length);return `짝 ${Object.keys(FX31.M).length} (마법사 ${Object.values(FX31.M).filter(m=>m.c==='mage').length} · 궁수 ${Object.values(FX31.M).filter(m=>m.c==='archer').length})`});
+  const n=k=>Object.keys(FX31.M).filter(id=>!(typeof A38==='object'&&A38.ids.includes(id))/* v38 원소 궁술은 1차 그림을 빌려 씀 */).map(id=>FX31.M[id]).filter(m=>m.c==='archer'&&m.f===k).length;/* v36: 궁수 새 그림 24가지가 더해져 화살 21 · 덫 11, 전체 189 */qOk(n('bolt')===21&&n('trap')===11&&n('buff')===13&&n('blink')===3,'궁수 짝 수 '+[n('bolt'),n('trap'),n('buff'),n('blink')]);
+  /* v37: 189 - 되돌린 15 = 174, v38: 바운싱 스톰 짝 뗌 = 173 (원소 궁술이 빌린 짝은 빼고 셈) */const nM=Object.keys(FX31.M).filter(id=>!(typeof A38==='object'&&A38.ids.includes(id))).length;qOk(nM===173,'짝 수 '+nM);return `짝 ${Object.keys(FX31.M).length} (마법사 ${Object.values(FX31.M).filter(m=>m.c==='mage').length} · 궁수 ${Object.values(FX31.M).filter(m=>m.c==='archer').length})`});
 qT('이펙트 v33','그림 묶음이 있을 때: 새 그리는 방식(몸 둘레 빛 · 크게 터짐 · 물벽 · 태풍 · 정령 사슬 · 덫 · 화살 · 구르기)이 새 그림으로 · 무적 빛은 무적이 끝나면 사라짐 · 같이 하기 오류 0',()=>qFX31(()=>{FX31.P=qFX31Fake();const out=[];
   const run=(cls,id,n,pre)=>{qPrep(cls,{lvl:140});P.sk[id]=10;P.x=QA_SPOT.x;P.y=QA_SPOT.y;followCam();if(MPJ){MPJ.waves.length=0;MPJ.gales.length=0;MPJ.chain=null}traps.length=0;FX31.inst=[];
     if(cls==='archer'&&typeof clsGearFor==='function')clsGearFor(id);if(pre)pre();const e=qDummy(P.x+170,P.y+30,{lvl:140});const d0=FX31.n.draw;qCast(id,{x:e.x,y:e.y});qStep(n||30,{renderEvery:2,each:()=>{P.mp=maxMp()}});const d=FX31.n.draw-d0;out.push(id+' '+d);qOk(d>0,id+' 새 그림이 안 그려짐');return e};
@@ -5642,8 +5642,8 @@ const qA34Mob=(k,x,y)=>{const e=dgMob(k,x,y,60);e.hp=e.max=1e9;e.atkCd=1e9;e.stu
 qT(QA34,'다섯 기술이 새 모양(설치 · 연계 폭약 · 울타리 · 그물 이동기 · 하늘의 활) · id · 위계 · 선행은 그대로 · 트리플 샷 · 스나이프 · 표식 · 볼텍스 · 레인저는 그대로',()=>{
   const K={pierceblow:'turret',splitarrow:'bolt',elemrain:'fence',backshot:'blink',heavenbow:'skybow'};for(const id in K)qOk(SPELLS[id]&&SPELLS[id].kind===K[id]&&SPELLS[id].job2==='hawkeye',id+' '+(SPELLS[id]&&SPELLS[id].kind));
   qOk(SPELLS.splitarrow.stick&&!SPELLS.splitarrow.split&&SPELLS.backshot.net&&!SPELLS.backshot.shot,'폭약 · 그물');
-  qOk(SPELLS.tripleshot.kind==='bolt'&&SPELLS.snipe.kind==='bolt'&&SPELLS.deathmark.mark&&SPELLS.arrowvortex.kind==='field'&&SPELLS.focus.kind==='buff','그대로 둔 호크아이');
-  qOk(['blasttrap','thorntrap','dominion'].every(id=>SPELLS[id].kind==='trap')&&SPELLS.smoke.kind==='field'&&SPELLS.netshot.kind==='bolt','레인저');
+  qOk(SPELLS.tripleshot.kind==='bolt'&&SPELLS.snipe.kind==='bolt'&&SPELLS.deathmark.mark&&SPELLS.arrowvortex.kind==='bounce38'/* v38: 바운싱 스톰 */&&SPELLS.focus.kind==='buff','그대로 둔 호크아이');
+  qOk(['blasttrap','thorntrap'].every(id=>SPELLS[id].kind==='trap')&&SPELLS.dominion.kind==='kz38'/* v38: 킬 존 */&&SPELLS.smoke.kind==='field'&&SPELLS.netshot.kind==='bolt','레인저');
   qOk((PRE.heavenbow||[]).includes('pierceblow')&&(PRE.arrowvortex||[]).includes('elemrain')&&(PRE.splitarrow||[]).includes('tripleshot'),'선행');
   qOk(KINDN.turret&&KINDN.fence&&KINDN.skybow,'종류 이름');for(const id of A34.ids){const h=detailHtml(id);qOk(typeof h==='string'&&!/undefined|NaN/.test(h),id+' 설명 '+(h.match(/.{0,30}(undefined|NaN).{0,30}/)||[''])[0])}
   const mix=['bolt','turret','fence','blink','skybow','field','buff'],ks=new Set(J2_SPELLS.filter(id=>SPELLS[id].job2==='hawkeye'&&SPELLS[id].kind!=='passive').map(id=>SPELLS[id].kind));
@@ -5659,9 +5659,9 @@ qT(QA34,'퓨즈 애로우: 꽂힌 폭약이 3초 뒤 둘레(곁의 적까지)를
   qStep(200,{render:true});qOk(!A34.bomb.length&&!e.a34b,'안 터짐');qOk(e2.taken>0,'곁의 적이 폭발에 안 맞음');
   qClear();P.invT=1e9;const w=dgMob('wolf',P.x+200,P.y,60);w.hp=w.max=1e9;w.atkCd=1e9;w.stunT=1e9;const e3=qDummy(P.x+200,P.y-70);qCast('splitarrow',{x:w.x,y:w.y});qStep(40,{render:false,until:()=>w.a34b});qOk(w.a34b,'늑대에 폭약');
   w.hp=0;killE(w);qStep(2,{render:false});qOk(!A34.bomb.length&&e3.taken>0,'쓰러진 자리에서 바로 안 터짐');return `커짐 ${b.n}번`});
-qT(QA34,'애로우 펜스: 일자 울타리 6초 · 닿은 적은 0.5초마다 맞고 뒤로 밀려남(보스는 안 밀림) · 불 · 얼음 · 번개 차례',()=>{qA34();const e=qDummy(P.x+200,P.y+30);
+qT(QA34,'애로우 펜스: 일자 울타리 6초 · 닿은 적은 0.5초마다 맞고 뒤로 밀려남(보스는 안 밀림) · 긁힌 적은 잠깐 느려짐(v38부터 원소 없이 화살만)',()=>{qA34();const e=qDummy(P.x+200,P.y+30);
   qOk(qCast('elemrain',{x:P.x+200,y:P.y}),'시전');qOk(A34.fen.length===1,'울타리');const f=A34.fen[0];qOk(Math.abs(f.ux)<.01&&Math.abs(Math.abs(f.uy)-1)<.01,'가로 방향 '+f.ux+','+f.uy);
-  qStep(80,{render:true});qOk(e.hits>=2,'울타리 피해 '+e.hits);qOk(f.i>=2,'원소 차례 '+f.i);
+  qStep(80,{render:true});qOk(e.hits>=2,'울타리 피해 '+e.hits);qOk(e.slowT>0,'울타리에 긁혀도 안 느려짐');
   enemies.splice(enemies.indexOf(e),1);const w=qA34Mob('wolf',P.x+204,P.y-70),x0=w.x;qStep(40,{render:false});qOk(w.x>x0+20,`늑대가 안 밀림 ${Math.round(x0)}→${Math.round(w.x)}`);
   const bk=Object.keys(TYPES).find(k=>TYPES[k].boss&&!TYPES[k].mirror),sk0=TYPES[bk].skills;let B,bx;try{TYPES[bk].skills=[];/* 보스 자기 기술(순간이동 등)로 움직이는 것은 빼고 본다 */B=qA34Mob(bk,P.x+204,P.y+110);qStep(2,{render:false});/* 처음 한 프레임에 자리 잡기(겹침 풀기)로 조금 움직임 */bx=B.x;qStep(40,{render:false})}finally{TYPES[bk].skills=sk0}qOk(Math.abs(B.x-bx)<1,'보스가 밀림 '+(B.x-bx)+' '+bk);qOk(B.hp<B.max,'보스가 울타리에 안 맞음');
   qStep(6*60,{render:false});qOk(!A34.fen.length,'6초 뒤에도 남음');return `피해 ${e.hits}번 · 늑대 +${Math.round(w.x-x0)}`});
@@ -5679,7 +5679,7 @@ qT(QA34,'같이 하기: 동료 궁수의 다섯 기술은 내 화면에 그림�
 qT('저장','v34 호크아이 다섯 기술: 예전 저장의 점수는 처음 한 번만 돌려받음(원래 값 rs34.old) · 다른 점수 · 전직 그대로 · 다시 불러와도 또 돌려받지 않음',()=>{
   const F={v:5,slot:0,cls:'archer',lvl:95,xp:10,gold:4321,towns:['brenhill','willowen'],home:'brenhill',x:1500,y:3900,reg:'home',hp:900,mp:300,pot:{hp:2,mp:2},gear:{},bag:[],job2:'hawkeye',
     sk:{quickshot:8,tripleshot:6,pierceblow:4,heavenbow:2,elemrain:3,arrowvortex:1,snipe:3,splitarrow:2,backshot:1},sp:2,st:{int:0,vit:20,spi:20},ap:0,diff:0,
-    bar:['quickshot','pierceblow','heavenbow','snipe'].concat(Array(17).fill(null)),uid:90,q:{i:0,st:0,c:{}}};
+    bar:['quickshot','pierceblow','heavenbow','snipe'].concat(Array(17).fill(null)),uid:90,q:{i:0,st:0,c:{}},rs38:{v:1}/* v38 돌려받기는 따로 시험 */};
   const raw=JSON.stringify(F);qOk(load(JSON.parse(raw),QA_SLOT),'불러오기 실패');
   qOk(A34.ids.every(id=>!P.sk[id]),'돌려받을 점수가 남음 '+JSON.stringify(P.sk));qOk(P.sk.tripleshot===6&&P.sk.arrowvortex===1&&P.sk.snipe===3&&P.sk.quickshot===8,'남은 점수 '+JSON.stringify(P.sk));
   qOk(P.sp===F.sp+12,`sp ${P.sp} (기대 ${F.sp+12})`);const sum=o=>Object.values(o).reduce((a,b)=>a+b,0);qOk(sum(P.sk)+P.sp===sum(F.sk)+F.sp,'전체 점수가 바뀜');
@@ -5690,6 +5690,89 @@ qT('저장','v34 호크아이 다섯 기술: 예전 저장의 점수는 처음 �
   qPrep('mage');const m=JSON.parse(JSON.stringify(saveData()));delete m.rs34;qOk(load(m,QA_SLOT)&&saveData().rs34.v===1&&!saveData().rs34.old,'다른 직업 rs34');
   const bad=Object.assign(JSON.parse(raw),{rs34:'<x>'});qOk(load(bad,QA_SLOT)&&P.sk.pierceblow===4&&JSON.stringify(saveData().rs34)==='{"v":1}','손상된 rs34를 돌려받기 표시로 보고 그대로 둠');
   return '돌려받음 12점'});
+/* ===== v38: 궁수 2차 재정비 — 원소 궁술(화염 · 냉기 · 폭풍 갈래) · 1차와 겹치던 기술을 발전형으로 ===== */
+const QA38='궁수 재정비 v38';
+function qA38(br){qPrep('archer',{lvl:99});P.job2=br||'hawkeye';P.x=QA_SPOT.x;P.y=QA_SPOT.y;followCam();P.invT=1e9;clsGearFor('quickshot');P.st.dex=Math.max(P.st.dex||0,600);
+  for(const id of A38.ids.concat(['tripleshot','snipe','deathmark','arrowvortex','blasttrap','thorntrap','netshot','dominion','quickshot']))P.sk[id]=5;a38Clear();A38.twN=0;traps.length=0/* 앞 시험의 덫(킬 존 등)이 남지 않게 */}
+const qA38Mob=(x,y,k)=>{const e=dgMob(k||'wolf',x,y,60);e.hp=e.max=1e9;e.atkCd=1e9;e.stunT=1e9;return e};
+qT(QA38,'원소 궁술: 화염 · 냉기 · 폭풍 세 갈래 × 4기술(53 · 61 · 75 · 86레벨) · 각 기술은 1차 같은 원소 기술이 선행 · 2차 전직 전에는 못 찍고 못 씀 · 호크아이 · 레인저 둘 다',()=>{
+  const want={fire:['flamearrow','firerain','burstarrow','volcanoshot'],ice:['icearrow','blizzardshot','glacialarrow','glacialspike'],storm:['shockarrow','galearrow','cyclonearrow','thunderarrow']};
+  for(const el in A38.EL){const L=A38.EL[el];qOk(L.length===4,el+' 개수');L.forEach((id,i)=>{const s=SPELLS[id];qOk(s&&s.tab==='el38'&&s.cls==='archer'&&TREE[id]==='j_el_'+el&&s.rank===A38.ROWS[i]&&s.upLv===[53,61,75,86][i],id+' 자리 '+(s&&[s.rank,s.upLv,TREE[id]]));
+    qOk(A38.FROM[id]===want[el][i]&&SPELLS[want[el][i]]&&!SPELLS[want[el][i]].job2&&!(PRE[id]||[]).length,id+' 1차 선행 '+A38.FROM[id]);
+    qOk(!s.job2&&!s.tri&&(s.kind==='buff'||s.el===el),id+' 원소 '+s.el);qOk(ICP[id],id+' 아이콘')})}
+  qOk(!SPELLS.elemrain.tri&&J2_SPELLS.every(id=>!SPELLS[id].tri&&!SPELLS[id].prism||SPELLS[id].cls!=='archer'),'2차 궁수 기술에 세 원소를 한 줄로 도는 기술이 남음');
+  qPrep('archer',{lvl:99});P.sp=50;for(const id of Object.values(A38.FROM))P.sk[id]=1;
+  qOk(!canLearn('ignitearrow')&&!advUnlocked('ignitearrow'),'전직 전에 찍힘');P.sk.ignitearrow=1;tryCast('ignitearrow',qAt(0,200));qOk(!P.cd.ignitearrow,'전직 전에 쓰임');delete P.sk.ignitearrow;
+  for(const br of ['hawkeye','ranger']){P.job2=br;qOk(canLearn('ignitearrow')&&canLearn('avalanche')&&canLearn('tailwind'),br+'에서 못 찍음')}
+  P.lvl=62;qOk(!canLearn('solararrow')&&canLearn('firetrail'),'요구 레벨');P.lvl=99;P.sk.flamearrow=0;qOk(!canLearn('ignitearrow'),'1차 선행 없이 찍힘');
+  P.job2='hawkeye';J2UI.tab='el38';nodeSel=null;const h=treeHtml();J2UI.tab=null;qOk((h.match(/data-node="/g)||[]).length>=12&&/원소 궁술/.test(h)&&/화염/.test(h)&&/냉기/.test(h)&&/폭풍/.test(h),'탭 그림');
+  for(const id of A38.ids){const d=detailHtml(id);qOk(typeof d==='string'&&!/undefined|NaN/.test(d),id+' 설명 '+(d.match(/.{0,30}(undefined|NaN).{0,30}/)||[''])[0])}
+  for(const k of ['sun38','orb38','rod38','hur38','aval38','bounce38','kz38'])qOk(KINDN[k],'종류 이름 '+k);
+  return '12기술 · 세 갈래'});
+qT(QA38,'화염 갈래: 이그나이트(다섯 겹이면 터져 곁의 적까지) · 파이어 트레일(지나간 길이 탐) · 피닉스(맞은 뒤 다른 적 셋에게 내리꽂힘) · 솔라(작은 해 6초 · 마지막 폭발)',()=>{qA38();
+  let e=qDummy(P.x+200,P.y),e2=qDummy(P.x+260,P.y+60);for(let i=0;i<10&&!(e2.taken>0);i++){qCast('ignitearrow',{x:e.x,y:e.y});qStep(25,{render:false})}/* 물리 화살은 빗나갈 수 있어 다섯 번 맞을 때까지 */qOk(e2.taken>0,'다섯 겹 폭발이 곁의 적에 안 닿음 '+[e.hits,JSON.stringify(e.ig38),P.sk.ignitearrow,P.lvl,advUnlocked('ignitearrow')]);
+  qClear();P.invT=1e9;e=qDummy(P.x+380,P.y+40);qCast('firetrail',{x:P.x+400,y:P.y});qStep(30,{render:true});qOk(A38.trail.length&&A38.trail[0].pts.length>4,'불길 줄 없음');const h0=e.hits;qStep(120,{render:false});qOk(e.hits>h0,'불길 위의 적이 안 탐 '+e.hits);
+  qClear();P.invT=1e9;const ds=[qDummy(P.x+200,P.y),qDummy(P.x+420,P.y-150),qDummy(P.x+560,P.y+120),qDummy(P.x+420,P.y+330)];qCast('phoenixarrow',{x:ds[0].x,y:ds[0].y});qStep(120,{render:true});
+  qOk(ds.filter(d=>d.taken>0).length>=4,'불새가 차례로 안 꽂힘 '+ds.map(d=>d.hits));
+  qClear();P.invT=1e9;e=qDummy(P.x+300,P.y);qCast('solararrow',{x:e.x,y:e.y});qOk(A38.sun.length===1,'작은 해');qStep(60,{render:true});const n1=e.hits;qOk(n1>=1,'해 불길');qStep(330,{render:false});qOk(!A38.sun.length&&e.hits>=12,'6초 · 마지막 폭발 '+e.hits);
+  return `트레일 ${e.hits}`});
+qT(QA38,'냉기 갈래: 셔터(세 번이면 얼림 · 언 적은 두 배 · 깨지며 곁의 적을 얼림) · 글레이셜 오브(조각을 뿌리며 굴러감) · 크리스탈 프리즌(가둬 모은 피해를 터뜨림, 보스 1초) · 아발란체(긴 가시 줄 · 얼리고 다시 부서짐)',()=>{qA38();
+  const a=qA38Mob(P.x+200,P.y),b=qA38Mob(P.x+260,P.y+50);for(let i=0;i<3;i++){qCast('shatterarrow',{x:a.x,y:a.y});qStep(25,{render:false})}qOk(a.freezeT>0,'세 번 맞혀도 안 얼음 '+a.ch38);
+  const hp=a.hp;qCast('shatterarrow',{x:a.x,y:a.y});qStep(25,{render:false});qOk(a.hp<hp&&!(a.freezeT>0),'언 적이 안 깨짐');qOk(b.freezeT>0,'곁의 적이 안 얼음');
+  qClear();P.invT=1e9;const e=qDummy(P.x+250,P.y+30);qCast('glacialorb',{x:P.x+400,y:P.y});qStep(10,{render:false});qOk(A38.orb.length===1,'구슬');qStep(200,{render:true});qOk(e.hits>=2&&!A38.orb.length,'구슬 · 조각 '+e.hits);
+  qClear();P.invT=1e9;const c=qA38Mob(P.x+200,P.y),c2=qA38Mob(P.x+290,P.y+30);c.stunT=0;c.spd=0;qCast('crystalprison',{x:c.x,y:c.y});qStep(20,{render:false});qOk(c.cp38&&c.freezeT>2,'수정 감옥 '+c.freezeT);c.stunT=1e9;/* 깨진 뒤 걸어오지 않게 */
+  for(let i=0;i<4;i++){qCast('quickshot',{x:c.x,y:c.y});qStep(12,{render:false})}qOk(c.cp38.store>0,'모은 피해 없음');const h2=c2.hp;qStep(240,{render:false,until:()=>!c.cp38});qOk(!c.cp38&&c2.hp<h2,'깨질 때 곁의 적이 안 맞음 '+JSON.stringify(c.cp38&&{t:c.cp38.t,s:c.cp38.store})+' '+(h2-c2.hp)+' '+[c.x-P.x,c.y-P.y,c2.x-P.x,c2.y-P.y].map(Math.round));
+  const bk=Object.keys(TYPES).find(k=>TYPES[k].boss&&!TYPES[k].mirror),B=qA38Mob(P.x+200,P.y-80,bk);B.stunT=0;qCast('crystalprison',{x:B.x,y:B.y});qStep(20,{render:false});qOk(B.cp38&&B.cp38.max<=1+1e-6&&B.freezeT<=1+1e-6,'보스 가두기 '+(B.cp38&&B.cp38.max));
+  qClear();P.invT=1e9;const far=qA38Mob(P.x+400,P.y);/* 시험 자리 동쪽 약 490에 막힌 곳이 있어 줄이 거기서 멈춤 */qCast('avalanche',{x:P.x+600,y:P.y});qStep(60,{render:true});qOk(A38.aval.length===1&&A38.aval[0].pts.length>=6,'가시 줄');qOk(far.freezeT>0,'먼 적이 안 얼음 '+[A38.aval[0]&&A38.aval[0].pts.length,A38.aval[0]&&A38.aval[0].stop,Math.round(far.x-P.x),Math.round(far.y-P.y),far.freezeT,far.hp<far.max]);const h3=far.hp;qStep(120,{render:false});qOk(far.hp<h3&&!A38.aval.length,'가시가 부서지며 안 침 '+[far.hp<h3,A38.aval.length,A38.aval[0]&&A38.aval[0].pts.length,Math.round(far.x-P.x),far.dead]);
+  return '냉기 넷'});
+qT(QA38,'폭풍 갈래: 스톰 애로우(꿰뚫고 옆으로 번개) · 테일윈드(빨라지고 다섯 번째 화살마다 돌풍) · 라이트닝 로드(피뢰침 8초) · 허리케인(움직이며 빨아들이고 벼락, 보스는 안 끌림)',()=>{qA38();
+  const a=qDummy(P.x+200,P.y),b=qDummy(P.x+320,P.y),c=qDummy(P.x+330,P.y+100);for(let i=0;i<4&&!(a.taken>0&&b.taken>0&&c.taken>0);i++){qCast('stormarrow',{x:a.x,y:a.y});qStep(40,{render:i===0})}/* 물리 화살은 빗나갈 수 있어 몇 번까지 */qOk(a.taken>0&&b.taken>0,'안 꿰뚫음');qOk(c.taken>0,'번개가 안 튐');
+  qClear();P.invT=1e9;const g=qDummy(P.x+150,P.y);const s0=iasMul(),sp0=spdMul();qCast('tailwind');qOk(P.buffs.tailwind&&iasMul()<s0,'공격 속도');qOk(spdMul()>sp0,'이동 속도');
+  for(let i=0;i<5;i++){qCast('quickshot',{x:g.x,y:g.y});qStep(10,{render:false})}qOk(A38.gust.length||g.hits>=6,'돌풍 없음 '+g.hits);
+  qClear();P.invT=1e9;const r=qDummy(P.x+300,P.y+100);qCast('lightningrod',{x:P.x+250,y:P.y});qOk(A38.rod.length===1,'피뢰침');qStep(300,{render:true});qOk(r.hits>=3,'벼락 '+r.hits);qStep(300,{render:false});qOk(!A38.rod.length,'8초 뒤에도 남음');
+  qClear();P.invT=1e9;const w=qA38Mob(P.x+300,P.y+110);w.stunT=0;const bk=Object.keys(TYPES).find(k=>TYPES[k].boss&&!TYPES[k].mirror),sk0=TYPES[bk].skills;let B,by;
+  try{TYPES[bk].skills=[];B=qA38Mob(P.x+300,P.y-115,bk);B.stunT=0;B.spd=0;qCast('hurricaneshot',{x:P.x+600,y:P.y});qStep(2,{render:false});by=B.y;const y0=w.y;qStep(150,{render:true});
+    qOk(A38.hur.length===1,'회오리');qOk(w.y<y0-20,'늑대가 안 끌림 '+Math.round(y0-w.y));qOk(Math.abs(B.y-by)<2,'보스가 끌림');qOk(w.hp<w.max,'회오리 피해')}finally{TYPES[bk].skills=sk0}
+  return '폭풍 넷'});
+qT(QA38,'호크아이: 스플리팅 샷(맞으면 둘로 갈라져 뒤쪽 적까지) · 스나이프(반드시 치명타 · 멀수록 셈 · 쓰러뜨리면 재사용 풀림) · 마크 오브 데스(쓰러지면 터지며 옆 적에게 옮김) · 바운싱 스톰(구역 안을 번갈아 튕김)',()=>{qA38();
+  const a=qDummy(P.x+200,P.y),b=qDummy(P.x+200+Math.cos(.45)*110,P.y+Math.sin(.45)*110);qCast('tripleshot',{x:a.x,y:a.y});qStep(40,{render:true});qOk(a.taken>0&&b.taken>0,'갈라진 화살이 뒤쪽 적에 안 닿음 '+[a.hits,b.hits]);
+  qOk(SPELLS.tripleshot.kind==='bolt'&&SPELLS.tripleshot.cnt===3&&!SPELLS.tripleshot.hits,'스플리팅 샷 모양');
+  const s=eff('snipe',5);qClear();P.invT=1e9;const n=qDummy(P.x+150,P.y),f=qDummy(P.x+560,P.y);let crit=0;const ft=ftext;try{ftext=function(x,y,t,c,cr){if(cr)crit++;return ft.apply(this,arguments)};hurtE(n,1000,Object.assign({},s,{phys:0}));hurtE(f,1000,Object.assign({},s,{phys:0}))}finally{ftext=ft}
+  qOk(crit===2,'치명타가 아님 '+crit);qOk(Math.abs(f.taken/n.taken-1.5)<.05,'먼 적 피해 '+qR(f.taken/n.taken));
+  enemies.length=0;const k=qA38Mob(P.x+300,P.y);k.hp=5;k.max=5;for(let i=0;i<4&&!k.dead;i++){qCast('snipe',{x:k.x,y:k.y});qStep(150,{render:false,until:()=>k.dead})}/* 물리 화살은 빗나갈 수 있어 몇 번까지 */qOk(k.dead&&!P.cd.snipe,'쓰러뜨려도 재사용 그대로 '+[P.cd.snipe,k.dead,k.hp,Math.round(k.x-P.x)]);
+  qClear();P.invT=1e9;const m1=qA38Mob(P.x+200,P.y),m2=qA38Mob(P.x+320,P.y+40);qCast('deathmark',{x:m1.x,y:m1.y});qStep(30,{render:false});qOk(m1.markT>0&&m1.dm38,'표식');m1.hp=0;killE(m1);qOk(m2.markT>0&&m2.dm38&&m2.hp<m2.max,'표식이 안 옮겨 감');
+  qClear();P.invT=1e9;const z=[qDummy(P.x+300,P.y),qDummy(P.x+380,P.y+80),qDummy(P.x+300,P.y-90)];qCast('arrowvortex',{x:P.x+320,y:P.y});qOk(A38.bnc.length===1,'바운싱 스톰');let seq=[];
+  qStep(250,{render:true,each:()=>{const b=A38.bnc[0];if(b&&b.last&&seq[seq.length-1]!==b.last)seq.push(b.last)}});qOk(z.every(d=>d.hits>=2),'구역 안 적을 다 안 튕김 '+z.map(d=>d.hits));qOk(seq.length>=6,'튕김 '+seq.length);
+  return `튕김 ${seq.length}번`});
+qT(QA38,'레인저: 클러스터 트랩(작은 덫 셋) · 쏜 트랩(가시밭이 넓어지고 2초면 묶임) · 링크 넷(셋을 한 그물로 · 피해 나눔) · 킬 존(구역 안 덫이 한 번 다시 장전) · 와일드 센스(덫에 걸린 적에게 화살 피해)',()=>{qA38('ranger');
+  let e=qA38Mob(P.x+200,P.y);e.stunT=0;qCast('blasttrap',{x:e.x,y:e.y});qStep(90,{render:true,until:()=>traps.some(q=>q.id==='cluster38')});qOk(traps.filter(q=>q.id==='cluster38').length===3,'작은 덫 '+traps.map(q=>q.id));
+  qClear();P.invT=1e9;e=qA38Mob(P.x+200,P.y);e.stunT=0;e.spd=0;qCast('thorntrap',{x:e.x,y:e.y});qStep(40,{render:false});const f=fields.find(f=>f.s&&f.s.id==='thorntrap');qOk(f,'가시밭');const r0=f.rad;e.rootT=0;qStep(140,{render:false});qOk(f.rad>r0*1.3,'안 넓어짐 '+qR(f.rad/r0));qOk(e.rootT>0||e._r38,'2초 머물러도 안 묶임');
+  qClear();P.invT=1e9;const L=[qA38Mob(P.x+150,P.y),qA38Mob(P.x+250,P.y),qA38Mob(P.x+350,P.y),qA38Mob(P.x+450,P.y)];L.forEach(m=>m.stunT=0);qCast('netshot',{x:L[0].x,y:L[0].y});qStep(40,{render:true});
+  qOk(L.slice(0,3).every(m=>m.ln38)&&!L[3].ln38,'셋까지 묶기 '+L.map(m=>!!m.ln38));qOk(L[0].rootT>0,'그물 묶기');const h1=L[1].hp,h2=L[2].hp;hurtE(L[0],1000,eff('quickshot',1));qOk(L[1].hp<h1&&L[2].hp<h2,'피해를 안 나눔');
+  qClear();P.invT=1e9;qCast('dominion',{x:P.x+250,y:P.y});qOk(A38.kz.length===1&&traps.filter(q=>q.id==='dominion').length===4,'구역 · 덫 넷');const w=qA38Mob(P.x+250,P.y);w.stunT=0;w.spd=0;
+  qStep(80,{render:true});const re=traps.filter(q=>q.kz38);qOk(re.length>=1,'다시 장전 안 됨');qStep(200,{render:false});qOk(traps.every(q=>!q.kz38||q.age<q.arm||q.life>0),'');qOk(w.hp<w.max,'덫 피해');
+  const ws=eff('wildsense',1);qOk(ws.trapShot>=.1&&!ws.eva,'와일드 센스 값');P.sk.wildsense=1;qClear();const t1=qDummy(P.x+200,P.y),t2=qDummy(P.x+200,P.y+80);t1._tr38=time;passT=-1;const s=Object.assign({},eff('quickshot',1),{phys:0});
+  const gs=gearStats;try{gearStats=()=>Object.assign({},gs(),{crit:-1e4});hurtE(t1,1000,s);hurtE(t2,1000,s)}finally{gearStats=gs}qOk(t1.taken>t2.taken*1.05,'덫에 걸린 적 피해 '+[t1.taken,t2.taken]);
+  return '레인저 다섯'});
+qT(QA38,'같이 하기: 동료 궁수의 새 기술 · 바뀐 기술은 내 화면에 그림만(피해 0 · 오류 0)',()=>{qA38();const e=qDummy(P.x+260,P.y);let seen=0;const bad=[];
+  try{const r=qPeerOn();Object.assign(r,{cls:'archer',gear:{staff:{rar:2,wt:'bow'}},x:P.x+80,tx:P.x+80,y:P.y,ty:P.y});
+    for(const id of A38.ids.concat(['tripleshot','arrowvortex','dominion','netshot','blasttrap'])){const t0=e.taken|0;netGhostCast({from:'qa_peer',sp:id,L:10,x:e.x,y:e.y});qStep(8,{render:true});if((e.taken|0)>t0)bad.push(id);seen+=A38.sun.length+A38.orb.length+A38.rod.length+A38.hur.length+A38.aval.length+A38.bnc.length+A38.kz.length}
+    qStep(200,{render:true});qOk(!e.taken,'동료 그림이 피해를 줌 '+e.taken+' '+bad);qOk(seen>0,'그림 없음')}finally{qPeerOff()}return '그림 '+seen});
+qT('저장','v38 궁수 바뀐 여덟 기술: 예전 저장의 점수는 처음 한 번만 돌려받음(원래 값 rs38.old) · 원소 궁술은 새로 찍음 · 다른 점수 · 전직 · 단축칸 그대로 · 다시 불러와도 또 돌려받지 않음',()=>{
+  const F={v:5,slot:0,cls:'archer',lvl:95,xp:10,gold:4321,towns:['brenhill','willowen'],home:'brenhill',x:1500,y:3900,reg:'home',hp:900,mp:300,pot:{hp:2,mp:2},gear:{},bag:[],job2:'ranger',rs34:{v:1},
+    sk:{quickshot:8,tripleshot:6,deathmark:2,arrowvortex:1,elemrain:3,blasttrap:5,netshot:2,dominion:4,wildsense:3,snipe:3,thorntrap:2,pierceblow:4},sp:2,st:{int:0,vit:20,spi:20},ap:0,diff:0,
+    bar:['quickshot','blasttrap','dominion','snipe'].concat(Array(17).fill(null)),uid:90,q:{i:0,st:0,c:{}}};
+  const raw=JSON.stringify(F);qOk(load(JSON.parse(raw),QA_SLOT),'불러오기 실패');
+  qOk(A38.refund.every(id=>!P.sk[id]),'돌려받을 점수가 남음 '+JSON.stringify(P.sk));qOk(P.sk.snipe===3&&P.sk.thorntrap===2&&P.sk.pierceblow===4&&P.sk.quickshot===8,'남은 점수 '+JSON.stringify(P.sk));
+  qOk(P.sp===F.sp+26,`sp ${P.sp} (기대 ${F.sp+26})`);const sum=o=>Object.values(o).reduce((a,b)=>a+b,0);qOk(sum(P.sk)+P.sp===sum(F.sk)+F.sp,'전체 점수가 바뀜');
+  qOk(P.job2==='ranger'&&P.lvl===95&&P.gold===4321,'전직 · 레벨 · 금화');qOk(P.bar[1]==='blasttrap'&&P.bar[2]==='dominion','단축칸 '+P.bar.slice(0,4));
+  const d=JSON.parse(JSON.stringify(saveData()));qOk(d.rs38&&d.rs38.v===1&&d.rs38.old&&d.rs38.old.tripleshot===6&&d.rs38.old.dominion===4&&d.rs38.old.wildsense===3,'rs38 '+JSON.stringify(d.rs38));
+  d.sk.blasttrap=2;d.sk.ignitearrow=1;d.sp-=3;qOk(load(d,QA_SLOT)&&P.sk.blasttrap===2&&P.sk.ignitearrow===1&&P.sp===d.sp,'다시 불러올 때 또 돌려받음');
+  qOk(JSON.stringify(JSON.parse(raw))===raw,'불러온 원본 저장이 바뀜');
+  const both=Object.assign(JSON.parse(raw),{});delete both.rs34;qOk(load(both,QA_SLOT)&&P.sp===F.sp+26+4&&!P.sk.pierceblow&&!P.sk.elemrain,'v33 저장(rs34 · rs38 둘 다) '+P.sp);
+  qPrep('mage');const m=JSON.parse(JSON.stringify(saveData()));delete m.rs38;qOk(load(m,QA_SLOT)&&saveData().rs38.v===1&&!saveData().rs38.old,'다른 직업 rs38');
+  const bad=Object.assign(JSON.parse(raw),{rs38:'<x>'});qOk(load(bad,QA_SLOT)&&P.sk.tripleshot===6&&JSON.stringify(saveData().rs38)==='{"v":1}','손상된 rs38을 돌려받기 표시로 보고 그대로 둠');
+  return '돌려받음 26점'});
 /* ===== v35: 그림 어긋남 (던전 입구 빛 · 마을 한가운데 분수/동상과 경계석) ===== */
 const QA35='고친 버그 v35';
 function qGX35(packs,fn){const sv={},on={},art=GFX.art,di=ctx.drawImage,tr=ctx.translate,calls=[];if(art==='old')GFX.art='new';
@@ -5858,9 +5941,9 @@ qT('이펙트 v35','마법사 기술 그림 빠짐 없음: 지속 효과(패시�
   qOk(!none.length,'새 그림이 안 그려진 기술: '+none.join(', '));
   return '마법사 기술 '+mage.length+'가지 모두 그림 짝 · 그려짐(모으기 '+chg.length+'가지는 v33에서) · 묶음 '+pks.length+'개 이름 서버 규칙 안'}));
 qT('이펙트 v36','궁수 새 그림 24가지: 짝이 실제 궁수 기술이고 · 묶음 4개(fx-archer-phys/fire/ice/storm) 이름이 서버 규칙 안 · 묶음이 있으면 기술마다 자기 그림이 실제로 그려짐(시킹 샤프트 · 헌팅 그라운드 · 나이트 헌트 포함) · 썬더스톰 애로우는 하늘 번개 줄기를 남기고 땅 벼락 그림을 더함 · 그림이 바뀐 윈드 애로우 · 애로우 펜스 · 보우 오브 헤븐은 짝 없음',()=>qFX31(()=>{
-  const NEW='falcon wolfcall icearrow glacialarrow firetrap caltrops smoke lure arrowvortex huntground nighthunt frosttrap falcondive apexhunt drivehunt ricochet arrowrain skyvolley thunderarrow siegeshot wildrun detonate earthbind curvingshot'.split(' ');
+  const NEW='falcon wolfcall icearrow glacialarrow firetrap caltrops smoke lure arrowvortex huntground nighthunt frosttrap falcondive apexhunt drivehunt ricochet arrowrain skyvolley thunderarrow siegeshot wildrun detonate earthbind curvingshot'.split(' ');NEW.splice(NEW.indexOf('arrowvortex'),1);/* v38: 애로우 볼텍스 → 바운싱 스톰(장판 아님)이라 그림 짝을 뗌 */
   for(const id of NEW)qOk(FX31.M[id]&&FX31.M[id].c==='archer'&&SPELLS[id]&&SPELLS[id].cls==='archer',id+' 궁수 짝 없음');
-  for(const id of ['shockarrow','elemrain','heavenbow'])qOk(!FX31.M[id],id+' 모양이 바뀐 기술에 예전 그림 짝');
+  for(const id of ['shockarrow','elemrain','heavenbow','arrowvortex'])qOk(!FX31.M[id],id+' 모양이 바뀐 기술에 예전 그림 짝');
   const pks=[...new Set(NEW.map(id=>FX31.M[id].pk))].sort();qOk(pks.join()==='archer-fire,archer-ice,archer-phys,archer-storm','묶음 '+pks.join());
   qOk(pks.every(pk=>/^(?:flare|fx)-[a-z0-9_-]+\.js$/.test('fx-'+pk+'.js')),'서버가 안 내주는 이름');
   FX31.P=qFX31Fake();const none=[],out=[];let own=null,last=null,nOwn=0;const _fr=FX31.fr,_im=FX31.img;

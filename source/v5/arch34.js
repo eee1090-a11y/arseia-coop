@@ -3,7 +3,8 @@
    · 호크아이 공격 기술 다섯을 새 모양으로 바꾼다. id · 위계 · 선행 · 마나 · 재사용은 그대로(단축칸 · 장비 옵션 · 저장 안전).
      피어싱 블로(관통 일격)   → 센트리 발리스타(쇠뇌 포대): 설치형. 10초 동안 알아서 가까운 적을 쏜다.
      스플리팅 애로우(분열 화살) → 퓨즈 애로우(꽂히는 폭약 화살): 연계형. 3초 뒤 터지고, 그 사이 내 공격이 맞을 때마다 폭발이 커진다.
-     엘리멘탈 레인(원소 화살비) → 애로우 펜스(화살 울타리): 지형형. 일자로 꽂힌 화살 벽 — 닿는 적은 맞고 밀려난다(불 · 얼음 · 번개 차례로).
+     엘리멘탈 레인(원소 화살비) → 애로우 펜스(화살 울타리): 지형형. 일자로 꽂힌 화살 벽 — 닿는 적은 맞고 밀려나며 느려진다.
+       (v38: 불 · 얼음 · 번개 차례를 뺐다. 원소는 「원소 궁술」 탭의 갈래로 — arch38.js)
      리트리팅 샷(물러나며 쏘기) → 리트리트 넷(그물 깔고 물러서기): 이동기. 뒤로 뛰며 서 있던 자리에 그물을 남겨 묶는다.
      보우 오브 헤븐(천궁)      → 하늘의 활: 소환형 마무리기. 12초 동안 빛의 활이 머리 위에 떠서 내가 노리는 적에게 빛 화살을 내리꽂는다.
    · 그대로: 트리플 샷 · 스나이프 · 마크 오브 데스 · 애로우 볼텍스 · 포커스 · 패시브 둘. 레인저 갈래는 그대로(덫 · 연막 · 그물 · 미끼로 이미 모양이 다양).
@@ -22,7 +23,7 @@ const A34={ids:['pierceblow','splitarrow','elemrain','backshot','heavenbow'],
   {const s=S.splitarrow;delete s.split;Object.assign(s,{mult:1.2,n:'퓨즈 애로우',kn:'꽂히는 폭약 화살',en:'Fuse Arrow',
     stick:{t:3,mult:2.6,per:.3,max:6,rad:120},desc:'폭약을 단 화살이 적에게 꽂힙니다. 3초 뒤 터져 둘레를 함께 칩니다. 터지기 전에 내 다른 공격이 그 적에게 맞을 때마다 폭발이 30%씩 커집니다(최대 6번). 적이 먼저 쓰러지면 그 자리에서 바로 터집니다.'})}
   {const s=S.elemrain;for(const k of ['rate','srad','rad'])delete s[k];Object.assign(s,{kind:'fence',mult:1,n:'애로우 펜스',kn:'화살 울타리',en:'Arrow Fence',chant:'여기서 멈춰라!',
-    fence:{len:300,w:26,dur:6,iv:.5,push:46},desc:'겨눈 곳에 화살을 일자로 꽂아 6초 동안 울타리를 세웁니다(내가 겨눈 방향에 가로로). 울타리에 닿은 적은 0.5초마다 맞고 뒤로 밀려나며, 화살은 불(불태움) · 얼음(잠깐 얼림) · 번개(잠깐 기절) 차례로 효과가 붙습니다. 보스 · 준보스는 밀려나지 않습니다.'})}
+    fence:{len:300,w:26,dur:6,iv:.5,push:46},desc:'겨눈 곳에 화살을 일자로 꽂아 6초 동안 울타리를 세웁니다(내가 겨눈 방향에 가로로). 울타리에 닿은 적은 0.5초마다 맞고 뒤로 밀려나며, 가시 돋친 화살에 긁혀 잠깐 느려집니다. 보스 · 준보스는 밀려나지 않습니다.'})}
   {const s=S.backshot;delete s.shot;Object.assign(s,{n:'리트리트 넷',kn:'그물 깔고 물러서기',en:'Net Retreat',
     net:{rad:140,root:2,bossRoot:.8,mult:1.5,life:2.2},desc:'뒤로 뛰어 거리를 벌리면서, 서 있던 자리에 그물을 펼칩니다. 그물 둘레(반경 140)의 적은 조금 맞고 2초 동안 묶입니다(보스 · 준보스는 0.8초). 쫓아오는 적을 떼어 낼 때.'})}
   {const s=S.heavenbow;delete s.len;delete s.w;delete s.knock;Object.assign(s,{kind:'skybow',kn:'하늘의 활',
@@ -120,8 +121,8 @@ function a34Tick(dt){
     for(const e of enemies){if(e.dead)continue;const dx=e.x-f.x,dy=e.y-f.y,al=dx*f.ux+dy*f.uy,pe=dx*nx+dy*ny,r=hR(e);
       if(Math.abs(al)>f.h+r||Math.abs(pe)>f.w+r)continue;
       const t0=f.hitT.get(e);if(t0!=null&&time-t0<f.iv)continue;f.hitT.set(e,time);
-      const el=J2TRI[f.i++%3],ss=(f._tv||(f._tv={}))[el]||(f._tv[el]=Object.assign({},f.s,{el,burn:el==='fire'?1:0,freeze:el==='ice'?.4:0,stun:el==='storm'?.3:0}));
-      hurtE(e,f.dmg*rnd(.9,1.1),ss);if(e.dead)continue;applyFx(e,{freeze:ss.freeze,stun:ss.stun},e);burst(e.x,e.y,EL[el],8,90,2.5,16);
+      const ss=f.s;// v38: 원소 차례 없이 물리 · 느리게
+      hurtE(e,f.dmg*rnd(.9,1.1),ss);if(e.dead)continue;applyFx(e,{slow:1,slowDur:1.2},e);burst(e.x,e.y,'#e8e4d8',8,90,2.5,16);
       const T=TYPES[e.k]||{};if(T.boss||T.mini||NET.guest)continue;const sd=pe>=0?1:-1,k=f.push+Math.max(0,f.w+r-Math.abs(pe));moveBody(e,nx*sd*k,ny*sd*k)}}
   A34.fen=A34.fen.filter(f=>f.t>0);
   // 꽂히는 폭약
@@ -152,7 +153,7 @@ function a34Draw(c,map){if(!A34.tur.length&&!A34.fen.length&&!A34.bomb.length&&!
   const op=c.globalCompositeOperation,ga=c.globalAlpha;c.globalCompositeOperation='source-over';
   for(const n of A34.net){const p=map(n.x,n.y),k=n.rad/54,sp=A34S.net();c.globalAlpha=.7*Math.min(1,n.t*2,(n.max-n.t)*6);c.drawImage(sp,p.x-60*k,p.y-30*k,120*k,60*k)}
   for(const f of A34.fen){const fade=Math.min(1,f.t*2,(f.max-f.t)*5),n=13;c.globalAlpha=fade;
-    for(let i=0;i<n;i++){const u=(i/(n-1)*2-1)*f.h,p=map(f.x+f.ux*u,f.y+f.uy*u),el=J2TRI[(i+f.seed)%3],sp=A34S.fenceArrow(el),up=Math.min(1,(f.max-f.t)*8);c.drawImage(sp,p.x-10,p.y-54*up,20,56*up)}}
+    for(let i=0;i<n;i++){const u=(i/(n-1)*2-1)*f.h,p=map(f.x+f.ux*u,f.y+f.uy*u),sp=A34S.fenceArrow('phys'),up=Math.min(1,(f.max-f.t)*8);c.drawImage(sp,p.x-10,p.y-54*up,20,56*up)}}
   for(const q of A34.tur){const p=map(q.x,q.y),sp=A34S.turret(),fl=Math.cos(q.a)-Math.sin(q.a)<0;c.globalAlpha=Math.min(1,q.t*2,(q.max-q.t)*6);
     c.save();c.translate(p.x,p.y);if(fl)c.scale(-1,1);c.drawImage(sp,-32,-58);c.restore()}
   for(const b of A34.bomb){const e=b.e;if(e.dead)continue;const p=map(e.x,e.y),bl=b.t<1?(Math.sin(time*30)>0?1:.5):1;c.globalAlpha=bl;c.drawImage(A34S.bomb(),p.x-12+e.r*.4,p.y-e.r*1.6-30,24,24)}
@@ -177,7 +178,7 @@ function a34Draw(c,map){if(!A34.tur.length&&!A34.fen.length&&!A34.bomb.length&&!
 Object.assign(ICP,{
   pierceblow:c=>ICX.path('M16 17L8 29M16 17L24 29M16 17V29',ICC.woodD,1.8)+ICX.xbow(16,12,0,.85)+ICX.lines(25,8,-20,.4,c.hi,2),
   splitarrow:c=>ICX.arrow(13,19,-45,.85)+`<circle cx="22" cy="10" r="4.6" fill="#3a2c22" stroke="${ICC.gold}" stroke-width="1"/>`+ICX.burst(25,6,.4,PAL.fire[0],6),
-  elemrain:c=>ICX.path('M3 27h26',ICC.woodD,1.6)+ICX.arrow(8,18,90,.55,PAL.fire[0],PAL.fire[0])+ICX.arrow(16,18,90,.55,PAL.ice[0],PAL.ice[0])+ICX.arrow(24,18,90,.55,PAL.storm[0],PAL.storm[0]),
+  elemrain:c=>ICX.path('M3 27h26',ICC.woodD,1.6)+ICX.arrow(8,18,90,.55)+ICX.arrow(16,18,90,.55)+ICX.arrow(24,18,90,.55)+ICX.caltrop(16,27,.4),
   backshot:c=>ICX.boot(9,11,0,.6)+ICX.lines(16,11,180,.45,c.hi,3)+ICX.path('M12 19l14 9M12 28l14-9M17 19v9M22 19v9M12 23.5h14',c.hi,1),
   heavenbow:c=>ICX.wings(16,10,.75,ICC.feather)+ICX.bow(16,11,0,.7)+ICX.arrow(16,24,90,.55,'#ffe9a8','#ffe9a8')});
 
