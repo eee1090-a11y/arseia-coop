@@ -5340,11 +5340,11 @@ qT('이펙트 v31','같이 하기: 동료 마법사가 쓴 13가지 모양이 �
     const ok=out.filter(x=>x.endsWith('✓')).length;qOk(ok>=10,'동료 시전 새 그림이 적음 '+out.join(' '));return out.join(' ')}
   finally{qPeerOff()}}));
 qT('이펙트 v31','스킬 짝: 그림이 있는 스킬 81개가 모두 마법사의 실제 스킬이고 모양(종류)이 그림과 맞음 · 그림 없는 스킬은 예전 그대로(짝 없음) · 띠 이름이 묶음 이름과 맞음',()=>{
-  const ids=Object.keys(FX31.M),KIND={bolt:['bolt','homing'],cone:['cone'],nova:['nova'],shield:['shield'],chain:['chain'],orbit:['orbit'],blink:['blink'],beam:['beam'],field:['field'],armor:['armor'],rain:['rain','storm'],heal:['heal'],strike:['strike'],summon:['summon','recall','clone'],
-    aura:['invuln','buff','ward'],burst:['detonate','fuse'],wave:['wave'],gale:['gale'],spchain:['spchain'],trap:['trap'],zap:['storm']};/* v33: 궁수 짝 · 새 그리는 방식 · v36: 벼락(zap) · 휘는 화살(homing 기술은 화살 그림) */
-  qOk(ids.length>=81,'짝 수 '+ids.length);for(const id of ids){const s=SPELLS[id],m=FX31.M[id];qOk(s&&s.cls===m.c&&(m.c==='mage'||m.c==='archer'),id+' 짝 직업이 다름');qOk(s&&KIND[m.k]&&(KIND[m.k].includes(s.kind)||({kz38:'trap',orb38:'bolt'})[s.kind]===m.k/* v38: 킬 존은 덫을 깔고, 글레이셜 오브는 화살 조각을 뿌림 */),id+' 모양 다름 '+(s&&s.kind)+'/'+m.k);
+  const ids=Object.keys(FX31.M),KIND={bolt:['bolt','homing'],cone:['cone'],nova:['nova','consec'],shield:['shield'],chain:['chain'],orbit:['orbit'],blink:['blink'],beam:['beam'],field:['field'],armor:['armor'],rain:['rain','storm'],heal:['heal','hot','rez','cleanse'],link:['link','martyr','lswap'],strike:['strike'],summon:['summon','recall','clone'],
+    aura:['invuln','buff','ward'],burst:['detonate','fuse','brandburst','miracle'],wave:['wave'],gale:['gale'],spchain:['spchain'],trap:['trap'],zap:['storm']};/* v33: 궁수 짝 · 새 그리는 방식 · v36: 벼락(zap) · 휘는 화살(homing 기술은 화살 그림) */
+  qOk(ids.length>=81,'짝 수 '+ids.length);for(const id of ids){const s=SPELLS[id],m=FX31.M[id];qOk(s&&s.cls===m.c&&(m.c==='mage'||m.c==='archer'||m.c==='priest'/* v39: 사제 */),id+' 짝 직업이 다름');qOk(s&&KIND[m.k]&&(KIND[m.k].includes(s.kind)||({kz38:'trap',orb38:'bolt'})[s.kind]===m.k/* v38: 킬 존은 덫을 깔고, 글레이셜 오브는 화살 조각을 뿌림 */),id+' 모양 다름 '+(s&&s.kind)+'/'+m.k);
     qOk(m.b.includes('_'+m.c+'_'+m.pk.split('-')[1]+'_')&&m.pk.startsWith(m.c+'-')&&(!m.i||m.i.replace('_2_','_1_')===m.b),id+' 띠 이름 '+m.b)}
-  const keep=Object.values(SPELLS).filter(s=>!FX31.M[s.id]).length;qOk(!FX31.M.slash&&!FX31.M.heal&&!Object.keys(FX31.M).some(id=>SPELLS[id]&&(SPELLS[id].cls==='warrior'||SPELLS[id].cls==='priest')),'전사·사제 스킬에 짝');
+  const keep=Object.values(SPELLS).filter(s=>!FX31.M[s.id]).length;qOk(!FX31.M.slash&&!FX31.M.heal&&!Object.keys(FX31.M).some(id=>SPELLS[id]&&SPELLS[id].cls==='warrior'),'전사 스킬에 짝');/* v39: 사제는 그림이 생김 */
   return `그림 있는 스킬 ${ids.length} · 예전 그대로 ${keep}`});
 qT('이펙트 v31','가벼움: 한 프레임 이펙트 예산(FXL)을 넘으면 광선 조각을 반으로 · 화면 밖 그림은 안 그림 · 그린 만큼 예산에 더함',()=>qFX31(()=>{FX31.P=qFX31Fake();qFX31Cast('steamjet');const b=beams[0];qOk(b&&b.a31,'광선 준비');b.life=b.max;b.x2=b.x1+700;b.y2=b.y1-700;
   const cnt=over=>{FXL.f=frameN;FXL.n=over?FXL.budget()+1:0;const d0=FX31.n.draw,n0=FXL.n;S();ctx.globalCompositeOperation='lighter';drawBeam(b);return [FX31.n.draw-d0,FXL.n-n0]};
@@ -5581,7 +5581,7 @@ qT('이펙트 v33','짝: 마법사 새 29가지(솔라 레이~서클 오브 엔�
   const AR={'archer-phys':['quickshot','fanshot','fulldraw','streamshot','oneshot','hawkeye','snaretrap','abysstrap','evaderoll','shadowstep'],'archer-fire':['flamearrow','burstarrow','trinityarrow']};
   for(const pk in AR)for(const id of AR[pk])qOk(FX31.M[id]&&FX31.M[id].pk===pk&&SPELLS[id].cls==='archer',id+' 궁수 짝 '+(FX31.M[id]&&FX31.M[id].pk));
   const n=k=>Object.keys(FX31.M).filter(id=>!(typeof A38==='object'&&A38.ids.includes(id))/* v38 원소 궁술은 1차 그림을 빌려 씀 */).map(id=>FX31.M[id]).filter(m=>m.c==='archer'&&m.f===k).length;/* v36: 궁수 새 그림 24가지가 더해져 화살 21 · 덫 11, 전체 189 */qOk(n('bolt')===21&&n('trap')===11&&n('buff')===13&&n('blink')===3,'궁수 짝 수 '+[n('bolt'),n('trap'),n('buff'),n('blink')]);
-  /* v37: 189 - 되돌린 15 = 174, v38: 바운싱 스톰 짝 뗌 = 173 (원소 궁술이 빌린 짝은 빼고 셈) */const nM=Object.keys(FX31.M).filter(id=>!(typeof A38==='object'&&A38.ids.includes(id))).length;qOk(nM===173,'짝 수 '+nM);return `짝 ${Object.keys(FX31.M).length} (마법사 ${Object.values(FX31.M).filter(m=>m.c==='mage').length} · 궁수 ${Object.values(FX31.M).filter(m=>m.c==='archer').length})`});
+  /* v37: 189 - 되돌린 15 = 174, v38: 바운싱 스톰 짝 뗌 = 173 (원소 궁술이 빌린 짝은 빼고 셈), v39: 사제 92가지 더해 265 */const nM=Object.keys(FX31.M).filter(id=>!(typeof A38==='object'&&A38.ids.includes(id))).length;qOk(nM===265&&Object.values(FX31.M).filter(m=>m.c==='priest').length===92,'짝 수 '+nM);return `짝 ${Object.keys(FX31.M).length} (마법사 ${Object.values(FX31.M).filter(m=>m.c==='mage').length} · 궁수 ${Object.values(FX31.M).filter(m=>m.c==='archer').length} · 사제 ${Object.values(FX31.M).filter(m=>m.c==='priest').length})`});
 qT('이펙트 v33','그림 묶음이 있을 때: 새 그리는 방식(몸 둘레 빛 · 크게 터짐 · 물벽 · 태풍 · 정령 사슬 · 덫 · 화살 · 구르기)이 새 그림으로 · 무적 빛은 무적이 끝나면 사라짐 · 같이 하기 오류 0',()=>qFX31(()=>{FX31.P=qFX31Fake();const out=[];
   const run=(cls,id,n,pre)=>{qPrep(cls,{lvl:140});P.sk[id]=10;P.x=QA_SPOT.x;P.y=QA_SPOT.y;followCam();if(MPJ){MPJ.waves.length=0;MPJ.gales.length=0;MPJ.chain=null}traps.length=0;FX31.inst=[];
     if(cls==='archer'&&typeof clsGearFor==='function')clsGearFor(id);if(pre)pre();const e=qDummy(P.x+170,P.y+30,{lvl:140});const d0=FX31.n.draw;qCast(id,{x:e.x,y:e.y});qStep(n||30,{renderEvery:2,each:()=>{P.mp=maxMp()}});const d=FX31.n.draw-d0;out.push(id+' '+d);qOk(d>0,id+' 새 그림이 안 그려짐');return e};
@@ -5722,7 +5722,7 @@ qT(QA38,'냉기 갈래: 셔터(세 번이면 얼림 · 언 적은 두 배 · 깨
   qClear();P.invT=1e9;const e=qDummy(P.x+250,P.y+30);qCast('glacialorb',{x:P.x+400,y:P.y});qStep(10,{render:false});qOk(A38.orb.length===1,'구슬');qStep(200,{render:true});qOk(e.hits>=2&&!A38.orb.length,'구슬 · 조각 '+e.hits);
   qClear();P.invT=1e9;const c=qA38Mob(P.x+200,P.y),c2=qA38Mob(P.x+290,P.y+30);c.stunT=0;c.spd=0;qCast('crystalprison',{x:c.x,y:c.y});qStep(20,{render:false});qOk(c.cp38&&c.freezeT>2,'수정 감옥 '+c.freezeT);c.stunT=1e9;/* 깨진 뒤 걸어오지 않게 */
   for(let i=0;i<4;i++){qCast('quickshot',{x:c.x,y:c.y});qStep(12,{render:false})}qOk(c.cp38.store>0,'모은 피해 없음');const h2=c2.hp;qStep(240,{render:false,until:()=>!c.cp38});qOk(!c.cp38&&c2.hp<h2,'깨질 때 곁의 적이 안 맞음 '+JSON.stringify(c.cp38&&{t:c.cp38.t,s:c.cp38.store})+' '+(h2-c2.hp)+' '+[c.x-P.x,c.y-P.y,c2.x-P.x,c2.y-P.y].map(Math.round));
-  const bk=Object.keys(TYPES).find(k=>TYPES[k].boss&&!TYPES[k].mirror),B=qA38Mob(P.x+200,P.y-80,bk);B.stunT=0;qCast('crystalprison',{x:B.x,y:B.y});qStep(20,{render:false});qOk(B.cp38&&B.cp38.max<=1+1e-6&&B.freezeT<=1+1e-6,'보스 가두기 '+(B.cp38&&B.cp38.max));
+  qClear();P.invT=1e9;P.cd={};/* v39: 앞에서 가둔 적 · 곁의 적이 화살 길에 남아 보스 대신 맞는 일이 가끔 있었음(전체 #qa에서만 1번 실패) */const bk=Object.keys(TYPES).find(k=>TYPES[k].boss&&!TYPES[k].mirror),B=qA38Mob(P.x+200,P.y-80,bk);B.stunT=0;qCast('crystalprison',{x:B.x,y:B.y});qStep(20,{render:false});qOk(B.cp38&&B.cp38.max<=1+1e-6&&B.freezeT<=1+1e-6,'보스 가두기 '+(B.cp38&&B.cp38.max));
   qClear();P.invT=1e9;const far=qA38Mob(P.x+400,P.y);/* 시험 자리 동쪽 약 490에 막힌 곳이 있어 줄이 거기서 멈춤 */qCast('avalanche',{x:P.x+600,y:P.y});qStep(60,{render:true});qOk(A38.aval.length===1&&A38.aval[0].pts.length>=6,'가시 줄');qOk(far.freezeT>0,'먼 적이 안 얼음 '+[A38.aval[0]&&A38.aval[0].pts.length,A38.aval[0]&&A38.aval[0].stop,Math.round(far.x-P.x),Math.round(far.y-P.y),far.freezeT,far.hp<far.max]);const h3=far.hp;qStep(120,{render:false});qOk(far.hp<h3&&!A38.aval.length,'가시가 부서지며 안 침 '+[far.hp<h3,A38.aval.length,A38.aval[0]&&A38.aval[0].pts.length,Math.round(far.x-P.x),far.dead]);
   return '냉기 넷'});
 qT(QA38,'폭풍 갈래: 스톰 애로우(꿰뚫고 옆으로 번개) · 테일윈드(빨라지고 다섯 번째 화살마다 돌풍) · 라이트닝 로드(피뢰침 8초) · 허리케인(움직이며 빨아들이고 벼락, 보스는 안 끌림)',()=>{qA38();
@@ -5990,6 +5990,32 @@ qT('이펙트 v37','사용자 요청: ① 마법사 번개 계열 14가지 · �
     finally{FXP.arrowSpr=_as}
     for(const on of [1,0]){if(!on)GFX.art='old';qPrep('archer',{lvl:140});P.sk.hawkeye=10;FXB.fx.length=0;qCast('hawkeye',{x:P.x,y:P.y});qOk(on?FXB.fx.length===0:FXB.fx.length>0,(on?'새 그림인데 예전 시전 빛':'예전 그림인데 시전 빛 없음')+' '+FXB.fx.length);delete GFX.art}}
   return out.join(' · ')}));
+/* v39(사용자 요청 「사제 모든 스킬들 이펙트가 다 나와야돼」): 사제 그림 30장(070~094)이 지속 효과를 뺀 모든 사제 기술에 짝 · 묶음 하나(fx-priest-holy) · 기술마다 자기 그림이 실제로 그려짐 */
+qT('이펙트 v39','사제 기술 그림 빠짐 없음: 지속 효과를 뺀 모든 사제 기술에 사제 그림 짝 · 묶음 fx-priest-holy 하나(서버 규칙 안) · 묶음이 있으면 기술마다 자기 그림이 실제로 그려짐(혼자 · 동료 한 명 있을 때) · 동료를 치유하면 그림이 동료 자리 · 묶음이 없으면 예전 그림',()=>qFX31(()=>{
+  const pri=Object.values(SPELLS).filter(s=>s.cls==='priest'&&s.kind!=='passive'&&!s.hidden&&!s.gone);const miss=pri.filter(s=>!FX31.M[s.id]||FX31.M[s.id].c!=='priest').map(s=>s.n);
+  qOk(pri.length>=90,'사제 기술 수 '+pri.length);qOk(!miss.length,'그림 짝이 없는 사제 기술: '+miss.join(', '));
+  const pks=[...new Set(pri.map(s=>FX31.M[s.id]&&FX31.M[s.id].pk).filter(Boolean))];qOk(pks.join()==='priest-holy','묶음 '+pks.join());qOk(/^(?:flare|fx)-[a-z0-9_-]+\.js$/.test('fx-priest-holy.js'),'서버가 안 내주는 이름');
+  FX31.P=qFX31Fake();const none=[];let own=null,last=null,nOwn=0;const _fr=FX31.fr,_im=FX31.img;
+  FX31.fr=function(PK,st){last=st;return _fr.apply(this,arguments)};FX31.img=function(c,PK,f){if(f&&own&&own.has(last))nOwn++;return _im.apply(this,arguments)};
+  try{for(const s of pri){const m=FX31.M[s.id];if(!m)continue;qMPPrep('priest',s.id,{hurt:1});if(!s.job3){if(s.job2)P.job2=s.job2;P.sk[s.id]=10;qMana(s.id);P.mp=maxMp()}P.invT=0;passT=-1;FX31.inst=[];fields.length=0;own=new Set([m.b,m.i].filter(Boolean));nOwn=0;
+      const {r}=qPty(2);try{PTY.tgt='qa_peer';r.hp=300;if(m.f==='rez'){r.dead=true;r.hp=0}P.hp=Math.round(maxHp()*.6);const e=qDummy(P.x+170,P.y+30,{lvl:140});qDummy(P.x+230,P.y+80,{lvl:140});
+        if(s.id==='brandspread'){P.sk.heresybrand=10;qCast('heresybrand',{x:e.x,y:e.y});qStep(40,{render:false,each:()=>{P.mp=maxMp()}});P.cd={};FX31.inst=[];nOwn=0}/* 브랜드 버스트는 낙인이 찍힌 적에게서 터짐 */
+        qCast(s.id,m.f==='rez'||m.k==='link'||m.f==='blink'?{x:r.x,y:r.y}:{x:e.x,y:e.y});for(let i=0;i<60&&!nOwn;i++)qStep(4,{renderEvery:2,each:()=>{P.mp=maxMp()}})}finally{qPtyOff()}
+      if(!nOwn)none.push(s.n+'('+s.kind+')')}}
+  finally{FX31.fr=_fr;FX31.img=_im}
+  qOk(!none.length,'자기 그림이 안 그려진 사제 기술 '+none.length+': '+none.join(', '));
+  // 동료 치유 · 동료 강화: 그림이 동료를 따라감 / 잇기는 나와 동료 사이
+  const at={};for(const id of ['greaterheal','blessing','gracelink']){qMPPrep('priest',[],{hurt:1});P.sk[id]=10;if(SPELLS[id].job2)P.job2=SPELLS[id].job2;qMana(id);P.mp=maxMp();FX31.inst=[];const {r}=qPty(2,{dx:160});
+    try{PTY.tgt='qa_peer';r.hp=200;P.hp=maxHp();qCast(id,{x:r.x,y:r.y});const o=FX31.inst.find(o=>o.st===FX31.M[id].b);at[id]=o?(o.ln?(o.who===P&&Math.abs(o.x2-r.x)<2?'잇기':'잇기 자리 틀림'):o.who===r?'동료':o.who===P?'나':'?'):'없음'}finally{qPtyOff()}}
+  qOk(at.greaterheal==='동료','동료 치유 그림 자리: '+at.greaterheal);qOk(at.gracelink==='잇기','그레이스 링크: '+at.gracelink);
+  // 겹침 없음: 그림이 있는 내리꽂기(라이트 필라)가 땅에 닿을 때 · 미라클(시전 뒤에 세움)의 예전 흰 빛기둥이 없음. 「예전 그림」이면 빛기둥 그대로
+  const pil={};for(const on of [1,0]){if(!on)GFX.art='old';for(const id of ['pillaroflight','saintmiracle']){const s=SPELLS[id];qMPPrep('priest',s.job3?id:[],{hurt:1});if(!s.job3){P.sk[id]=10;qMana(id);P.mp=maxMp()}P.hp=Math.round(maxHp()*.5);
+      const e=qDummy(P.x+170,P.y+30,{lvl:140});pillars.length=0;let mx=0;qCast(id,{x:e.x,y:e.y});for(let i=0;i<120;i++){qStep(1,{render:false,each:()=>{P.mp=maxMp()}});mx=Math.max(mx,pillars.length)}pil[id+(on?'':'(예전)')]=mx}delete GFX.art}
+  qOk(!pil.pillaroflight&&!pil.saintmiracle,'새 그림인데 예전 빛기둥 '+JSON.stringify(pil));qOk(pil['pillaroflight(예전)']>0&&pil['saintmiracle(예전)']>0,'예전 그림인데 빛기둥 없음 '+JSON.stringify(pil));
+  // 묶음이 없으면 예전 시전 빛 그대로 · 새 그림 0
+  FX31.P={};FX31.want={'priest-holy':'fail'};{qMPPrep('priest',[],{hurt:1});P.sk.minorheal=10;qMana('minorheal');P.mp=maxMp();P.hp=Math.round(maxHp()*.5);FXB.fx.length=0;const d0=FX31.n.draw;qCast('minorheal',{x:P.x,y:P.y});qStep(10,{renderEvery:1});
+    qOk(FXB.fx.length>0&&FX31.n.draw===d0,'묶음 없는데 예전 빛 '+FXB.fx.length+' · 새 그림 '+(FX31.n.draw-d0))}
+  return '사제 기술 '+pri.length+'가지 모두 짝 · 그려짐 · 묶음 priest-holy · 동료 치유 '+at.greaterheal+' · 동료 강화 '+at.blessing+' · 링크 '+at.gracelink+' · 겹치던 빛기둥 0 · 묶음 없으면 예전 빛'}));
 window.__QA_RUN=qaRun;
 setTimeout(()=>{qaRun().catch(e=>{window.__QA_RESULT={fatal:String(e&&e.stack||e),results:[],summary:{total:0,pass:0,fail:1}}})},120);
 }

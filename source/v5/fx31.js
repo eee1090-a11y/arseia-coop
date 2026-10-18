@@ -38,7 +38,21 @@ const FX31={P:{},want:{},busy:0,busyT:0,q:[],inst:[],nd:0,t:0,C:128,
     ['104','phys','field','caltrops smoke lure arrowvortex huntground nighthunt',0,'archer'],['105','ice','trap','frosttrap',0,'archer'],
     ['106','phys','strike','falcondive apexhunt drivehunt',0,'archer'],['107','phys','chain','ricochet',0,'archer'],['108','phys','rain','arrowrain skyvolley',0,'archer'],
     ['109','storm','strike','thunderarrow','zap','archer'],['110','phys','beam','siegeshot wildrun',0,'archer'],['111','phys','detonate','detonate','burst','archer'],
-    ['112','phys','nova','earthbind',0,'archer'],['113','phys','homing','curvingshot','bolt','archer']],
+    ['112','phys','nova','earthbind',0,'archer'],['113','phys','homing','curvingshot','bolt','archer'],
+    // v39(사용자 요청: 사제 모든 기술에 그림): 사제 30장(070~094) · 92가지. 치유·되살리기·정화는 받는 사람 자리, 강화·수호·무적은 몸 둘레, 잇기(링크·희생·교환)는 두 사람 사이
+    ['070','holy','heal','minorheal closewounds prayerheal greaterheal salvation regeneration chainheal sainttouch',0,'priest'],
+    ['071','holy','shield','lightward kyrie divineshield aegis inqarmor sanctum',0,'priest'],
+    ['072','holy','buff','blessing agiup wisdom impositio kings gloria painsup benediction apotheosis grandblessing lightwings crownofblessing graceaccel atonelight','aura','priest'],
+    ['073','holy','bolt','smite holyfire javelin holychains hammerofwrath lightvolley heresybrand purgefire execlance heavenprison',0,'priest'],
+    ['074','holy','cone','holycross symbolflash waveoflight sunsword',0,'priest'],['075','holy','nova','turnundead greatjudgment grandcross confessbell grandverdict',0,'priest'],
+    ['076','holy','hot','renew','heal','priest'],['077','holy','strike','hammerofjustice pillaroflight judgment godspear finalverdict execution',0,'priest'],
+    ['078','holy','field','barrier consecration exorcircle healcircle holysun magnus lifespring archhymn condemnfield saintmarch sanctumfield',0,'priest'],
+    ['079','holy','orbit','blessedhammer',0,'priest'],['080','holy','chain','chainoflight judgechain',0,'priest'],['081','holy','beam','radiance sacredsword holyflame judgespear',0,'priest'],
+    ['082','holy','rain','rainoflight heavenblades heavenwrath heavengate',0,'priest'],['083','holy','ward','guardianspirit returnmiracle','aura','priest'],
+    ['084','holy','storm','thunderprayer','rain','priest'],['085','holy','invuln','inviolable','aura','priest'],['086','holy','rez','resurrection battlerez grandrez','heal','priest'],
+    ['087','holy','link','gracelink','link','priest'],['088','holy','cleanse','purifyhand','heal','priest'],['089','holy','martyr','martyrprayer','link','priest'],
+    ['090','holy','brandburst','brandspread','burst','priest'],['091','holy','blink','lightpath lightchaser',0,'priest'],['092','holy','consec','consecrate','nova','priest'],
+    ['093','holy','lswap','lifeswap','link','priest'],['094','holy','miracle','saintmiracle','burst','priest']],
   TWO:new Set(['bolt','chain','beam','rain']),M:{},n:{draw:0,fall:0,evict:0,load:0},
   init(){for(const [no,el,f,ids,k0,c0] of this.T){const c=c0||'mage',k=k0||f,b=`fx_${no}_1_${c}_${el}_${f}`,i=no>'040'||this.TWO.has(k)?`fx_${no}_2_${c}_${el}_${f}`:null;// 띠 2번이 없으면 그 칸만 그리지 않는다
     for(const id of ids.split(' '))this.M[id]={k,f,c,b,i,pk:c+'-'+el}}
@@ -79,6 +93,8 @@ const FX31={P:{},want:{},busy:0,busyT:0,q:[],inst:[],nd:0,t:0,C:128,
   // 땅 위 둥근 범위(세계 반지름 r)를 덮는 배율: 고리 그림이 칸 너비의 cov만큼 찬다
   isoK(r,cov){return 2*r*KI*1.4142/(this.C*(cov||.86))},
   // v37: 범위 맞춤 — 땅의 둥근 범위(세계 반지름 r, 화면에선 가로 2·r·KI·√2인 타원)와 그림의 실제 가로 폭(띠에서 가장 넓은 칸)이 같아지는 배율
+  // v39: 칸 안에서 그림의 발(가장 아래 칸의 바닥) — 서 있는 빛기둥을 받는 사람 발밑에 맞춤
+  foot(PK,stem){const c=PK.ft||(PK.ft={});if(c[stem]==null){const F=this.fr(PK,stem);c[stem]=F?Math.max(64,Math.min(124,Math.max(...F.map(f=>f[5]+f[3]))-4)):108}return c[stem]},
   visW(PK,stem){const c=PK.vw||(PK.vw={});if(c[stem]==null){const F=this.fr(PK,stem);c[stem]=F?Math.max(8,...F.map(f=>f[2])):this.C*.86}return c[stem]},
   fit(PK,stem,r){return Math.max(.2,Math.min(10,2*(r||60)*KI*1.4142/this.visW(PK,stem)))},
   scrAng(a){return Math.atan2((Math.cos(a)+Math.sin(a))*KI/2,(Math.cos(a)-Math.sin(a))*KI)},
@@ -89,15 +105,17 @@ FX31.init();
 window.FX_PACK=function(name,meta,url){FX31.got(name,meta,url)};
 
 /* ----- 시전 앞뒤: clsAim(모든 시전이 지나는 곳, 겨눔 직전)에서 개수를 적어 두고, FXP.cast(시전 끝)에서 새로 생긴 예전 층을 바꾼다 ----- */
-{const _ca=clsAim;clsAim=function(s,t){if(s&&FX31.M[s.id])FX31.snap={id:s.id,x:P.x,y:P.y,r:rings.length,p:parts.length,b:bolts.length,bm:beams.length,f:fields.length,pd:pend.length,fx:FXB.fx.length,al:allies.length};return _ca.apply(this,arguments)}}
+{const _ca=clsAim;clsAim=function(s,t){if(s&&FX31.M[s.id])FX31.snap={id:s.id,x:P.x,y:P.y,r:rings.length,p:parts.length,b:bolts.length,bm:beams.length,f:fields.length,pd:pend.length,fx:FXB.fx.length,al:allies.length,pl:pillars.length};return _ca.apply(this,arguments)}}
 {const _fc=FXP.cast;FXP.cast=function(s,t,actor){const r=_fc.apply(this,arguments);const sn=FX31.snap;FX31.snap=null;
   try{if(s&&sn&&sn.id===s.id)FX31.cast(s,t,actor||P,sn)}catch(err){if(window.__QA)throw err}return r}}
 // 같이 하기 유령 시전에서도 이때의 P가 시전한 사람 자리 (net.js가 P를 잠깐 바꿔 둔다)
-FX31.cast=function(s,t,_o,sn){const o=P;const g=this.get(s.id);if(!g)return;if(FXB.fx.length>sn.fx)FXB.fx.splice(sn.fx);/* v37: 예전 시전 빛(고리·화살표·기둥)은 새 그림이 대신 */const {m,PK}=g,k=m.k,rank=Math.max(1,Math.min(9,s.rank||1));
+FX31.cast=function(s,t,_o,sn){const o=P;const g=this.get(s.id);if(!g)return;/* v39: 이번 시전으로 치유·강화를 받은 사람들(예전 시전 빛이 붙은 자리) */const tg=[...new Set(FXB.fx.slice(sn.fx).map(f=>f.o&&f.o.x!=null?f.o:{x:f.x,y:f.y}))];if(FXB.fx.length>sn.fx)FXB.fx.splice(sn.fx);/* v37: 예전 시전 빛(고리·화살표·기둥)은 새 그림이 대신 */const {m,PK}=g,k=m.k,rank=Math.max(1,Math.min(9,s.rank||1));
   const newRings=()=>{if(rings.length>sn.r)rings.splice(sn.r,rings.length-sn.r).filter(r=>r.faint).forEach(r=>rings.push(r))};
   if(k==='cone'){const a=P.face,L=this.scrLen(a,s.range||160);this.add({st:m.b,pk:m.pk,x:o.x,y:o.y,z:16,d:.42,rot:this.scrAng(a),sc:L/(this.C*.82),ax:18,ay:64});this.halve(sn.p)}
   else if(k==='nova'){this.add({st:m.b,pk:m.pk,x:o.x,y:o.y,z:0,d:.55,sc:this.fit(PK,m.b,s.rad||100),ax:64,ay:64});newRings();this.halve(sn.p)}
   else if(k==='blink'){const sc=.62+rank*.03;this.add({st:m.b,pk:m.pk,x:sn.x,y:sn.y,z:0,d:.45,sc,ax:64,ay:104});this.add({st:m.b,pk:m.pk,x:o.x,y:o.y,z:0,d:.45,sc,ax:64,ay:104,t0:time+.06});newRings();this.halve(sn.p)}
+  else if(k==='heal'&&m.c==='priest'){const sc=.62+rank*.03,ay=this.foot(PK,m.b),hot=m.f==='hot',to=tg.length?tg.slice(0,6):[o];
+    for(const q of to)this.add(hot?{st:m.b,pk:m.pk,who:q,fol:1,loop:1,x:q.x,y:q.y,z:0,d:1.6,sc,ax:64,ay}:{st:m.b,pk:m.pk,who:q,fol:1,x:q.x,y:q.y,z:0,d:m.f==='rez'?1.1:.8,sc:m.f==='rez'?sc*1.15:sc,ax:64,ay});newRings();this.halve(sn.p)}
   else if(k==='heal'){const sc=.7+rank*.03;this.add({st:m.b,pk:m.pk,x:o.x,y:o.y,z:0,d:.8,sc,ax:64,ay:108});if(FXB.fx.length>sn.fx)FXB.fx.splice(sn.fx);newRings();this.halve(sn.p)}
   else if(k==='chain'){for(let i=sn.b;i<bolts.length;i++){const b=bolts[i];b.a31=m;if(m.i)this.add({st:m.i,pk:m.pk,x:b.b.x,y:b.b.y,z:b.b.z||16,d:.3,sc:.42+rank*.03,ax:64,ay:64,t0:time+(b.delay||0)})}newRings();this.halve(sn.p)}
   else if(k==='beam'){for(let i=sn.bm;i<beams.length;i++){const b=beams[i];b.a31=m;if(m.i)this.add({st:m.i,pk:m.pk,x:b.x2,y:b.y2,z:b.z||14,d:.4,sc:.5+rank*.04,ax:64,ay:64})}
@@ -107,13 +125,20 @@ FX31.cast=function(s,t,_o,sn){const o=P;const g=this.get(s.id);if(!g)return;if(F
   else if(k==='summon'){const sc=.85+rank*.03,nw=allies.slice(sn.al||0);let at=nw.filter(a=>a.s&&a.s.id===s.id);if(!at.length&&m.f==='recall')at=nw.filter(a=>a.s);if(!at.length)at.push({x:o.x+Math.cos(P.face)*50,y:o.y+Math.sin(P.face)*50});
     for(const a of at)this.add({st:m.b,pk:m.pk,x:a.x,y:a.y,z:0,d:.75,sc,ax:64,ay:100});newRings();this.halve(sn.p)}
   // v33: 몸 둘레 빛(반복) — 무적(돌의 몸 · 물의 몸)은 무적 동안, 나머지는 시전 뒤 잠깐
-  else if(k==='aura'){const inv=m.f==='invuln';this.add({st:m.b,pk:m.pk,who:o,fol:1,loop:1,inv,x:o.x,y:o.y,z:26,d:inv?Math.max(.5,P.invT||s.dur||3):2.2,sc:.74,ax:64,ay:64})}
+  else if(k==='aura'){const inv=m.f==='invuln',to=m.c==='priest'&&tg.length?tg.slice(0,6):[o];for(const q of to)this.add({st:m.b,pk:m.pk,who:q,fol:1,loop:1,inv:inv&&q===P,x:q.x,y:q.y,z:26,d:inv&&q===P?Math.max(.5,P.invT||s.dur||3):2.2,sc:.74,ax:64,ay:64})}
+  // v39: 사제 보호막 — 나에게 걸린 건 떠 있는 동안 drawAir가 그리고, 동료에게 걸린 건 거는 순간 한 번
+  else if(k==='shield'){for(const q of tg.slice(0,6))if(q!==P)this.add({st:m.b,pk:m.pk,who:q,fol:1,loop:1,x:q.x,y:q.y,z:26,d:1.4,sc:.74,ax:64,ay:64})}
+  // v39: 잇기(그레이스 링크 · 마터스 프레이어 · 라이프 익스체인지) — 나와 받는 동료 사이에 늘여 붙임. 받는 동료가 없으면 바라보는 쪽으로 짧게
+  else if(k==='link'){let to=tg.filter(q=>q!==P);if(!to.length&&NET.on){const L=P.j2link,r=m.f==='link'&&L?NET.peers.get(L.id):typeof PTY==='object'?PTY.pick().r:null;
+      if(r&&!(m.f!=='lswap'&&r.dead))to=[r];if(m.f==='martyr')to=[...NET.peers.values()].filter(r=>!r.dead&&(typeof netSame!=='function'||netSame(r))&&dist(r,o)<=(s.party||550))}
+    if(!to.length&&t&&t.x!=null&&dist(t,o)>20)to=[t];if(!to.length)to=[{x:o.x+Math.cos(P.face)*120,y:o.y+Math.sin(P.face)*120}];
+    for(const q of to.slice(0,6))this.add({st:m.b,pk:m.pk,ln:1,who:o,who2:q.x!=null&&q.hp!=null?q:null,x:o.x,y:o.y,x2:q.x,y2:q.y,z:0,d:m.f==='link'?1.2:.8,sc:1,ax:0,ay:0});newRings();this.halve(sn.p)}
   // v33: 크게 터짐 — 이번 시전에서 생긴 가장 큰 고리 자리(없으면 시전한 사람 자리)
-  else if(k==='burst'){const R=rings.slice(sn.r).filter(r=>!r.faint&&r.max>=40).sort((a,b)=>b.max-a.max).slice(0,2);if(!R.length)R.push({x:o.x,y:o.y,max:110});
+  else if(k==='burst'){if(m.c==='priest'&&sn.pl!=null&&pillars.length>sn.pl)pillars.splice(sn.pl);/* v39: 브랜드 버스트 · 미라클의 예전 흰 빛기둥은 그림이 대신 */const R=rings.slice(sn.r).filter(r=>!r.faint&&r.max>=40).sort((a,b)=>b.max-a.max).slice(0,2);if(!R.length)R.push({x:o.x,y:o.y,max:110});
     for(const r of R)this.add({st:m.b,pk:m.pk,x:r.x,y:r.y,z:1,d:.7,sc:this.fit(PK,m.b,r.max),ax:64,ay:64});this.halve(sn.p)}
   // v33: 정령 사슬 — 잇는 순간 나와 소환수 자리에서 한 번 (사슬 줄기는 drawBolt가 그림으로)
   else if(k==='spchain'){const pts=[o].concat(allies.filter(a=>a.j2&&!a.gone&&a.s&&a.s.cls==='mage').slice(0,6));for(const q of pts)this.add({st:m.i,pk:m.pk,x:q.x,y:q.y,z:24,d:.4,sc:.55,ax:64,ay:64})}
-  else if(k==='strike'){for(let i=sn.pd;i<pend.length;i++){const q=pend[i];if(q.s&&q.s.mini)continue;const dl=Math.max(0,q.t-.45);this.add({st:m.b,pk:m.pk,x:q.x,y:q.y,z:0,d:.7,sc:this.fit(PK,m.b,q.s.rad||90),ax:64,ay:108,t0:time+dl})}}};
+  else if(k==='strike'){for(let i=sn.pd;i<pend.length;i++){const q=pend[i];if(q.s&&q.s.mini)continue;const dl=Math.max(0,q.t-.45);q.a31=1;this.add({st:m.b,pk:m.pk,x:q.x,y:q.y,z:0,d:.7,sc:this.fit(PK,m.b,q.s.rad||90),ax:64,ay:108,t0:time+dl})}}};
 // 투사체 몸통: 그림이 있으면 예전 몸통·꼬리·고리 대신 그림 (휘는 빛 꼬리는 그림에 들어 있음)
 {const _d=FXR.draw;FXR.draw=function(c,p,s,k,ox,oy,map){const m0=p&&p.s&&FX31.M[p.s.id],g=m0&&(m0.c==='archer'||!p.s.phys)&&FX31.get(p.s.id);if(!g||g.m.k!=='bolt')return _d.apply(this,arguments);
   const F=FX31.fr(g.PK,g.m.b);if(!F)return _d.apply(this,arguments);if(!FXL.lod(s.x,s.y,40))return;
@@ -161,19 +186,23 @@ FX31.drawAir=function(c,map){c.globalCompositeOperation='source-over';
     const lp=(id,cx,cy,sc,a)=>{const g=this.get(id,false);if(!g)return;const F=this.fr(g.PK,g.m.b);if(!F)return;this.img(c,g.PK,F[this.loopK(F,7)],cx,cy,64,64,sc,sc,0,a)};
     if(P.shield>0&&(P.shieldT==null||P.shieldT>0)&&P.shieldS)lp(P.shieldS.id,s.x,s.y-26,.74,.92);
     if(P.armor&&P.armor.t>0&&P.armor.s)lp(P.armor.s.id,s.x,s.y-24,.72,.85*Math.min(1,P.armor.t*2));
-    if(P.orbits&&P.orbits.s){const o=P.orbits,g=this.get(o.s.id,false),F=g&&this.fr(g.PK,g.m.b);if(F){const el=o.max-o.t,k=el<.3?Math.min(2,(el/.3*3)|0):o.t<.25?3:2,sc=this.isoK(o.rad,.82);
+    if(P.orbits&&P.orbits.s){const o=P.orbits,g=this.get(o.s.id,false),F=g&&this.fr(g.PK,g.m.b);if(F){const el=o.max-o.t,k=g.m.c==='priest'?this.loopK(F,8):el<.3?Math.min(2,(el/.3*3)|0):o.t<.25?3:2,sc=this.isoK(o.rad,.82);/* v39: 사제 망치는 4칸이 도는 그림이라 계속 돌림 */
       this.img(c,g.PK,F[k],s.x,s.y-20,64,64,sc,sc,0,.75+.15*Math.sin(time*4))}}}
   let dead=0;for(const o of this.inst){if(time-o.t0>=o.d){dead++;continue}if(o.z===0&&!o.fall&&o.ay===64)continue;this.one(c,o,map)}
   if(dead)this.inst=this.inst.filter(o=>time-o.t0<o.d);c.globalCompositeOperation='lighter';c.globalAlpha=1};
 // 한 번 재생되는 그림 하나
 FX31.one=function(c,o,map){const a=(time-o.t0)/o.d;if(a<0||a>=1)return;const PK=this.P[o.pk];if(!PK)return;
   if(o.fol){const h=o.who||P;if(h.dead||(o.inv&&!(h.invT>0))){o.d=0;return}o.x=h.x;o.y=h.y}
+  if(o.ln){if(o.who){o.x=o.who.x;o.y=o.who.y}if(o.who2&&!o.who2.dead){o.x2=o.who2.x;o.y2=o.who2.y}const F=this.fr(PK,o.st);if(!F)return;const A=map(o.x,o.y),B=map(o.x2,o.y2);A.y-=24;B.y-=24;const L=Math.hypot(B.x-A.x,B.y-A.y);if(L<4)return;
+    if(!FXL.lod((A.x+B.x)/2,(A.y+B.y)/2,L/2+30))return;const f=F[this.kOf(F,a)],sx=L/Math.max(8,f[2]),sy=Math.max(.5,Math.min(1.4,sx*.7));this.img(c,PK,f,A.x,A.y,f[4],f[5]+f[3]/2,sx,sy,Math.atan2(B.y-A.y,B.x-A.x),Math.min(1,(1-a)*4));return}
   if(o.loop){const F=this.fr(PK,o.st),el=time-o.t0;if(!F)return;const s=map(o.x,o.y);this.img(c,PK,F[this.loopK(F,8,o.x*.01)],s.x,s.y-o.z,o.ax,o.ay,o.sc,o.sc,0,.92*Math.min(1,el*5,(o.d-el)*3));return}
   const s=map(o.x,o.y);if(!FXL.lod(s.x,s.y-o.z,90*o.sc))return;
   if(o.fall){const fa=(time-o.t0)/o.fall;if(fa<1){const F=this.fr(PK,o.st);if(F)this.img(c,PK,F[Math.min(2,1+(fa*2|0))],s.x,s.y-200*(1-fa),64,64,o.scF||o.sc,o.scF||o.sc,0,1);return}
     const F=this.fr(PK,o.st2);if(F)this.img(c,PK,F[this.kOf(F,(time-o.t0-o.fall)/(o.d-o.fall))],s.x,s.y,64,64,o.sc,o.sc,0,1);return}
   const F=this.fr(PK,o.st);if(!F)return;this.img(c,PK,F[this.kOf(F,a)],s.x,s.y-o.z,o.ax,o.ay,o.sc,o.sc,o.rot||0,1)};
-{const _u=update;update=function(dt){_u.apply(this,arguments);try{FX31.tick(dt)}catch(err){if(window.__QA)throw err}}}
+{const _u=update;update=function(dt){/* v39: 그림이 있는 내리꽂기(라이트 필라 · 저지먼트 · 솔라 폴 …)가 땅에 닿을 때 예전 흰 빛기둥을 겹쳐 그리지 않음 */
+  const L=FX31.on()?pend.filter(m=>m.a31&&m.t-dt<=0):null;_u.apply(this,arguments);if(L&&L.length)pillars=pillars.filter(b=>!L.some(m=>m.x===b.x&&m.y===b.y));
+  try{FX31.tick(dt)}catch(err){if(window.__QA)throw err}}}
 /* ----- v33: 금기 대해일(물벽이 나아가는 앞) · 금기 태풍(모이는 소용돌이) · 정령 사슬(번개 줄기) · 궁수 덫(놓인 덫 · 터짐) ----- */
 FX31.drawMP=function(c,map){if(typeof MPJ==='undefined')return;
   for(const w of MPJ.waves){const g=w.s&&this.get(w.s.id);if(!g)continue;const F=this.fr(g.PK,g.m.b);if(!F)continue;const d=Math.min(w.d,w.len),s=map(w.x,w.y);if(d<20)continue;
@@ -208,4 +237,6 @@ FX31.KEEPFXP=new Set(['cagec','snarec','toss']);
   try{return _dr.apply(this,arguments)}finally{for(const [r,s0] of sw)r.s=s0}}}
 {const _tb=FXP.trapBoom;FXP.trapBoom=function(tr){const id=tr&&tr.s&&tr.s.id,art=id&&FX31.on()&&FX31.get(id,false),n0=rings.length,p=this._sid;this._sid=id;
   try{return _tb.apply(this,arguments)}finally{this._sid=p;if(art&&rings.length>n0)rings.splice(n0)}}}
+// v39: 미라클은 시전이 끝난 뒤(mpPost) 예전 흰 빛기둥을 세움 — 그림이 있으면 그 빛기둥은 빼고 그림(크게 터짐)만
+if(typeof mpMiracle==='function'){const _m=mpMiracle;mpMiracle=function(){const n0=pillars.length,r=_m.apply(this,arguments);try{if(FX31.on()&&FX31.get('saintmiracle',false)&&pillars.length>n0)pillars.splice(n0)}catch(err){if(window.__QA)throw err}return r}}
 window.__fx31=FX31;
