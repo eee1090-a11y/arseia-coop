@@ -29,16 +29,24 @@ const FX31={P:{},want:{},busy:0,busyT:0,q:[],inst:[],nd:0,t:0,C:128,
     ['060','arcane','fuse','spiritfusion','burst'],['061','life','buff','wardspirit','aura'],['062','ice','wave','forbidtide'],['063','storm','spchain','spiritchain'],
     ['064','fire','buff','spiritfrenzy','aura'],['065','storm','gale','forbidgale'],['066','arcane','ward','pactprice','aura'],['067','arcane','recall','spiritreturn','summon'],
     ['068','arcane','clone','manaclone','summon'],['069','arcane','rain','finalcircle'],
-    ['095','phys','bolt','quickshot trackmark fanshot piercearrow fulldraw streamshot weakspot tripleshot snipe splitarrow netshot deathmark windpierce shadowarrow exposeweak oneshot',0,'archer'],
+    ['095','phys','bolt','quickshot trackmark fanshot piercearrow fulldraw streamshot weakspot tripleshot snipe netshot deathmark windpierce shadowarrow exposeweak oneshot',0,'archer'],
     ['096','phys','buff','hawkeye camouflage huntinghorn deadeye survivor predatoreye imbue traptoss focus beastawaken shadowhide piercinggaze poisonshade','aura','archer'],
     ['097','phys','trap','snaretrap shrapneltrap trapfield beastcage blasttrap thorntrap dominion shadowtrap abysstrap',0,'archer'],
-    ['098','fire','bolt','flamearrow burstarrow trinityarrow',0,'archer'],['099','phys','blink','evaderoll backshot shadowstep',0,'archer'],
+    ['098','fire','bolt','flamearrow burstarrow trinityarrow',0,'archer'],['099','phys','blink','evaderoll shadowstep',0,'archer'],
     // v36: 궁수 22장(100~113). 윈드 애로우(shockarrow)는 바람 화살이 되어 번개 그림(103)을 쓰지 않음 · 애로우 펜스(elemrain) · 보우 오브 헤븐(heavenbow)은 모양이 바뀌어 새로 그리는 중
     ['100','phys','summon','falcon wolfcall',0,'archer'],['101','ice','bolt','icearrow glacialarrow',0,'archer'],['102','fire','trap','firetrap',0,'archer'],
     ['104','phys','field','caltrops smoke lure arrowvortex huntground nighthunt',0,'archer'],['105','ice','trap','frosttrap',0,'archer'],
     ['106','phys','strike','falcondive apexhunt drivehunt',0,'archer'],['107','phys','chain','ricochet',0,'archer'],['108','phys','rain','arrowrain skyvolley',0,'archer'],
     ['109','storm','strike','thunderarrow','zap','archer'],['110','phys','beam','siegeshot wildrun',0,'archer'],['111','phys','detonate','detonate','burst','archer'],
     ['112','phys','nova','earthbind',0,'archer'],['113','phys','homing','curvingshot','bolt','archer'],
+    // v40(사용자 요청: 받아 둔 궁수 그림 모두): 궁수 31장(114~124 · 142~149) · 21가지. 따로 그리는 궁수 기술(포대 · 폭약 · 울타리 · 그물 · 하늘의 활 · 일곱 별 · 별 떨구기 · 되돌아오는 화살 · 분신)은 fx40.js가 그린다
+    ['114','phys','sidestep','windstep','blink','archer'],['115','phys','scatter','scattervolley','cone','archer'],['116','phys','stars','sevenstars',0,'archer'],
+    ['117','phys','clones','shadowclone',0,'archer'],['118','phys','throw','returnarrow',0,'archer'],['119','phys','starfall','starfallbow',0,'archer'],
+    ['120','phys','turret','pierceblow',0,'archer'],['121','phys','stickybomb','splitarrow','bolt','archer'],['122','phys','fence','elemrain',0,'archer'],
+    ['123','phys','netretreat','backshot','blink','archer'],['124','phys','skybow','heavenbow',0,'archer'],
+    ['142','fire','field','firerain',0,'archer'],['143','fire','eruption','volcanoshot','strike','archer'],['144','ice','field','blizzardshot',0,'archer'],
+    ['145','ice','spike','glacialspike','strike','archer'],['146','wind','beam','galearrow',0,'archer'],['147','wind','field','cyclonearrow',0,'archer'],
+    ['148','phys','homing','homingarrow','bolt','archer'],['149','phys','buff','leecharrow shootrhythm doublestream','aura','archer'],
     // v39(사용자 요청: 사제 모든 기술에 그림): 사제 30장(070~094) · 92가지. 치유·되살리기·정화는 받는 사람 자리, 강화·수호·무적은 몸 둘레, 잇기(링크·희생·교환)는 두 사람 사이
     ['070','holy','heal','minorheal closewounds prayerheal greaterheal salvation regeneration chainheal sainttouch',0,'priest'],
     ['071','holy','shield','lightward kyrie divineshield aegis inqarmor sanctum',0,'priest'],
@@ -138,7 +146,7 @@ FX31.cast=function(s,t,_o,sn){const o=P;const g=this.get(s.id);if(!g)return;/* v
     for(const r of R)this.add({st:m.b,pk:m.pk,x:r.x,y:r.y,z:1,d:.7,sc:this.fit(PK,m.b,r.max),ax:64,ay:64});this.halve(sn.p)}
   // v33: 정령 사슬 — 잇는 순간 나와 소환수 자리에서 한 번 (사슬 줄기는 drawBolt가 그림으로)
   else if(k==='spchain'){const pts=[o].concat(allies.filter(a=>a.j2&&!a.gone&&a.s&&a.s.cls==='mage').slice(0,6));for(const q of pts)this.add({st:m.i,pk:m.pk,x:q.x,y:q.y,z:24,d:.4,sc:.55,ax:64,ay:64})}
-  else if(k==='strike'){for(let i=sn.pd;i<pend.length;i++){const q=pend[i];if(q.s&&q.s.mini)continue;const dl=Math.max(0,q.t-.45);q.a31=1;this.add({st:m.b,pk:m.pk,x:q.x,y:q.y,z:0,d:.7,sc:this.fit(PK,m.b,q.s.rad||90),ax:64,ay:108,t0:time+dl})}}};
+  else if(k==='strike'){const tall=m.f==='eruption'||m.f==='spike';/* v40: 솟는 그림(볼케이노 샷 · 글레이셜 스파이크)은 폭에 맞추면 너무 높아 크기 상한 */for(let i=sn.pd;i<pend.length;i++){const q=pend[i];if(q.s&&q.s.mini)continue;const dl=Math.max(0,q.t-.45);q.a31=1;this.add({st:m.b,pk:m.pk,x:q.x,y:q.y,z:0,d:.7,sc:tall?Math.min(1.7,this.fit(PK,m.b,q.s.rad||90)):this.fit(PK,m.b,q.s.rad||90),ax:64,ay:tall?this.foot(PK,m.b):108,t0:time+dl})}}};
 // 투사체 몸통: 그림이 있으면 예전 몸통·꼬리·고리 대신 그림 (휘는 빛 꼬리는 그림에 들어 있음)
 {const _d=FXR.draw;FXR.draw=function(c,p,s,k,ox,oy,map){const m0=p&&p.s&&FX31.M[p.s.id],g=m0&&(m0.c==='archer'||!p.s.phys)&&FX31.get(p.s.id);if(!g||g.m.k!=='bolt')return _d.apply(this,arguments);
   const F=FX31.fr(g.PK,g.m.b);if(!F)return _d.apply(this,arguments);if(!FXL.lod(s.x,s.y,40))return;
