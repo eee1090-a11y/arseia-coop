@@ -18,7 +18,7 @@ i29Build();
 function i29Wall(d){const PK=cgPK(CG.TOWN),r=PK&&cgR(PK,d.pv?'095_castle_wall_axis_y':'095_castle_wall_axis_x');
  const s=d._s;if(!r){const e=twProp(d);if(e){ctx.save();ctx.translate(s.x,s.y);const k=d.len/140;ctx.transform(k,(d.pv?-1:1)*(k-1)*.5,0,1,0,0);SC.draw(ctx,e,0,0);ctx.restore();}return;}
  const ends=d.pv?[45.5,141,230,64]:[35,61,207,141],span=ends[2]-ends[0],a=d.len*KI/span,sg=d.pv?-1:1;ctx.save();ctx.translate(s.x,s.y);ctx.transform(a,sg*a*.5-(ends[3]-ends[1])/span,0,1,0,0);
- ctx.drawImage(PK.img,r[0],r[1],r[2],r[3],-(ends[0]+ends[2])/2,-(ends[1]+ends[3])/2,r[2],r[3]);ctx.restore();
+ FLC.draw(ctx,PK.img,r[0],r[1],r[2],r[3],-(ends[0]+ends[2])/2,-(ends[1]+ends[3])/2,r[2],r[3]);ctx.restore();
 }
 {const old=twDrawProp;twDrawProp=function(d){if(d.i29&&d.k==='cwall'){i29Wall(d);return;}return old.apply(this,arguments);};}
 setTimeout(()=>{if(window.__game)Object.assign(window.__game,{I29,i29Wall});},0);

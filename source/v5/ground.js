@@ -216,11 +216,15 @@ function* paintGround(g,ox,oy,sc){
     for(let k=0;k<GK;k++)if(F.s[k]>best-.75)act[k]=1;
     LG[q]=F.L;if(F.L>.3)hasL=true;TU[q]=F.tuft;MX[q]=vnoise(x/300,y/300,55);RD[q]=F.rd}
   yield;const AK=[];for(let k=0;k<GK;k++)if(act[k])AK.push(k);const M=AK.length;
+  // v41 밀림: 처음 쓰는 땅 재질은 굽는 데 수십~190ms라, 하나 구울 때마다 쉬어 간다 (한 프레임에 몰리지 않게)
+  for(const k of AK)if(!GTX[GMAT[k]]){gtex(GMAT[k]);yield}
+  if(hasL){const ln=REG.th.liq.kind==='lava'?'lava':REG.th.liq.kind==='ice'?'ice':'water';if(!GTX[ln]){gtex(ln);yield}}
   const TX=AK.map(k=>gtex(GMAT[k])),HK=AK.map(k=>GHK[GMAT[k]]*1.4),WSA=AK.map(k=>GMAT[k]==='flag'?1:0);
   const kind=hasL?REG.th.liq.kind:null,LT=hasL?gtex(kind==='lava'?'lava':kind==='ice'?'ice':'water'):null,lc=hasL?REG.th.liq.col:null;
   const img=g.createImageData(N,N),D=img.data;
   const rs=AK.map(()=>new Float32Array(NG)),rt=AK.map(()=>new Float32Array(NG*3)),rl=new Float32Array(NG),rm=new Float32Array(NG),sv=new Float32Array(M),SH=4.2;
-  for(let py=0;py<N;py++){if(py%40===39)yield;const wy=oy+(py+.5)*inv,gyf=(wy-gy0)/GG,j=gyf|0,fy=gyf-j,q0=j*NG,q1=q0+NG;
+  let ts=performance.now();for(let py=0;py<N;py++){if(py%40===39||((py&3)===3&&performance.now()-ts>3)){yield;ts=performance.now()}// v41 밀림: 40줄마다 + 3ms 넘으면 쉬어 감
+    const wy=oy+(py+.5)*inv,gyf=(wy-gy0)/GG,j=gyf|0,fy=gyf-j,q0=j*NG,q1=q0+NG;
     for(let a=0;a<M;a++){const Sk=S[AK[a]],Tk=T[AK[a]],r=rs[a],t=rt[a];for(let i=0;i<NG;i++){r[i]=Sk[q0+i]+(Sk[q1+i]-Sk[q0+i])*fy;for(let c=0;c<3;c++)t[i*3+c]=Tk[(q0+i)*3+c]+(Tk[(q1+i)*3+c]-Tk[(q0+i)*3+c])*fy}}
     for(let i=0;i<NG;i++){rm[i]=MX[q0+i]+(MX[q1+i]-MX[q0+i])*fy;if(hasL)rl[i]=LG[q0+i]+(LG[q1+i]-LG[q0+i])*fy}
     let o=py*N*4;
@@ -321,7 +325,8 @@ function drawGround(cx0,cx1,cy0,cy1){{const wk=DG||REG;if(wk!==chunkWorld){chunk
   const ok=(cx,cy)=>cx>=lim.a&&cy>=lim.a&&cx<=lim.b&&cy<=lim.b;
   for(let cy=cy0;cy<=cy1;cy++)for(let cx=cx0;cx<=cx1;cx++){if(!ok(cx,cy)||!inView(cx,cy))continue;const c=getChunkE(cx,cy);if(!c.ready)miss++}
   // 걸을 때는 한 프레임 4ms(멈춤 화면 10ms), 순간이동 직후 화면이 비어 있으면 24ms까지
-  isoFree=miss>4;runChunkJobs(miss>4?24:paused?10:4);
+  // v41 밀림: 화면 대부분이 비었을 때(순간이동·지역 이동 직후)만 24ms, 걷다가 몇 조각 모자랄 때는 10ms (한 프레임이 40ms 넘게 길어지던 것)
+  isoFree=miss>4;runChunkJobs(miss>8?24:miss>4?10:paused?10:4);
   for(let cy=cy0;cy<=cy1;cy++)for(let cx=cx0;cx<=cx1;cx++){if(!ok(cx,cy)||!inView(cx,cy))continue;const c=chunks.get(cx*1000+cy);if(!c)continue;
     if(c.ready&&c.stale){if(!c.rb)chunkRebake(c);c.rb.used=frameN}
     if(c.ready){if(!isoBlit(c,cx,cy))isoFallback(c,cx,cy);if(c.fx&&c.fx.length)GVIS.push(c)}else ctx.drawImage(c.pv,.5,.5,4,4,cx*CH,cy*CH,CH+1,CH+1)}

@@ -3,10 +3,17 @@
 const WMAP={tab:'reg',bg:new Map(),t:0};
 // 세계 연결도에서 지역의 자리 (홈을 가운데에 두고 포탈 방향대로)
 const WPOS={home:[0,0],plains:[1,0],desert:[1,1],jungle:[2,1],sea:[2,2],ice:[0,-2],lava:[0,-3],forest:[-1,0]};
-function wmapBg(){let c=WMAP.bg.get(REG.id);if(c)return c;
-  const N=180;c=document.createElement('canvas');c.width=c.height=N;const g=c.getContext('2d'),id=g.createImageData(N,N);
-  for(let j=0;j<N;j++)for(let i=0;i<N;i++){const x=(i+.5)/N*WORLD,y=(j+.5)/N*WORLD,k=(j*N+i)*4,col=groundRGB(x,y);id.data[k]=Math.min(255,col[0]*1.5);id.data[k+1]=Math.min(255,col[1]*1.5);id.data[k+2]=Math.min(255,col[2]*1.5);id.data[k+3]=255}
-  g.putImageData(id,0,0);WMAP.bg.set(REG.id,c);return c}
+// [v42 최적화] 큰 지도 바탕: 지역마다 처음 열 때 180×180 칸을 한 번에 굽지 않고(폰 0.1~0.2초 멈칫) 거칠게 먼저 보여 준 뒤 프레임마다 4ms씩 채운다. 다 채운 그림은 예전과 같다
+function wmapPx(id,N,j){for(let i=0;i<N;i++){const x=(i+.5)/N*WORLD,y=(j+.5)/N*WORLD,k=(j*N+i)*4,col=groundRGB(x,y);id.data[k]=Math.min(255,col[0]*1.5);id.data[k+1]=Math.min(255,col[1]*1.5);id.data[k+2]=Math.min(255,col[2]*1.5);id.data[k+3]=255}}
+function wmapBg(){let c=WMAP.bg.get(REG.id);if(c&&!c._wip)return c;
+  const N=180;if(!c){c=document.createElement('canvas');c.width=c.height=N;const g=c.getContext('2d'),id=g.createImageData(N,N);
+    if(window.__QA){for(let j=0;j<N;j++)wmapPx(id,N,j);g.putImageData(id,0,0);WMAP.bg.set(REG.id,c);return c}
+    const n=30,sz=N/n;for(let j=0;j<n;j++)for(let i=0;i<n;i++){const col=groundRGB((i+.5)/n*WORLD,(j+.5)/n*WORLD);g.fillStyle=`rgb(${Math.min(255,col[0]*1.5)|0},${Math.min(255,col[1]*1.5)|0},${Math.min(255,col[2]*1.5)|0})`;g.fillRect(i*sz,j*sz,sz,sz)}
+    c._wip={id,j:0,reg:REG.id};WMAP.bg.set(REG.id,c);
+    const step=()=>{const w=c._wip;if(!w)return;if(REG.id!==w.reg){WMAP.bg.delete(w.reg);return}const t=performance.now();while(w.j<N&&performance.now()-t<4)wmapPx(w.id,N,w.j++);
+      if(w.j<N){requestAnimationFrame(step);return}g.putImageData(w.id,0,0);c._wip=null;const el=$('#wmap');if(el&&!el.hidden)wmapDraw()};
+    requestAnimationFrame(step)}
+  return c}
 const regKnown=id=>id==='home'||id===REG.id||ALLTOWNS.some(t=>t.reg===id&&P.towns.includes(t.id));
 function wmapOpen(){let el=$('#wmap');if(!el){el=document.createElement('div');el.id='wmap';el.hidden=true;
     el.innerHTML=`<div class="card"><div class="wtop"><div class="wtabs"><button type="button" data-wt="reg"></button><button type="button" data-wt="world">세계 지도</button></div><button type="button" data-wclose="1">닫기 (M)</button></div><div class="wscr" id="wmapScr"><canvas id="wmapCv"></canvas></div><div class="wleg muted" id="wmapLeg"></div></div>`;

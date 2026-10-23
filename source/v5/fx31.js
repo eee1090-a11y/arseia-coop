@@ -60,7 +60,41 @@ const FX31={P:{},want:{},busy:0,busyT:0,q:[],inst:[],nd:0,t:0,C:128,
     ['084','holy','storm','thunderprayer','rain','priest'],['085','holy','invuln','inviolable','aura','priest'],['086','holy','rez','resurrection battlerez grandrez','heal','priest'],
     ['087','holy','link','gracelink','link','priest'],['088','holy','cleanse','purifyhand','heal','priest'],['089','holy','martyr','martyrprayer','link','priest'],
     ['090','holy','brandburst','brandspread','burst','priest'],['091','holy','blink','lightpath lightchaser',0,'priest'],['092','holy','consec','consecrate','nova','priest'],
-    ['093','holy','lswap','lifeswap','link','priest'],['094','holy','miracle','saintmiracle','burst','priest']],
+    ['093','holy','lswap','lifeswap','link','priest'],['094','holy','miracle','saintmiracle','burst','priest'],
+    // v42(사용자 「추가 그래픽 작업까지 넣어서 이번 패치에」): 같은 그림을 돌려쓰던 기술에 자기 그림 — rpg/fx-unique 연결표 201~330번(130가지 · 175장, 사제 83 · 마법사 66 · 궁수 26). 뒤의 줄이 같은 기술의 예전 짝을 덮음. 331~378번(궁수 나머지)은 아직 그리는 중
+    ['201','holy','strike','hammerofjustice',0,'priest'],['202','holy','strike','judgment',0,'priest'],['203','holy','strike','godspear',0,'priest'],['204','holy','strike','finalverdict',0,'priest'],
+    ['205','holy','strike','execution',0,'priest'],['206','holy','field','barrier',0,'priest'],['207','holy','field','exorcircle',0,'priest'],['208','holy','field','healcircle',0,'priest'],
+    ['209','holy','field','holysun',0,'priest'],['210','holy','field','magnus',0,'priest'],['211','holy','field','lifespring',0,'priest'],['212','holy','field','archhymn',0,'priest'],
+    ['213','holy','field','condemnfield',0,'priest'],['214','holy','field','saintmarch',0,'priest'],['215','holy','field','sanctumfield',0,'priest'],['216','holy','nova','greatjudgment',0,'priest'],
+    ['217','holy','nova','grandcross',0,'priest'],['218','holy','nova','confessbell',0,'priest'],['219','holy','nova','grandverdict',0,'priest'],['220','holy','rain','heavenblades',0,'priest'],
+    ['221','holy','rain','heavenwrath',0,'priest'],['222','holy','rain','heavengate',0,'priest'],['223','holy','beam','sacredsword',0,'priest'],['224','holy','beam','holyflame',0,'priest'],
+    ['225','holy','beam','judgespear',0,'priest'],['226','holy','cone','holycross',0,'priest'],['227','holy','cone','waveoflight',0,'priest'],['228','holy','cone','sunsword',0,'priest'],
+    ['229','holy','chain','judgechain',0,'priest'],['230','holy','bolt','holyfire',0,'priest'],['231','holy','bolt','javelin',0,'priest'],['232','holy','bolt','holychains',0,'priest'],
+    ['233','holy','bolt','hammerofwrath',0,'priest'],['234','holy','bolt','lightvolley',0,'priest'],['235','holy','bolt','heresybrand',0,'priest'],['236','holy','bolt','purgefire',0,'priest'],
+    ['237','holy','bolt','execlance',0,'priest'],['238','holy','bolt','heavenprison',0,'priest'],['239','holy','heal','closewounds',0,'priest'],['240','holy','heal','prayerheal',0,'priest'],
+    ['241','holy','heal','greaterheal',0,'priest'],['242','holy','heal','salvation',0,'priest'],['243','holy','heal','regeneration',0,'priest'],['244','holy','heal','chainheal',0,'priest'],
+    ['245','holy','heal','sainttouch',0,'priest'],['246','holy','rez','battlerez','heal','priest'],['247','holy','rez','grandrez','heal','priest'],['248','holy','shield','kyrie',0,'priest'],
+    ['249','holy','shield','divineshield',0,'priest'],['250','holy','shield','aegis',0,'priest'],['251','holy','shield','inqarmor',0,'priest'],['252','holy','shield','sanctum',0,'priest'],
+    ['253','holy','buff','agiup','aura','priest'],['254','holy','buff','wisdom','aura','priest'],['255','holy','buff','impositio','aura','priest'],['256','holy','buff','kings','aura','priest'],
+    ['257','holy','buff','gloria','aura','priest'],['258','holy','buff','painsup','aura','priest'],['259','holy','buff','benediction','aura','priest'],['260','holy','buff','apotheosis','aura','priest'],
+    ['261','holy','buff','grandblessing','aura','priest'],['262','holy','buff','lightwings','aura','priest'],['263','holy','buff','crownofblessing','aura','priest'],['264','holy','buff','graceaccel','aura','priest'],
+    ['265','holy','buff','atonelight','aura','priest'],['266','holy','ward','returnmiracle','aura','priest'],['267','holy','blink','lightchaser',0,'priest'],['268','fire','field','firewall',0,'mage'],
+    ['269','fire','field','magmafield',0,'mage'],['270','fire','field','forbidblaze',0,'mage'],['271','earth','field','earthquake',0,'mage'],['272','wind','field','dustdevil',0,'mage'],
+    ['273','ice','field','blizzard',0,'mage'],['274','arcane','field','elemrelease',0,'mage'],['275','arcane','field','timerift',0,'mage'],['276','arcane','field','spiritthrone',0,'mage'],
+    ['277','ice','nova','drawwater',0,'mage'],['278','ice','nova','absolutezero',0,'mage'],['279','earth','nova','quake',0,'mage'],['280','earth','nova','raisemountain',0,'mage'],
+    ['281','arcane','nova','timestop',0,'mage'],['282','arcane','strike','testament',0,'mage'],['283','earth','strike','forbidupheave',0,'mage'],['284','light','rain','starlight',0,'mage'],
+    ['285','ice','cone','waterwhip',0,'mage'],['286','ice','cone','turncurrent',0,'mage'],['287','fire','cone','ember',0,'mage'],['288','fire','cone','flamelash',0,'mage'],
+    ['289','earth','beam','magmariver',0,'mage'],['290','fire','bolt','firebolt',0,'mage'],['291','fire','bolt','fireburst',0,'mage'],['292','fire','bolt','flamelance',0,'mage'],
+    ['293','fire','bolt','firebird',0,'mage'],['294','fire','bolt','pyroblast',0,'mage'],['295','arcane','bolt','stop',0,'mage'],['296','arcane','bolt','spaceprison',0,'mage'],
+    ['297','arcane','bolt','prismbolt',0,'mage'],['298','arcane','bolt','collapse',0,'mage'],['299','arcane','bolt','pactcommand',0,'mage'],['300','ice','bolt','splash',0,'mage'],
+    ['301','ice','bolt','frostdiver',0,'mage'],['302','ice','bolt','frozenorb',0,'mage'],['303','earth','bolt','crackstone',0,'mage'],['304','earth','bolt','obsidian',0,'mage'],
+    ['305','light','bolt','lancelight',0,'mage'],['306','wind','bolt','vacuumblade',0,'mage'],['307','arcane','blink','swapplace',0,'mage'],['308','arcane','shield','elembarrier',0,'mage'],
+    ['309','fire','summon','hydra',0,'mage'],['310','fire','summon','phoenix',0,'mage'],['311','arcane','summon','spiritsovereign',0,'mage'],['312','arcane','buff','overload','aura','mage'],
+    ['313','arcane','buff','manaflux','aura','mage'],['314','arcane','buff','spiritadvent','aura','mage'],['315','phys','trap','shrapneltrap',0,'archer'],['316','phys','trap','trapfield',0,'archer'],
+    ['317','phys','trap','beastcage',0,'archer'],['318','phys','trap','blasttrap',0,'archer'],['319','phys','trap','thorntrap',0,'archer'],['320','phys','trap','dominion',0,'archer'],
+    ['321','phys','trap','shadowtrap',0,'archer'],['322','phys','trap','abysstrap',0,'archer'],['323','phys','field','caltrops',0,'archer'],['324','phys','field','lure',0,'archer'],
+    ['325','phys','field','huntground',0,'archer'],['326','phys','field','nighthunt',0,'archer'],['327','phys','strike','apexhunt',0,'archer'],['328','phys','strike','drivehunt',0,'archer'],
+    ['329','phys','rain','skyvolley',0,'archer'],['330','phys','beam','wildrun',0,'archer']],
   TWO:new Set(['bolt','chain','beam','rain']),M:{},n:{draw:0,fall:0,evict:0,load:0},
   init(){for(const [no,el,f,ids,k0,c0] of this.T){const c=c0||'mage',k=k0||f,b=`fx_${no}_1_${c}_${el}_${f}`,i=no>'040'||this.TWO.has(k)?`fx_${no}_2_${c}_${el}_${f}`:null;// 띠 2번이 없으면 그 칸만 그리지 않는다
     for(const id of ids.split(' '))this.M[id]={k,f,c,b,i,pk:c+'-'+el}}
@@ -74,10 +108,12 @@ const FX31={P:{},want:{},busy:0,busyT:0,q:[],inst:[],nd:0,t:0,C:128,
   get(id,ask){const m=id&&this.M[id];if(!m||!this.on())return null;const PK=this.P[m.pk];if(PK){PK.used=this.now();return{m,PK}}if(ask!==false)this.need(m.pk);return null},
   need(pk){if(!this.want[pk]&&!this.q.includes(pk))this.q.push(pk)},
   /* ----- 받기 ----- */
-  load(pk){if(location.hash==='#qa'||this.busy!==pk||this.want[pk])return;this.want[pk]=1;this.n.load++;const s=document.createElement('script');s.src='img/fx-'+pk+'.js';
-    s.onerror=()=>{this.want[pk]='fail';this.busy=0};s.onload=()=>{s.remove()};document.head.appendChild(s)},
-  got(name,meta,url){const im=new Image(),ok=()=>{if(!this.P[name])this.P[name]={img:im,meta,mem:meta.size[0]*meta.size[1]*4,used:this.now()};this.want[name]=2;if(this.busy===name)this.busy=0};
-    im.onload=()=>{im.decode?im.decode().then(ok,ok):ok()};im.onerror=()=>{this.want[name]='fail';if(this.busy===name)this.busy=0};im.src=url},
+  load(pk){if(location.hash==='#qa'||this.busy!==pk||this.want[pk])return;this.want[pk]=1;this.n.load++;
+    // [v42 경량화] 인터넷이면 작은 목록(.m.js)+그림 파일, 없으면 예전 .js (flare.js PKWEB)
+    const fail=()=>{this.want[pk]='fail';this.busy=0},go=(src,f)=>{const s=document.createElement('script');s.src=src;s.onerror=f;s.onload=()=>{s.remove()};document.head.appendChild(s)};
+    if(PKWEB)go('img/fx-'+pk+'.m.js',()=>go('img/fx-'+pk+'.js',fail));else go('img/fx-'+pk+'.js',fail)},
+  got(name,meta,url){const im=new Image(),put=b=>{if(!this.P[name])this.P[name]={img:b,meta,mem:meta.size[0]*meta.size[1]*4,used:this.now()};this.want[name]=2;if(this.busy===name)this.busy=0},ok=()=>{if(/^data:/.test(url))put(im);else pkBitmap(im,put)};
+    im.onload=()=>{im.decode?im.decode().then(ok,ok):ok()};im.onerror=()=>{const fail=()=>{this.want[name]='fail';if(this.busy===name)this.busy=0};if(/^data:/.test(url)){fail();return}const s=document.createElement('script');s.src='img/fx-'+name+'.js';s.onerror=fail;s.onload=()=>{s.remove()};document.head.appendChild(s)};im.src=url},
   barPacks(){const s=new Set();if(P&&P.bar)for(const id of P.bar){const m=id&&this.M[id];if(m&&skLv(id)>0)s.add(m.pk)}return s},
   // 게임 중 1.5초마다: 단축칸 스킬 묶음을 줄 세우고 하나씩 받고, 오래 안 쓴 묶음을 내려놓는다
   tick(dt){this.t-=dt;if(this.t>0)return;this.t=1.5;if(!this.on()||!P)return;
@@ -93,8 +129,8 @@ const FX31={P:{},want:{},busy:0,busyT:0,q:[],inst:[],nd:0,t:0,C:128,
   fr(PK,stem){return PK.meta.r[stem]||null},
   // 칸 k를 (x,y)에 그린다. ax,ay: 칸 안의 기준점(칸 화소). sx,sy: 배율. rot: 화면 각도
   img(c,PK,f,x,y,ax,ay,sx,sy,rot,a){if(!f||a<=0)return;c.globalAlpha=Math.min(1,a);const k=DPR,ox=DPR*shx,oy=DPR*shy;
-    if(rot){const co=Math.cos(rot),si=Math.sin(rot);c.setTransform(k*co,k*si,-k*si,k*co,k*x+ox,k*y+oy);c.drawImage(PK.img,f[0],f[1],f[2],f[3],(f[4]-ax)*sx,(f[5]-ay)*sy,f[2]*sx,f[3]*sy);c.setTransform(k,0,0,k,ox,oy)}
-    else c.drawImage(PK.img,f[0],f[1],f[2],f[3],x+(f[4]-ax)*sx,y+(f[5]-ay)*sy,f[2]*sx,f[3]*sy);FXL.spend(1);this.n.draw++},
+    if(rot){const co=Math.cos(rot),si=Math.sin(rot);c.setTransform(k*co,k*si,-k*si,k*co,k*x+ox,k*y+oy);FLC.draw(c,PK.img,f[0],f[1],f[2],f[3],(f[4]-ax)*sx,(f[5]-ay)*sy,f[2]*sx,f[3]*sy);c.setTransform(k,0,0,k,ox,oy)}
+    else FLC.draw(c,PK.img,f[0],f[1],f[2],f[3],x+(f[4]-ax)*sx,y+(f[5]-ay)*sy,f[2]*sx,f[3]*sy);FXL.spend(1);this.n.draw++},
   // 한 번 재생: 나이 a(0..1) → 칸 번호
   kOf(F,a){return Math.max(0,Math.min(F.length-1,(a*F.length)|0))},
   loopK(F,fps,ph){return((time*fps+(ph||0))|0)%F.length},

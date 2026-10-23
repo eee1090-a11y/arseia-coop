@@ -10,10 +10,20 @@ const FLT={b:0,cap:(matchMedia('(pointer:coarse)').matches?32:64)*1048576,n:0,
   get(k){const c=FL.tint.get(k);if(c){FL.tint.delete(k);FL.tint.set(k,c)}return c},
   put(k,c){if(!FL.tint.size)this.b=0;FL.tint.set(k,c);this.b+=c.width*c.height*4;this.n++;for(const [kk,v] of FL.tint){if(this.b<=this.cap||FL.tint.size<=1)break;FL.tint.delete(kk);this.b-=v.width*v.height*4}return c}};
 // [f7r] 그림을 미리 풀어 둔 뒤(decode) 쓴다: 처음 그리는 프레임에서 멈칫하지 않게
-window.FLARE_PACK=function(name,meta,url){const im=new Image();const ok=()=>{if(FL.P[name])return;FL.P[name]={img:im,meta};flReady(name)};im.onload=()=>{im.decode?im.decode().then(ok,ok):ok()};im.onerror=()=>{FL.want[name]='fail'};im.src=url};
+// [v42 경량화] 인터넷(http/https)에서는 그림을 글자(base64)로 담은 큰 .js 대신 작은 목록(.m.js) + 그림 파일(.webp/.png)을 받는다 (받는 양 약 25%↓, 글자 풀기 없음).
+// 내 컴퓨터에서 game.html을 바로 열 때(file://)는 예전 .js 그대로 (그 방식이어야 그림 색을 읽을 수 있음). 목록이나 그림이 없으면 예전 .js로 다시 받는다
+const PKWEB=/^https?:$/.test(location.protocol);
+function pkScript(src,onfail){const s=document.createElement('script');s.src=src;s.onerror=onfail;document.head.appendChild(s)}
+function pkLoad(base,onfail){if(!PKWEB){pkScript(base+'.js',onfail);return}pkScript(base+'.m.js',()=>pkScript(base+'.js',onfail))}
+// 그림 파일이 다른 출처로 취급돼 색을 못 읽는 곳(일부 미리보기 창 등)이면 예전 .js로 다시 받는다
+function pkTainted(im){try{const c=document.createElement('canvas');c.width=c.height=1;const g=c.getContext('2d');g.drawImage(im,0,0,1,1);g.getImageData(0,0,1,1);return false}catch(_){return true}}
+// 파일에서 받은 그림은 미리 풀어 둔 그림(ImageBitmap)으로 바꿔 그린다 (그대로 쓰면 그릴 때마다 다시 푸는지 마을 그리기가 15% 느렸음)
+function pkBitmap(im,cb){if(typeof createImageBitmap!=='function'){cb(im);return}createImageBitmap(im).then(cb,()=>cb(im))}
+window.FLARE_PACK=function(name,meta,url){const im=new Image();const ok=()=>{if(FL.P[name])return;if(!/^data:/.test(url)){if(pkTainted(im)){pkScript('img/flare-'+name+'.js',()=>{FL.want[name]='fail'});return}pkBitmap(im,b=>{if(FL.P[name])return;FL.P[name]={img:b,meta};flReady(name)});return}FL.P[name]={img:im,meta};flReady(name)};im.onload=()=>{im.decode?im.decode().then(ok,ok):ok()};
+  im.onerror=()=>{if(/^data:/.test(url))FL.want[name]='fail';else pkScript('img/flare-'+name+'.js',()=>{FL.want[name]='fail'})};im.src=url};
 function flWant(){return GFX.art!=='old'}
 // 묶음 하나 받기 (한 번만). #qa에서는 받지 않는다.
-function flNeed(name){if(FL.want[name]||!flWant()||location.hash==='#qa')return;FL.want[name]=1;const s=document.createElement('script');s.src='img/flare-'+name+'.js';s.onerror=()=>{FL.want[name]='fail'};document.head.appendChild(s)}
+function flNeed(name){if(FL.want[name]||!flWant()||location.hash==='#qa')return;FL.want[name]=1;pkLoad('img/flare-'+name,()=>{FL.want[name]='fail'})}
 function flPack(name){return flWant()&&FL.P[name]||null}
 // 지역 → 장식 묶음
 const FLTH={royal:'grass',moss:'grass',meadow:'grass',lush:'grass',beach:'grass',snow:'snow'};
@@ -30,7 +40,7 @@ const FLKM={};
 function flKM(th){let m=FLKM[th];if(m)return m;m=FLKM[th]={};for(const pn of FLTP[th]){if(FLSP[pn]){for(const k in FLSP[pn])if(!(k in m))m[k]=[pn,FLSP[pn][k]]}else for(const k of FLNEW[pn])if(!(k in m))m[k]=[pn,null]}return m}
 // 지역에 들어서면 그 지역 장식이 쓰는 묶음을 미리 받는다
 function flLoadTheme(){const th=flTheme();if(!th||!flWant())return;const m=flKM(th),need=new Set();for(const d of decor){const e=m[d.k];if(e)need.add(e[0])}for(const pn of need)flNeed(pn)}
-function flDraw(c,PK,key,x,y,k){const r=PK.meta.r[key];if(!r)return false;c.drawImage(PK.img,r[0],r[1],r[2],r[3],x-r[4]*k,y-r[5]*k,r[2]*k,r[3]*k);return true}
+function flDraw(c,PK,key,x,y,k){const r=PK.meta.r[key];if(!r)return false;FLC.draw(c,PK.img,r[0],r[1],r[2],r[3],x-r[4]*k,y-r[5]*k,r[2]*k,r[3]*k);return true}
 // 땅 무늬: 색은 지역 색이 입히므로 무늬는 채널마다 평균 128로 맞춘 명암만 쓴다 (gtexPaint와 같은 모양 {rgb,h,cv})
 function flTex(PK,name){const r=PK.meta.r['tex/'+name];if(!r)return null;const cv=document.createElement('canvas');cv.width=cv.height=256;const g=cv.getContext('2d');g.drawImage(PK.img,r[0],r[1],r[2],r[3],0,0,256,256);
   const id=g.getImageData(0,0,256,256).data,n=256*256,rgb=new Uint8Array(n*3),h=new Float32Array(n),m=[0,0,0];for(let i=0;i<n;i++)for(let c=0;c<3;c++)m[c]+=id[i*4+c];for(let c=0;c<3;c++)m[c]/=n;
@@ -81,6 +91,20 @@ function flTinted(PK,key,col,s){const ck=key+col;let cv=FLT.get(ck);if(cv)return
   const r=PK.meta.r[key];cv=document.createElement('canvas');cv.width=r[2];cv.height=r[3];const g=cv.getContext('2d');g.drawImage(PK.img,r[0],r[1],r[2],r[3],0,0,r[2],r[3]);
   g.globalCompositeOperation='color';g.globalAlpha=s;g.fillStyle=col;g.fillRect(0,0,r[2],r[3]);g.globalAlpha=1;g.globalCompositeOperation='destination-in';g.drawImage(PK.img,r[0],r[1],r[2],r[3],0,0,r[2],r[3]);
   return FLT.put(ck,cv)}
+// v41 최적화: 큰 묶음 그림(2048px 한 장에 수십~수백 칸)에서 매 장면 한 칸씩 바로 그리면, 여러 묶음이 섞이는 싸움·마을에서
+//   그래픽 쪽이 큰 그림을 계속 다시 올려 싸움 시간의 절반을 썼다. 한 칸을 원래 크기 그대로 작은 캔버스에 한 번 잘라 두고 그것을 그린다
+//   (모양·크기는 그대로). 잘라 둔 칸은 FLC.cap(휴대폰 16MB · PC 48MB)까지만 들고 오래 안 쓴 것부터 버린다.
+const FLC={m:new Map(),b:0,fN:-1,fT:0,cap:(matchMedia('(pointer:coarse)').matches?16:48)*1048576,n:0,
+  get(img,r){let W=this.w.get(img);if(!W){W=new Map();this.w.set(img,W)}const ck=r[0]+','+r[1]+','+r[2]+','+r[3];let c=W.get(ck);
+    if(c){const q=this.m.get(c);if(q){this.m.delete(c);this.m.set(c,q)}return c}
+    const w=Math.ceil(r[2]),h=Math.ceil(r[3]);if(w<1||h<1||w>1024||h>1024)return null;const fn=typeof frameN==='number'?frameN:0;if(fn!==this.fN){this.fN=fn;this.fT=0}if(this.fT>3&&!window.__QA)return null;const t0=performance.now();
+    c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,r[0],r[1],r[2],r[3],0,0,w,h);this.n++;
+    W.set(ck,c);this.m.set(c,[W,ck]);this.b+=w*h*4;this.fT+=performance.now()-t0;
+    for(const [cv,q] of this.m){if(this.b<=this.cap||this.m.size<=1)break;this.m.delete(cv);q[0].delete(q[1]);this.b-=cv.width*cv.height*4}return c},
+  w:new WeakMap(),
+  // drawImage(img, sx,sy,sw,sh, dx,dy,dw,dh) 와 같은 일을 잘라 둔 칸으로
+  draw(c,img,sx,sy,sw,sh,dx,dy,dw,dh){const cv=this.get(img,[sx,sy,sw,sh]);if(cv)c.drawImage(cv,0,0,cv.width,cv.height,dx,dy,dw,dh);else c.drawImage(img,sx,sy,sw,sh,dx,dy,dw,dh)}};
+function flDrawS(c,PK,key,x,y,k){const r=PK.meta.r[key];if(!r)return false;FLC.draw(c,PK.img,r[0],r[1],r[2],r[3],x-r[4]*k,y-r[5]*k,r[2]*k,r[3]*k);return true}
 function flTintAmt(id,col){if(!col)return 0;const a=Kit.hex(col),b=Kit.hex(FLREF[id]);const d=Math.hypot(a[0]-b[0],a[1]-b[1],a[2]-b[2]);return d<40?0:Math.min(.55,(d-40)/160)}
 const FLM=new WeakMap();
 function flMon(id,draw,g,e,t,st){const PK=flPack('m-'+id);if(!PK){flNeed('m-'+id);return false}const M=PK.meta.mon[id];if(!M)return false;
@@ -96,7 +120,7 @@ function flMon(id,draw,g,e,t,st){const PK=flPack('m-'+id);if(!PK){flNeed('m-'+id
   const A=M[an];const key=A.f[Math.min(fi,A.n-1)][di],r=PK.meta.r[key],k=FL.mk[id];
   const ta=flTintAmt(id,t&&t.col);
   g.save();g.scale(e.fx||1,1);
-  if(ta>0){const cv=flTinted(PK,key,t.col,ta);g.drawImage(cv,-r[4]*k,-r[5]*k,r[2]*k,r[3]*k)}else flDraw(g,PK,key,0,0,k);
+  if(ta>0){const cv=flTinted(PK,key,t.col,ta);g.drawImage(cv,-r[4]*k,-r[5]*k,r[2]*k,r[3]*k)}else flDrawS(g,PK,key,0,0,k);
   g.restore();
   st.head={x:0,y:-MON_H[draw]-4};return true}
 for(const dk of ['goblin','skeleton','ogre','scorpion','serpent','wolf']){const _m=MON[dk];if(!_m)continue;
@@ -121,7 +145,7 @@ function flDie(g,e,x,y,u,ok){const t=TYPES[e.k];if(!t)return false;const id=FLTY
   const s=FLM.get(e)||{dx:0,dy:1},sx=(s.dx-s.dy),sy=(s.dx+s.dy)/2,di=(((Math.round((Math.atan2(sy,sx)-Math.PI)/(Math.PI/4)))%8)+8)%8;
   const fi=Math.min(M.die.n-1,Math.floor(u/.7*M.die.n)),key=M.die.f[fi][di],r=PK.meta.r[key],sc=(e.sc||(e.elite?1.25:1))*(ok||1),k=FL.mk[id]*sc,ta=flTintAmt(id,t.col);
   g.save();g.globalAlpha=u<.7?1:Math.max(0,1-(u-.7)/.3);g.translate(x,y);
-  if(ta>0){const cv=flTinted(PK,key,t.col,ta);g.drawImage(cv,-r[4]*k,-r[5]*k,r[2]*k,r[3]*k)}else flDraw(g,PK,key,0,0,k);
+  if(ta>0){const cv=flTinted(PK,key,t.col,ta);g.drawImage(cv,-r[4]*k,-r[5]*k,r[2]*k,r[3]*k)}else flDrawS(g,PK,key,0,0,k);
   g.restore();return true}
 {const _dm=drawMon;drawMon=function(g,e,x,y,o){if(o&&o.die!=null&&flWant()&&flDie(g,e,x,y,o.die,o.k))return;return _dm.apply(this,arguments)}}
 // 쓰러진 몸은 새 물체라 바라보던 방향을 넘겨 준다
@@ -221,7 +245,7 @@ function flPkTint(PK,key,col,a,mode){const r=PK.meta.r[key];if(!col)return null;
   cv=document.createElement('canvas');cv.width=r[2];cv.height=r[3];const g=cv.getContext('2d');g.drawImage(PK.img,r[0],r[1],r[2],r[3],0,0,r[2],r[3]);
   g.globalCompositeOperation=mode==='m'?'multiply':'color';g.globalAlpha=a;g.fillStyle=col;g.fillRect(0,0,r[2],r[3]);g.globalAlpha=1;
   g.globalCompositeOperation='destination-in';g.drawImage(PK.img,r[0],r[1],r[2],r[3],0,0,r[2],r[3]);return FLT.put(ck,cv)}
-function flPkDraw(c,PK,key,x,y,s,tc){const r=PK.meta.r[key],k=PK.meta.k*s;if(tc)c.drawImage(tc,0,0,r[2],r[3],x-r[4]*k,y-r[5]*k,r[2]*k,r[3]*k);else c.drawImage(PK.img,r[0],r[1],r[2],r[3],x-r[4]*k,y-r[5]*k,r[2]*k,r[3]*k)}
+function flPkDraw(c,PK,key,x,y,s,tc){const r=PK.meta.r[key],k=PK.meta.k*s;if(tc)c.drawImage(tc,0,0,r[2],r[3],x-r[4]*k,y-r[5]*k,r[2]*k,r[3]*k);else FLC.draw(c,PK.img,r[0],r[1],r[2],r[3],x-r[4]*k,y-r[5]*k,r[2]*k,r[3]*k)}
 const flLo=()=>typeof Q!=='undefined'&&Q.lvl===0;
 function flDgEnt(d){const c=d.cave;if(!c||c.w3k)return false;const PK=flPack('dgent');if(!PK){flNeed('dgent');return false}
   const A=FLDG[c.id]||['cave'],key=A[0];if(!PK.meta.r[key])return false;const s=d._s,x=s.x,y=s.y;

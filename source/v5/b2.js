@@ -161,7 +161,10 @@ const xpNeedV20=l=>Math.floor(40*Math.pow(l,1.45)*xpMul(l));// 옛 곡선(저장
 // v24(사용자 2026-10-10 05:06 「57레벨인데 2~3분만 사냥해도 레벨업」): v23 곡선에 한 번 더 곱한다. 10레벨까지 그대로 →20레벨 ×2 →40레벨 ×5 →100레벨 ×8 →140레벨 ×10 (구간마다 부드럽게)
 const XP24=[[10,1],[20,2],[40,5],[100,8],[140,10]],xpSlow24=l=>{if(l<=10)return 1;for(let i=1;i<XP24.length;i++){const [a,va]=XP24[i-1],[b,vb]=XP24[i];if(l<=b){const x=(l-a)/(b-a);return va+(vb-va)*x*x*(3-2*x)}}return 10};
 const xpNeedV23=l=>Math.floor(40*Math.pow(l,1.45)*xpMul(l)*xpSlow21(l));// v23 곡선(저장 옮기기용)
-const xpNeed=l=>Math.floor(40*Math.pow(l,1.45)*xpMul(l)*xpSlow21(l)*xpSlow24(l));
+const xpNeedV40=l=>Math.floor(40*Math.pow(l,1.45)*xpMul(l)*xpSlow21(l)*xpSlow24(l));// v24~v40 곡선(저장 옮기기용)
+// v41(사용자 요청: 60레벨에서 그만둔다는 피드백 · 레벨업이 너무 오래 걸림): 60~99레벨에서 다음 레벨까지 필요한 경험치 20% 줄임. 몬스터 경험치는 그대로 → 사냥 레벨업 1.25배 빠름. 의뢰 · 책 보상은 「필요 경험치의 몇 %」 규칙 그대로
+const XP41_CUT=.8,XP41_LO=60,XP41_HI=100,xpCut41=l=>l>=XP41_LO&&l<XP41_HI?XP41_CUT:1;
+const xpNeed=l=>Math.floor(xpNeedV40(l)*xpCut41(l));
 // 스킬 레벨: 찍은 점수 + 장비 보너스(1점 이상 찍은 마법에만)
 // v19: 장비로 얻는 「+모든 마법 레벨」은 합쳐서 최대 +3 (2차 스킬에도 붙으므로)
 // v20: 3차 스킬(job3)은 「3차 계열 +1」(tr_j3_갈래)만 받고, 한 점이 J3K(직업)레벨만큼(피해 +12%) 오른다. 화면에 보이는 레벨은 skShow

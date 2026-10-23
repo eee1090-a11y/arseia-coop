@@ -9,8 +9,11 @@
      iOS gesturestart · dblclick 막기, 터치 기기 입력 칸 16px. 그래도 확대되면 저절로 되돌리고, 안 되면 「화면 원래 크기로」 단추.
    mobile18.js 다음 어딘가(quest21.js 앞). b5.js(buildBar·updateHud·barEl)는 뒤에 붙지만 함수 선언이라 감쌀 수 있고, 실행은 시작 뒤에만 한다. */
 const M22={force:null,vpF:null,K:{L:.75,P:.8},last:'',nextT:0,b:-1,qh:-1,zoomed:0,askT:0,hintKey:'arseia-m22hint',
-  touch(){try{return navigator.maxTouchPoints>0||matchMedia('(pointer:coarse)').matches}catch(_){return false}},
-  vp(){return this.vpF||{w:innerWidth,h:innerHeight}},
+  // v41 밀림: 화면 크기·터치 여부는 한 프레임에 한 번만 읽는다. 한 프레임에 수십 번 innerWidth·matchMedia를 읽으면 그때마다 브라우저가
+  //   화면 배치를 다시 계산해(HUD 글자를 바꾼 직후) 휴대폰 싸움 계산 시간의 15%를 썼다. 창 크기가 바뀌면 바로 다시 읽는다.
+  _tc:null,_vp:null,_vpN:-1,
+  touch(){if(this._tc==null){try{this._tc=navigator.maxTouchPoints>0||matchMedia('(pointer:coarse)').matches}catch(_){this._tc=false}}return this._tc},
+  vp(){if(this.vpF)return this.vpF;const n=typeof frameN==='number'?frameN:-2;if(this._vp&&n>=0&&n>=this._vpN&&n-this._vpN<30)return this._vp;this._vpN=n;return this._vp={w:innerWidth,h:innerHeight}},
   // 'L' 가로 휴대폰 · 'P' 세로(좁은 화면) · '' PC
   mode(){if(this.force!=null)return this.force;const {w,h}=this.vp();if(this.touch()&&w>h&&h<=500&&w<=1000)return 'L';if(w<=640)return 'P';return ''},
   phone(){return !!this.mode()},
@@ -27,6 +30,7 @@ function m22Cam(skipBake){const k=M22.scale();if(k===1)return;const d0=DPR;
   if(d0!==DPR&&!skipBake)m22Rebake()}
 function m22Rebake(){try{if(P&&P.cls&&typeof heroBake==='function'){SC.bakeLeft=99;heroBake(P,Math.max(1,DPR)*HS*PK)}}catch(_){}}
 {const _rs=resize;resize=function(){const d0=DPR;_rs.apply(this,arguments);m22Apply();m22Cam();if(M22.scale()===1&&d0!==DPR)m22Rebake()}}
+addEventListener('resize',()=>{M22._vp=null;M22._tc=null},true);addEventListener('orientationchange',()=>{M22._vp=null},true);// 붙잡기 단계라 다른 resize 처리보다 먼저 지운다
 addEventListener('resize',()=>{m22Apply();m22Cam()});
 
 /* 몸(body) 표시: m22 · m22L · m22P */

@@ -231,12 +231,19 @@ function drawLoot(l,s,label){
       Kit.shadow(ctx,0,1,11,4,.8);ctx.globalCompositeOperation='lighter';ctx.globalAlpha=.3;glow(0,-11,15,c);ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';ctx.drawImage(itemGroundCv(l.item),-15,-27,30,30)}}
   ctx.restore();
 }
+// 작은 지도 바탕: 지역에 들어온 첫 프레임에 한꺼번에 굽지 않고(폰 70~170ms 멈칫) 거칠게 먼저 칠한 뒤 프레임마다 3ms씩 곱게 채운다
+function mmBuild(){const N=120;let c;
+  if(!mmBg){mmBg=document.createElement('canvas');mmBg.width=mmBg.height=N;mmBg._j=0;c=mmBg.getContext('2d');
+    const n=20,s=N/n;for(let j=0;j<n;j++)for(let i=0;i<n;i++){const g=groundRGB((i+.5)/n*WORLD,(j+.5)/n*WORLD);c.fillStyle=`rgb(${g[0]*1.6|0},${g[1]*1.6|0},${g[2]*1.6|0})`;c.fillRect(i*s,j*s,s,s)}}
+  c=c||mmBg.getContext('2d');const t=performance.now(),all=!!window.__QA,row=c.createImageData(N,1),d=row.data;
+  while(mmBg._j<N&&(all||performance.now()-t<3)){const j=mmBg._j++;
+    for(let i=0;i<N;i++){const g=groundRGB((i+.5)/N*WORLD,(j+.5)/N*WORLD),o=i*4;d[o]=g[0]*1.6|0;d[o+1]=g[1]*1.6|0;d[o+2]=g[2]*1.6|0;d[o+3]=255}
+    c.putImageData(row,0,j)}
+  if(mmBg._j>=N){c.strokeStyle='#a89060';c.lineWidth=1.4;for(const r of ROADS){c.beginPath();r.forEach((p,i)=>i?c.lineTo(p.x/WORLD*N,p.y/WORLD*N):c.moveTo(p.x/WORLD*N,p.y/WORLD*N));c.stroke()}terrMinimap(c,N)}}
 function drawMinimap(){
   const S0=mm.width,m=S0/2600;mctx.setTransform(1,0,0,1,0,0);mctx.fillStyle='#0c0d0c';mctx.fillRect(0,0,S0,S0);
   if(DG){drawDungeonMap(S0,m*1.4);mctx.setTransform(1,0,0,1,0,0);mctx.fillStyle='#fff';mctx.beginPath();mctx.arc(S0/2,S0/2,6,0,6.283);mctx.fill();return}
-  if(!mmBg){mmBg=document.createElement('canvas');const N=120;mmBg.width=mmBg.height=N;const c=mmBg.getContext('2d');
-    for(let j=0;j<N;j++)for(let i=0;i<N;i++){const g=groundRGB((i+.5)/N*WORLD,(j+.5)/N*WORLD);c.fillStyle=`rgb(${g[0]*1.6|0},${g[1]*1.6|0},${g[2]*1.6|0})`;c.fillRect(i,j,1,1)}
-    c.strokeStyle='#a89060';c.lineWidth=1.4;for(const r of ROADS){c.beginPath();r.forEach((p,i)=>i?c.lineTo(p.x/WORLD*N,p.y/WORLD*N):c.moveTo(p.x/WORLD*N,p.y/WORLD*N));c.stroke()}terrMinimap(c,N)}
+  if(!mmBg||mmBg._j<120)mmBuild();
   const px=(P.x-P.y)*KI,py=(P.x+P.y)*KI/2;
   mctx.setTransform(m*KI,m*KI/2,-m*KI,m*KI/2,S0/2-m*px,S0/2-m*py);
   mctx.imageSmoothingEnabled=true;mctx.drawImage(mmBg,0,0,WORLD,WORLD);

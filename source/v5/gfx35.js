@@ -12,7 +12,7 @@ const FT35={fountain:31,statue:36};
   cgDraw(ctx,PK,O.s,s.x,s.y,1);const r=PK.meta.r[O.g];if(!r)return true;
   const a=(typeof flLo==='function'&&flLo())?.45:.38+.18*Math.sin(t*3),tc=typeof flPkTint==='function'?flPkTint(PK,O.g,c.torch||'#ff9a40',1,'m'):null;
   const w=r[2]*G[2],h=r[3]*G[3],x=s.x+G[0]-r[4]*G[2],y=s.y+G[1]-r[5]*G[3];
-  ctx.globalCompositeOperation='lighter';ctx.globalAlpha=a;if(tc)ctx.drawImage(tc,0,0,r[2],r[3],x,y,w,h);else ctx.drawImage(PK.img,r[0],r[1],r[2],r[3],x,y,w,h);
+  ctx.globalCompositeOperation='lighter';ctx.globalAlpha=a;if(tc)ctx.drawImage(tc,0,0,r[2],r[3],x,y,w,h);else FLC.draw(ctx,PK.img,r[0],r[1],r[2],r[3],x,y,w,h);
   ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';return true}}
 // 받침 가운데를 마을 중심에: 그림만 아래로 내려 그린다 (자리 · 부딪힘 · 이름표 기준은 그대로)
 {const _cl=cgLand;cgLand=function(d){if(d.k!=='fountain'||!d._s)return _cl.apply(this,arguments);const s0=d._s;d._s={x:s0.x,y:s0.y+FT35.fountain*(d.s||1)};try{return _cl.apply(this,arguments)}finally{d._s=s0}}}

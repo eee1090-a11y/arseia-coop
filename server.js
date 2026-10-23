@@ -45,8 +45,9 @@ const server=http.createServer((req,res)=>{
     fs.stat(f,(e,st)=>{if(e){res.writeHead(404);res.end();return}res.writeHead(200,{'Content-Type':'audio/mpeg','Content-Length':st.size,'Cache-Control':'public, max-age=604800'});fs.createReadStream(f).pipe(res)});return}}
   // v21: 무료 그림(Flare)은 game.html 옆 img 폴더의 flare-*.js 파일(처음 필요할 때 받음 · 이름 규칙 밖은 404)
   // v35: 스킬 이펙트 그림(fx-*.js, v31부터)도 내준다 — 전에는 flare-만 받아서 이 주소로 하면 이펙트 그림이 하나도 안 나왔음
-  {const m=/^\/img\/((?:flare|fx)-[a-z0-9_-]+\.js)$/.exec(req.url.split('?')[0]);if(m){const f=path.join(__dirname,'img',m[1]);
-    fs.stat(f,(e,st)=>{if(e||!st.isFile()){res.writeHead(404);res.end();return}res.writeHead(200,{'Content-Type':'text/javascript; charset=utf-8','Content-Length':st.size,'Cache-Control':'public, max-age=604800'});fs.createReadStream(f).pipe(res)});return}}
+  // v42: 그림 묶음을 작은 목록(.m.js) + 그림 파일(.webp/.png)로도 내준다 (받는 양 약 25%↓)
+  {const m=/^\/img\/((?:flare|fx)-[a-z0-9_-]+\.(m\.js|js|webp|png))$/.exec(req.url.split('?')[0]);if(m){const f=path.join(__dirname,'img',m[1]),ty=m[2]==='webp'?'image/webp':m[2]==='png'?'image/png':'text/javascript; charset=utf-8';
+    fs.stat(f,(e,st)=>{if(e||!st.isFile()){res.writeHead(404);res.end();return}res.writeHead(200,{'Content-Type':ty,'Content-Length':st.size,'Cache-Control':'public, max-age=604800'});fs.createReadStream(f).pipe(res)});return}}
   if(req.url==='/sw.js'||req.url.startsWith('/app/')){appFile(req,res);return}
   if(req.url==='/status'){res.writeHead(200,{'Content-Type':'application/json'});res.end(JSON.stringify({players:clients.size,inParty:[...clients.values()].filter(c=>c.room).length,host:hostId}));return}
   res.writeHead(404);res.end();

@@ -22,11 +22,11 @@ function cgIndex(n,PK){const R=PK.meta.r;
 function cgPK(n){if(!flWant())return null;const PK=flPack(n);if(!PK){flNeed(n);return null}if(!CG.on[n])cgIndex(n,PK);return PK}
 const cgR=(PK,k)=>k&&PK.meta.r[k];
 function cgDraw(c,PK,k,x,y,s,fl){const r=PK.meta.r[k];if(!r)return false;s=s||1;
-  if(fl){c.save();c.translate(x,y);c.scale(-1,1);c.drawImage(PK.img,r[0],r[1],r[2],r[3],-r[4]*s,-r[5]*s,r[2]*s,r[3]*s);c.restore()}
-  else c.drawImage(PK.img,r[0],r[1],r[2],r[3],x-r[4]*s,y-r[5]*s,r[2]*s,r[3]*s);return true}
+  if(fl){c.save();c.translate(x,y);c.scale(-1,1);FLC.draw(c,PK.img,r[0],r[1],r[2],r[3],-r[4]*s,-r[5]*s,r[2]*s,r[3]*s);c.restore()}
+  else FLC.draw(c,PK.img,r[0],r[1],r[2],r[3],x-r[4]*s,y-r[5]*s,r[2]*s,r[3]*s);return true}
 // 빛 층(흰 빛 그림)은 색을 곱해 더하기 섞기 (흰색 그대로 더하면 하얗게 날아간다)
 function cgGlow(c,PK,k,x,y,col,a,anchor){const r=PK.meta.r[k];if(!r)return;const ax=anchor?anchor[4]:r[4],ay=anchor?anchor[5]:r[5];const tc=typeof flPkTint==='function'?flPkTint(PK,k,col,1,'m'):null;c.globalCompositeOperation='lighter';c.globalAlpha=a;
-  if(tc)c.drawImage(tc,0,0,r[2],r[3],x-ax,y-ay,r[2],r[3]);else c.drawImage(PK.img,r[0],r[1],r[2],r[3],x-ax,y-ay,r[2],r[3]);c.globalAlpha=1;c.globalCompositeOperation='source-over'}
+  if(tc)c.drawImage(tc,0,0,r[2],r[3],x-ax,y-ay,r[2],r[3]);else FLC.draw(c,PK.img,r[0],r[1],r[2],r[3],x-ax,y-ay,r[2],r[3]);c.globalAlpha=1;c.globalCompositeOperation='source-over'}
 const cgLabel=(t,x,y,col,f)=>{ctx.font=(f||'700 13px ')+FONT;ctx.textAlign='center';ctx.lineWidth=3;ctx.strokeStyle='rgba(0,0,0,.85)';ctx.strokeText(t,x,y);ctx.fillStyle=col;ctx.fillText(t,x,y)};
 
 /* ===== 마을 건물 ===== */
@@ -43,10 +43,10 @@ function cgBld(d){const PK=cgPK(CG.TOWN);if(!PK)return false;const key=cgBldKey(
   const s=d._s,W=d.W,D=d.D,gw=(W+D)*KI,k=Math.max(.8,Math.min(1.3,gw*1.05/r[2])),cx=s.x+(W-D)/2*KI,cy=s.y+(W+D)/4*KI,x0=cx-r[4]*k,y0=cy-r[5]*k,w=r[2]*k,h=r[3]*k;
   // 플레이어를 가리면 반투명 (예전과 같은 조건)
   let a=1;if(!P.dead&&P._s){const ps=P._s,front=P.x>d.foot[0][2]||P.y>d.foot[0][3];if(!front&&dist(P,d)<380&&ps.x>x0+12&&ps.x<x0+w-12&&ps.y>y0+10&&ps.y<cy+6)a=.42}
-  ctx.globalAlpha=a;ctx.drawImage(PK.img,r[0],r[1],r[2],r[3],x0,y0,w,h);
-  if(d.mill){const bl=cgR(PK,'065_tw_blade');if(bl){ctx.save();ctx.translate(x0+CGMILL[0]*k,y0+CGMILL[1]*k);ctx.rotate(reduceMotion?0:time*.7);ctx.drawImage(PK.img,bl[0],bl[1],bl[2],bl[3],-bl[2]/2*k*.9,-bl[3]/2*k*.9,bl[2]*k*.9,bl[3]*k*.9);ctx.restore()}}
+  ctx.globalAlpha=a;FLC.draw(ctx,PK.img,r[0],r[1],r[2],r[3],x0,y0,w,h);
+  if(d.mill){const bl=cgR(PK,'065_tw_blade');if(bl){ctx.save();ctx.translate(x0+CGMILL[0]*k,y0+CGMILL[1]*k);ctx.rotate(reduceMotion?0:time*.7);FLC.draw(ctx,PK.img,bl[0],bl[1],bl[2],bl[3],-bl[2]/2*k*.9,-bl[3]/2*k*.9,bl[2]*k*.9,bl[3]*k*.9);ctx.restore()}}
   const dp=W2S(d.door.x,d.door.y);d._cgDoor=dp;
-  if(d.signT){const sg=cgR(PK,'066_tw_sign');if(sg){const clinic=d.signT==='페이스라인성형외과',sx=dp.x-(clinic?20:0),sy=dp.y-(clinic?70:62);ctx.drawImage(PK.img,sg[0],sg[1],sg[2],sg[3],sx-sg[2]/2,sy-sg[3]/2,sg[2],sg[3]);
+  if(d.signT){const sg=cgR(PK,'066_tw_sign');if(sg){const clinic=d.signT==='페이스라인성형외과',sx=dp.x-(clinic?20:0),sy=dp.y-(clinic?70:62);FLC.draw(ctx,PK.img,sg[0],sg[1],sg[2],sg[3],sx-sg[2]/2,sy-sg[3]/2,sg[2],sg[3]);
     ctx.font=`700 11px ${DISPLAY}`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#ffe6a8';ctx.fillText(d.signT,sx,sy+1,sg[2]-16);ctx.textBaseline='alphabetic'}}
   ctx.globalAlpha=1;d._cg=1;
   if(TW.vis!==frameN){TW.vis=frameN;TW.visB.length=0}TW.visB.push(d);

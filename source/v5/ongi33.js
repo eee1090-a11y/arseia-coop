@@ -17,8 +17,8 @@ const og33Here=()=>DG?!!(DG.d&&DG.d.og):!!(REG&&REG.id===OG32.reg);
 function og33Need(){if(og33Here()&&typeof flNeed==='function')flNeed(OG33.pk)}
 // 그림 한 장: (x,y) = 기준점(발밑) · k = 크기 · fl = 좌우 뒤집기
 function og33Draw(c,key,x,y,k,fl){const PK=og33PK(),r=PK&&PK.meta.r[key];if(!r)return false;
-  if(fl){c.save();c.translate(x,y);c.scale(-1,1);c.drawImage(PK.img,r[0],r[1],r[2],r[3],-r[4]*k,-r[5]*k,r[2]*k,r[3]*k);c.restore()}
-  else c.drawImage(PK.img,r[0],r[1],r[2],r[3],x-r[4]*k,y-r[5]*k,r[2]*k,r[3]*k);return true}
+  if(fl){c.save();c.translate(x,y);c.scale(-1,1);FLC.draw(c,PK.img,r[0],r[1],r[2],r[3],-r[4]*k,-r[5]*k,r[2]*k,r[3]*k);c.restore()}
+  else FLC.draw(c,PK.img,r[0],r[1],r[2],r[3],x-r[4]*k,y-r[5]*k,r[2]*k,r[3]*k);return true}
 {const _fl=flLoad;flLoad=function(){_fl.apply(this,arguments);og33Need();og33Ground()}}
 {const _e=enterDungeon;enterDungeon=function(){const r=_e.apply(this,arguments);og33Need();og33DgDecor();og33Ground();return r}}
 {const _l=leaveDungeon;leaveDungeon=function(){const r=_l.apply(this,arguments);og33Ground();return r}}
@@ -29,7 +29,7 @@ if(typeof netEnterDg==='function'){const _n=netEnterDg;netEnterDg=function(){con
 function og33Mon(g,e,t,st,key,hd){const PK=og33PK(),r=PK&&PK.meta.r[key];if(!r)return false;
   const H=(MON_H[hd]||50)*(OG33.hk[key]||1.15),k=H/r[5],L=Math.max(0,st.lunge||0),bob=Math.abs(Math.sin(st.ph*7))*st.mv*1.6;
   g.save();g.translate(L*4,-bob);g.scale(-1,1);if(L>0)g.scale(1+L*.06,1-L*.05);
-  g.drawImage(PK.img,r[0],r[1],r[2],r[3],-r[4]*k,-r[5]*k,r[2]*k,r[3]*k);g.restore();st.head={x:0,y:-H};return true}
+  FLC.draw(g,PK.img,r[0],r[1],r[2],r[3],-r[4]*k,-r[5]*k,r[2]*k,r[3]*k);g.restore();st.head={x:0,y:-H};return true}
 for(const id in OG33.mon){const t=TYPES[id];if(!t)continue;const hd=t.draw,om=MON[hd],nk='og33_'+id,key=OG33.mon[id];if(!om)continue;
   MON_H[nk]=MON_H[hd];if(typeof R22_HW==='object'&&R22_HW[hd]!=null)R22_HW[nk]=R22_HW[hd];
   MON[nk]=function(g,e,t,st){if(og33Mon(g,e,t,st,key,hd))return;return om.apply(this,arguments)};t.draw=nk}
@@ -37,7 +37,7 @@ for(const id in OG33.mon){const t=TYPES[id];if(!t)continue;const hd=t.draw,om=MO
 {const _g=MON.ongigod;MON.ongigod=function(g,e,t,st){const PK=og33PK(),key='ongi_boss_fakenose',r=PK&&PK.meta.r[key];if(!r)return _g.apply(this,arguments);
   const fl=-3-Math.sin(st.t*2.2+(e.anim||0))*2.4,L=Math.max(0,st.lunge||0),H=MON_H.ongigod*OG33.hk[key],k=H/r[5],po=g.globalCompositeOperation;
   g.globalCompositeOperation='lighter';mGlow(g,0,-2,18,'rgba(255,190,214,.5)',.7);g.globalCompositeOperation=po;
-  g.save();g.translate(0,fl);g.scale(-1,1);g.drawImage(PK.img,r[0],r[1],r[2],r[3],-r[4]*k,-r[5]*k,r[2]*k,r[3]*k);g.restore();
+  g.save();g.translate(0,fl);g.scale(-1,1);FLC.draw(g,PK.img,r[0],r[1],r[2],r[3],-r[4]*k,-r[5]*k,r[2]*k,r[3]*k);g.restore();
   const n=(PK.meta.pt&&PK.meta.pt[key]&&PK.meta.pt[key].nose)||[28,27],nx=-(n[0]-r[4])*k,ny=(n[1]-r[5])*k+fl;// 뒤집었으므로 x 부호 반대
   g.globalCompositeOperation='lighter';mGlow(g,nx,ny,3.4+L*5+Math.sin(st.t*6)*.8,'#ffd6e0',.9);if(L>0)mGlow(g,nx+4,ny,8*L,'#ffffff',.8);g.globalCompositeOperation=po;
   st.head={x:0,y:-H+fl}}}
@@ -48,7 +48,7 @@ for(const id in OG33.mon){const t=TYPES[id];if(!t)continue;const hd=t.draw,om=MO
   if(p.col===OG_JAR){const f=reduceMotion?0:Math.floor(time*12+p.x*.01)&3;if(!og33Draw(ctx,'ongi_proj_pot_'+f,s.x,s.y,p.r/11*.8))return _d.apply(this,arguments);
     ctx.globalCompositeOperation='lighter';ctx.globalAlpha=.4;glow(s.x,s.y,p.r*2,'#ffb070');ctx.globalAlpha=1;ctx.globalCompositeOperation=po;return}
   const r=PK.meta.r.ongi_proj_silicone;if(!r)return _d.apply(this,arguments);const ang=Math.atan2((p.vx+p.vy)*KI/2,(p.vx-p.vy)*KI),k=p.r/6*1.35;
-  ctx.save();ctx.translate(s.x,s.y);ctx.rotate(ang);ctx.drawImage(PK.img,r[0],r[1],r[2],r[3],-r[4]*k,-r[5]*k,r[2]*k,r[3]*k);ctx.restore();
+  ctx.save();ctx.translate(s.x,s.y);ctx.rotate(ang);FLC.draw(ctx,PK.img,r[0],r[1],r[2],r[3],-r[4]*k,-r[5]*k,r[2]*k,r[3]*k);ctx.restore();
   ctx.globalCompositeOperation='lighter';glow(s.x,s.y,p.r*2.6,'#ffd6e0');ctx.globalCompositeOperation=po}}
 
 /* ===== 쉼터 사람 셋 ===== */
@@ -67,7 +67,7 @@ for(const id in OG33.mon){const t=TYPES[id];if(!t)continue;const hd=t.draw,om=MO
 function og33Bld(d,key,w){const PK=og33PK(),r=PK&&PK.meta.r[key];if(!r||!d._s)return false;const F=d.foot[0],c=W2S((F[0]+F[2])/2,(F[1]+F[3])/2),fr=W2S(F[2],F[3]),gw=(F[2]-F[0]+F[3]-F[1])*KI,k=clamp(gw*w/r[2],.6,1.6);
   const x0=c.x-r[4]*k,y0=fr.y-r[5]*k,W=r[2]*k,H=r[3]*k;let a=1;
   if(!P.dead&&P._s){const ps=P._s,front=P.x>F[2]||P.y>F[3];if(!front&&dist(P,d)<420&&ps.x>x0+12&&ps.x<x0+W-12&&ps.y>y0+10&&ps.y<fr.y-10)a=.42}
-  ctx.globalAlpha=a;ctx.drawImage(PK.img,r[0],r[1],r[2],r[3],x0,y0,W,H);ctx.globalAlpha=1;d._cg=1;d._cgDoor=W2S(d.door.x,d.door.y);if(TW.vis!==frameN){TW.vis=frameN;TW.visB.length=0}TW.visB.push(d);return true}
+  ctx.globalAlpha=a;FLC.draw(ctx,PK.img,r[0],r[1],r[2],r[3],x0,y0,W,H);ctx.globalAlpha=1;d._cg=1;d._cgDoor=W2S(d.door.x,d.door.y);if(TW.vis!==frameN){TW.vis=frameN;TW.visB.length=0}TW.visB.push(d);return true}
 // 성소: 쉼터 집 둘 중 큰 것
 {const L=RCACHE[OG32.reg],B=L&&(TW.blds[L.id]||[]).filter(b=>b.id!=='og_temple');if(B&&B.length){B.sort((a,b)=>b.W*b.D-a.W*a.D);OG33.san=B[0];B[0].og33san=1}}
 if(typeof cgBld==='function'){const _cb=cgBld;cgBld=function(d){if(d.id==='og_temple'&&og33Bld(d,'ongi_temple',1.02))return true;if(d.og33san&&og33Bld(d,'ongi_sanctuary',1.08))return true;return _cb.apply(this,arguments)}}

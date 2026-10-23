@@ -331,7 +331,9 @@ if(!busy&&!P.dead&&(Math.abs(P.x-IDLE.px)+Math.abs(P.y-IDLE.py)>.5))busy=true;ID
   IDLE.t=busy?0:IDLE.t+dt}
 // [v34 최적화] 휴대폰은 프레임 상한을 고르지 않았으면 30(절전)이 기본 (설정에서 60을 고를 수 있음). 발열의 가장 큰 손잡이
 function fps30(){return GFX.fps===30||(!GFX.fps&&typeof M22==='object'&&M22.phone())}
-function frameCapMs(){if(fps30())return 33.3;if(IDLE.t>2||!document.hasFocus())return 33.3;return 16.6}
+// [v42 최적화] 첫 화면(캐릭터 고르기)이 열려 있으면 뒤의 세상은 어둡게 덮여 있으니 1초에 5번만 그린다 (폰 발열·버튼 반응)
+let introEl=null;
+function frameCapMs(){if(paused&&(introEl||(introEl=document.getElementById('intro')))&&!introEl.hidden)return 200;if(fps30())return 33.3;if(IDLE.t>2||!document.hasFocus())return 33.3;return 16.6}
 const qTickMs=raw=>raw-Math.max(0,frameCapMs()-16.7);// 일부러 쉰 시간은 자동 품질에서 느림으로 치지 않음
 function frame(now){
   {const d=now-rafPrev;rafPrev=now;if(d>0&&d<100)rafPer+=(d-rafPer)*.1}

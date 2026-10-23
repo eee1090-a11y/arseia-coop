@@ -9,4 +9,10 @@ function xpMig24(d){if(!d||(d.xpc|0)<21||d.xpc>=24||!P||P.lvl>=MAXLV)return;cons
   P.xp=clamp(Math.floor((P.xp||0)*n/o),0,Math.max(0,n-1))}
 {const _ld=load;load=function(d,slot){const ok=_ld.apply(this,arguments);if(ok)try{xpMig24(d)}catch(err){if(window.__QA)throw err}return ok}}
 {const _sd=saveData;saveData=function(){const d=_sd.apply(this,arguments);if(d)d.xpc=24;return d}}
-setTimeout(()=>{try{if(window.__game)Object.assign(window.__game,{xpSlow21,xpNeedV20,xpMig21,xpSlow24,xpNeedV23,xpMig24})}catch(_){}},0);
+// v41: 60~99레벨 필요 경험치 20% 줄임. xpc 24(v24~v40 곡선) 저장은 「그 레벨 안에서 몇 %」를 그대로 새 곡선으로 옮긴다(레벨 그대로 · 막대 비율 그대로 · 바로 레벨업 안 됨).
+//   불러오기(b5)가 경험치를 새 필요치-1로 먼저 자르므로 저장에 적힌 원래 값(d.xp)으로 계산. xpc 23 이하 저장은 위의 xpMig21/xpMig24가 바로 새 곡선으로 옮김. 지우는 코드 없음
+function xpMig41(d){if(!d||(d.xpc|0)<24||d.xpc>=41||!P||P.lvl>=MAXLV)return;const o=xpNeedV40(P.lvl),n=xpNeed(P.lvl);if(o<=0||n===o)return;
+  P.xp=clamp(Math.floor(Math.max(0,d.xp|0)*n/o),0,Math.max(0,n-1))}
+{const _ld=load;load=function(d,slot){const ok=_ld.apply(this,arguments);if(ok)try{xpMig41(d)}catch(err){if(window.__QA)throw err}return ok}}
+{const _sd=saveData;saveData=function(){const d=_sd.apply(this,arguments);if(d)d.xpc=41;return d}}
+setTimeout(()=>{try{if(window.__game)Object.assign(window.__game,{xpSlow21,xpNeedV20,xpMig21,xpSlow24,xpNeedV23,xpMig24,xpNeedV40,xpCut41,xpMig41})}catch(_){}},0);

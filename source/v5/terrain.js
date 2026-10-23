@@ -136,10 +136,13 @@ function terrBuild(id){const S=terrSnap(id);if(!S)return null;const L=S.L,keeps=
   const dec=L.decor,ds=mulberry(sd*104729+11),openAt=(x,y)=>{const i=Math.floor(x/TCS),j=Math.floor(y/TCS);return i>=0&&j>=0&&i<N&&j<N&&!w[terrIdx(i,j)]};
   const nearCliff=(x,y)=>{const i=Math.floor(x/TCS),j=Math.floor(y/TCS);return i>=0&&j>=0&&i<N&&j<N&&dO[terrIdx(i,j)]===0&&[[1,0],[-1,0],[0,1],[0,-1]].some(([a,b])=>terrIdx(i+a,j+b)>=0&&w[terrIdx(i+a,j+b)])};
   const roadD=(x,y)=>{let m=1e9;for(const r of L.roads||[])for(let i=1;i<r.length;i+=1){const dd=segDist(x,y,r[i-1].x,r[i-1].y,r[i].x,r[i].y);if(dd<m)m=dd}return m};
+  // [v42 최적화] 「길에서 52 안쪽인가」만 알면 되므로 길마다 상자를 먼저 보고, 가까운 길 조각을 찾으면 바로 끝낸다 (결과는 roadD(x,y)>52 와 같다)
+  const RB=(L.roads||[]).map(r=>{let a=1e9,b=1e9,c=-1e9,d=-1e9;for(const p of r){if(p.x<a)a=p.x;if(p.y<b)b=p.y;if(p.x>c)c=p.x;if(p.y>d)d=p.y}return[a,b,c,d]});
+  const roadNear=(x,y,cap)=>{const R=L.roads||[];for(let k=0;k<R.length;k++){const r=R[k],B=RB[k];if(x<B[0]-cap||x>B[2]+cap||y<B[1]-cap||y>B[3]+cap)continue;for(let i=1;i<r.length;i++)if(segDist(x,y,r[i-1].x,r[i-1].y,r[i].x,r[i].y)<=cap)return true}return false};
   // 장식을 놓으면 안 되는 자리 (50 간격 점): 지킬 자리마다 반지름의 0.6 (마을 · 포탈 · 마을 사람 · 의뢰인 · 채집 자리 둘레)
   const NM=WORLD/50+1,nomask=new Uint8Array(NM*NM);for(const k of keeps){const rr=k.r*.6,i0=Math.max(0,Math.floor((k.x-rr)/50)),i1=Math.min(NM-1,Math.ceil((k.x+rr)/50)),j0=Math.max(0,Math.floor((k.y-rr)/50)),j1=Math.min(NM-1,Math.ceil((k.y+rr)/50));
     for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++){const dx=i*50-k.x,dy=j*50-k.y;if(dx*dx+dy*dy<(rr+35)*(rr+35))nomask[j*NM+i]=1}}
-  const clearOf=(x,y)=>{if(REGIONS[id]&&REGIONS[id].clear&&REGIONS[id].clear(x,y))return false;for(const t of L.towns||[])if(Math.hypot(x-t.x,y-t.y)<TOWN_R+90)return false;if(nomask[clamp(Math.round(y/50),0,NM-1)*NM+clamp(Math.round(x/50),0,NM-1)])return false;return roadD(x,y)>52};
+  const clearOf=(x,y)=>{if(REGIONS[id]&&REGIONS[id].clear&&REGIONS[id].clear(x,y))return false;for(const t of L.towns||[])if(Math.hypot(x-t.x,y-t.y)<TOWN_R+90)return false;if(nomask[clamp(Math.round(y/50),0,NM-1)*NM+clamp(Math.round(x/50),0,NM-1)])return false;return !roadNear(x,y,52)};
   const lq=L.lq||null,wet=k=>k==='coral'||k==='wreck'||k==='searock'||k==='shell',liq=(x,y)=>{if(!lq)return 0;const i=clamp(Math.round(x/LQS),0,LQN-1),j=clamp(Math.round(y/LQS),0,LQN-1);return lq[j*LQN+i]};
   // 예전 동그란 나무 → 가지와 잎 뭉치가 보이는 나무 (활엽수 · 자작나무 · 침엽수 · 마른 나무)
   for(const d of dec){if(terrProt(d))continue;if(d.k==='tree'){const zl=id==='home'?levelAt(d.x,d.y):0;d.k=zl>=14&&d.v<.6?'hdead':fbm(d.x/900,d.y/900,sd+57)>.56?'hpine':d.v<.22?'hbirch':'htree';d.s*=.62}else if(d.k==='bush'){d.k='hbush';d.s*=.8}}

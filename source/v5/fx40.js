@@ -98,6 +98,6 @@ FX40.drawA34=function(c,map,sv,G){const op=c.globalCompositeOperation;c.globalCo
 {const _da=drawAlly;drawAlly=function(a){if(!(a&&a.s&&a.s.form==='hydra'))return _da.apply(this,arguments);const PK=FX40.hy(),FI=PK&&FX31.fr(PK,FX40.HI),FA=PK&&FX31.fr(PK,FX40.HA);if(!FI)return _da.apply(this,arguments);
   const s=a._s;if(!onScreen(s,80))return;if(a.lunge>0&&!(a._h40>time-.5))a._h40=time;const at=FA&&a._h40!=null&&time-a._h40<.5,F=at?FA:FI,f=at?F[FX31.kOf(F,(time-a._h40)/.5)]:F[FX31.loopK(F,6,a.x*.01)];
   ctx.save();ctx.translate(s.x,s.y);Kit.shadow(ctx,4,2,a.r*1.6,a.r*.6,1);if((a.fx||1)>0)ctx.scale(-1,1);/* 그림은 왼쪽을 봄 */
-  const sc=.95,ay=FX31.foot(PK,FX40.HI);ctx.drawImage(PK.img,f[0],f[1],f[2],f[3],(f[4]-64)*sc,(f[5]-ay)*sc,f[2]*sc,f[3]*sc);FXL.spend(1);FX31.n.draw++;FX40.n.hy++;ctx.restore();
+  const sc=.95,ay=FX31.foot(PK,FX40.HI);FLC.draw(ctx,PK.img,f[0],f[1],f[2],f[3],(f[4]-64)*sc,(f[5]-ay)*sc,f[2]*sc,f[3]*sc);FXL.spend(1);FX31.n.draw++;FX40.n.hy++;ctx.restore();
   ctx.save();ctx.translate(s.x,s.y);const w=34;ctx.fillStyle='#c9a46a';ctx.fillRect(-w/2,-58+4,w*clamp(a.t/a.s.dur,0,1),1.5);ctx.restore()}}
 window.__fx40=FX40;
