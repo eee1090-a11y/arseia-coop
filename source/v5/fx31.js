@@ -94,7 +94,11 @@ const FX31={P:{},want:{},busy:0,busyT:0,q:[],inst:[],nd:0,t:0,C:128,
     ['317','phys','trap','beastcage',0,'archer'],['318','phys','trap','blasttrap',0,'archer'],['319','phys','trap','thorntrap',0,'archer'],['320','phys','trap','dominion',0,'archer'],
     ['321','phys','trap','shadowtrap',0,'archer'],['322','phys','trap','abysstrap',0,'archer'],['323','phys','field','caltrops',0,'archer'],['324','phys','field','lure',0,'archer'],
     ['325','phys','field','huntground',0,'archer'],['326','phys','field','nighthunt',0,'archer'],['327','phys','strike','apexhunt',0,'archer'],['328','phys','strike','drivehunt',0,'archer'],
-    ['329','phys','rain','skyvolley',0,'archer'],['330','phys','beam','wildrun',0,'archer']],
+    ['329','phys','rain','skyvolley',0,'archer'],['330','phys','beam','wildrun',0,'archer'],
+    // v43(사용자 「현재까지 완료된 그래픽도 다음 패치에 넣어줘」): 궁수 화살 12가지(연결표 331~342번 · 24장)
+    ['331','phys','bolt','trackmark',0,'archer'],['332','phys','bolt','fanshot',0,'archer'],['333','phys','bolt','piercearrow',0,'archer'],['334','phys','bolt','fulldraw',0,'archer'],
+    ['335','phys','bolt','streamshot',0,'archer'],['336','phys','bolt','weakspot',0,'archer'],['337','phys','bolt','tripleshot',0,'archer'],['338','phys','bolt','snipe',0,'archer'],
+    ['339','phys','bolt','netshot',0,'archer'],['340','phys','bolt','deathmark',0,'archer'],['341','phys','bolt','windpierce',0,'archer'],['342','phys','bolt','shadowarrow',0,'archer']],
   TWO:new Set(['bolt','chain','beam','rain']),M:{},n:{draw:0,fall:0,evict:0,load:0},
   init(){for(const [no,el,f,ids,k0,c0] of this.T){const c=c0||'mage',k=k0||f,b=`fx_${no}_1_${c}_${el}_${f}`,i=no>'040'||this.TWO.has(k)?`fx_${no}_2_${c}_${el}_${f}`:null;// 띠 2번이 없으면 그 칸만 그리지 않는다
     for(const id of ids.split(' '))this.M[id]={k,f,c,b,i,pk:c+'-'+el}}

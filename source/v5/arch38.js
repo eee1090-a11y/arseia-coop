@@ -73,21 +73,21 @@ for(const el in A38.EL)A38.EL[el].forEach(id=>{const s=SPELLS[id];s.tab='el38';s
 delete SPELLS.elemrain.tri;/* 애로우 펜스(arch34)는 이제 원소 없이 가시 화살만 — 세 원소 차례 표시를 지운다 */
 {const S=SPELLS;
   {const s=S.tripleshot;delete s.hits;delete s.hitIv;Object.assign(s,{cnt:3,spread:.14,mult:.9,n:'스플리팅 샷',kn:'갈라지는 화살',en:'Splitting Shot',split38:{k:.6,ang:.45,spd:760,life:.45},
-    desc:'화살 세 대를 부채꼴로 쏩니다. 적에게 맞은 화살은 그 자리에서 둘로 갈라져 뒤쪽으로 비스듬히 날아가며 지나는 적을 꿰뚫습니다(갈라진 화살은 60% 위력). 멀티플 샷의 발전형. 호크아이의 기본기.'})}
+    desc:'화살 세 대를 부채꼴로 쏩니다. 적에게 맞은 화살은 그 자리에서 둘로 갈라져 뒤쪽으로 비스듬히 날아가며 지나는 적을 꿰뚫습니다(갈라진 화살은 60% 위력). 1차 멀티플 샷을 발전시킨 기술입니다(멀티플 샷은 배우지 않아도 됩니다). 호크아이의 기본기.'})}
   {const s=S.snipe;Object.assign(s,{mult:6*AR32_CAST.up/* 반드시 치명타(×1.75)라 9→6, 시전 기술 +10%(v32)를 다시 곱함 */,critB:0,crit38:1,killReset:1,far38:{from:150,to:550,max:.5},
-    desc:'숨을 멈추고(시전 1초) 한 적에게 큰 한 발. 반드시 치명타이고, 멀리 있는 적일수록 세집니다(150부터 550 거리까지 최대 +50%). 이 기술로 적을 쓰러뜨리면 재사용 대기가 바로 풀립니다. 차지 샷의 발전형.'})}
+    desc:'숨을 멈추고(시전 1초) 한 적에게 큰 한 발. 반드시 치명타이고, 멀리 있는 적일수록 세집니다(150부터 550 거리까지 최대 +50%). 이 기술로 적을 쓰러뜨리면 재사용 대기가 바로 풀립니다. 1차 차지 샷을 발전시킨 기술입니다(차지 샷은 배우지 않아도 됩니다).'})}
   {const s=S.deathmark;Object.assign(s,{dm38:{n:3,reach:300,mult:1.6,rad:120},
-    desc:'12초 동안 그 적은 모든 파티원에게서 받는 피해가 15% 늘어납니다(표식은 가장 센 것 하나만). 표식이 붙은 적이 쓰러지면 표식이 터지며(반경 120) 가장 가까운 다른 적(300 안)에게 옮겨 붙습니다(세 번까지). 트래커 마크의 발전형.'})}
+    desc:'12초 동안 그 적은 모든 파티원에게서 받는 피해가 15% 늘어납니다(표식은 가장 센 것 하나만). 표식이 붙은 적이 쓰러지면 표식이 터지며(반경 120) 가장 가까운 다른 적(300 안)에게 옮겨 붙습니다(세 번까지). 1차 트래커 마크를 발전시킨 기술입니다(트래커 마크는 배우지 않아도 됩니다).'})}
   {const s=S.arrowvortex;for(const k of ['rad','dur','pull'])delete s[k];Object.assign(s,{kind:'bounce38',mult:.75,n:'바운싱 스톰',kn:'튕겨 다니는 화살',en:'Bouncing Storm',b38:{dur:4,iv:.25,zone:260,grow:.06,max:.8,reach:600},
-    desc:'겨눈 곳(최대 600)에 4초 동안 반경 260의 구역을 정하고, 화살 하나가 그 안의 적 사이를 0.25초마다 튕겨 다닙니다. 튕길 때마다 조금씩 세집니다(한 번에 +6%, 최대 +80%). 같은 적을 연달아 맞히지 않습니다. 리코셰의 발전형.'})}
+    desc:'겨눈 곳(최대 600)에 4초 동안 반경 260의 구역을 정하고, 화살 하나가 그 안의 적 사이를 0.25초마다 튕겨 다닙니다. 튕길 때마다 조금씩 세집니다(한 번에 +6%, 최대 +80%). 같은 적을 연달아 맞히지 않습니다. 1차 리코셰를 발전시킨 기술입니다(리코셰는 배우지 않아도 됩니다).'})}
   {const s=S.blasttrap;Object.assign(s,{n:'클러스터 트랩',kn:'흩어지는 덫',en:'Cluster Trap',cl38:{n:3,ring:90,k:.45,arm:.35,life:6,rad:80},
-    desc:'빨리 켜지는 폭발 덫. 터지면서 작은 덫 셋을 둘레에 흩뿌리고, 작은 덫은 0.35초 뒤 켜져 밟히면 다시 터집니다(45% 위력, 6초). 동시에 셋. 샤프넬 트랩의 발전형. 레인저의 기본기.'})}
+    desc:'빨리 켜지는 폭발 덫. 터지면서 작은 덫 셋을 둘레에 흩뿌리고, 작은 덫은 0.35초 뒤 켜져 밟히면 다시 터집니다(45% 위력, 6초). 동시에 셋. 1차 샤프넬 트랩을 발전시킨 기술입니다(샤프넬 트랩은 배우지 않아도 됩니다). 레인저의 기본기.'})}
   {const s=S.thorntrap;Object.assign(s,{grow38:{to:1.85,hold:2,root:1,bossRoot:.4},
-    desc:'밟으면 독 가시밭이 펼쳐져 6초 동안 적을 느리게 하고 계속 찌릅니다. 가시밭은 점점 넓어지고(반경 140 → 약 260), 그 안에 2초 넘게 머문 적은 가시에 1초 묶입니다(보스 · 준보스 0.4초). 칼트롭의 발전형.'})}
+    desc:'밟으면 독 가시밭이 펼쳐져 6초 동안 적을 느리게 하고 계속 찌릅니다. 가시밭은 점점 넓어지고(반경 140 → 약 260), 그 안에 2초 넘게 머문 적은 가시에 1초 묶입니다(보스 · 준보스 0.4초). 1차 칼트롭을 발전시킨 기술입니다(칼트롭은 배우지 않아도 됩니다).'})}
   {const s=S.netshot;Object.assign(s,{pierce:1,root:1.5,bossRoot:.6,n:'링크 넷',kn:'한 그물 묶기',en:'Link Net',link38:{n:3,share:.3,dur:6},
-    desc:'그물 화살이 일직선의 적 셋까지 꿰어 한 그물로 묶습니다(1.5초 묶임, 보스 0.6초). 6초 동안 묶인 적 하나가 내 공격에 맞으면 그 피해의 30%를 그물에 묶인 다른 적도 받고, 서로 멀어지지 못하고 끌려옵니다. 스네어 트랩의 발전형.'})}
+    desc:'그물 화살이 일직선의 적 셋까지 꿰어 한 그물로 묶습니다(1.5초 묶임, 보스 0.6초). 6초 동안 묶인 적 하나가 내 공격에 맞으면 그 피해의 30%를 그물에 묶인 다른 적도 받고, 서로 멀어지지 못하고 끌려옵니다. 1차 스네어 트랩을 발전시킨 기술입니다(스네어 트랩은 배우지 않아도 됩니다).'})}
   {const s=S.dominion;for(const k of ['ring','cnt'])delete s[k];Object.assign(s,{kind:'kz38',mult:2.2,n:'킬 존',kn:'다시 서는 덫 구역',en:'Kill Zone',kz38:{dur:8,rad:260,n:4,ring:150,amp:.15,place:500},
-    desc:'겨눈 곳(최대 500)에 8초 동안 반경 260의 사냥 구역을 정하고 덫 넷을 깝니다. 구역 안에서 터진 내 덫은 1초 뒤 그 자리에 한 번 다시 장전되고, 구역 안의 적은 내 덫에 15% 더 아프게 맞습니다. 트랩 필드의 발전형.'})}
+    desc:'겨눈 곳(최대 500)에 8초 동안 반경 260의 사냥 구역을 정하고 덫 넷을 깝니다. 구역 안에서 터진 내 덫은 1초 뒤 그 자리에 한 번 다시 장전되고, 구역 안의 적은 내 덫에 15% 더 아프게 맞습니다. 1차 트랩 필드를 발전시킨 기술입니다(트랩 필드는 배우지 않아도 됩니다).'})}
   {const s=S.wildsense;s.pv={trapShot:[.1,.01]};delete s.eva;s.desc='패시브: 덫에 걸린 적(덫에 맞은 지 3초 안이거나 묶여 있는 적)에게 주는 내 화살 · 사격 피해가 오릅니다(1레벨 10%, 레벨마다 +1%, 강화 피해 상한 안에서).'}
   for(const id of ['tripleshot','arrowvortex','blasttrap','netshot','dominion'])if(NAMES_J2[id])NAMES_J2[id]=[S[id].n,NAMES_J2[id][1]||''];
   // 세 하늘의 장궁(원소 핵심 유니크): 원소 사격 + 원소 궁술 세 갈래가 대상 (애로우 펜스는 이제 원소가 아님)
@@ -99,6 +99,7 @@ setTimeout(()=>{try{if(typeof KINDN==='object')Object.assign(KINDN,{sun38:'하�
 /* ===== 3) 원소 궁술 탭: 2차 전직 뒤에만 찍고 쓴다 ===== */
 const a38PreOk=id=>{const f=A38.FROM[id];return !f||P.sk[f]>0};
 {const _cl=canLearn;canLearn=function(id){return _cl(id)&&a38PreOk(id)}}
+{const _kw=kbLearnWhy;kbLearnWhy=function(id){const w=_kw(id),s=SPELLS[id];if(w!=='지금은 찍을 수 없습니다'||!s||s.tab!=='el38'||a38PreOk(id))return w;return `선행 스킬 1차 「${SPELLS[A38.FROM[id]].n}」에 1점 이상 필요`}}
 {const _au=advUnlocked;advUnlocked=function(id){const s=SPELLS[id];if(s&&s.tab==='el38')return !!(P&&P.job2&&P.cls==='archer')&&P.lvl>=s.upLv;return _au(id)}}
 {const _of=TIER22.of;TIER22.of=function(id){const s=SPELLS[id];return s&&s.tab==='el38'?2:_of.call(this,id)}}
 {const _ln=TIER22.line;TIER22.line=function(id){const s=SPELLS[id];if(!s||s.tab!=='el38')return _ln.call(this,id);
@@ -110,9 +111,9 @@ function a38TabHtml(){const cols=['fire','ice','storm'],rows=A38.ROWS,CW=96,RH=6
   const pos=id=>{const s=SPELLS[id];return{x:LW+cols.indexOf(s.j38)*CW+CW/2,y:TOP+rows.indexOf(s.rank)*RH+25}};let lines='',nodes='',labels='';
   cols.forEach((el,i)=>labels+=`<div style="position:absolute;top:4px;left:${LW+i*CW}px;width:${CW}px;text-align:center;font-weight:700;color:${EL[el]}">${A38.ELN[el]}</div>`);
   rows.forEach((r,i)=>labels+=`<div class="rl" style="top:${TOP+i*RH}px"><b>${i+1}단</b>레벨 ${RANK_LV_J2[r-10]}</div>`);
-  for(const el of cols){const L=A38.EL[el];for(let i=1;i<L.length;i++){const a=pos(L[i-1]),b=pos(L[i]),on=P.sk[L[i-1]]>0;lines+=`<path d="M${a.x} ${a.y+25}V${b.y-25}" fill="none" stroke="${on?'#c9a24a':'#5a4a36'}" stroke-width="2"/>`}}
+  /* v43: 같은 원소 1단→4단 선은 실제 규칙이 아니라서 그리지 않는다(선행은 1차 원소 사격의 같은 원소 스킬 · 말풍선과 설명 칸에 적는다) */
   for(const id of ids){const s=SPELLS[id],p=pos(id),L=skLv(id),c=L?(P.lvl<reqLvOf(id)||!advUnlocked(id)?'has lockup':'has'):canLearn(id)?'can':!advUnlocked(id)||P.lvl<reqLvOf(id)||!a38PreOk(id)?'locked':'';
-    nodes+=`<button class="node ${c}" type="button" data-node="${id}" aria-pressed="${nodeSel===id}" title="${s.n}" style="left:${p.x-25}px;top:${p.y-25}px">${j2PT(id)}${j2CM(id,'cmk cmn')}${spellSvg(s)}${L?`<span class="nl">${L}</span>`:''}</button>`}
+    nodes+=`<button class="node ${c}" type="button" data-node="${id}" aria-pressed="${nodeSel===id}" title="${s.n} · 선행: 1차 ${SPELLS[A38.FROM[id]]?SPELLS[A38.FROM[id]].n:''}" style="left:${p.x-25}px;top:${p.y-25}px">${j2PT(id)}${j2CM(id,'cmk cmn')}${spellSvg(s)}${L?`<span class="nl">${L}</span>`:''}</button>`}
   const note=P.job2?'화염 · 냉기 · 폭풍 세 갈래가 따로 있습니다. 마음에 드는 원소를 골라 찍으세요. 갈래의 기술은 1차 「원소 사격」의 같은 원소 기술에서 이어집니다(그 기술에 1점 이상).':
     `<span class="lockup">2차 전직(레벨 ${J2LV}, 전직관의 의뢰) 뒤에 열립니다.</span> 호크아이 · 레인저 어느 쪽이든 쓸 수 있습니다.`;
   return `<p class="muted j2note"><b style="color:#ffd76a">원소 궁술</b> · ${note}</p><div class="treescroll"><div class="tree" style="width:${width}px;height:${height}px"><svg class="lines" width="${width}" height="${height}">${lines}</svg>${labels}${nodes}</div></div>`+detailHtml(nodeSel)}
@@ -126,7 +127,8 @@ function a38TabHtml(){const cols=['fire','ice','storm'],rows=A38.ROWS,CW=96,RH=6
 {const _dh=detailHtml;detailHtml=function(id){const s=SPELLS[id];if(!s||s.tab!=='el38')return _dh(id);let h=_dh(id);
   const pre=SPELLS[A38.FROM[id]];h=h.split('같은 undefined 계열').join(`같은 ${A38.ELN[s.j38]} 갈래`);
   if(!P.job2)h=h.replace('<div class="acts">',`<div class="req"><span class="lockup">원소 궁술: 2차 전직 뒤에 찍고 쓸 수 있습니다 (레벨 ${s.upLv}부터)</span></div><div class="acts">`);
-  else if(pre&&!P.sk[pre.id]&&!h.includes(pre.n))h=h.replace('<div class="acts">',`<div class="req">1차 「${pre.n}」에 1점 이상</div><div class="acts">`);
+  else if(pre){h=h.replace(/<div class="req ok">선행 (?:스킬|마법) 없음[^<]*<\/div>/,'');/* v43: 선행이 있는데 「없음」이라 나오던 것 */
+    h=h.replace('<div class="acts">',P.sk[pre.id]>0?`<div class="req ok">선행 스킬 1차 「${pre.n}」 ✓</div><div class="acts">`:`<div class="req">선행 스킬 1차 「${pre.n}」에 1점 이상</div><div class="acts">`)}
   return h}}
 {const _tc=tryCast;tryCast=function(id,t){const s=SPELLS[id];
   if(s&&s.tab==='el38'&&!GHOST&&!CAST_MOD&&!advUnlocked(id)){if(P.noMpT<=0){msg(`${s.n}: 2차 전직 뒤 레벨 ${s.upLv}부터 쓸 수 있습니다`,'#a39d8f');P.noMpT=1.5}return}

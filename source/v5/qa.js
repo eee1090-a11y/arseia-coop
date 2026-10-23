@@ -3566,7 +3566,7 @@ qT(QM22,'휴대폰 단축바: 스킬·물약이 든 칸만 보임(빈 칸 · 0�
     for(const b of sh){const r=qmR(b);qOk(r.width>=40&&r.height>=40,`칸 작음 ${r.width}×${r.height}`)}
     qOk(JSON.stringify(P.bar)===bar0,'저장된 단축칸이 바뀜');
     bindId=P.bar[0];buildBar();const all=m22Shown().filter(b=>b.dataset.slot!=null).length;bindId=null;buildBar();qOk(all===21,'고르는 중 빈 칸이 안 보임 '+all);
-    qM22Bar(21);P.pot.mp=1;buildBar();const s2=m22Shown(),rows=new Set(s2.map(b=>Math.round(qmR(b).top)));qOk(s2.length===23&&rows.size<=2,`21칸+물약 2: ${s2.length}칸 ${rows.size}줄`);
+    qM22Bar(21);P.pot.mp=1;buildBar();const s2=m22Shown(),rows=new Set(s2.map(b=>Math.round(qmR(b).top)));qOk(s2.length===8+2&&rows.size<=2,`21칸+물약 2: ${s2.length}칸 ${rows.size}줄`);// v43: 가로 휴대폰은 한 쪽 8칸 + 물약 2 (쪽 넘기기)
     for(const b of s2){const r=qmR(b);qOk(r.left>=0&&r.right<=844&&r.top>=0&&r.bottom<=390,'칸이 화면 밖')}
     return `보임 ${sh.length}칸 · 21칸이면 ${rows.size}줄`})});
 qT(QM22,'단축바는 HP 구슬과 마나 구슬 사이: 가로 844×390 · 세로 390×844 (칸 9개 + 물약) · 화면 안',()=>{qPrep('mage',{lvl:40});qM22Bar(9);P.pot.hp=3;P.pot.mp=3;const out=[];
@@ -6212,6 +6212,169 @@ qT('이펙트 v42','같은 그림 돌려쓰던 기술 130가지(사제 67 · 마
   qOk(nT===63,'마법사 · 궁수 수 '+nT);qOk(!none.length,'자기 그림이 안 그려진 기술 '+none.length+': '+none.join(', '));
   FX31.P={};FX31.want={'mage-fire':'fail'};{qPrep('mage',{lvl:140});P.sk.firebolt=10;P.x=QA_SPOT.x;P.y=QA_SPOT.y;followCam();const e=qDummy(P.x+170,P.y+30,{lvl:140});const d0=FX31.n.draw;qCast('firebolt',{x:e.x,y:e.y});qStep(30,{renderEvery:1});qOk(FX31.n.draw===d0,'묶음 없는데 새 그림 '+(FX31.n.draw-d0))}
   return `130가지 새 짝 · 같은 그림 같이 쓰기 0 · 마법사 · 궁수 ${nT}가지 자기 그림 그려짐 · 묶음 ${pks.length}개 · 묶음 없으면 예전`}));
+/* v43(사용자 「현재까지 완료된 그래픽도 다음 패치에 넣어줘」): 궁수 화살 12가지 새 그림 */
+qT('이펙트 v43 궁수','궁수 화살 12가지(연결표 331~342번)에 자기 그림: 짝이 새 번호 · 묶음 이름 서버 규칙 안 · 다른 기술과 같은 그림을 안 씀 · 묶음이 있으면 기술마다 자기 그림이 실제로 그려짐 · 묶음이 없으면 예전 그대로',()=>qFX31(()=>{
+  const L='331:trackmark:archer-phys 332:fanshot:archer-phys 333:piercearrow:archer-phys 334:fulldraw:archer-phys 335:streamshot:archer-phys 336:weakspot:archer-phys 337:tripleshot:archer-phys 338:snipe:archer-phys 339:netshot:archer-phys 340:deathmark:archer-phys 341:windpierce:archer-phys 342:shadowarrow:archer-phys'.split(' ').map(x=>x.split(':'));qOk(L.length===12,'수 '+L.length);const bad=[],dup=[];
+  for(const [no,id,pk] of L){const m=FX31.M[id],s=SPELLS[id];if(!m||!s||!m.b.startsWith('fx_'+no+'_1_')||m.pk!==pk||m.c!==s.cls)bad.push(id+(m?' '+m.b:' 짝 없음'));
+    else{const o=Object.keys(FX31.M).filter(k=>k!==id&&FX31.M[k].b===m.b);if(o.length)dup.push(id+'='+o.join('/'))}}
+  qOk(!bad.length,'새 짝이 아님: '+bad.join(', '));qOk(!dup.length,'아직 같은 그림을 같이 씀: '+dup.join(', '));
+  const pks=[...new Set(L.map(x=>x[2]))].sort();qOk(pks.every(pk=>/^(?:flare|fx)-[a-z0-9_-]+\.js$/.test('fx-'+pk+'.js')),'서버가 안 내주는 이름 '+pks.join());
+  FX31.P=qFX31Fake();const none=[];let own=null,last=null,nOwn=0;const _fr=FX31.fr,_im=FX31.img;
+  FX31.fr=function(PK,st){last=st;return _fr.apply(this,arguments)};FX31.img=function(c,PK,f){if(f&&own&&own.has(last))nOwn++;return _im.apply(this,arguments)};let nT=0;
+  try{for(const [no,id] of L){const s=SPELLS[id],m=FX31.M[id];if(!s||!m||s.cls==='priest')continue;nT++;
+      if(s.cls==='archer')qWAPrep('archer',s.job3?[id]:[]);else qMPPrep(s.cls,s.job3?id:[],{hurt:1});if(!s.job3){if(s.job2)P.job2=s.job2;P.sk[id]=10;qMana(id);P.mp=maxMp()}P.invT=1e9;passT=-1;FX31.inst=[];fields.length=0;own=new Set([m.b,m.i].filter(Boolean));nOwn=0;
+      const e=qDummy(P.x+170,P.y+30,{lvl:140});qDummy(P.x+230,P.y+80,{lvl:140});let tg=m.f==='blink'?{x:P.x+150,y:P.y}:{x:e.x,y:e.y};
+      if(id==='swapplace'){P.sk.fireelem=5;qMana('fireelem');P.mp=maxMp();P.cd={};qCast('fireelem',qAt(0,80));const fe=allies.find(a=>a.j2&&a.s.id==='fireelem');if(fe){fe.x=P.x+150;fe.y=P.y;tg={x:fe.x,y:fe.y}}P.cd={};P.mp=maxMp();nOwn=0}// 자리 바꾸기는 소환수가 있어야 쓸 수 있음
+      qCast(id,tg);for(let i=0;i<60&&!nOwn;i++)qStep(4,{renderEvery:2,each:()=>{P.mp=maxMp()}});
+      if(!nOwn)none.push(s.n+'('+id+')');qClear()}}
+  finally{FX31.fr=_fr;FX31.img=_im}
+  qOk(nT===12,'궁수 수 '+nT);qOk(!none.length,'자기 그림이 안 그려진 기술 '+none.length+': '+none.join(', '));
+  FX31.P={};FX31.want={'mage-fire':'fail'};{qPrep('mage',{lvl:140});P.sk.firebolt=10;P.x=QA_SPOT.x;P.y=QA_SPOT.y;followCam();const e=qDummy(P.x+170,P.y+30,{lvl:140});const d0=FX31.n.draw;qCast('firebolt',{x:e.x,y:e.y});qStep(30,{renderEvery:1});qOk(FX31.n.draw===d0,'묶음 없는데 새 그림 '+(FX31.n.draw-d0))}
+  return `궁수 12가지 새 짝 · 같은 그림 같이 쓰기 0 · ${nT}가지 자기 그림 그려짐 · 묶음 없으면 예전`}));
+/* ---- v43 스킬 창 선행 스킬 (점검 스레드 「스킬 트리 선행 스킬 설명」): 실제로 막는 선행 = 설명 칸 글 = 트리의 선 ---- */
+qT('선행 스킬 v43','네 직업 · 3차 갈래 둘씩, 모든 스킬: 실제로 막는 선행 스킬이 설명 칸(못 찍을 때 · 찍을 수 있을 때)과 + 단추 까닭에 이름으로 나오고, 「선행 없음」이라 하지 않으며, 트리 선은 실제 선행만 잇는다',()=>{const out=[],bad=[];
+  const dv=h=>{const d=document.createElement('div');d.innerHTML=h;return d};
+  try{for(const cls of ['mage','priest','warrior','archer'])for(const br of Object.keys(JOB3[cls])){qPrep(cls,{lvl:140});qJob3On(br);P.sp=999;
+    const all=Object.values(SPELLS).filter(s=>s.cls===cls).map(s=>s.id),mine=all.filter(id=>job2Ok(id)&&job3Ok(id)),NEED={};let nPre=0;
+    for(const id of mine){const oth=all.filter(k=>k!==id);P.sk={};oth.forEach(k=>P.sk[k]=1);if(!canLearn(id)){bad.push(`${SPELLS[id].n} 못 찍음`);continue}
+      NEED[id]=oth.filter(k=>{P.sk={};oth.forEach(j=>{if(j!==k)P.sk[j]=1});return !canLearn(id)});if(NEED[id].length)nPre++;
+      const nm=NEED[id].map(k=>SPELLS[k].n);
+      P.sk={};const d0=dv(detailHtml(id)),t0=[...d0.querySelectorAll('.req:not(.ok)')].map(e=>e.textContent).join(' '),why=kbLearnWhy(id);
+      P.sk={};NEED[id].forEach(k=>P.sk[k]=1);const t1=[...dv(detailHtml(id)).querySelectorAll('.req.ok')].map(e=>e.textContent).join(' ');
+      for(const n of nm){if(!t0.includes(n))bad.push(`${SPELLS[id].n}: 못 찍을 때 설명에 ${n} 없음`);if(!t1.includes(n))bad.push(`${SPELLS[id].n}: 찍을 수 있을 때 ✓ 줄에 ${n} 없음`)}
+      if(nm.length&&/선행 (스킬|마법) 없음/.test(d0.textContent))bad.push(`${SPELLS[id].n}: 「선행 없음」이라 나옴`);
+      if(nm.length&&!nm.some(n=>why.includes(n)))bad.push(`${SPELLS[id].n}: + 까닭 「${why}」`)}
+    P.sk={};const tabs=CLASSES[cls].trees.map((_,t)=>()=>{J2UI.tab=null;treeSel=t});tabs.push(()=>{J2UI.tab='j2'});if(cls==='archer')tabs.push(()=>{J2UI.tab='el38'});let nL=0;
+    for(const set of tabs){set();nodeSel=null;const d=dv(treeHtml()),pos={};d.querySelectorAll('.tree [data-node]').forEach(b=>{pos[b.dataset.node]=[parseFloat(b.style.left)+25,parseFloat(b.style.top)+25]});
+      const at=(x,y)=>Object.keys(pos).find(k=>Math.abs(pos[k][0]-x)<1&&Math.abs(pos[k][1]-y)<1);const into={};
+      for(const p of d.querySelectorAll('svg.lines path')){const dd=p.getAttribute('d'),n=dd.match(/-?[\d.]+/g).map(Number);let x=n[0],y=n[1];for(const sg of dd.match(/[MVH][^MVH]*/g)){const v=parseFloat(sg.slice(1));if(sg[0]==='V')y=v;else if(sg[0]==='H')x=v}
+        const a=at(n[0],n[1]-25),b=at(x,y+25);nL++;if(!a||!b){bad.push(`${cls} 선 끝이 칸에 안 닿음`);continue}(into[b]=into[b]||[]).push(a);if(NEED[b]&&!NEED[b].includes(a))bad.push(`${SPELLS[a].n}→${SPELLS[b].n} 선이 있지만 실제 선행이 아님`)}
+      for(const id in pos)for(const k of NEED[id]||[])if(pos[k]&&!(into[id]||[]).includes(k))bad.push(`${SPELLS[k].n}→${SPELLS[id].n} 선 없음`)}
+    out.push(`${cls}/${br} ${mine.length}개(선행 있음 ${nPre}) 선 ${nL}`)}}
+  finally{J2UI.tab=null;treeSel=0;nodeSel=null;qClosePanels()}
+  qOk(!bad.length,bad.length+'건: '+bad.slice(0,6).join(' · '));return out.join(' · ')});
+/* v43(사용자 「잿빛 성가대의 무덤 주인을 쓰러뜨렸는데 불 꺼진 왕도에 입장할 수 없어」) */
+qT('왕도 길 v43','잿빛 성가대의 무덤 주인을 쓰러뜨리면 「왕도의 문」 의뢰를 받기 전이어도 불 꺼진 왕도 길이 열림 · 안 잡았으면 닫힘 · 저장 · 다시 불러도 열림 · v42 저장은 업적 처치 기록으로 열림 · 의뢰를 나중에 받으면 처치가 바로 채워짐 · 예전 저장(기록 없음)은 그대로 닫힘',()=>{const q0=W3.qaOpen,r=[];
+  const prep=()=>{qW3Prep('warrior',125);sqState().d['j3w2']=1;W3.qaOpen=false};
+  try{prep();qOk(J3Q.sealOpen(),'봉인문이 안 열림');qOk(!J3Q.capitalOpen(),'잡기 전에 열림');qOk(/잿빛 성가대/.test(w3BlockReg('capital')),'잡기 전 막는 글 없음: '+w3BlockReg('capital'));
+    const d0=saveData();qOk(!(d0.w3&&d0.w3.choir),'잡기 전 저장에 처치');
+    W3.qaOpen=q0;qW3Enter('pt_choir');hurtE(DG.boss,DG.boss.hp+10,{el:'fire'});qOk(DG.bossDead,'무덤 주인이 안 쓰러짐');leaveDungeon();W3.qaOpen=false;qOk(P.w3.choir===1,'처치 수 '+(P.w3&&P.w3.choir));qOk(J3Q.capitalOpen(),'의뢰 없이 잡았는데 닫힘');qOk(w3BlockReg('capital')===''&&w3BlockReg('roots')==='','왕도 · 뿌리 길이 막힘');r.push('의뢰 없이 잡아도 열림');
+    const d=saveData();qOk(d.w3&&d.w3.choir===1,'저장에 처치 없음');qOk(load(JSON.parse(JSON.stringify(d)),QA_SLOT),'불러오기 실패');qOk(J3Q.capitalOpen()&&P.w3.choir===1,'다시 불러오니 닫힘');r.push('저장 · 불러오기');
+    const q4=SQBY['j3w4'];P.job2='guardian';sqState().d['j3w3a']=1;qOk(sqAvail(q4)==='ok','왕도의 문을 못 받음 '+sqAvail(q4));sqAccept('j3w4');qOk(sqState().a['j3w4']&&sqGoalDone(q4,0),'의뢰를 나중에 받았는데 처치가 안 채워짐');r.push('나중에 받은 의뢰 채워짐');
+    prep();const e=saveData();delete e.w3;e.g42=Object.assign({},e.g42||{});e.g42.ac={ty:{b_w3choir:1}};qOk(load(JSON.parse(JSON.stringify(e)),QA_SLOT),'v42 저장 불러오기 실패');W3.qaOpen=false;qOk(J3Q.capitalOpen()&&P.w3.choir>=1,'v42 업적 기록이 있는데 닫힘');r.push('v42 저장 옮김');
+    prep();const f=saveData();delete f.w3;if(f.g42&&f.g42.ac&&f.g42.ac.ty)delete f.g42.ac.ty.b_w3choir;qOk(load(JSON.parse(JSON.stringify(f)),QA_SLOT),'예전 저장 불러오기 실패');W3.qaOpen=false;qOk(!J3Q.capitalOpen(),'기록 없는 저장인데 열림');r.push('기록 없으면 닫힘')}
+  finally{W3.qaOpen=q0;if(DG)leaveDungeon();loadRegion('home')}
+  return r.join(' · ')});
+/* ===== v43(사용자 2026-10-23 「추천 1~7번」 · 「자동물약까지 넣어도 될 것 같아.」): 휴대폰 화면·조작 개선 · 자동 물약 (mux43.js) ===== */
+const QM43='휴대폰 v43',QAP43='자동 물약 v43';
+const q43Shown=()=>m22Shown().filter(b=>b.dataset.slot!=null).map(b=>+b.dataset.slot);
+const q43Pots=()=>{for(const k in P.pot)if(/^(ht|mt)$/.test(k))delete P.pot[k];P.pot.hp=3;P.pot.mp=3};
+qT(QM43,'1 단축바 한 줄 + 쪽 넘기기(가로 휴대폰): 17칸이면 보이는 스킬 칸 8 이하 · 한 줄 · 「1/3」 쪽 단추(40px 이상)를 누르면 다른 칸 · 물약은 늘 보임 · P.bar 그대로 · 다른 쪽 칸을 누르면 그 스킬이 나감 · 칸 고르는 중엔 다 보임 · 옆 단축창 칸은 쪽에서 빠짐 · PC는 그대로',()=>{qPrep('mage',{lvl:72});q43Pots();
+  const ids=qM22Bar(17),bar0=JSON.stringify(P.bar),out=[];M43.pg=0;
+  qM22('L',844,390,()=>{buildBar();const a=q43Shown(),pb=$('#m43pg');qOk(a.length>0&&a.length<=8,'보이는 스킬 칸 '+a.length);
+    qOk(pb&&qmR(pb).width>=40&&qmR(pb).height>=40,'쪽 단추 없음/작음');qOk(pb.textContent.includes('1/3'),'쪽 글 '+pb.textContent);
+    const pots=()=>m22Shown().filter(b=>b.dataset.pot).map(b=>b.dataset.pot).sort().join();qOk(pots()==='hp,mp','물약 '+pots());
+    const rows=new Set([...m22Shown(),pb].map(b=>Math.round(qmR(b).top)));qOk(rows.size===1,'줄 '+rows.size);
+    for(const b of [...m22Shown(),pb]){const r=qmR(b);qOk(r.left>=0&&r.right<=844&&r.bottom<=390,'화면 밖')}
+    barPress(pb);const b2=q43Shown();qOk(b2.length>0&&b2.length<=8&&!b2.some(i=>a.includes(i)),`넘긴 뒤 ${b2} / 처음 ${a}`);qOk(pots()==='hp,mp','넘긴 뒤 물약 '+pots());qOk($('#m43pg').textContent.includes('2/3'),'2쪽 글');
+    const btn=document.querySelector(`#bar button[data-slot="${b2[0]}"]`),keep=tryCast;let got=null;tryCast=function(id){got=id};try{barPress(btn)}finally{tryCast=keep}
+    qOk(got===P.bar[b2[0]],'누른 칸 '+got+' / '+P.bar[b2[0]]);
+    P.cd[P.bar[a[0]]]=5;barPress($('#m43pg'));const b3=q43Shown();qOk(b3.length===1,'3쪽 '+b3.length);barPress($('#m43pg'));qOk(JSON.stringify(q43Shown())===JSON.stringify(a),'돌아온 1쪽');updateHud();
+    buildBar();qOk(JSON.stringify(q43Shown())===JSON.stringify(a),'다시 그려도 같은 쪽');
+    bindId=P.bar[0];buildBar();qOk(q43Shown().length===21&&getComputedStyle($('#m43pg')).display==='none','고르는 중 '+q43Shown().length);bindId=null;buildBar();
+    P.side26=['t0'];buildBar();const side=[...document.querySelectorAll('#bar .sk.s26')].length,rest=m43Fill($('#bar')).length;qOk(side>0&&q43Shown().length<=8+side&&M43.pgN===Math.max(1,Math.ceil(rest/M43.per)),`옆 단축창 ${side} · 나머지 ${rest} · 쪽 ${M43.pgN}`);P.side26=[];buildBar();
+    qOk(JSON.stringify(P.bar)===bar0,'P.bar가 바뀜');out.push(`보임 ${a.length}칸 · 쪽 ${M43.pgN}`)});
+  qM22('L',667,375,()=>{M43.pg=0;buildBar();const sh=[...m22Shown(),$('#m43pg')],rows=new Set(sh.map(b=>Math.round(qmR(b).top)));qOk(rows.size===1&&M43.per<=8,`좁은 휴대폰 667: ${rows.size}줄 · 한 쪽 ${M43.per}칸`);
+    for(const b of sh){const r=qmR(b);qOk(r.left>=0&&r.right<=667,'667 화면 밖')}out.push(`667은 한 쪽 ${M43.per}칸`)});
+  qM22('',0,0,()=>{buildBar();qOk(!$('#m43pg'),'PC에 쪽 단추');const vis=[...document.querySelectorAll('#bar button.sk[data-slot]')].filter(b=>!b.classList.contains('empty')&&qmR(b).width>0).length;qOk(vis===17,'PC 보이는 칸 '+vis)});
+  return out.join(' · ')});
+qT(QM43,'2 휴대폰에서 키 표시 숨김: 상호작용 단추 · ☰ 메뉴 · 단축칸 키 · 물약 Q E · 의뢰 알림판에 「(F)」「(T)」「(L)」 같은 글이 안 보임 · 안내 문장은 「☰ → 스킬 트리에서」 · 읽는 글(textContent)과 PC는 그대로',()=>{qPrep('mage',{lvl:40});q43Pots();qM22Bar(5);const T=TOWNS[0];
+  const KEY=/\((?:[A-Z]|F\d{1,2}|Enter|Esc|Tab)\)/;let out='';
+  qM22('L',844,390,()=>{const a=qActAt(T.gate.x,T.gate.y);qOk(a,'짝문 앞이 아님');M22.nextT=0;updateHud();m43KeyAll();const act=$('#act');
+    qOk(!act.hidden&&act.innerText.trim()&&!KEY.test(act.innerText),'상호작용 단추: '+act.innerText);qOk(KEY.test(act.textContent),'원래 글을 잃음 '+act.textContent);
+    logEl.replaceChildren();/* 앞 시험이 PC 화면에서 남긴 알림 글은 빼고 */MOB.menu(true);updateHud();m43KeyAll();const hud=$('#hud').innerText,bad=[...$('#hud').querySelectorAll('*')].filter(e=>!e.children.length&&KEY.test(e.innerText||'')).map(e=>(e.id||e.className)+':'+e.innerText);MOB.menu(false);qOk(hud.includes('스킬 트리')&&!KEY.test(hud),'HUD 글: '+(hud.match(KEY)||[''])[0]+' '+bad.join(' / '));
+    for(const k of document.querySelectorAll('#bar .sk .k'))qOk(getComputedStyle(k).display==='none','단축칸 키 보임 '+k.textContent);
+    questHud();const q=$('#qhud');qOk(q&&!q.hidden&&!KEY.test(q.innerText),'알림판: '+(q&&q.innerText.match(KEY)));
+    const got=qMsgs(()=>msg('레벨이 오르면 스킬 트리(T)에서 새 마법을 찍으세요'));const last=logEl.lastElementChild;qOk(last&&last.textContent==='레벨이 오르면 ☰ → 스킬 트리에서 새 마법을 찍으세요','안내 문장: '+(last&&last.textContent));
+    qOk(m43MsgTxt('레벨 단계 상자가 생겼습니다. 성장(G) 창에서 받으세요')==='레벨 단계 상자가 생겼습니다. ☰ → 성장 창에서 받으세요'&&m43MsgTxt('숨은 곳 1/5: 금화 9 (성장 G → 탐험)')==='숨은 곳 1/5: 금화 9 (☰ → 성장 → 탐험)'&&m43MsgTxt('검 획득 (지금보다 좋음 · C)')==='검 획득 (지금보다 좋음)','문장 바꾸기');out=act.innerText});
+  updateHud();qOk(KEY.test($('#treeBtn').innerText)&&KEY.test($('#act').innerText),'PC 단추 글: '+$('#treeBtn').innerText);qOk(getComputedStyle(document.querySelector('#bar .sk .k')).display!=='none','PC 단축칸 키 숨음');
+  return out});
+qT(QM43,'3 싸울 때 의뢰 알림판 저절로 접기: 나를 노린 적이 가까우면 「의뢰 N」 한 줄 · 끝나고 4초 뒤 폄 · 1초 안에 다시 안 바뀜 · 손으로 접은 것은 그대로 · 저절로 접힌 것을 누르면 이 싸움 동안 펴 둠 · P.sq.hide 저장 그대로 · PC는 안 접음',()=>{qPrep('mage',{lvl:40});const keepT=M43.qT;M43.qT=1/0;const t=1e9;
+  const reset=()=>{M43.qAuto=0;M43.qUser=0;M43.qCalm=-1e9;M43.qLast=-1e9;const s=sqState();delete s.hide;m43QRedraw()};
+  const fold=()=>{const q=$('#qhud');return !!q&&q.classList.contains('fold')};
+  try{return qM22('L',844,390,()=>{reset();questHud();qOk(!$('#qhud').hidden&&!fold(),'알림판이 처음부터 접힘');const h0=qmR($('#qhud')).height;
+    const e=qDummy(P.x+250,P.y);e.aggroed=true;m43QTick(t);qOk(fold()&&M43.qAuto,'싸움인데 안 접힘');qOk(/의뢰 \d/.test($('#qhud').innerText),'한 줄 글 '+$('#qhud').innerText);qOk(qmR($('#qhud')).height<h0,'높이 그대로');qOk(sqState().hide===undefined,'P.sq.hide가 바뀜');
+    e.dead=true;m43QTick(t+1500);qOk(fold(),'4초 전에 폄');m43QTick(t+4600);qOk(!fold(),'4초 뒤에도 접힘');
+    e.dead=false;m43QTick(t+4900);qOk(!fold(),'0.3초 만에 다시 접힘(깜빡임)');m43QTick(t+5700);qOk(fold(),'다시 싸움인데 안 접힘');
+    FB28.blockedUntil=0;$('#qhud [data-sqtrack]').click();qOk(!fold()&&!M43.qAuto&&sqState().hide===undefined,`눌러도 안 펴짐/손 접기로 바뀜 (접힘 ${fold()} · 저절로 ${M43.qAuto} · 손 ${sqState().hide})`);m43QTick(t+7000);qOk(!fold(),'펴 둔 것을 또 접음');
+    e.dead=true;m43QTick(t+12000);e.dead=false;m43QTick(t+13500);qOk(fold(),'다음 싸움에 안 접힘');
+    reset();const s=sqState();s.hide=1;questHud();qOk(fold(),'손으로 안 접힘');m43QTick(t+20000);qOk(!M43.qAuto&&fold(),'손 접기 건드림');e.dead=true;m43QTick(t+30000);qOk(fold()&&s.hide===1,'손으로 접은 것을 폄');
+    reset();e.dead=false;return qM22('',0,0,()=>{m43QTick(t+40000);qOk(!M43.qAuto&&!fold(),'PC에서 접음');return `높이 ${Math.round(h0)} → 한 줄`})})}
+  finally{M43.qT=keepT;M43.qAuto=0;M43.qUser=0;const s=sqState();delete s.hide;m43QRedraw()}});
+qT(QM43,'4 알림 글자: 가로 휴대폰은 위쪽 가운데(이름 칸 · 지도 칸 · 적 이름 칸 · 캐릭터와 안 겹침) · 한 번에 2줄까지 · 3.5초 뒤 사라짐 · 길게 눌러 옮긴 자리는 그대로 · 세로도 캐릭터와 안 겹침',()=>{qPrep('mage',{lvl:40});const out=[];
+  for(const [m,w,h] of [['L',844,390],['P',390,844]])qM22(m,w,h,()=>{followCam();for(let i=0;i<5;i++)msg('알림 글자 시험 '+i+' · 브렌힐 들판에 들어섰습니다');
+    const n=[...logEl.children].filter(d=>+getComputedStyle(d).opacity>.05).length;qOk(n<=2&&logEl.children.length<=2,`${m} 줄 ${n}`);
+    const lr=qmR(logEl),c=qmR(cv),s=W2S(P.x,P.y),pr={left:c.left+(s.x-26)*CZ,right:c.left+(s.x+26)*CZ,top:c.top+(s.y-78)*CZ,bottom:c.top+(s.y+6)*CZ,width:52*CZ};
+    qOk(lr.width>0&&!qmOv(lr,pr),`${m} 캐릭터와 겹침 ${Math.round(lr.top)}~${Math.round(lr.bottom)} / ${Math.round(pr.top)}~${Math.round(pr.bottom)}`);
+    if(m==='L'){qOk(lr.bottom<pr.top,'위쪽이 아님');for(const sel of ['#hud .who','#hud .rightcol','#minimap'])qOk(!qmOv(lr,qmR(document.querySelector(sel))),'겹침 '+sel);
+      const tg=$('#target');tg.hidden=false;$('#tname').textContent='시험 몬스터';const lr2=qmR(logEl);qOk(!qmOv(lr2,qmR(tg))&&!qmOv(lr2,pr),'적 이름 칸과 겹침');tg.hidden=true;
+      FB28.pos.L_log={x:0,y:.5};fb28Apply('log');const lr3=qmR(logEl);qOk(Math.abs(lr3.left)<2&&Math.abs(lr3.top-(h-lr3.height)/2)<3,`옮긴 자리 무시 ${Math.round(lr3.left)},${Math.round(lr3.top)}`);delete FB28.pos.L_log;fb28Restore()}
+    out.push(`${m} ${Math.round(lr.top)}~${Math.round(lr.bottom)}px ${n}줄`)});
+  qOk(M43.LOG_N===2&&M43.LOG_MS===3500,'줄 수 · 시간');return out.join(' · ')});
+qT(QM43,'5 창 머리 얇게(가로 휴대폰): 제목 · 탭 · ✕ 한 줄 · ✕ 40px 이상이고 닫힘 · 스킬 트리 설명은 접혔다가 「설명」으로 펴짐 · 나무 영역이 화면 높이의 50% 이상 · PC는 그대로',()=>{qPrep('mage',{lvl:72});P.sp=3;let out='';
+  qM22('L',844,390,()=>{document.body.classList.remove('m43pts');openPanel('tree');const ph=panel.querySelector('.phead'),tb=panel.querySelector('.tabs'),x=$('#pclose'),h1=$('#ptitle');
+    qOk(tb.parentNode===ph,'탭이 머리 줄에 없음');const rx=qmR(x),rt=qmR(tb),rh=qmR(h1);qOk(rx.width>=40&&rx.height>=40,`✕ ${rx.width}×${rx.height}`);qOk(Math.abs((rt.top+rt.bottom)/2-(rh.top+rh.bottom)/2)<12&&Math.abs((rx.top+rx.bottom)/2-(rh.top+rh.bottom)/2)<12,'한 줄이 아님');
+    qOk(getComputedStyle(x).fontSize==='0px'||x.innerText.trim()==='','닫기 글이 보임');const pts=pbody.querySelector('.pts');qOk(pts&&qmR(pts).height===0,'설명 줄이 보임');
+    const hb=ph.querySelector('.m43ph');qOk(hb&&hb.innerText.includes('남은 스킬 포인트')&&hb.innerText.includes('3'),'포인트가 머리 줄에 없음');
+    const card=qmR(panel.querySelector('.card')),tr=qmR(pbody.querySelector('.treescroll')),dk=pbody.querySelector('.dock20'),bot=Math.min(card.bottom,dk?qmR(dk).top:1e9),vis=bot-Math.max(tr.top,card.top);
+    qOk(vis>=390*.5,`나무 영역 ${Math.round(vis)}px`);out=`나무 ${Math.round(vis)}px (${Math.round(vis/3.9)}%)`;
+    hb.querySelector('.m43more').click();qOk(qmR(pbody.querySelector('.pts')).height>0,'설명 안 펴짐');panel.querySelector('.m43more').click();qOk(qmR(pbody.querySelector('.pts')).height===0,'설명 안 접힘');
+    $('#tabChar').click();qOk(!ph.querySelector('.m43ph'),'캐릭터 탭에 포인트');x.click();qOk(panel.hidden,'✕로 안 닫힘')});
+  openPanel('tree');qOk(panel.querySelector('.tabs').parentNode!==panel.querySelector('.phead'),'PC 탭 자리 바뀜');qOk(!panel.querySelector('.phead .m43ph'),'PC 머리 줄 바뀜');qOk($('#pclose').innerText.includes('닫기'),'PC 닫기 글');qOk(qmR(pbody.querySelector('.pts')).height>0,'PC 설명 숨음');qClosePanels();
+  return out});
+qT(QM43,'6 생명 위험 알림: 25% → 붉은 가장자리 · 80% → 꺼짐 · 휴대폰은 내려갈 때 한 번 진동(5초 간격) · 설정에서 진동 끄기 · 죽으면 꺼짐 · PC는 테두리만',()=>{qPrep('mage',{lvl:40});let n=0;const kv=M43.vib,vb=FB28.vib;M43.vib=()=>n++;const t=2e9,on=()=>$('#m43low').classList.contains('on');
+  try{M43.low=0;M43.vibT=-1e9;return qM22('L',844,390,()=>{P.hp=maxHp()*.8;m43Low(t);qOk(!on(),'80%인데 켜짐');P.hp=maxHp()*.25;m43Low(t+10);qOk(on()&&n===1,'25%: '+on()+' 진동 '+n);m43Low(t+500);qOk(n===1,'계속 떨림');
+    P.hp=maxHp()*.8;m43Low(t+1000);qOk(!on(),'80%로 올라도 켜짐');P.hp=maxHp()*.2;m43Low(t+2000);qOk(on()&&n===1,'5초 안에 또 떨림');P.hp=maxHp();m43Low(t+3000);P.hp=1;m43Low(t+6000);qOk(n===2,'5초 뒤 안 떨림 '+n);
+    const el=$('#m43low'),cs=getComputedStyle(el);qOk(cs.pointerEvents==='none'&&cs.position==='fixed','누르기를 막음');qOk(!el.querySelector('*'),'그림이 한 겹이 아님');
+    set24Open(true);const off=SET24.el.querySelector('[data-m43vib="0"]');qOk(off,'설정에 진동 없음');off.click();qOk(FB28.vib===0,'진동 안 꺼짐');set24Open(false);
+    P.hp=maxHp();m43Low(t+20000);P.hp=1;m43Low(t+30000);qOk(on()&&n===2,'꺼도 떨림');FB28.vib=1;
+    P.dead=true;m43Low(t+31000);qOk(!on(),'죽었는데 켜짐');P.dead=false;P.hp=maxHp();m43Low(t+40000);
+    return qM22('',0,0,()=>{P.hp=1;m43Low(t+50000);qOk(on()&&n===2,'PC: 테두리 '+on()+' 진동 '+n);P.hp=maxHp();m43Low(t+51000);qOk(!on(),'PC 안 꺼짐');set24Open(true);qOk(!SET24.el.querySelector('[data-m43vib]'),'PC 설정에 진동');set24Open(false);return '25% 켜짐 · 80% 꺼짐 · 진동 '+n+'번'})})}
+  finally{M43.vib=kv;FB28.vib=vb;P.hp=maxHp();m43Low()}});
+qT(QM43,'7 시작 화면: 「최고 레벨은 60」 없음 · 휴대폰은 첫 캐릭터 단추가 스크롤 없이 보임 · 이야기는 「이야기 보기」로 펴짐 · PC는 이야기 그대로',()=>{qPrep('mage',{lvl:40});save();const card=document.querySelector('#intro .card'),txt=card.textContent;
+  qOk(!txt.includes('최고 레벨은 60')&&txt.includes('최고 레벨은 140'),'이야기 글');const keep=paused;$('#intro').hidden=false;paused=true;introButtons(false);let out='';
+  try{qM22('L',844,390,()=>{card.scrollTop=0;const b=card.querySelector('#introBody [data-play]')||card.querySelector('#introBody [data-cls]'),r=qmR(b),cr=qmR(card);
+      qOk(r.top>=cr.top&&r.bottom<=Math.min(cr.bottom,390),`첫 캐릭터 단추 ${Math.round(r.top)}~${Math.round(r.bottom)} / 칸 ${Math.round(cr.bottom)}`);
+      const st=card.querySelector('.m43story'),sb=card.querySelector('.m43sb');qOk(st&&qmR(st).height===0,'이야기가 보임');qOk(sb&&qmR(sb).height>=40,'이야기 보기 단추');sb.click();qOk(qmR(st).height>0,'이야기 안 펴짐');sb.click();qOk(qmR(st).height===0,'이야기 안 접힘');out=`첫 단추 ${Math.round(r.top)}px`});
+    card.scrollTop=0;qOk(qmR(card.querySelector('.m43story')).height>0&&qmR(card.querySelector('.m43sb')).height===0,'PC 이야기 숨음')}
+  finally{$('#intro').hidden=true;paused=keep;document.body.classList.remove('m43st')}return out});
+/* 8 자동 물약 */
+const q43Ap=()=>{qPrep('mage',{lvl:40});q43Pots();qOk(!safe24Here(),'시험 자리가 안전 지대');P.hp=maxHp();P.mp=maxMp()};
+qT(QAP43,'자동 물약: 끔이면 안 마심 · 30%에서 생명 25%면 한 개 줄고 재사용 대기 · 대기 중 · 회복 중엔 또 안 마심 · 가장 좋은 등급 · 마나 20% · 대기 안내 글 없음',()=>{q43Ap();
+  P.hp=maxHp()*.25;qStep(3,{render:false});qOk(potTotal('hp')===3,'끔인데 마심');qOk(JSON.stringify(m43Ap())==='{"hp":0,"mp":0}','기본값');
+  m43ApSet('hp',.3);P.hp=maxHp()*.35;qStep(2,{render:false});qOk(potTotal('hp')===3,'35%에서 마심');
+  potAdd('hp',3,1);P.hp=maxHp()*.25;const got=qMsgs(()=>qStep(1,{render:false}));qOk(potTotal('hp')===3&&potN('hp',3)===0,'가장 좋은 등급이 아님');qOk(potCdLeft('hp')>8&&P.potHot&&P.potHot.hp,'재사용 대기 · 회복 없음');
+  P.hp=maxHp()*.1;const g2=qMsgs(()=>qStep(30,{render:false,each:()=>{P.hp=maxHp()*.1}}));qOk(potTotal('hp')===3,'대기 중 또 마심');qOk(![...got,...g2].some(t=>/초 뒤에 다시/.test(t)),'대기 안내 글: '+g2.join('/'));
+  P.potCd=0;qStep(1,{render:false,each:()=>{P.hp=maxHp()*.1}});qOk(potTotal('hp')===3,'회복 중인데 마심');P.potHot=null;P.potCd=0;qStep(1,{render:false});qOk(potTotal('hp')===2,'대기 끝나도 안 마심');
+  m43ApSet('mp',.2);P.mp=maxMp()*.15;qStep(1,{render:false});qOk(potTotal('mp')===2&&potCdLeft('mp')>6,'마나 안 마심');return '생명 25% → 1개 · 대기 '+POT_CD.hp+'초 · 마나 20%'});
+qT(QAP43,'자동 물약: 마을 안 · 창 열림(멈춤) · 쓰러짐 · 남의 기술 처리 중(GHOST)엔 안 마심 · 0개면 알림 한 번(다시 생기면 다시 알림)',()=>{q43Ap();m43ApSet('hp',.5);m43ApSet('mp',.4);const low=()=>{P.hp=maxHp()*.2;P.mp=maxMp()*.2};
+  const T=TOWNS[0];P.x=T.x;P.y=T.y;low();qOk(safe24Here(),'마을이 안전 지대가 아님');m43ApTick();qOk(potTotal('hp')===3&&potTotal('mp')===3,'마을에서 마심');P.x=QA_SPOT.x;P.y=QA_SPOT.y;
+  openPanel('tree');low();m43ApTick();qOk(paused&&potTotal('hp')===3,'창 열렸는데 마심');qClosePanels();paused=false;
+  P.dead=true;low();m43ApTick();qOk(potTotal('hp')===3,'쓰러졌는데 마심');P.dead=false;
+  const g0=GHOST;GHOST={};try{low();m43ApTick()}finally{GHOST=g0}qOk(potTotal('hp')===3,'GHOST 때 마심');
+  low();m43ApTick();qOk(potTotal('hp')===2&&potTotal('mp')===2,'들판에서 안 마심');
+  P.pot.hp=0;P.pot.mp=0;P.potCd=0;P.potCdM=0;P.potHot=null;low();const a=qMsgs(()=>{for(let i=0;i<5;i++){low();m43ApTick()}});const want=['자동 물약: 생명력 물약이 없습니다','자동 물약: 마나 물약이 없습니다'];
+  qOk(a.length===2&&want.every(t=>a.includes(t)),'알림 '+a.join(' / '));P.pot.hp=1;const b=qMsgs(()=>{low();m43ApTick()});qOk(potTotal('hp')===0&&!b.some(t=>t.includes('생명력')),'다시 생겼는데 안 마심 '+b.join('/'));
+  P.potCd=0;P.potHot=null;const c=qMsgs(()=>{low();m43ApTick();m43ApTick()});qOk(c.filter(t=>t===want[0]).length===1,'다시 떨어졌을 때 알림 '+c.join('/'));return '알림 '+a.length+'번'});
+qT(QAP43,'자동 물약 저장: 캐릭터마다 P.apot · 켠 것만 저장 · 예전 저장(필드 없음) · 엉뚱한 값은 끔 · 설정 ⚙에서 고름(PC · 휴대폰) · 캐릭터 키를 지우지 않음',()=>{q43Ap();const d0=saveData();qOk(!('apot' in d0),'끔인데 저장 '+JSON.stringify(d0.apot));
+  set24Open(true);const b=SET24.el.querySelector('[data-m43hp="0.5"]');qOk(b,'설정에 자동 물약 없음');b.click();SET24.el.querySelector('[data-m43mp="0.2"]').click();qOk(m43Ap().hp===.5&&m43Ap().mp===.2,'설정 안 됨 '+JSON.stringify(m43Ap()));
+  qOk(SET24.el.querySelector('[data-m43hp="0.5"]').classList.contains('on'),'고른 표시');set24Open(false);
+  qM22('L',844,390,()=>{set24Open(true);qOk(SET24.el.querySelector('[data-m43hp]')&&SET24.el.querySelector('[data-m43vib]'),'휴대폰 설정');set24Open(false)});
+  const d=JSON.parse(JSON.stringify(saveData()));qOk(d.apot&&d.apot.hp===.5&&d.apot.mp===.2,'저장 '+JSON.stringify(d.apot));
+  const raw0=qRaw('arseia-char-'+QA_SLOT);qOk(load(JSON.parse(JSON.stringify(d)),QA_SLOT)&&m43Ap().hp===.5&&m43Ap().mp===.2,'불러오기');
+  const old=JSON.parse(JSON.stringify(d));delete old.apot;qOk(load(old,QA_SLOT)&&m43Ap().hp===0&&m43Ap().mp===0,'예전 저장이 켜짐');
+  const bad=JSON.parse(JSON.stringify(d));bad.apot={hp:.7,mp:'x'};qOk(load(bad,QA_SLOT)&&m43Ap().hp===0&&m43Ap().mp===0,'엉뚱한 값 '+JSON.stringify(m43Ap()));
+  qOk(qRaw('arseia-char-'+QA_SLOT)===raw0||qRaw('arseia-char-'+QA_SLOT),'캐릭터 키가 비었음');qPrep('mage',{lvl:40});qOk(m43Ap().hp===0,'새 캐릭터가 켜짐');return 'ok'});
 window.__QA_RUN=qaRun;
 setTimeout(()=>{qaRun().catch(e=>{window.__QA_RESULT={fatal:String(e&&e.stack||e),results:[],summary:{total:0,pass:0,fail:1}}})},120);
 }

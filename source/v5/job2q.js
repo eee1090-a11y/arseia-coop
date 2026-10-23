@@ -385,7 +385,7 @@ function j2AdvHtml(){const ids=((typeof ADV_IDS==='object'&&ADV_IDS[P.cls])||[])
   if(!nodeSel||!ids.includes(nodeSel))nodeSel=ids.find(id=>P.sk[id])||ids[0];
   let h=`<p class="muted j2note">${P.job2?'2차 전직으로 열린 기술입니다. 레벨이 되면 찍고 쓸 수 있습니다.':`<span class="lockup">2차 전직(레벨 ${J2LV}, 전직관의 의뢰) 뒤에 열립니다.</span> 미리 찍어 둔 점수는 그대로 남아 있습니다.`}</p><div class="j2adv">`;
   for(const id of ids){const s=SPELLS[id],L=skLv(id),need=reqLvOf(id),open=advUnlocked(id),c=canLearn(id)?'can':open?'':'lk';
-    h+=`<button class="j2row ${c}" type="button" data-node="${id}" aria-pressed="${nodeSel===id}" title="${s.n}">${spellSvg(s)}${L?`<span class="nl">${L}</span>`:''}<span style="min-width:0">${j2CM(id,'cmk')}<b>${s.n}</b><small>레벨 ${need}${open?'':' · 잠김'} ${j2PT(id)}</small></span></button>`}
+    h+=`<button class="j2row ${c}" type="button" data-node="${id}" aria-pressed="${nodeSel===id}" title="${s.n}">${spellSvg(s)}${L?`<span class="nl">${L}</span>`:''}<span style="min-width:0">${j2CM(id,'cmk')}<b>${s.n}</b><small>레벨 ${need}${PRE[id]?` · 선행 ${PRE[id].map(p=>SPELLS[p].n).join(', ')}`:''}${open?'':' · 잠김'} ${j2PT(id)}</small></span></button>`}
   return h+'</div>'+detailHtml(nodeSel)}
 function j2BranchHtml(){const br=P.job2,J=JOB2[P.cls][br],list=J2_SPELLS.map(id=>SPELLS[id]).filter(s=>s.job2===br);
   const cols=Math.max(...list.map(s=>TREEPOS[s.id].col))+1,CW=60,RH=58,LW=70,width=LW+cols*CW,height=RANK_LV_J2.length*RH;
