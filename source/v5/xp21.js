@@ -15,4 +15,9 @@ function xpMig41(d){if(!d||(d.xpc|0)<24||d.xpc>=41||!P||P.lvl>=MAXLV)return;cons
   P.xp=clamp(Math.floor(Math.max(0,d.xp|0)*n/o),0,Math.max(0,n-1))}
 {const _ld=load;load=function(d,slot){const ok=_ld.apply(this,arguments);if(ok)try{xpMig41(d)}catch(err){if(window.__QA)throw err}return ok}}
 {const _sd=saveData;saveData=function(){const d=_sd.apply(this,arguments);if(d)d.xpc=41;return d}}
-setTimeout(()=>{try{if(window.__game)Object.assign(window.__game,{xpSlow21,xpNeedV20,xpMig21,xpSlow24,xpNeedV23,xpMig24,xpNeedV40,xpCut41,xpMig41})}catch(_){}},0);
+// v45: 11~59레벨 필요 경험치 10~20% 줄임(b2 xpCut45). xpc 41 저장은 「그 레벨 안에서 몇 %」를 그대로 옮긴다(레벨 그대로 · 막대 비율 그대로 · 바로 레벨업 안 됨). 23 이하 · 24~40 저장은 위 옮기기가 바로 새 곡선으로. 지우는 코드 없음
+function xpMig45(d){if(!d||(d.xpc|0)<41||d.xpc>=45||!P||P.lvl>=MAXLV)return;const o=xpNeedV41(P.lvl),n=xpNeed(P.lvl);if(o<=0||n===o)return;
+  P.xp=clamp(Math.floor(Math.max(0,d.xp|0)*n/o),0,Math.max(0,n-1))}
+{const _ld=load;load=function(d,slot){const ok=_ld.apply(this,arguments);if(ok)try{xpMig45(d)}catch(err){if(window.__QA)throw err}return ok}}
+{const _sd=saveData;saveData=function(){const d=_sd.apply(this,arguments);if(d)d.xpc=45;return d}}
+setTimeout(()=>{try{if(window.__game)Object.assign(window.__game,{xpSlow21,xpNeedV20,xpMig21,xpSlow24,xpNeedV23,xpMig24,xpNeedV40,xpCut41,xpMig41,xpNeedV41,xpCut45,xpMig45})}catch(_){}},0);

@@ -7,7 +7,7 @@
 const G42_MAT={herb:{n:'약초',col:'#8ae07a'},ore:{n:'광석',col:'#d8b890'},cry:{n:'수정',col:'#9fd8ff'}};
 const G42_GREG={h29_reed:{herb:.6,ore:.2,cry:.2},h29_kiln:{herb:.2,ore:.6,cry:.2},h29_crystal:{herb:.2,ore:.2,cry:.6},h29_snow:{herb:.4,ore:.2,cry:.4},h29_bell:{herb:.2,ore:.5,cry:.3},h29_veil:{herb:.3,ore:.2,cry:.5},
   plateau:{herb:.3,ore:.5,cry:.2},starsea:{herb:.2,ore:.2,cry:.6},thunder:{herb:.3,ore:.4,cry:.3},roots:{herb:.6,ore:.2,cry:.2},capital:{herb:.3,ore:.4,cry:.3},eclipse:{herb:.2,ore:.3,cry:.5}};
-const G42_GN=12,G42_GRESP=480;
+const G42_GN=12,G42_GRESP=480,G42_GLV=30;// v45: 채집은 30레벨부터(60에서)
 const G42F={cut:{},gt:0,gk:null};
 function g42Mat(){const g=g42S();if(!v20Obj(g.mat))g.mat={};for(const k in G42_MAT)g.mat[k]=Math.min(9999,Math.max(0,g.mat[k]|0));return g.mat}
 function g42GSpots(reg){const ck='g42g/'+reg;if(Q30.pos[ck])return Q30.pos[ck];if(REG.id!==reg||DG||IN)return null;const W=G42_GREG[reg],ok=q30Reach(reg),rg=v20Rng(v20Hash('g42g|'+reg)),out=[],T=RCACHE[reg]&&RCACHE[reg].town;
@@ -15,7 +15,7 @@ function g42GSpots(reg){const ck='g42g/'+reg;if(Q30.pos[ck])return Q30.pos[ck];i
     const m=r<W.herb?'herb':r<W.herb+W.ore?'ore':'cry';out.push({x:Math.round(x),y:Math.round(y),m})}
   return Q30.pos[ck]=out}
 const G42_GART={herb:{k:'herb',s:1},ore:{k:'rock',s:.75},cry:{k:'icespike',s:.6}};
-function g42GTick(dt){if(!P||DG||IN||!G42_GREG[REG.id]||P.lvl<60)return;const reg=REG.id,S=g42GSpots(reg);if(!S)return;let near=null;
+function g42GTick(dt){if(!P||DG||IN||!G42_GREG[REG.id]||P.lvl<G42_GLV)return;const reg=REG.id,S=g42GSpots(reg);if(!S)return;let near=null;
   S.forEach((p,i)=>{const key=reg+i,ready=!(G42F.cut[key]>G42.clock);if(!ready)return;const d=dist(P,p);if(d<900)q30Mark('g42g/'+key,{kind:'g42node',x:p.x,y:p.y,m:p.m,f:G42F.gk===key?Math.min(1,G42F.gt/1.2):0,near:d<160});if(d<60&&!P.dead)near={key,p}});
   if(!near||P.moving||CAST.cur){if(!near||G42F.gk!==(near&&near.key))G42F.gt=0;G42F.gk=near?near.key:null;return}
   if(G42F.gk!==near.key){G42F.gk=near.key;G42F.gt=0}G42F.gt+=dt;if(G42F.gt<1.2)return;G42F.gt=0;G42F.gk=null;

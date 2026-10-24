@@ -12,7 +12,7 @@
 for(const id of ['timestop','rewind','regeneration','inviolable'])if(SPELLS[id]&&SPELLS[id].rank>8)SPELLS[id].rank=8;
 
 /* ---- 1. 상위 기술 탭 (2차 전직 뒤, 직업 공통 탭). 순서 = 열리는 순서 ---- */
-const ADV_LV=[50,52,54,56,58,60];
+const ADV_LV=[50,50,50,55,55,55];// v45(사용자 「스킬 배우는 레벨을 5단위로 · 55가 마지막 단계」): 50·52·54·56·58·60 → 50·50·50·55·55·55
 const ADV_IDS={
   mage:['sunfall','heavenbolt','glacier','raisemountain','rendingsky','starlight'],
   priest:['aegis','apotheosis','benediction','magnus','returnmiracle','sunsword'],

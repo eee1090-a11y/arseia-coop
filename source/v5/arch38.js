@@ -394,7 +394,7 @@ Object.assign(ICP,{
 setTimeout(()=>{try{if(typeof FX31!=='object'||!FX31.M)return;const M=FX31.M,cp=(to,from)=>{if(M[from]&&!M[to])M[to]=Object.assign({},M[from])};
   cp('ignitearrow','flamearrow');cp('firetrail','flamearrow');cp('phoenixarrow','burstarrow');cp('shatterarrow','icearrow');cp('crystalprison','glacialarrow');cp('glacialorb','icearrow');
   cp('stormarrow','quickshot');cp('tailwind','hawkeye');
-  delete M.arrowvortex/* 바운싱 스톰은 장판이 아니라 튕기는 화살 — 옛 장판 그림 짝을 뗀다(그림 없으면 직접 그린 선) */}catch(_){}},0);
+  if(M.arrowvortex&&!/^fx_366_/.test(M.arrowvortex.b))delete M.arrowvortex/* v45: 자기 그림(366번)이 생겨 그 짝은 남긴다 · 바운싱 스톰은 장판이 아니라 튕기는 화살 — 옛 장판 그림 짝을 뗀다(그림 없으면 직접 그린 선) */}catch(_){}},0);
 
 /* ===== 11) 저장: 모양이 바뀐 여덟 기술의 점수를 한 번 돌려주기 (rs27 · rs34와 같은 방식) ===== */
 const REFUND38={archer:A38.refund.slice()};

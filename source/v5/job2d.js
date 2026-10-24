@@ -2,7 +2,7 @@
    skill19.js 바로 뒤, b2.js(PASSIVES) 앞에 붙는다. 실행 중 동작·탭·퀘스트는 job2.js · job2q.js.
    · 50레벨 2차 전직. 직업마다 갈래 둘, 갈래마다 12개(패시브 2). 위계 10~19 = 열리는 레벨 RANK_LV_J2(50~92), 점수 한 점마다 +1레벨(기존 규칙).
    · 모든 2차 스킬은 job2:'갈래'. 그 갈래로 전직한 캐릭터만 찍고 쓴다(job2Ok). 피해는 기존과 같이 더하는 식(곱하는 배율 새로 없음). */
-const RANK_LV_J2=[50,53,57,61,65,70,75,80,86,92];
+const RANK_LV_J2=[50,55,60,65,70,75,80,85,90,95];// v45(사용자 「스킬 배우는 레벨을 5단위로」): 50·53·57·61·65·70·75·80·86·92 → 5레벨마다
 const JOB2_IDS={mage:['archmage','summoner'],priest:['inquisitor','archbishop'],warrior:['guardian','berserker'],archer:['hawkeye','ranger']};
 def('mage',10,'prismbolt','프리즘 화살','Prism Bolt','arcane','bolt',8,.4,{job2:'archmage',mult:2.2,spd:640,r:8,prism:1},'쏠 때마다 불(불태움) → 얼음(느리게) → 번개(둘에게 튐) 순서로 바뀌는 마력 화살. 아크메이지의 기본기.');
 def('mage',10,'resonance','원소 공명','Elemental Resonance','arcane','passive',0,0,{job2:'archmage',pv:{reson:[.03,.003]}},'앞서 쓴 것과 다른 원소의 마법을 쓸 때마다 피해가 조금씩 오릅니다(최대 4중첩, 8초). 패시브. 다른 피해 증가와 더해지며 상한 안에서만 듭니다.');

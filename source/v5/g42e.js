@@ -4,6 +4,7 @@
    · 주간 원정 계약: 월요일마다 서로 다른 계약 셋. 하나마다 금화와 경험치 5%, 셋 다 하면 경험치 45%와 장비(합쳐 한 주에 그 레벨의 60%쯤).
    · 저장: P.g42.ex {지역id:{s:[찾은 숨은 곳], bt, el, r:[받은 %]}}, P.g42.wk {w, L:[계약], c:[센 값], r:[받음], all}. 없으면 비어 있다. */
 const G42_EX=['h29_reed','h29_kiln','h29_crystal','h29_snow','h29_bell','h29_veil'];
+const G42_EX6=G42_EX.slice();// v45: g45b.js가 30~60 지역을 G42_EX에 더한다. 주간 원정 · 「여섯 지역의 기록자」는 처음 여섯 지역만
 const G42_EXN=8,G42_EXBT=3,G42_EXEL=10;
 const G42_EXR=[{p:25,xp:.30},{p:50,xp:.35},{p:75,xp:.40},{p:100,xp:.50}];
 const G42_EXB={h29_reed:{gs:{ms:2},d:'이동 속도 +2%'},h29_kiln:{gs:{crit:1},d:'치명타 +1%'},h29_crystal:{gs:{mcost:2},d:'마나 소모 −2%'},h29_snow:{gs:{dr:1},d:'받는 피해 −1%'},h29_bell:{gs:{cdr:1},d:'재사용 대기 −1%'},h29_veil:{gs:{mk:3},d:'적 처치 시 마나 +3'}};
@@ -59,7 +60,7 @@ const G42_WKT={
  ex:{n:(a,N)=>`숨은 곳 ${N}곳 새로 찾기`,N:4}};
 const G42_WKRW={xp:.05,all:.45};
 function g42WkKey(ms){const d=new Date(ms==null?v20Now():ms);d.setHours(0,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7));return v20Day(d.getTime())}// 그 주 월요일
-function g42WkRegs(){const rs=G42_EX.filter(r=>REGIONS[r].base<=Math.max(70,P.lvl+5));return rs.length?rs:[G42_EX[0]]}
+function g42WkRegs(){const rs=G42_EX6.filter(r=>REGIONS[r].base<=Math.max(70,P.lvl+5));return rs.length?rs:[G42_EX[0]]}
 function g42WkPick(key){const rg=v20Rng(v20Hash('g42wk|'+key+'|'+(P&&P.cls))),ty=Object.keys(G42_WKT),out=[],regs=g42WkRegs();
   while(out.length<3&&ty.length){const t=ty.splice(Math.floor(rg()*ty.length),1)[0];const a=regs[Math.floor(rg()*regs.length)];out.push({t,a,N:G42_WKT[t].N})}return out}
 function g42Wk(){const g=g42S();const key=g42WkKey();let w=g.wk;if(!v20Obj(w)||w.w!==key||!Array.isArray(w.L)||w.L.length!==3||!w.L.every(x=>x&&G42_WKT[x.t]&&REGIONS[x.a])){w=g.wk={w:key,L:g42WkPick(key),c:[0,0,0],r:[0,0,0],all:0}}
@@ -81,6 +82,6 @@ function g42WkHtml(){if(!g42WkOn())return '<p class="muted">60레벨부터 주�
   h+=`<div class="btns">${w.all?'<button type="button" disabled>이번 주 원정 상자 받음</button>':v20Btn('g42wka',1,'원정 상자 받기',{dis:!done})}</div></div>`;return h}
 G42.tabs.push({k:'wk',n:'원정',html:g42WkHtml,dot:()=>{if(!g42WkOn())return false;const w=g42Wk();return w.L.some((x,i)=>!w.r[i]&&w.c[i]>=x.N)||!w.all&&w.r.every(Boolean)}});
 G42.ach.push({id:'ex100',n:'지도를 채운 자',d:'지역 하나 탐험 100%',need:1,cur:()=>G42_EX.filter(r=>{const o=P.g42&&P.g42.ex&&P.g42.ex[r];return o&&Array.isArray(o.r)&&o.r.includes(100)}).length,grp:'세계',pts:20},
-  {id:'ex600',n:'여섯 지역의 기록자',d:'여섯 지역 모두 탐험 100%',need:6,cur:()=>G42_EX.filter(r=>{const o=P.g42&&P.g42.ex&&P.g42.ex[r];return o&&Array.isArray(o.r)&&o.r.includes(100)}).length,grp:'세계',pts:40},
+  {id:'ex600',n:'여섯 지역의 기록자',d:'여섯 지역 모두 탐험 100%',need:6,cur:()=>G42_EX6.filter(r=>{const o=P.g42&&P.g42.ex&&P.g42.ex[r];return o&&Array.isArray(o.r)&&o.r.includes(100)}).length,grp:'세계',pts:40},
   {id:'wk1',n:'원정대원',d:'주간 원정 계약 셋 모두 마치기',need:1,cur:()=>g42AcN('wk'),grp:'성장',pts:10},{id:'wk10',n:'원정대장',d:'주간 원정 10주 마치기',need:10,cur:()=>g42AcN('wk'),grp:'성장',pts:30});
 Object.assign(window.__g42,{G42_EX,G42_EXR,G42_EXB,G42_WKT,g42ExS,g42ExList,g42ExPct,g42ExSpots,g42Wk,g42WkKey,g42WkPick,g42WkAdd});

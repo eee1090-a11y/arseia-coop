@@ -125,7 +125,7 @@ const CLASSES={
 const MAXLV=140,MAXSK=20;// v19: 2차 전직 · v20: 3차 전직 · 최고 레벨 140 (3차 스킬은 skMax=10, job3.js)
 // v18: 9위계·은총 9단계가 너무 일찍 열려서 늦춘다 (예전 1/4/8/13/19/26/34/43/52). 이미 찍은 점수는 그대로 두고, 더 찍을 때만 이 레벨을 따진다
 // v19: 1차는 1~8위계만 (2차 전직 50레벨). 옛 9위계는 2차 「상위 기술」 탭(skill19.js의 upLv)으로
-const RANK_LV=[1,5,10,16,23,31,38,45];
+const RANK_LV=[1,5,10,15,25,30,40,45];// v45(사용자 「스킬 배우는 레벨을 5단위로」): 1·5·10·16·23·31·38·45 → 가까운 5단위
 const rankOf=l=>{let r=1;for(let i=0;i<RANK_LV.length;i++)if(l>=RANK_LV[i])r=i+1;return r};
 const SPELLS={};
 function def(cls,rank,id,n,en,el,kind,cost,cd,o,desc){SPELLS[id]=Object.assign({id,cls,rank,n,en,el,kind,cost,cd,desc},o)}

@@ -11,7 +11,7 @@ const G42_CHM=[
  {k:'pot',n:'마른 샘',d:'물약 회복량 −40%'},
  {k:'fire',n:'불타는 바닥',d:'6초마다 발밑에 불길이 솟는다(피하기)'}];
 const G42_CHG=[{k:'gold',n:'금',col:'#ffd76a',f:.65,xp:.08,gold:400,force:'uniq'},{k:'silver',n:'은',col:'#d8e0ea',f:1,xp:.06,gold:280,force:'set'},{k:'bronze',n:'동',col:'#d89a6a',f:1e9,xp:.04,gold:180,force:null}];
-const G42_CHLV=55;
+const G42_CHLV=35;// v45: 55에서 35로 (사용자 「30~60에도 성장 선택지」) · 습격도 이 레벨부터
 const G42D={on:false,raid:null,near:{}};
 function g42Ch(){const g=g42S();if(!v20Obj(g.ch))g.ch={};const c=g.ch,day=v20Day();if(c.day!==day){c.day=day;c.got={}}if(!v20Obj(c.got))c.got={};return c}
 function g42Rd(){const g=g42S();if(!v20Obj(g.rd))g.rd={};return g.rd}
@@ -49,7 +49,7 @@ function g42ChReward(gr,lvl,dgId,via){const c=g42Ch(),G=G42_CHG.find(x=>x.k===gr
 V20NET.g42chs=(m)=>{if(!NET.guest||!DG)return;DG.g42ch={mods:Array.isArray(m.mods)?m.mods.filter(k=>G42_CHM.some(x=>x.k===k)).slice(0,2):[],t:0,par:Math.max(30,m.par|0),ft:3,end:0,guest:1}};
 V20NET.g42che=(m,r)=>{if(!NET.guest||!DG||!P||!G42_CHG.some(x=>x.k===m.g))return;if(DG.g42ch)DG.g42ch.end=1;g42ChReward(m.g,Math.min(P.lvl+10,m.lvl|0),String(m.id||'').slice(0,40),`${r&&r.name||'방장'}님과 함께`)};
 G42.hudX.push(()=>{const C=DG&&DG.g42ch;if(!C)return '';const G=g42ChGrade(C.t,C.par);return `<b style="color:${G.col}">도전 ${g42Clock(C.t)} · 지금 ${G.n}</b>${C.end?'':` <span class="muted">(금 ${g42Clock(C.par*G42_CHG[0].f)} · 은 ${g42Clock(C.par)})</span>`}`});
-V20A.g42chon=()=>{G42D.on=!G42D.on;msg(G42D.on?'다음에 들어가는 55레벨 이상 던전은 도전 던전이 됩니다':'도전 던전을 껐습니다',G42D.on?'#ffd76a':'#a39d8f')};
+V20A.g42chon=()=>{G42D.on=!G42D.on;msg(G42D.on?`다음에 들어가는 ${G42_CHLV}레벨 이상 던전은 도전 던전이 됩니다`:'도전 던전을 껐습니다',G42D.on?'#ffd76a':'#a39d8f')};
 function g42ChHtml(){const M=g42ChMods(),c=g42Ch(),got=Object.keys(c.got);
   let h=`<div class="v20box"><h3>오늘의 도전 <span class="muted">· ${c.day} · 날마다 바뀝니다</span></h3>${M.map(m=>`<div class="v20row"><div><b style="color:#ffd76a">${m.n}</b> <span class="muted">${m.d}</span></div></div>`).join('')}
     <p class="muted" style="margin:6px 0">${G42_CHLV}레벨 이상 보통 던전(이야기 · 시련 던전 빼고)에 들어갈 때 붙습니다. 보스를 쓰러뜨린 시간으로 금 · 은 · 동을 받고, 던전마다 하루에 한 번 그 등급 상자를 받습니다. 동료와 함께 들어가면 동료도 상자를 받습니다.</p>

@@ -98,7 +98,17 @@ const FX31={P:{},want:{},busy:0,busyT:0,q:[],inst:[],nd:0,t:0,C:128,
     // v43(사용자 「현재까지 완료된 그래픽도 다음 패치에 넣어줘」): 궁수 화살 12가지(연결표 331~342번 · 24장)
     ['331','phys','bolt','trackmark',0,'archer'],['332','phys','bolt','fanshot',0,'archer'],['333','phys','bolt','piercearrow',0,'archer'],['334','phys','bolt','fulldraw',0,'archer'],
     ['335','phys','bolt','streamshot',0,'archer'],['336','phys','bolt','weakspot',0,'archer'],['337','phys','bolt','tripleshot',0,'archer'],['338','phys','bolt','snipe',0,'archer'],
-    ['339','phys','bolt','netshot',0,'archer'],['340','phys','bolt','deathmark',0,'archer'],['341','phys','bolt','windpierce',0,'archer'],['342','phys','bolt','shadowarrow',0,'archer']],
+    ['339','phys','bolt','netshot',0,'archer'],['340','phys','bolt','deathmark',0,'archer'],['341','phys','bolt','windpierce',0,'archer'],['342','phys','bolt','shadowarrow',0,'archer'],
+    // v45(사용자 「그래픽도 지금까지 완성된 것들 반영해줘」): 궁수 나머지 36가지(연결표 343~378번 · 52장) — 이것으로 연결표 201~378번 모두. 슈팅 리듬 · 더블 스트림은 v40 때처럼 몸에 두르는 빛(aura)으로 그린다(0이면 강화 빛 자리가 없어 안 그려짐)
+    ['343','phys','bolt','exposeweak',0,'archer'],['344','phys','bolt','oneshot',0,'archer'],['345','fire','bolt','burstarrow',0,'archer'],['346','fire','bolt','trinityarrow',0,'archer'],
+    ['347','ice','bolt','glacialarrow',0,'archer'],['348','phys','blink','shadowstep',0,'archer'],['349','phys','summon','wolfcall',0,'archer'],['350','phys','buff','camouflage','aura','archer'],
+    ['351','phys','buff','huntinghorn','aura','archer'],['352','phys','buff','deadeye','aura','archer'],['353','phys','buff','survivor','aura','archer'],['354','phys','buff','predatoreye','aura','archer'],
+    ['355','phys','buff','imbue','aura','archer'],['356','phys','buff','traptoss','aura','archer'],['357','phys','buff','focus','aura','archer'],['358','phys','buff','beastawaken','aura','archer'],
+    ['359','phys','buff','shadowhide','aura','archer'],['360','phys','buff','piercinggaze','aura','archer'],['361','phys','buff','poisonshade','aura','archer'],['362','phys','buff','shootrhythm','aura','archer'],
+    ['363','phys','buff','doublestream','aura','archer'],['364','wind','bolt','shockarrow',0,'archer'],['365','phys','bolt','powershot',0,'archer'],['366','phys','bounce','arrowvortex','chain','archer'],
+    ['367','fire','sun','solararrow','summon','archer'],['368','ice','aval','avalanche','beam','archer'],['369','storm','rod','lightningrod','summon','archer'],['370','storm','hurricane','hurricaneshot','field','archer'],
+    ['371','fire','bolt','ignitearrow',0,'archer'],['372','fire','bolt','firetrail',0,'archer'],['373','fire','bolt','phoenixarrow',0,'archer'],['374','ice','bolt','shatterarrow',0,'archer'],
+    ['375','ice','orb','glacialorb','bolt','archer'],['376','ice','bolt','crystalprison',0,'archer'],['377','storm','bolt','stormarrow',0,'archer'],['378','wind','buff','tailwind','aura','archer']],
   TWO:new Set(['bolt','chain','beam','rain']),M:{},n:{draw:0,fall:0,evict:0,load:0},
   init(){for(const [no,el,f,ids,k0,c0] of this.T){const c=c0||'mage',k=k0||f,b=`fx_${no}_1_${c}_${el}_${f}`,i=no>'040'||this.TWO.has(k)?`fx_${no}_2_${c}_${el}_${f}`:null;// 띠 2번이 없으면 그 칸만 그리지 않는다
     for(const id of ids.split(' '))this.M[id]={k,f,c,b,i,pk:c+'-'+el}}

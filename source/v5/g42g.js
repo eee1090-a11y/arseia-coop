@@ -71,12 +71,12 @@ function g42PetHtml(){if(!g42PetOn())return `<p class="muted">${G42_PETLV[0]}레
 G42.tabs.push({k:'pet',n:'동료',html:g42PetHtml,dot:()=>{const p=P&&P.g42&&P.g42.pet;return !!(g42PetOn()&&p&&(p.tr|0)>=G42_PETN&&!p.k)}});
 
 /* ===== 10 탈것 ===== */
-const G42_MT={buy:{gold:30000,herb:10},up:{gold:100000,ore:20,lv:80},spd:[0,.35,.5]};
+const G42_MT={buy:{gold:8000,herb:5,lv:40}/* v45: 사용자 「30~60에도 성장 선택지」 → 60레벨 금화 30,000 · 약초 10 에서 40레벨 금화 8,000 · 약초 5 */,up:{gold:100000,ore:20,lv:80},spd:[0,.35,.5]};
 function g42Mt(){const g=g42S();if(!v20Obj(g.mt))g.mt={};const m=g.mt;m.own=m.own?1:0;m.lv=Math.min(2,Math.max(m.own,m.lv|0));m.on=m.on&&m.own?1:0;return m}
 const g42MtOk=()=>P&&!DG&&!IN&&!P.dead&&!GHOST;
 function g42MtSet(on,why){const m=g42Mt();if(!m.own)return;const was=!!m.on;on=!!on&&g42MtOk();if(was===on)return;m.on=on?1:0;G42G.mtT=on?.6:0;
   if(on){rings.push({x:P.x,y:P.y,r:6,max:70,life:.5,col:'#d8b890'});msg('말에 올랐습니다 (H로 내리기)','#d8b890')}else if(why)msg(`말에서 내렸습니다 (${why})`,'#a39d8f');v20Send('g42mt',{on:m.on});g42MtBtn()}
-V20A.g42mtbuy=()=>{const m=g42Mt(),M=g42Mat();if(m.own||P.lvl<60||P.gold<G42_MT.buy.gold||M.herb<G42_MT.buy.herb||!g42InTown())return;P.gold-=G42_MT.buy.gold;M.herb-=G42_MT.buy.herb;m.own=1;m.lv=1;msg('말을 얻었습니다! H(또는 「말」 단추)로 타고 내립니다','#d8b890');g42MtBtn();save()};
+V20A.g42mtbuy=()=>{const m=g42Mt(),M=g42Mat();if(m.own||P.lvl<G42_MT.buy.lv||P.gold<G42_MT.buy.gold||M.herb<G42_MT.buy.herb||!g42InTown())return;P.gold-=G42_MT.buy.gold;M.herb-=G42_MT.buy.herb;m.own=1;m.lv=1;msg('말을 얻었습니다! H(또는 「말」 단추)로 타고 내립니다','#d8b890');g42MtBtn();save()};
 V20A.g42mtup=()=>{const m=g42Mt(),M=g42Mat();if(!m.own||m.lv>=2||P.lvl<G42_MT.up.lv||P.gold<G42_MT.up.gold||M.ore<G42_MT.up.ore||!g42InTown())return;P.gold-=G42_MT.up.gold;M.ore-=G42_MT.up.ore;m.lv=2;msg('준마 훈련을 마쳤습니다: 이동 +50%','#d8b890');save()};
 V20A.g42mton=()=>{const m=g42Mt();g42MtSet(!m.on)};
 function g42MtTick(dt){if(!P)return;const m=g42Mt();if(!m.on)return;if(!g42MtOk()){g42MtSet(false,DG?'던전 안':'');return}if(G42G.mtT>0)G42G.mtT-=dt}
@@ -101,7 +101,7 @@ V20.slowTick.push(()=>{try{g42MtBtn()}catch(_){}});
 addEventListener('keydown',e=>{if(e.code!=='KeyH'||e.ctrlKey||e.altKey||e.metaKey||e.repeat)return;const t=e.target;if(t&&/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))return;if(!P||!g42Mt().own)return;V20A.g42mton()});
 {const _ld=load;load=function(){const ok=_ld.apply(this,arguments);try{if(ok&&P){const m=g42Mt();m.on=0;G42G.deadT=0}}catch(e){if(window.__QA)throw e}return ok}}
 function g42MtHtml(){const m=g42Mt(),M=g42Mat(),tw=g42InTown();
-  if(!m.own)return `<div class="v20box"><h3>말</h3><p class="muted" style="margin:4px 0">60레벨부터. 마을 · 쉼터에서 금화 ${G42_MT.buy.gold.toLocaleString()}와 말 먹이로 약초 ${G42_MT.buy.herb}개(채집)를 내면 말을 얻습니다. 타면 이동 +35%. 마법을 쓰거나 맞으면 내립니다. 던전 안에서는 못 탑니다.</p>${v20Btn('g42mtbuy',1,'말 얻기',{dis:P.lvl<60||P.gold<G42_MT.buy.gold||M.herb<G42_MT.buy.herb||!tw})}${tw?'':'<p class="muted">마을 · 쉼터 안에서</p>'}</div>`;
+  if(!m.own)return `<div class="v20box"><h3>말</h3><p class="muted" style="margin:4px 0">${G42_MT.buy.lv}레벨부터. 마을 · 쉼터에서 금화 ${G42_MT.buy.gold.toLocaleString()}와 말 먹이로 약초 ${G42_MT.buy.herb}개(채집)를 내면 말을 얻습니다. 타면 이동 +35%. 마법을 쓰거나 맞으면 내립니다. 던전 안에서는 못 탑니다.</p>${v20Btn('g42mtbuy',1,'말 얻기',{dis:P.lvl<G42_MT.buy.lv||P.gold<G42_MT.buy.gold||M.herb<G42_MT.buy.herb||!tw})}${tw?'':'<p class="muted">마을 · 쉼터 안에서</p>'}</div>`;
   return `<div class="v20box"><h3>말 <span class="muted">· 이동 +${Math.round(G42_MT.spd[m.lv]*100)}%</span></h3><p class="muted" style="margin:4px 0">H 또는 「말」 단추로 타고 내립니다. 마법을 쓰거나 맞으면 내립니다.</p>${v20Btn('g42mton',1,m.on?'내리기':'타기',{dis:!g42MtOk()})}</div>
     <div class="v20box"><h3>준마 훈련 <span class="muted">· ${G42_MT.up.lv}레벨 · 이동 +50%</span></h3>${m.lv>=2?'<p>마쳤습니다.</p>':v20Btn('g42mtup',1,`훈련 · 금화 ${G42_MT.up.gold.toLocaleString()} · 광석 ${G42_MT.up.ore}`,{dis:P.lvl<G42_MT.up.lv||P.gold<G42_MT.up.gold||M.ore<G42_MT.up.ore||!tw})}</div>`}
 G42.tabs.push({k:'mt',n:'말',html:g42MtHtml,dot:()=>false});

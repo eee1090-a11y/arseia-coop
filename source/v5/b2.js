@@ -164,7 +164,11 @@ const xpNeedV23=l=>Math.floor(40*Math.pow(l,1.45)*xpMul(l)*xpSlow21(l));// v23 �
 const xpNeedV40=l=>Math.floor(40*Math.pow(l,1.45)*xpMul(l)*xpSlow21(l)*xpSlow24(l));// v24~v40 곡선(저장 옮기기용)
 // v41(사용자 요청: 60레벨에서 그만둔다는 피드백 · 레벨업이 너무 오래 걸림): 60~99레벨에서 다음 레벨까지 필요한 경험치 20% 줄임. 몬스터 경험치는 그대로 → 사냥 레벨업 1.25배 빠름. 의뢰 · 책 보상은 「필요 경험치의 몇 %」 규칙 그대로
 const XP41_CUT=.8,XP41_LO=60,XP41_HI=100,xpCut41=l=>l>=XP41_LO&&l<XP41_HI?XP41_CUT:1;
-const xpNeed=l=>Math.floor(xpNeedV40(l)*xpCut41(l));
+const xpNeedV41=l=>Math.floor(xpNeedV40(l)*xpCut41(l));// v41~v43 곡선(저장 옮기기용)
+// v45(사용자 2026-10-24 「60 이후 레벨 필요 경험치와 역전되지 않도록 그 전의 경험치 요구량은 일괄적으로 낮춰줘 약간만」): 11~59레벨 필요 경험치 10% 줄임(10레벨까지는 v21 규칙대로 그대로).
+//   그대로면 59레벨 한 칸이 60레벨보다 오래 걸려서, 50→59레벨은 10%에서 20%까지 부드럽게 더 줄여 60레벨(−20%)과 이어지게 한다. 60레벨부터는 그대로. 몬스터 경험치는 그대로
+const XP45_CUT=.9,XP45_END=.8,xpCut45=l=>{if(l>=XP41_LO||l<=10)return 1;/* 10레벨까지는 그대로(v21 규칙) */if(l<50)return XP45_CUT;const x=(l-50)/(XP41_LO-1-50);return XP45_CUT+(XP45_END-XP45_CUT)*x};
+const xpNeed=l=>Math.floor(xpNeedV41(l)*xpCut45(l));
 // 스킬 레벨: 찍은 점수 + 장비 보너스(1점 이상 찍은 마법에만)
 // v19: 장비로 얻는 「+모든 마법 레벨」은 합쳐서 최대 +3 (2차 스킬에도 붙으므로)
 // v20: 3차 스킬(job3)은 「3차 계열 +1」(tr_j3_갈래)만 받고, 한 점이 J3K(직업)레벨만큼(피해 +12%) 오른다. 화면에 보이는 레벨은 skShow
