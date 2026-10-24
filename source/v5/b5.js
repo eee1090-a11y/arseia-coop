@@ -11,6 +11,7 @@ function buildBar(){
   h+=`<button class="sk" type="button" data-pot="hp" title="${potTip('hp')}" data-pc="${potCounts('hp')}">${miscIcon('hp'+Math.max(0,potBest('hp')),24)}<span class="ab">생명</span><span class="k">Q</span><span class="cnt"></span><span class="cd"></span></button>`;
   h+=`<button class="sk" type="button" data-pot="mp" title="${potTip('mp')}" data-pc="${potCounts('mp')}">${miscIcon('mp'+Math.max(0,potBest('mp')),24)}<span class="ab">마나</span><span class="k">E</span><span class="cnt"></span><span class="cd"></span></button>`;
   h+=`<button class="sk" type="button" data-pot="tp" title="귀환 두루마리: ${TP_CAST}초 동안 펼치면 가장 가까운 마을 짝문으로 돌아갑니다 (움직이면 끊김). 잡화점에서 팝니다">${miscIcon('tp',24)}<span class="ab">귀환</span><span class="k">R</span><span class="cnt"></span><span class="cd"></span></button></div>`;
+  if(typeof b44Html==='function')h+=b44Html();// v44 추가 단축바(bar44.js)
   barEl.innerHTML=h;
 }
 function bindTo(i){const id=bindId;bindId=null;const prev=P.bar.indexOf(id);if(prev>=0)P.bar[prev]=P.bar[i];P.bar[i]=id;msg(`${SPELLS[id].n} → [${SLOTS[i].k}]`,EL[SPELLS[id].el]);buildBar();if(!panel.hidden)renderPanel();save()}

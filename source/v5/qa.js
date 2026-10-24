@@ -1863,7 +1863,7 @@ qT('스킬 정리 v20','v20: 100레벨 넘는 아이템도 그 레벨로 나옴(
     qOk(a.il===130&&b.il===133&&c.il===MAXLV,`${cls} il ${a.il}/${b.il}/${c.il}`);out.push(`${cls} ${a.il}·${b.il}·${c.il}`)}qClear();return out.join(' · ')});
 qT('끌어다 놓기 v20','스킬 창에 단축칸 21개가 붙어 있음 · 배운 스킬을 칸에 놓으면 들어감(이미 다른 칸에 있으면 자리 바꿈) · 칸끼리 바꾸기 · 칸을 밖으로 끌면 비움 · 안 배운 스킬·패시브는 안 됨 · 저장됨',()=>{qPrep('mage',{lvl:30});const out=[];
   for(const id of ['spark','firebolt','frostdiver','warmth'])P.sk[id]=3;P.bar=Array(21).fill(null);P.bar[2]='spark';buildBar();
-  openPanel('tree');const dk=pbody.querySelectorAll('.dock20 [data-dock]');qOk(dk.length===SLOTS.length,`칸 ${dk.length}개`);
+  openPanel('tree');const dk=pbody.querySelectorAll('.dock20 [data-dock]');qOk(dk.length===(typeof b44Vis==='function'?b44Vis():SLOTS.length),`칸 ${dk.length}개`);
   qOk(dndDrop('firebolt',-1,5)&&P.bar[5]==='firebolt','트리 → 칸');out.push('트리→칸');
   qOk(dndDrop('spark',-1,5)&&P.bar[5]==='spark'&&P.bar[2]==='firebolt','이미 있던 스킬은 자리를 바꿈 '+P.bar.slice(0,6));
   qOk(dndDrop('spark',5,9)&&P.bar[9]==='spark'&&P.bar[5]===null,'칸끼리 옮기기 '+P.bar.slice(0,10));
@@ -3340,6 +3340,50 @@ qT('파티 v22','참가자: 동굴 F → 방장에게 (던전 id · 지역) · 6
     // 자료가 망가졌으면(못 들어감) 이유를 방장에게
     leaveDungeon();sent.length=0;netEnterDg(Object.assign({},D,{ci:77,cid:'qa_none'}));qOk(!DG&&qCo22V(sent,'co22a','qa_peer').some(m=>m.ok===0&&m.s),'못 들어갔는데 방장에게 안 알림');out.push('co22a')}
   finally{co22Prompt(null);CO22.ask=null;CO22.hA=-9;if(DG)leaveDungeon();qPtyOff()}return out.join(' · ')});
+qT('단축바 v44','(사용자 「스킬 단축바가 모자라. 선택에 따라서 추가할 수 있는 스킬 단축바를 더 추가해줬으면」) 설정에서 추가 단축바 없음/1줄/2줄 · +칸에서 시전 · 숨긴 줄은 키로도 안 씀 · 저장 왕복(bar 21칸 그대로 · b44) · 옛 저장 · 망가진 값 · 단축키 넣기 · 스킬 창 칸 줄',()=>{qPrep('mage',{lvl:60});const out=[];
+  try{const id=CLASSES.mage.start[0];qOk(P.bar.length===21&&b44Rows()===0&&document.querySelectorAll('#bar button[data-slot]').length===21&&!saveData().b44,'처음엔 21칸 · 저장에 b44 없음');
+    b44Set(1);qOk(b44Rows()===1&&document.querySelectorAll('#bar button[data-slot]').length===31&&document.querySelectorAll('#bar .b44row').length===1,'1줄 켜기');
+    P.bar[21]=id;buildBar();P.mp=maxMp();P.cd={};castSlot(21);qOk((P.cd[id]||0)>0||(typeof CAST!=='undefined'&&CAST.cur),'+1 칸에서 시전 안 됨');out.push('1줄 · 시전');
+    b44Set(0);P.cd={};P.mp=maxMp();castSlot(21);qOk(!(P.cd[id]>0)&&P.bar[21]===id&&document.querySelectorAll('#bar button[data-slot]').length===21,'숨긴 줄이 시전되거나 지워짐');out.push('끄면 그대로 남음');
+    let d=saveData();qOk(Array.isArray(d.bar)&&d.bar.length===21&&d.b44&&d.b44.n===0&&d.b44.s[0]===id&&d.b44.s.length===20,'저장 모양 '+JSON.stringify(d.b44));
+    b44Set(2);P.bar[40]=id;d=saveData();qOk(load(JSON.parse(JSON.stringify(d)),QA_SLOT)&&b44Rows()===2&&P.bar[21]===id&&P.bar[40]===id&&P.bar.length===B44.N,'저장 왕복');out.push('저장 왕복');
+    const o=JSON.parse(JSON.stringify(d));delete o.b44;qOk(load(o,QA_SLOT)&&b44Rows()===0&&P.bar.length===21&&P.bar[0]===d.bar[0]&&JSON.stringify(saveData().bar)===JSON.stringify(o.bar),'옛 저장');
+    const pas=Object.keys(SPELLS).find(k=>SPELLS[k].cls==='mage'&&SPELLS[k].kind==='passive'),oth=Object.keys(SPELLS).find(k=>SPELLS[k].cls==='priest');
+    const o2=JSON.parse(JSON.stringify(d));o2.b44={n:9,s:['없는_기술',id,pas,oth,null]};qOk(load(o2,QA_SLOT)&&b44Rows()===2&&!P.bar[21]&&P.bar[22]===id&&!P.bar[23]&&!P.bar[24],'망가진 값 '+JSON.stringify(P.bar.slice(21,26)));
+    const o3=JSON.parse(JSON.stringify(d));o3.b44=[1,2];qOk(load(o3,QA_SLOT)&&b44Rows()===0,'배열 b44');out.push('옛 저장 · 망가진 값');
+    b44Set(1);qOk(kbSet('s21','KeyZ')===''&&CODE2SLOT.KeyZ===21&&SLOTS[21].k==='Z','키 넣기');qOk(kbRow(KB_BY.s21)!==''&&kbRow(KB_BY.s31)==='','단축키 창 숨긴 줄');kbSet('s21','');qOk(SLOTS[21].k==='+1'&&!CODE2SLOT.KeyZ,'키 빼기 '+SLOTS[21].k);out.push('단축키');
+    openPanel('tree');qOk(pbody.querySelectorAll('.dock20 [data-dock]').length===31&&pbody.querySelector('.dock20 .dk44'),'칸 줄 31칸');closePanel();
+    b44Set(2);openPanel('tree');qOk(pbody.querySelectorAll('.dock20 [data-dock]').length===41,'칸 줄 41칸');closePanel();out.push('스킬 창 칸 줄')}
+  finally{try{kbSet('s21','')}catch(_){}if(P){P.b44n=0;P.bar.length=21;buildBar()}qClosePanels()}return out.join(' · ')});
+qT('파티 v44','(사용자 「따라오지 못했다는 메시지 … 자료를 받는 중이라는 말만 떠」) 방장이 던전 자료를 보낸 직후·첫 확인 전에 온 동료의 실패 이유를 지우지 않음 · 동료 쪽 바깥 단계 오류도 방장에게 이유 · 받은 자료로 두 번 더 스스로 들어감 · 판 번호가 다르면 알림',()=>{qPrep('mage',{lvl:30});const out=[];
+  try{let {r,sent}=qPty(2,{host:true});r.area=-1;CO22.lastA=-9;CO22.peerAt.clear();CO22.stAt.set('qa_peer',performance.now());CO22.ver.set('qa_peer',22);F44.hf.clear();
+    enterDungeon(CAVES[0]);netSend({t:'dg',d:netDgData()});// 방장 화면이 그 프레임에 바로 보냄
+    netOnMsg({t:'v20x',k:'co22a',from:'qa_peer',ok:0,s:'던전 자료 오류: 먼 곳 시험'});// 첫 0.5초 확인보다 먼저 도착(인터넷 지연)
+    const t0=performance.now();qCo22Msgs(()=>co22Tick(t0));qOk(CO22.fail.get('qa_peer')==='던전 자료 오류: 먼 곳 시험','첫 확인이 실패 이유를 지움');CO22.stAt.set('qa_peer',performance.now());
+    let M=qCo22Msgs(()=>co22Tick(t0+CO22.FOLMS+100));qOk(M.some(t=>t.includes('따라오지 못했')&&t.includes('먼 곳 시험'))&&!M.some(t=>t.includes('받는 중')),`알림 ${M.join('/')}`);out.push('먼 곳 실패 이유가 남음');
+    // 지난 던전에서 온 실패 이유는 새 던전에 붙이지 않음
+    leaveDungeon();co22Tick(t0+CO22.FOLMS+300);enterDungeon(CAVES[1]);netSend({t:'dg',d:netDgData()});CO22.stAt.set('qa_peer',performance.now());const t1=performance.now();co22Tick(t1);qOk(!CO22.fail.has('qa_peer'),'지난 실패 이유가 새 던전에 붙음');
+    leaveDungeon();qPtyOff();
+    // 동료: 바깥 단계(지역 불러오기)에서 오류 → 방장에게 이유
+    ({sent}=qPty(2));NET.guest=true;NET.hostId='qa_peer';enterDungeon(CAVES[0]);const D=JSON.parse(JSON.stringify(netDgData()));D.cid=DG.d.id;leaveDungeon();loadRegion('plains');sent.length=0;
+    const _lr=loadRegion;loadRegion=function(){throw new Error('지역 시험 오류')};F44.qa=1;try{netEnterDg(D)}finally{loadRegion=_lr}
+    qOk(!DG,'시험 준비');const A=qCo22V(sent,'co22a','qa_peer');qOk(A.length===1&&A[0].ok===0&&A[0].s.includes('지역 시험 오류'),`바깥 오류 이유 ${JSON.stringify(A)}`);out.push('바깥 오류 → 방장에게 이유');
+    // 못 찾은 던전: 자세한 이유 한 줄(짧은 답과 두 줄 아님)
+    loadRegion('home');sent.length=0;netEnterDg(Object.assign({},D,{ci:77,cid:'qa_none'}));const B=qCo22V(sent,'co22a','qa_peer');qOk(!DG&&B.length===1&&B[0].ok===0&&B[0].s.includes('qa_none')&&B[0].s.includes('없음'),`못 찾음 ${JSON.stringify(B)}`);
+    qOk(CO22.pr&&$('#co22p')&&!$('#co22p').hidden&&$('#co22p').textContent.includes('qa_none')&&$('#co22p').textContent.includes('함께 들어가기'),'친구 화면 알림 창에 이유 없음 '+($('#co22p')&&$('#co22p').textContent));
+    F44.tries=2;sent.length=0;$('#co22go').click();qOk(F44.tries===0&&sent.some(m=>m.t==='req'&&m.a==='dungeon'),'다시 누르면 다시 시도 안 함');co22Prompt(null);CO22.ask=null;
+    // 스스로 다시: 방장이 아직 그 던전(a=0)에 있으면 1.5초 간격으로 두 번 더 · 그 사이 고쳐지면 들어감
+    sent.length=0;F44.qa=1;netEnterDg(D);// 이번엔 정상 자료 → 바로 들어감
+    qOk(DG&&DG.net,'정상 자료로 못 들어감');leaveDungeon();
+    const bad=Object.assign({},D,{ci:77,cid:'qa_none2'});netEnterDg(bad);qOk(!DG,'시험 준비2');CO22.hA=f44Area(bad);CO22.hAt=performance.now();const tr0=F44.tryT;
+    qOk(!f44Retry(tr0+500),'너무 빨리 다시');sent.length=0;bad.ci=D.ci;bad.cid=D.cid;qOk(f44Retry(tr0+F44.RETRYMS+10)&&DG&&DG.net,'다시 들어가기 안 됨');qOk(qCo22V(sent,'co22a','qa_peer').some(m=>m.ok===1),'다시 들어간 뒤 알림 없음');
+    leaveDungeon();const bad2=Object.assign({},D,{ci:77,cid:'qa_none3'});netEnterDg(bad2);CO22.hA=f44Area(bad2);sent.length=0;
+    let k=0;for(let i=1;i<=4;i++){CO22.hAt=performance.now();if(f44Retry(F44.tryT+F44.RETRYMS+10)||F44.tries>k)k=F44.tries}
+    qOk(F44.tries===F44.MAXTRY&&!DG,`다시 횟수 ${F44.tries}`);qOk(qCo22V(sent,'co22a','qa_peer').length===0,'같은 실패를 또 보냄');out.push('스스로 두 번 더');
+    // 판 번호
+    CO22.cap=[];F44.told.clear();netOnMsg({t:'v20x',k:'f44v',from:'qa_peer',v:F44.V-1});const W=CO22.cap;CO22.cap=null;qOk(W.some(t=>t.includes('v'+(F44.V-1))&&t.includes('새로 고침')),`판 알림 ${W.join('/')}`);
+    CO22.cap=[];netOnMsg({t:'v20x',k:'f44v',from:'qa_peer',v:F44.V});const W2=CO22.cap;CO22.cap=null;qOk(!W2.length,'같은 판인데 알림');out.push('판 번호')}
+  finally{F44.qa=0;F44.last=null;co22Prompt(null);CO22.ask=null;CO22.hA=-9;CO22.cap=null;if(DG)leaveDungeon();qPtyOff();loadRegion('home')}return out.join(' · ')});
 qT('파티 v22','방장: 들어간 뒤 5초 안에 안 따라온 동료를 이유와 함께 알림 · 던전 자료를 다시 보냄 · 들어오면 알림 · 판 번호(co22v)가 없는 동료는 옛 판 안내 한 번',()=>{qPrep('mage',{lvl:30});const out=[];
   try{const {r,sent}=qPty(2,{host:true});r.area=-1;CO22.lastA=-9;CO22.peerAt.clear();CO22.stAt.set('qa_peer',performance.now());CO22.ver.set('qa_peer',22);enterDungeon(CAVES[0]);const t0=performance.now();sent.length=0;
     let M=qCo22Msgs(()=>co22Tick(t0));qOk(qCo22V(sent,'co22in').some(m=>m.a===DG.ci&&m.n===DG.d.n),'co22in 없음');qOk(!M.some(t=>t.includes('따라오지')),'너무 일찍 알림');

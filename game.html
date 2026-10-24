@@ -5371,6 +5371,10 @@ function msg(t,c){if(GHOST)return;const d=document.createElement('div');d.textCo
 function ftext(x,y,t,c,big,z){texts.push({x:x+rnd(-6,6),y,z:z||40,t,c,life:1,big})}
 function burst(x,y,col,n,sp,size,z){z=z==null?12:z;n=Math.ceil(n*Q.burstK);for(let i=0;i<n&&parts.length<Q.pcap;i++){const a=R()*6.283,s=rnd(.2,1)*sp;parts.push({x,y,z,vx:Math.cos(a)*s,vy:Math.sin(a)*s,vz:rnd(-.3,.6)*s*.6,life:rnd(.35,.8),max:.8,col,sz:rnd(1.5,size||3.5)})}}
 function rise(x,y,col,z){parts.push({x,y,z:z||0,vx:rnd(-10,10),vy:rnd(-10,10),vz:rnd(30,60),life:.7,max:.7,col,sz:2})}
+/* v44 추가 스킬 단축바 (앞부분): 단축칸을 21칸 뒤로 20칸(두 줄 × 10칸) 더 만든다. 기본 키는 없다(단축키 창에서 넣을 수 있음).
+   keys.js가 SLOTS로 단축키 목록을 만들기 전에 와야 한다(b2.js 바로 다음). 보이기 · 저장 · 설정은 bar44.js */
+const B44={BASE:21,ROW:10,ROWS:2};
+for(let i=0;i<B44.ROW*B44.ROWS;i++)SLOTS.push({k:'+'+(i+1),x44:1});
 /* ---------- v27 (SKILL): 새로 짠 계열의 선행 연결 · 칸 배치 (b2.js 바로 뒤) ----------
    데이터는 skill27.js. b2.js는 옛 LINKS로 PRE를 만들었으므로, 새로 짠 계열(궁수 사격 · 원소 사격, 사제 심판 · 퇴마)만
    LINKS27로 PRE를 다시 만들고 칸(TREEPOS)도 b2.js와 같은 규칙(선행 스킬 바로 아래 칸 먼저)으로 다시 놓는다. */
@@ -12486,6 +12490,7 @@ window.__fl.twFolkSprite=(...a)=>twFolkSprite(...a);window.__fl.f12Look=f12Look;
 
 /* ---------- 패치노트: 새 버전이면 시작 화면에 요약, 게임 안에서는 버튼으로 다시 보기 ---------- */
 const PATCHES=[
+  {v:44,d:'2026-10-24',t:'파티 던전 따라 들어가기 고침 · 추가 스킬 단축바',items:["파티 던전 고침: 동료가 방장을 따라 던전에 못 들어갔을 때 방장 화면에 늘 「던전 자료를 받는 중입니다」만 뜨던 것을 고쳤어요. 서로 먼 곳에서 접속하면 동료가 보낸 실패 이유가 방장이 들어간 직후에 도착해 지워졌고, 동료 쪽 첫 단계(지역 불러오기 · 던전 찾기)에서 난 실패는 이유가 아예 가지 않았어요. 이제 어떤 이유든 방장과 동료 화면 모두에 그대로 떠요.", "파티 던전: 동료가 한 번 못 들어가면 받은 던전 자료로 1.5초 간격으로 두 번 더 스스로 들어가 봐요(방장이 아직 그 던전에 있을 때만).", "파티: 두 사람의 게임 판이 다르면(한쪽이 창을 오래 켜 둔 경우) 「○○님의 게임은 v43, 내 게임은 v44입니다」처럼 두 화면에 알려 줘요. 예전 판인 쪽이 새로 고침(F5)하면 돼요.", "추가 스킬 단축바: 설정 ⚙ 「추가 스킬 단축바」에서 없음 · 1줄 · 2줄을 고를 수 있어요(처음엔 없음). 한 줄에 10칸, 칸 이름은 +1~+20이에요. PC는 원래 단축바 위에 줄이 생기고, 휴대폰은 원래 칸 다음 차례로 이어져요(가로 휴대폰은 「1/3」 쪽 넘기기에 함께 들어가요). 물약은 늘 끝에 있어요.", "추가 칸에 넣기: 스킬 트리 아래 칸 줄에서 끌어 놓거나, 스킬 설명의 「칸에 넣기」에서 +칸을 누르면 돼요. 기본 키는 없고, 스킬 트리 창의 「단축키 바꾸기」에서 원하는 키를 넣을 수 있어요.", "추가 단축바를 끄거나 줄을 줄여도 넣어 둔 스킬은 지우지 않아요. 다시 켜면 그대로 보여요. 숨긴 칸은 키로도 쓰이지 않아요. 캐릭터마다 따로 저장되고, 원래 21칸 배치는 그대로예요."]},
   {v:43,d:'2026-10-23',t:'휴대폰 화면과 조작 다듬기 · 자동 물약 · 왕도 길 고침',items:["휴대폰 단축바를 한 줄로: 가로 휴대폰에서 스킬 칸은 한 번에 8칸까지 보이고, 옆의 「1/3」 쪽 단추를 누르면 다음 8칸이 보여요. 물약은 어느 쪽에서나 보이고, 넣어 둔 단축칸 순서는 그대로예요.", "휴대폰에서 키보드 글자 숨기기: 「이야기 (F)」 「스킬 트리 (T)」 「일지 (L)」 같은 괄호 속 키와 단축칸 왼쪽 위의 키 글자가 휴대폰에서는 안 보여요. 안내 문장은 「☰ → 스킬 트리에서」처럼 휴대폰에 맞게 바뀌어요.", "휴대폰에서 싸울 때 오른쪽 의뢰 알림판이 「의뢰 N」 한 줄로 저절로 접히고, 싸움이 끝나고 4초 뒤 다시 펴져요. 손으로 접어 둔 알림판은 그대로예요.", "휴대폰에서 알림 글자(「○○에 들어섰습니다」 같은 글)가 캐릭터 머리 위가 아니라 화면 위쪽 가운데에 떠요. 한 번에 두 줄까지만, 조금 더 빨리 사라져요. 기록창을 길게 눌러 옮겨 둔 자리는 그대로예요.", "가로 휴대폰에서 창 머리를 얇게: 제목과 탭과 작은 ✕ 단추가 한 줄에 놓여요. 스킬 트리의 긴 설명 줄은 「설명」 단추를 눌러야 보여서, 나무가 한 화면에 두 배쯤 보여요.", "생명 위험 알림: 생명이 30% 아래로 내려가면 화면 가장자리가 은은하게 붉어져요. 휴대폰은 그 순간 짧게 한 번 떨려요(설정 ⚙ 「위험 알림 진동」에서 끌 수 있어요).", "휴대폰 시작 화면: 캐릭터 칸(이어하기)이 맨 위에 오고, 이야기 글은 「이야기 보기」를 눌러야 보여요. 시작 화면 이야기 글의 「최고 레벨은 60」을 지금 내용(50레벨 2차 전직 · 100레벨 3차 전직 · 최고 레벨 140)으로 고쳤어요.", "자동 물약(설정에서 켜기): 설정 ⚙ 「자동 물약」에서 생명(끔 · 30% · 50%)과 마나(끔 · 20% · 40%)를 고르면 그 아래로 내려갈 때 가장 좋은 물약을 저절로 마셔요. 재사용 대기와 회복량은 손으로 마실 때와 같고, 마을 안 · 창을 연 동안 · 쓰러졌을 때는 마시지 않아요. 캐릭터마다 따로 저장되고 처음에는 꺼져 있어요.", "새 기술 그림 12가지(궁수 화살): 트래커 마크 · 멀티플 샷 · 피어싱 샷 · 차지 샷 · 래피드 샷 · 위크 스팟 · 스플리팅 샷 · 스나이프 · 링크 넷 · 마크 오브 데스 · 윈드 피어서 · 섀도 샤프트에 자기만의 그림이 생겼어요.", "고침: 「잿빛 성가대의 무덤」 주인을 쓰러뜨렸는데 「불 꺼진 왕도」에 못 들어가던 문제. 이제 무덤 주인을 한 번이라도 쓰러뜨리면 바로 길이 열려요(v42에서 이미 쓰러뜨렸다면 불러오는 순간 열려요). 「왕도의 문」 의뢰를 나중에 받아도 처치가 바로 채워져요.", "고침: 원소 궁술 스킬 설명에 「선행 스킬 없음」이라 잘못 나오던 것. 이제 필요한 1차 원소 사격 스킬이 나와요.", "원소 궁술 트리에서 실제 조건이 아닌 1단~4단 연결선을 지웠어요(1단을 안 찍어도 윗단을 찍을 수 있어요).", "상위 기술 목록에 선행 스킬을 함께 보여 줘요.", "궁수 2차 스킬 8개의 「발전형」 설명에 그 1차 스킬은 배우지 않아도 된다는 말을 붙였어요."]},
   {v:42,d:'2026-10-23',t:'60레벨 이후가 더 재미있게 · 새 기술 그림 130가지 · 시작과 용량 줄이기',items:["새 기술 그림 130가지: 다른 기술과 같은 그림을 돌려쓰던 기술마다 자기만의 그림이 생겼어요(사제 67 · 마법사 47 · 궁수 16).", "사제 67가지: 버딕트 해머 · 저지먼트 · 스피어 오브 갓 · 파이널 버딕트 · 엑서큐션 · 배리어 · 엑소시즘 · 서클 오브 힐링 · 세이크리드 선 · 퍼지 오브 던 · 웰스프링 · 아크비숍 힘 · 퍼거토리 배리어 · 세인츠 마치 · 홀리 그라운드 · 홀리 노바 · 크로스 오브 포 윈즈 · 벨 오브 컨페션 · 그랜드 버딕트 · 블레이드 오브 헤븐 · 래스 오브 헤븐 · 게이트 오브 헤븐 · 헤븐스 레이 · 세이크리드 파이어스톰 · 저지먼트 랜스 · 홀리 크로스 · 홀리 웨이브 · 선라이즈 · 체인 오브 저지먼트 · 홀리 파이어 · 홀리 재블린 · 홀리 바인드 · 폴링 리트리뷰션 · 랜스 발리 · 브랜드 오브 헤러시 · 퍼징 플레임 · 엑서큐셔너 랜스 · 헤븐리 프리즌 · 하이 힐 · 매스 힐 · 그레이터 힐 · 세이빙 워드 · 풀 리스토어 · 체인 힐링 · 세인트 터치 · 배틀필드 레저렉션 · 그랜드 레저렉션 · 헤일로 가드 · 라이트 바스티온 · 세인트 버클러 · 인퀴지터 메일 · 생텀 배리어 · 헤이스트 · 클리어 마인드 · 세이크리드 터치 · 아르덴 블레싱 · 빅토리 앤섬 · 인듀어 프레이어 · 래디언트 베네딕션 · 윙즈 오브 리트리뷰션 · 그랜드 블레싱 · 윙즈 오브 라이트 · 크라운 오브 블레싱 · 그레이스 헤이스트 · 라이트 오브 어톤먼트 · 세컨드 던 · 라이트 체이서", "마법사 47가지: 파이어 월 · 마그마 필드 · 금기: 씨 오브 플레임 · 그레이트 퀘이크 · 더스트 데빌 · 블리자드 · 엘리멘탈 릴리스 · 타임 리프트 · 스피릿 스론 · 워터 서지 · 제로 도메인 · 어스퀘이크 · 마운틴 라이즈 · 타임 스톱 · 아크 테스트먼트 · 금기: 어스 오버턴 · 스타폴 · 워터 윕 · 리버스 커런트 · 엠버 스캐터 · 플레임 래시 · 마그마 리버 · 파이어 애로우 · 파이어 볼 · 플레임 랜스 · 파이어버드 · 인페르노 코어 · 셀 바인드 · 디멘션 프리즌 · 프리즘 볼트 · 엘리멘탈 콜랩스 · 팩트 커맨드 · 워터 볼트 · 크리핑 프로스트 · 프로스트 글로브 · 스톤 샤드 · 옵시디언 스파이크 · 라이트 랜스 · 배큐엄 블레이드 · 스피릿 스왑 · 엘리멘탈 배리어 · 히드라 · 피닉스 · 엘리멘탈 소버린 · 아케인 오버로드 · 마나 리플럭스 · 어드벤트 오브 스피릿 킹", "궁수 16가지: 샤프넬 트랩 · 트랩 필드 · 비스트 케이지 · 클러스터 트랩 · 쏜 트랩 · 킬 존 · 섀도 스네어 · 어비스 트랩 · 칼트롭 · 루어 · 헌팅 그라운드 · 나이트 헌트 · 에이펙스 헌트 · 드리븐 헌트 · 스카이 볼리 · 와일드 런", "성장 창(G): 휴식 경험치(쉬면 사냥 경험치 두 배) · 연속 사냥 보너스 · 60레벨부터 5레벨마다 단계 상자 · 2차 전직 숙련 특성 8단계 · 업적 46개와 칭호", "탐험 기록: 여섯 지역의 숨은 곳 · 던전 · 의뢰 · 정예를 채우면 큰 경험치와 영구 능력치", "주간 원정 계약: 월요일마다 새 계약 셋, 모두 하면 세트/유니크 장비", "도전 던전: 오늘의 규칙 둘 · 빨리 깨면 금 · 은 · 동 상자", "쉼터 습격: 다섯 무리와 습격 대장에게서 울타리를 지키기", "채집 · 제작 · 거점: 약초 · 광석 · 수정으로 물약 · 영약 · 촉매, 쉼터에 대장간 · 약초밭 · 수련 인형 · 침대", "동료 짐승(늑대 · 매 · 돌 골렘 · 작은 정령)과 말(H 키)", "마을 의뢰 15개가 「몰래 지나가기」 · 「구조」로, 3막 목표 9개가 던전 속 장면(찾기 · 버티기 · 얼음 다리 · 순서 · 말로 겨루기)으로", "게임 파일이 4.6MB에서 3.6MB로, 그림 묶음은 같은 그림이라도 받는 양이 약 4분의 1 줄었어요(새 그림을 다 넣고도 18.6MB가 아니라 14.0MB). 첫 화면에서 폰이 덜 뜨거워요."]},
   {v:41,d:'2026-10-23',t:'60~99레벨 레벨업이 빨라짐 · 전투 그리기가 빨라짐',items:["60~99레벨에서 다음 레벨까지 필요한 경험치가 20% 줄었어요. 59레벨까지와 100레벨부터는 그대로예요.", "몬스터 경험치는 그대로라서 60~99레벨 사냥 레벨업이 약 1.25배 빨라져요. 의뢰 보상은 예전처럼 한 레벨의 같은 몫을 줘요.", "지금 캐릭터의 레벨과 경험치 막대 비율은 그대로 옮겨져요(바로 레벨업하거나 레벨이 내려가지 않아요).", "전투 그리기가 빨라지고, 지역에 들어갈 때 · 걸을 때 순간 멈칫이 줄었어요."]},
@@ -25229,6 +25234,57 @@ const w3ChoirFill=()=>{if(w3ChoirN()>0&&typeof j3HookGoal==='function')w3Try(()=
 {const _sd=saveData;saveData=function(){const d=_sd.apply(this,arguments);const n=P&&P.w3&&typeof P.w3==='object'?Math.max(0,P.w3.choir|0):0;if(n>0)d.w3=Object.assign({},d.w3&&typeof d.w3==='object'?d.w3:{},{choir:n});return d}}
 {const _ld=load;load=function(d,slot){const ok=_ld.apply(this,arguments);if(ok&&P){P.w3=P.w3&&typeof P.w3==='object'?P.w3:{};const w=d&&d.w3;P.w3.choir=Math.max(w&&typeof w==='object'?Math.max(0,w.choir|0):0,w3ChoirN());w3ChoirFill()}return ok}}
 setTimeout(()=>{try{if(window.__game)Object.assign(window.__game,{w3ChoirN})}catch(_){}},0);
+/* ---------- v44: 파티 던전 따라 들어가기 (사용자 2026-10-24 「여전히 친구랑 파티 도중에 던전 안들어가져」 「따라오지 못했다는 메시지가 뜨면서 자료를 받는 중이라는 말만 떠」
+   「다른 두 곳과 네트워크에서 접속한 사람이 같이 들어갈 수 있도록 해」) ----------
+   찾은 것:
+   1) 방장이 던전에 들어가면 곧바로 던전 자료를 보내고, 0.5초마다 도는 확인이 「새 던전」을 알아챌 때 그때까지 받은 동료의 실패 이유를 모두 지웠다.
+      서로 먼 곳(인터넷 지연 0.05~0.5초)에서는 동료의 「못 들어갔습니다 · 이유」 답이 그 사이에 도착해 지워지고, 5초 뒤 방장 화면에는 늘 「던전 자료를 받는 중입니다」만 떴다.
+      → 방장이 던전 자료를 보낸 뒤에 온 실패 이유는 지우지 않는다.
+   2) 동료 쪽에서 던전 자료를 받다가 바깥 단계(지역 불러오기 · 던전 찾기)에서 오류가 나면 방장에게 아무 답도 가지 않았다.
+      → 받은 던전 자료 처리 전체를 감싸서, 오류든 못 찾음이든 반드시 방장에게 이유를 보내고 동료 화면에도 띄운다(지역 · 던전 · 그 화면의 던전 수까지).
+   3) 동료가 한 번 못 들어가면 방장이 5초 뒤 한 번만 다시 보냈다. → 동료 쪽이 받은 자료로 1.5초 간격으로 두 번 더 스스로 들어가 본다(방장이 아직 그 던전에 있을 때만).
+   4) 두 사람의 게임 판이 다르면(한쪽이 창을 오래 켜 두어 예전 판) 알 수 없었다. → 판 번호를 주고받고, 다르면 두 화면에 알린다.
+   메시지 모양은 그대로(옛 판과도 맞음). 저장은 건드리지 않는다. */
+const F44={V:(typeof PATCHES!=='undefined'&&PATCHES[0]&&PATCHES[0].v)|0,dgT:-1e9,hf:new Map(),last:null,lastA:-9,tries:0,tryT:0,RETRYMS:1500,MAXTRY:2,ver:new Map(),told:new Set(),why:'',cap:null,inRetry:0,from:null};
+const f44Area=D=>{try{if(!D||D.ci==null)return -2;const rg=REGIONS[D.reg]?D.reg:'home';return D.ci+(rg==='home'?0:100+REG_IDS.indexOf(rg)*4)}catch(_){return -9}};
+/* ---- 방장: 던전 자료를 보낸 때를 기억 · 그 뒤에 온 실패 이유는 지우지 않는다 ---- */
+{const _ns=netSend;netSend=function(m){if(m&&m.t==='dg'&&NET.host)F44.dgT=co22Now();return _ns.apply(this,arguments)}}
+{const _a=V20NET.co22a;V20NET.co22a=function(m){if(NET.host&&m&&m.from!=null){if(m.ok)F44.hf.delete(m.from);else F44.hf.set(m.from,{s:typeof m.s==='string'&&m.s?m.s.slice(0,120):'던전 자료를 읽지 못했습니다',t:co22Now(),c:typeof m.c==='string'?m.c:null})}return _a.apply(this,arguments)}}
+{const _t=co22Tick;co22Tick=function(now){const f0=CO22.fol;const r=_t.apply(this,arguments);
+  const F=CO22.fol;if(NET.host&&F&&F!==f0)for(const [id,o] of F44.hf)if((o.c?!!(DG&&DG.d&&DG.d.id===o.c):o.t>=F44.dgT)&&!CO22.fail.has(id))CO22.fail.set(id,o.s);
+  return r}}
+/* ---- 참가자: 받은 던전 자료 처리 전체를 감싼다 · 못 들어가면 반드시 이유를 방장에게 ---- */
+function f44Why(D,err){if(err)return '던전 자료 오류: '+String(err&&err.message||err).slice(0,80);
+  try{const rg=REGIONS[D&&D.reg]?D.reg:'home',L=rg===REG.id?CAVES:rg==='home'?HOME.caves:(RCACHE[rg]||{}).caves||[];
+    const hit=D&&typeof D.cid==='string'?L.findIndex(c=>c.cave&&c.cave.id===D.cid):-1;
+    return `던전 자료를 읽지 못했습니다 (지역 ${REGIONS[rg]?REGIONS[rg].n:rg} · 던전 ${D&&D.cid||'?'} ${hit>=0?'있음':'없음'} · 번호 ${D&&D.ci} / ${L.length}) · 두 사람 모두 새로 고침(F5)해 주세요`}
+  catch(_){return '던전 자료를 읽지 못했습니다 (판이 다를 수 있음 · 새로 고침)'}}
+function f44Fail(s,quiet,D){CO22.why=s;const same=s===F44.why;F44.why=s;if(quiet&&same)return;
+  if(NET.on&&NET.guest){const o=Object.assign({ok:0,s},D&&typeof D.cid==='string'?{c:D.cid}:{});v20Send('co22a',o,NET.hostId);if(F44.from!=null&&F44.from!==NET.hostId)v20Send('co22a',o,F44.from)}
+  msg(s,'#ffb07a');chatSys(s,'#ffb07a');
+  // 친구 화면: 「함께 들어가기」를 눌러도 아무 일도 없는 것처럼 보이지 않게, 이유를 알림 창에 그대로 띄운다(다시 누를 수 있음)
+  if(NET.on&&NET.guest&&!DG)co22Prompt({t:'방장의 던전에 함께 들어가지 못했습니다',s:s+' · 아래 단추로 다시 해 보세요',n:D&&D.cid||'던전'})}
+// 안쪽(coop22)이 보내는 짧은 실패 답은 잠시 붙잡았다가 자세한 이유 하나로 바꿔 보낸다(방장 화면에 두 줄이 뜨지 않게)
+{const _vs=v20Send;v20Send=function(k,o,to){if(F44.cap&&k==='co22a'&&o&&!o.ok){F44.cap.push(o);return}return _vs.apply(this,arguments)}}
+{const _ne=netEnterDg;netEnterDg=function(D){const guest=NET.on&&NET.guest;if(!guest)return _ne.apply(this,arguments);let r,err=null;const retry=F44.inRetry;
+  if(D&&typeof D==='object'){if(D!==F44.last){F44.last=D;F44.tries=0;F44.why=''}F44.lastA=f44Area(D);F44.tryT=co22Now()}
+  const keep=F44.cap;F44.cap=[];try{r=_ne.apply(this,arguments)}catch(e){err=e}finally{F44.cap=keep}
+  if(NET.on&&NET.guest){if(DG){F44.why='';F44.tries=F44.MAXTRY}else f44Fail(f44Why(D,err),retry,D)}
+  if(err&&window.__QA&&!F44.qa)throw err;return r}}
+{const _om=netOnMsg;netOnMsg=function(m){if(!(m&&m.t==='dg'&&NET.guest))return _om.apply(this,arguments);F44.from=m.from;
+  try{return _om.apply(this,arguments)}catch(e){if(window.__QA)throw e;if(!DG)f44Fail(f44Why(m.d,e),false,m.d)}}}
+/* ---- 참가자: 방장이 아직 그 던전에 있으면 받은 자료로 두 번 더 들어가 본다 ---- */
+function f44Retry(now){if(!NET.on||!NET.guest||DG||!F44.last||F44.tries>=F44.MAXTRY||!P||P.dead)return false;
+  if(now-F44.tryT<F44.RETRYMS)return false;const fresh=now-CO22.hAt<2500;if(!fresh||CO22.hA<0||CO22.hA!==F44.lastA)return false;
+  F44.tries++;const D=F44.last;F44.tryT=now;F44.inRetry=1;try{netEnterDg(D)}catch(e){if(window.__QA)throw e}finally{F44.inRetry=0}return !!DG}
+// 「함께 들어가기」를 누르면 스스로 다시 들어가기도 처음부터(방장에게 청하는 것과 함께)
+{const _go=co22Go;co22Go=function(){const r=_go.apply(this,arguments);if(r){F44.tries=0;F44.why='';F44.tryT=-1e9}return r}}
+/* ---- 판 번호: 다르면 두 화면에 알린다 ---- */
+V20NET.f44v=m=>{const v=m.v|0;if(!v)return;F44.ver.set(m.from,v);if(v!==F44.V&&!F44.told.has(m.from)){F44.told.add(m.from);const r=NET.peers.get(m.from);
+  const s=`${r&&r.name||'동료'}님의 게임은 v${v}, 내 게임은 v${F44.V}입니다 · 판이 다르면 던전에 함께 들어가기가 안 될 수 있으니 예전 판인 쪽이 새로 고침(F5)해 주세요`;msg(s,'#ffb07a');chatSys(s,'#ffb07a')}};
+{const _om=netOnMsg;netOnMsg=function(m){const r=_om.apply(this,arguments);try{if(m&&NET.on&&(m.t==='joined'||m.t==='peer'))v20Send('f44v',{v:F44.V},m.t==='peer'?m.id:undefined)}catch(e){if(window.__QA)throw e}return r}}
+setInterval(()=>{if(window.__QA&&!F44.qa)return;try{f44Retry(co22Now())}catch(e){if(window.__QA)throw e}},500);
+setTimeout(()=>{try{if(window.__game)Object.assign(window.__game,{F44,f44Retry,f44Why,netEnterDg,netOnMsg,co22Tick})}catch(_){}},0);
 /* ---------- v20: 채널링은 한 번 누르면 이어진다 (사용자 23:48) ----------
    예전: 채널링·모으기는 키·단축칸을 누르고 있는 동안만 이어졌다(손을 떼면 끊김). 휴대폰에서 꾹 누르기가 불편했다.
    지금: 한 번 누르면 시작해서, 움직이지 않으면 정해진 시간 끝까지 이어진다(움직이면 끊김 · 걸으며 쓰는 채널링은 그대로 걸어도 됨).
@@ -25315,6 +25371,52 @@ pbody.addEventListener('contextmenu',e=>{if(DND.touch||DND.on)e.preventDefault()
 pbody.addEventListener('dragstart',e=>{if(e.target.closest&&e.target.closest('[data-node],[data-dock]'))e.preventDefault()});
 },0);
 setTimeout(()=>{try{if(window.__game)Object.assign(window.__game,{DND,dndDrop,dndOk,dockHtml})}catch(_){}},0);
+/* ---------- v44 추가 스킬 단축바 (사용자 2026-10-24 「스킬이 많아지다보니까 스킬 단축바가 모자라. 선택에 따라서 추가할 수 있는 스킬 단축바를 더 추가해줬으면 좋겠어. 단축키 지정은 나중에 하더라도.」) ----------
+   · 설정 ⚙ 「추가 단축바」: 없음(처음) · 1줄 · 2줄. 한 줄에 10칸(칸 이름 +1~+10, +11~+20). 캐릭터마다 저장.
+   · PC: 원래 단축바 위에 줄이 생긴다. 휴대폰: 원래 칸 다음 차례로 이어진다(가로 휴대폰은 쪽 넘기기에 함께 들어감). 물약은 늘 끝.
+   · 넣기: 스킬 트리 아래 칸 줄(끌어 놓기)과 스킬 설명의 「칸에 넣기」에 추가 칸도 나온다. 기본 키는 없고, 단축키 창에서 원하는 키를 넣을 수 있다.
+   · 줄을 줄이면 숨긴 줄의 스킬은 지우지 않고 그대로 둔다(다시 켜면 그대로 보임). 숨긴 칸은 키로도 쓰이지 않는다.
+   · 저장: 원래 칸 bar(21칸)는 그대로, 추가 칸은 b44 {n:줄 수, s:[20칸]} (켜 두었거나 하나라도 넣었을 때만). 없으면 줄 0 · 빈 칸. */
+B44.N=B44.BASE+B44.ROW*B44.ROWS;
+const b44Rows=()=>P&&P.b44n>0?Math.min(B44.ROWS,P.b44n|0):0;
+const b44Vis=()=>B44.BASE+b44Rows()*B44.ROW;
+const b44Ok=id=>typeof id==='string'&&!!SPELLS[id]&&!!P&&SPELLS[id].cls===P.cls&&SPELLS[id].kind!=='passive';
+function b44Fix(){if(!P||!Array.isArray(P.bar))return;while(P.bar.length<B44.N)P.bar.push(null);if(P.bar.length>B44.N)P.bar.length=B44.N}
+// buildBar(b5.js)가 원래 두 줄 뒤에 붙인다 · 추가 칸을 한 번도 안 쓴 캐릭터는 P.bar가 원래대로 21칸
+function b44Html(){const n=b44Rows();if(n)b44Fix();let h='';for(let r=0;r<n;r++){h+=`<div class="barrow b44row" data-b44="${r+1}">`;for(let i=0;i<B44.ROW;i++)h+=slotBtn(B44.BASE+r*B44.ROW+i);h+='</div>'}return h}
+{const _fp=freshPlayer;freshPlayer=function(){const p=_fp.apply(this,arguments);try{if(p)p.b44n=0}catch(e){if(window.__QA)throw e}return p}}
+{const _ld=load;load=function(d){const x=d&&d.b44,r=_ld.apply(this,arguments);try{if(r&&P){P.b44n=0;
+    if(x&&typeof x==='object'&&!Array.isArray(x)){const n=Math.max(0,Math.min(B44.ROWS,x.n|0)),s=Array.isArray(x.s)?x.s.slice(0,B44.ROW*B44.ROWS):[];
+      if(n||s.some(b44Ok)){P.b44n=n;b44Fix();for(let i=0;i<B44.ROW*B44.ROWS;i++)P.bar[B44.BASE+i]=b44Ok(s[i])?s[i]:null;buildBar()}}}}catch(e){if(window.__QA)throw e}return r}}
+{const _sd=saveData;saveData=function(){const d=_sd.apply(this,arguments);try{if(d&&P&&Array.isArray(P.bar)){const ex=P.bar.slice(B44.BASE,B44.N).map(x=>x||null);
+    if(Array.isArray(d.bar)&&d.bar.length>B44.BASE)d.bar=d.bar.slice(0,B44.BASE);
+    if((P.b44n|0)>0||ex.some(Boolean))d.b44={n:Math.max(0,Math.min(B44.ROWS,P.b44n|0)),s:ex}}}catch(e){if(window.__QA)throw e}return d}}
+// 숨긴 줄의 칸은 키로도 쓰지 않는다
+{const _cs=castSlot;castSlot=function(i){if(i>=B44.BASE&&i>=b44Vis())return;return _cs.apply(this,arguments)}}
+// 스킬 창: 숨긴 줄의 칸은 칸 줄 · 「칸에 넣기」에서 뺀다
+{const _rp=renderPanel;renderPanel=function(){const r=_rp.apply(this,arguments);try{const v=b44Vis();
+    if(typeof pbody!=='undefined'&&pbody){pbody.querySelectorAll('[data-dock]').forEach(n=>{if(+n.dataset.dock>=v)n.remove()});pbody.querySelectorAll('[data-assign][data-i]').forEach(n=>{if(+n.dataset.i>=v)n.remove()});
+      const f=pbody.querySelector(`.dock20 [data-dock="${B44.BASE}"]`);if(f&&!f.previousElementSibling?.classList.contains('dk44'))f.insertAdjacentHTML('beforebegin','<div class="dk44">추가 단축바</div>')}}catch(e){if(window.__QA)throw e}return r}}
+// 단축키 창: 추가 칸 이름 · 숨긴 줄은 목록에서 뺀다 · 키가 없는 추가 칸은 칸 이름(+1 …)을 보인다
+for(let i=0;i<B44.ROW*B44.ROWS;i++){const a=KB_BY['s'+(B44.BASE+i)];if(a)a.n=`추가 단축바 ${Math.floor(i/B44.ROW)+1}줄 · 칸 [+${i+1}]`}
+{const _kr=kbRow;kbRow=function(a){if(a&&a.slot!=null&&a.slot>=B44.BASE&&a.slot>=b44Vis())return '';return _kr.apply(this,arguments)}}
+{const _ks=kbSync;kbSync=function(){const r=_ks.apply(this,arguments);try{for(let i=B44.BASE;i<B44.N;i++){const a=KB_BY['s'+i];if(SLOTS[i]&&!(a&&KB.bind[a.id]))SLOTS[i].k='+'+(i-B44.BASE+1)}}catch(e){if(window.__QA)throw e}return r}}
+function b44Set(n){if(!P)return;const was=b44Rows();P.b44n=Math.max(0,Math.min(B44.ROWS,n|0));if(P.b44n||P.bar.length>B44.BASE)b44Fix();buildBar();if(typeof panel!=='undefined'&&!panel.hidden)renderPanel();save();
+  const hid=P.bar.slice(b44Vis(),B44.N).filter(Boolean).length;
+  msg(P.b44n?`추가 단축바 ${P.b44n}줄을 켰습니다 · 스킬 트리 아래 칸 줄에서 +칸으로 끌어 놓으세요`+(hid?` (숨긴 줄의 스킬 ${hid}개는 그대로 남아 있어요)`:''):(was?`추가 단축바를 껐습니다`+(hid?` · 넣어 둔 스킬 ${hid}개는 그대로 남아 있어 다시 켜면 보여요`:''):'추가 단축바를 껐습니다'),'#d6c7a1')}
+/* ===== 설정 ⚙: 추가 단축바 ===== */
+{const _d=set24Draw;set24Draw=function(){_d.apply(this,arguments);try{const el=SET24.el;if(!el||el.hidden||!P||!P.cls)return;const sep=el.querySelector('.s24sep'),cur=b44Rows();
+  const box=document.createElement('div');box.className='m43set b44set';
+  box.innerHTML=`<div class="s24h">추가 스킬 단축바</div><div class="s24row">${[[0,'없음'],[1,'1줄'],[2,'2줄']].map(([v,t])=>`<button type="button" class="s24seg${cur===v?' on':''}" data-b44="${v}" aria-pressed="${cur===v}">${t}</button>`).join('')}</div>
+    <div class="s24n">한 줄에 10칸이 더 생겨요(칸 이름 +1~+20). 스킬 트리 아래 칸 줄에서 끌어 놓고, 키는 스킬 트리 창의 「단축키 바꾸기」에서 넣을 수 있어요. 줄을 끄면 넣어 둔 스킬은 그대로 남아요. 캐릭터마다 따로 저장돼요</div>`;
+  el.insertBefore(box,sep||null);box.querySelectorAll('[data-b44]').forEach(b=>b.onclick=e=>{e.stopPropagation();b44Set(+b.dataset.b44);set24Draw();set24Place()})}catch(e){if(window.__QA)throw e}}}
+{const st=document.createElement('style');st.textContent=`
+.bar .b44row{order:-1}
+body.m22 #hud .bar .b44row .sk{order:1}
+body.m22 #hud .bar [data-pot],body.m22 #hud .bar .sep{order:2}
+#panel .dock20 .dks[data-dock] b{white-space:nowrap}
+#panel .dock20 .dk44{grid-column:1/-1;font-size:11px;color:#a39d8f;margin:3px 0 0}`;document.head.appendChild(st)}
+setTimeout(()=>{try{if(window.__game)Object.assign(window.__game,{B44,b44Set,b44Rows,b44Vis,b44Html})}catch(_){}},0);
 
 /* ---------- HUD ---------- */
 const barEl=$('#bar');
@@ -25328,6 +25430,7 @@ function buildBar(){
   h+=`<button class="sk" type="button" data-pot="hp" title="${potTip('hp')}" data-pc="${potCounts('hp')}">${miscIcon('hp'+Math.max(0,potBest('hp')),24)}<span class="ab">생명</span><span class="k">Q</span><span class="cnt"></span><span class="cd"></span></button>`;
   h+=`<button class="sk" type="button" data-pot="mp" title="${potTip('mp')}" data-pc="${potCounts('mp')}">${miscIcon('mp'+Math.max(0,potBest('mp')),24)}<span class="ab">마나</span><span class="k">E</span><span class="cnt"></span><span class="cd"></span></button>`;
   h+=`<button class="sk" type="button" data-pot="tp" title="귀환 두루마리: ${TP_CAST}초 동안 펼치면 가장 가까운 마을 짝문으로 돌아갑니다 (움직이면 끊김). 잡화점에서 팝니다">${miscIcon('tp',24)}<span class="ab">귀환</span><span class="k">R</span><span class="cnt"></span><span class="cd"></span></button></div>`;
+  if(typeof b44Html==='function')h+=b44Html();// v44 추가 단축바(bar44.js)
   barEl.innerHTML=h;
 }
 function bindTo(i){const id=bindId;bindId=null;const prev=P.bar.indexOf(id);if(prev>=0)P.bar[prev]=P.bar[i];P.bar[i]=id;msg(`${SPELLS[id].n} → [${SLOTS[i].k}]`,EL[SPELLS[id].el]);buildBar();if(!panel.hidden)renderPanel();save()}
