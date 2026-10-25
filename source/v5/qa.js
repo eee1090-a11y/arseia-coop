@@ -7474,6 +7474,53 @@ qT(QM45,'설정 ⚙ · 저장: 「주우면 바로 금화로」 · 「마을에�
   finally{UXD.dev.dn=undefined;set24Open(false)}});
 }
 /* ==== ux45d 끝 ==== */
+/* ==== hero46 (주인공 부위 그림) ==== */
+{const QM46='캐릭터 그림 v46';
+// Codex 그림 목록(character-image-queue.json)의 칸 크기 · 기준점 = 예전 코드 부위와 같아야 한다
+const H46S={mage:{boot:[20,16,10,14,5,[0]],skirt:[36,28,18,2,5],torso:[30,22,15,19,5],head:[44,44,22,40,5],cloak:[44,48,22,4,5],pauld:[40,22,20,8,5,[3,4,5,6,7]],arm:[16,22,8,3,1],armB:[16,22,8,3,1],staff:[32,72,16,46,1]},
+  archer:{boot:[22,18,11,15,5,[0]],skirt:[36,26,18,2,5],torso:[32,22,16,19,5],head:[48,52,24,46,5],cloak:[44,44,22,4,5,[1,2,3,4,5,6,7]],arm:[18,24,9,4,1],armB:[18,24,9,4,1],bow:[40,54,22,27,1],xbow:[40,24,20,12,1],xprod:[30,10,15,3,1],quiver:[16,30,8,14,5,[0]]}};
+H46S.priest=H46S.mage;
+// 가짜 묶음: 모든 칸을 한 색으로 칠한 그림 (#qa는 진짜 묶음을 받지 않는다)
+function q46Pack(cls){const S=H46S[cls],r={};let y=0;const k=2,W=1024,rows=[];
+  for(const p in S){const [cw,ch,ax,ay,n,ts]=S[p];for(const t of ts||[0,1,2,3,4,5,6,7])for(const v of p==='bow'?[0,1,2]:[null]){r[p+'/'+t+(v!=null?'/'+v:'')]=[0,y,n,cw,ch,ax,ay];rows.push([y,cw*k*n,ch*k]);y+=ch*k}}
+  const cv=document.createElement('canvas');cv.width=W;cv.height=y;const g=cv.getContext('2d');g.fillStyle='#ff00ff';for(const [yy,w,h] of rows)g.fillRect(0,yy,w,h);return{img:cv,meta:{sc:k,r}}}
+function q46With(fn){const a0=GFX.art,keep={};try{GFX.art='new';for(const c of ['mage','priest','archer']){keep[c]=FL.P['hero-'+c];const k=q46With.c||(q46With.c={});const pk=k[c]||(k[c]=q46Pack(c));FL.P['hero-'+c]={img:pk.img,meta:{sc:pk.meta.sc,r:Object.assign({},pk.meta.r)}}}return fn()}
+  finally{GFX.art=a0;for(const c in keep){if(keep[c])FL.P['hero-'+c]=keep[c];else delete FL.P['hero-'+c]}}}
+const q46Part=(cls,p,di,L,v)=>cls==='archer'?heroPart18(cls,p,di,L,1.1,v,L&&L.trim):heroPart(cls,p,di,L,1.1);
+qT(QM46,'모든 부위 · 단계 · 방향: Codex 그림 칸 크기 · 기준점이 예전 코드 부위와 같음 · 그림 묶음이 있으면 그림(hcg)으로, 없거나 「예전 그림」이면 예전 그림(hero/h18)으로',()=>{
+  const bad=[];let nImg=0;
+  for(const cls of ['mage','priest','archer']){const S=H46S[cls];
+    for(const p in S){const [cw,ch,ax,ay,n,ts]=S[p];for(const t of ts||[0,1,2,3,4,5,6,7])for(const v of p==='bow'?[0,1,2]:[undefined])for(let di=0;di<(n>1?5:1);di++){
+      const it={il:t*8+1,rar:0,name:'q'},h={cls,gear:{robe:it,staff:Object.assign({},it),off:cls==='archer'?Object.assign({},it,{wt:'quiver'}):undefined}},L=cls==='archer'?heroLook18(h):heroLook(h);
+      if(p==='head')delete L.hrt;
+      const A0=GFX.art;GFX.art='old';let o;try{o=q46Part(cls,p,di,L,v)}finally{GFX.art=A0}
+      const e=q46With(()=>q46Part(cls,p,di,L,v)),nm=`${cls} ${p} ${t}${v!=null?'/'+v:''} ${di}`;
+      if(!o||o.w!==cw||o.h!==ch||o.ax!==ax||o.ay!==ay)bad.push(nm+' 코드 '+(o&&[o.w,o.h,o.ax,o.ay]));
+      if(!e||!/^hcg\//.test(e.key)||e.w!==cw||e.h!==ch||e.ax!==ax||e.ay!==ay)bad.push(nm+' 그림 '+(e&&e.key));else nImg++;
+      if(o&&!/^(hero|h18)\//.test(o.key))bad.push(nm+' 예전 '+o.key)}}}
+  qOk(!bad.length,bad.slice(0,6).join(' | ')+' 외 '+bad.length);qOk(nImg===649,'그림 수 '+nImg)});
+qT(QM46,'그림이 없는 것은 예전 그림: 전사 전체 · 궁수 화살통 1~7단계 · 보석 · 얼음 · 별 · 묶음 없음(#qa 기본) · 「그림: 예전 그림」',()=>{
+  const it={il:30,rar:1,name:'q'},w={cls:'warrior',gear:{robe:it,staff:Object.assign({},it,{wt:'sword'})}},LW=heroLook18(w);
+  q46With(()=>{for(const p of ['boot','skirt','torso','head','cloak','arm','armB'])for(let di=0;di<5;di++){const e=heroPart18('warrior',p,di,LW,1.1,undefined,LW.trim);qOk(!e||/^h18\//.test(e.key),'전사 '+p+' '+(e&&e.key))}
+    const a={cls:'archer',gear:{robe:it,staff:Object.assign({},it,{wt:'bow'}),off:Object.assign({},it,{wt:'quiver'})}},LA=heroLook18(a);qOk(LA.ot>=1,'화살통 단계 '+LA.ot);
+    delete FL.P['hero-archer'].meta.r['quiver/'+LA.ot];qOk(/^h18\//.test(heroPart18('archer','quiver',0,LA,1.1,undefined,LA.offc).key),'화살통 '+LA.ot);
+    qOk(/^hero\/gem\//.test(heroPart('mage','gem',0,'#ff0000',1.1).key)&&/^hero\/ice\//.test(heroPart('mage','ice',0,'',1.1).key)&&/^hero\/star\//.test(heroPart('mage','star',0,'').key),'보석 · 얼음 · 별')});
+  const L=heroLook({cls:'mage',gear:{}});qOk(!FL.P['hero-mage']&&/^hero\//.test(heroPart('mage','skirt',0,L,1.1).key),'묶음 없음');qOk(!FL.want['hero-mage'],'#qa에서 묶음을 받으러 감');
+  q46With(()=>{GFX.art='old';qOk(/^hero\//.test(heroPart('mage','torso',2,L,1.1).key),'예전 그림 설정')})});
+qT(QM46,'그려 보기: 세 직업 · 단계 0~7 · 8방향 · 걷기 · 시전 · 활 당기기 · 석궁 · 목걸이 · 반지 · 얼음 · 기절에서 오류 없음 · 몸 부위가 그림 · 목걸이는 몸통 그림 위에 그대로(색 · 단계가 다르면 다른 그림)',()=>{
+  const cv=document.createElement('canvas');cv.width=cv.height=200;const g=cv.getContext('2d');
+  q46With(()=>{const n0=H46.n;for(const cls of ['mage','priest','archer'])for(let t=0;t<8;t++)for(let d=0;d<8;d++){const it={il:t*8+1,rar:t%6,name:'q'+t};
+      const h={cls,x:0,y:0,face:heroFace(d),moving:d%2===1,walk:d*.3,freezeT:t===3?1:0,stunT:t===4?1:0,gear:{robe:it,staff:Object.assign({},it,{wt:cls==='archer'?(t%2?'xbow':'bow'):undefined}),amulet:t>=2?{il:t*8,rar:3,name:'a'}:undefined,ring:t>=5?{il:40,rar:4,name:'r'}:undefined}};
+      if(cls==='archer'&&t>=3)heroAtk(h,'draw',.5);else heroCast(h,'fire');
+      drawFigure(g,h,100,180,1,{t:time+.1+d*.05,bs:1.1})}
+    qOk(H46.n-n0>500,'그림 부위 '+(H46.n-n0));
+    const L1=heroLook({cls:'mage',gear:{robe:{il:30,rar:1,name:'q'},amulet:{il:30,rar:3,name:'a'}}}),L2=heroLook({cls:'mage',gear:{robe:{il:30,rar:1,name:'q'},amulet:{il:50,rar:5,name:'a'}}}),L0=heroLook({cls:'mage',gear:{robe:{il:30,rar:1,name:'q'}}});
+    const a=heroPart('mage','torso',0,L1,1.1),b=heroPart('mage','torso',0,L2,1.1),c=heroPart('mage','torso',0,L0,1.1),d=heroPart('mage','torso',4,L1,1.1);
+    qOk(/^hcg\//.test(a.key)&&a.key!==b.key&&a.key!==c.key,'목걸이 '+a.key+' / '+b.key+' / '+c.key);
+    const px=q=>{const x=q.cv.getContext('2d').getImageData(0,0,q.cv.width,q.cv.height).data;let n=0;for(let i=0;i<x.length;i+=4)if(x[i+3]>20&&x[i+1]>40)n++;return n};
+    qOk(px(a)>0&&px(c)===0,'목걸이 그림 '+px(a)+'/'+px(c));qOk(px(d)===0,'뒤를 보면 목걸이 안 보임 '+px(d))})});
+}
+/* ==== hero46 끝 ==== */
 window.__QA_RUN=qaRun;
 setTimeout(()=>{qaRun().catch(e=>{window.__QA_RESULT={fatal:String(e&&e.stack||e),results:[],summary:{total:0,pass:0,fail:1}}})},120);
 }
