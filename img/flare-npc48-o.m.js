@@ -1,0 +1,1 @@
+window.FLARE_PACK&&FLARE_PACK("npc48-o",{"n48":{"o_guard":[0,0,78,171,39.0,168.0],"o_trader":[80,0,84,164,42.0,161.0]},"ref":154,"size":[163,171],"credit":"아르세이아의 견습생 마을 사람 서 있는 그림 (주인 제작 그림 art49/npc)"},"img/flare-npc48-o.webp");

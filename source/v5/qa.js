@@ -7753,20 +7753,26 @@ const qN48Fake=()=>{const cv=document.createElement('canvas');cv.width=cv.height
 function qN48(fn){const sv={},art=GFX.art,bk=SC.bakeLeft;for(const p in N48.town){const n='npc48-'+p;sv[n]=FL.P[n];delete FL.P[n]}
   const clr=()=>{for(const k of [...SC.map.keys()])if(/^n48\//.test(k)){SC.bytes-=SC.map.get(k).bytes;SC.map.delete(k)}};clr();
   try{return fn()}finally{for(const n in sv){if(sv[n])FL.P[n]=sv[n];else delete FL.P[n]}if(art===undefined)delete GFX.art;else GFX.art=art;SC.bakeLeft=bk;clr();if(IN)twLeave(true);if(DG)leaveDungeon();if(REG.id!=='home')loadRegion('home')}}
-qT(QN48,'목록: 그림 88장 모두(윌로벤 5명 포함)가 마을별 묶음 6개(브렌힐 · 헤이븐 · 아르덴 · 골드미어 · 엘드홀트 · 사하르) 중 자기 마을 것에 하나씩 · 모두 TWFOLK에 있고 그 마을(방 안 포함)에 한 번씩 서 있음 · 묶음 이름은 서버가 내주는 이름',()=>{
-  qPrep('mage');const ids=qN48Ids();qOk(ids.length===88,'수 '+ids.length);const pks=new Set(Object.values(N48.id));qOk(pks.size===6,'묶음 수 '+pks.size);
+qT(QN48,'목록(v49: 144명): 그림 144장 모두(윌로벤 5명 포함)가 묶음 17개(브렌힐 · 헤이븐 · 아르덴 · 골드미어 · 엘드홀트 · 사하르 · 프로스트헤임 · 타말 · 엠버홀드 · 펄 하버 · 까마귀샘 · 바람목 산채 · 먼지문 · 갈매기 등대 · 마지막 등불 · 작은 전초 마을 · 경비병과 상인) 중 하나에만 · 모두 TWFOLK에 있고 묶음의 마을(방 안 포함)에 한 번씩 서 있음(경비병 · 상인은 남부 · 왕도 밖 모든 마을에 한 번씩) · 묶음 이름은 서버가 내주는 이름',()=>{
+  qPrep('mage');const ids=qN48Ids();qOk(ids.length===144,'수 '+ids.length);const pks=new Set(Object.values(N48.id));qOk(pks.size===17,'묶음 수 '+pks.size);
+  let nIn=0;for(const p in N48.pk)nIn+=N48.pk[p].split(' ').length;qOk(nIn===144,'두 묶음에 든 사람 '+nIn);
   for(const n of pks)qOk(/^(flare|fx)-[a-z0-9_-]+$/.test('flare-'+n),'서버 이름 규칙 '+n);
-  const placed=new Map();for(const [L,t] of wxTowns())for(const d of L.decor)if(d.k==='tfolk'&&!d.room)placed.set(d.id,(d.town||t).id);for(const f of TW.folk)if(f.room&&f.town)placed.set(f.id,f.town.id);
-  for(const id of ids){qOk(TWFOLK[id]&&TWFOLK[id].L,'TWFOLK 없음 '+id);const tw=placed.get(id);qOk(tw,'게임에 없음 '+id);qOk(N48.town[N48.id[id].slice(6)]===tw,'다른 마을 묶음 '+id+' '+tw)}
-  const cnt={};for(const f of TW.folk)cnt[f.id]=(cnt[f.id]||0)+1;for(const id of ids)qOk(cnt[id]===1,'한 번이 아님 '+id+' '+cnt[id]);
+  const placed=new Map(),seen=new Set(),add=(id,tw)=>{(placed.get(id)||placed.set(id,[]).get(id)).push(tw)};for(const [L,t] of wxTowns())for(const d of L.decor)if(d.k==='tfolk'&&!d.room&&!seen.has(d)){seen.add(d);add(d.id,(d.town||t).id)}for(const f of TW.folk)if(f.room&&f.town)add(f.id,f.town.id);
+  const outT=[...new Set([...wxTowns()].map(([L,t])=>t))].filter(t=>(t.reg||'home')!=='home'&&t.id!=='arden').map(t=>t.id).sort().join();
+  for(const id of ids){qOk(TWFOLK[id]&&TWFOLK[id].L,'TWFOLK 없음 '+id);const tw=placed.get(id)||[],p=N48.id[id].slice(6);qOk(tw.length,'게임에 없음 '+id);
+    if(N48.town[p]==='*')qOk([...tw].sort().join()===outT,'경비병 · 상인 마을 '+id+' '+tw);
+    else{qOk(tw.length===1,'한 번이 아님 '+id+' '+tw);qOk(N48.town[p].split(' ').includes(tw[0]),'다른 마을 묶음 '+id+' '+tw)}}
+  // 묶음의 마을 이름이 모두 진짜 마을이고, 작은 전초 마을 묶음은 마을마다 한 명씩
+  for(const p in N48.town)if(N48.town[p]!=='*')for(const tid of N48.town[p].split(' '))qOk(v20Town(tid),'없는 마을 '+p+' '+tid);
+  for(const tid of N48.town.out.split(' '))qOk(N48.pk.out.split(' ').filter(id=>(placed.get(id)||[])[0]===tid).length===1,'전초 마을 주민 '+tid);
   return ids.length+'명 · 묶음 '+pks.size});
-qT(QN48,'묶음이 없을 때(받기 전 · #qa)와 「그림: 예전 그림」: 88명 모두 새 그림을 쓰지 않음(예전 그림 그대로) · #qa에서는 묶음을 받지 않음 · 오류 없음',()=>qN48(()=>{qPrep('mage');
+qT(QN48,'묶음이 없을 때(받기 전 · #qa)와 「그림: 예전 그림」: 144명 모두 새 그림을 쓰지 않음(예전 그림 그대로) · #qa에서는 묶음을 받지 않음 · 오류 없음',()=>qN48(()=>{qPrep('mage');
   for(const id of qN48Ids()){SC.bakeLeft=99;const e=twFolkSprite(qN48L(id),0)||twFolkSprite(qN48L(id),0);qOk(e&&!/^n48\//.test(e.key),'묶음 없이 새 그림 '+id)}
   qOk(!Object.keys(FL.want).some(n=>/^npc48-/.test(n)),'#qa에서 받음');
   const pk=qN48Fake();Object.assign(FL.P,pk);GFX.art='old';
   for(const id of qN48Ids()){SC.bakeLeft=99;const e=twFolkSprite(qN48L(id),0)||twFolkSprite(qN48L(id),0);qOk(e&&!/^n48\//.test(e.key),'예전 그림 설정에서 새 그림 '+id)}
   return 'ok'}));
-qT(QN48,'묶음이 있으면 88명 모두 새 그림: 한 장(서기 · 걷기 같은 그림, 숨쉬기만 1.2% 늘임) · 발밑 기준점 그대로 · 키(어른 60 · 아이 약 44) · 왼쪽 아래를 본 그림을 뒤집어 구움(face 1 = 오른쪽) · 다른 사람(예: 여관 주인 리사)은 예전 그림',()=>qN48(()=>{qPrep('mage');
+qT(QN48,'묶음이 있으면 144명 모두 새 그림: 한 장(서기 · 걷기 같은 그림, 숨쉬기만 1.2% 늘임) · 발밑 기준점 그대로 · 키(어른 60 · 아이 약 44) · 왼쪽 아래를 본 그림을 뒤집어 구움(face 1 = 오른쪽) · 다른 사람(예: 여관 주인 리사)은 예전 그림',()=>qN48(()=>{qPrep('mage');
   Object.assign(FL.P,qN48Fake());const k=60/154;let n=0;
   for(const id of qN48Ids()){const L=qN48L(id),ch=!!L.child;SC.bakeLeft=99;const e=twFolkSprite(L,0);qOk(e&&e.key==='n48/'+id,'새 그림 아님 '+id+' '+(e&&e.key));
     const hw=ch?50:80,hh=ch?113:155,ay=ch?112:154,ax=ch?25:40;
@@ -7797,8 +7803,14 @@ qT(QN48,'미리 받기 목록: 그 마을 가까이(안전 지대 + 900) · 방 
   qOk(at('brenhill').includes('npc48-bren'),'브렌힐');qOk(at('haven').includes('npc48-haven'),'헤이븐');qOk(!at('brenhill',6000,6000).length,'먼 들판 '+at('brenhill',6000,6000));
   qOk(!at('brenhill').some(n=>/arden|gm|el|sh/.test(n)),'다른 지역 묶음');
   const b=TW.blds.home.find(b=>b.enter==='bren_chapel');twEnter(b);qOk(n48Want().includes('npc48-bren'),'방 안 '+n48Want());twLeave(true);
-  loadRegion('royal');qOk(at('arden').includes('npc48-arden'),'왕도');loadRegion('plains');qOk(at('goldmere').join()==='npc48-gm','골드미어');
-  loadRegion('forest');qOk(at('elderhold').join()==='npc48-el','엘드홀트');loadRegion('desert');qOk(at('sahar').join()==='npc48-sh','사하르');
+  loadRegion('royal');qOk(at('arden').includes('npc48-arden'),'왕도');loadRegion('plains');qOk(at('goldmere').join()==='npc48-gm,npc48-o','골드미어 '+at('goldmere'));
+  loadRegion('forest');qOk(at('elderhold').join()==='npc48-el,npc48-o','엘드홀트 '+at('elderhold'));loadRegion('desert');qOk(at('sahar').join()==='npc48-sh,npc48-o','사하르 '+at('sahar'));
+  // v49: 새 마을 묶음 · 작은 전초 마을 · 경비병과 상인(남부 · 왕도에서는 없음)
+  for(const [rg,tid,pk] of [['ice','frostheim','fh'],['jungle','tamal','tm'],['lava','emberhold','eh'],['sea','pearlport','pp'],['moor','rookwell','rw'],['highland','windcrag','wc'],
+    ['canyon','dustgate','dg'],['cliffs','gullhaven','gh'],['abyss','lastlight','ll'],['mistlake','mistford','out'],['eclipse','lastvigil','out'],['capital','keeperhouse','out']]){
+    loadRegion(rg);qOk(at(tid).join()==='npc48-'+pk+',npc48-o','v49 '+tid+' '+at(tid));qOk(!at(tid,6000,6000).length,'v49 먼 들판 '+tid)}
+  loadRegion('h29_reed');qOk(at('h29_reed_camp').join()==='npc48-o','지옥 야영지 '+at('h29_reed_camp'));
+  loadRegion('royal');qOk(!at('arden').includes('npc48-o'),'왕도에 경비병 묶음');loadRegion('home');qOk(!at('haven').includes('npc48-o'),'남부에 경비병 묶음');
   loadRegion('home');enterDungeon(CAVES[0]);qOk(!n48Want().length,'던전');leaveDungeon();n48Pre();qOk(!Object.keys(FL.want).some(n=>/^npc48-/.test(n)),'#qa에서 받음');return 'ok'}));
 qT(QN48,'윌로벤 다섯(꼬마 핍 · 꼬마 솔 · 무기상 도린 · 가죽장이 레아 · 잡화상 몰리, 주인 2026-10-26 「다른 마을로 보내도 돼」): 헤이븐 나루(헤이븐 교차로 안전 지대 안 · 마을 중심 남쪽 강가)에 한 번씩 · 걸을 수 있는 땅(물 · 건물 · 막힘 아님) · 다른 사람 · 문 · 건물과 안 겹침 · 누르는 상자 안 겹침 · 이름 · 역할 · 대사 그대로 · 아이 걷는 길도 걸을 수 있는 땅 · 셋은 말을 걸면 헤이븐의 같은 가게(무기 · 갑옷 · 잡화) · 새 그림으로 그려짐 · 다른 사람 순서 그대로 · 새 저장 값 없음',()=>qN48(()=>{qPrep('mage');
   const t=v20Town('haven'),L=HOME,Pt=wxTownParts(L,t),W5=['weaponer','tanner','grocer2','kid2','kid3'],NM={weaponer:['무기상 도린','weapon'],tanner:['가죽장이 레아','armor'],grocer2:['잡화상 몰리','general'],kid2:['꼬마 핍',''],kid3:['꼬마 솔','']};
