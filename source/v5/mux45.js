@@ -164,7 +164,7 @@ cv.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'||!P)return;cons
 addEventListener('pointerup',e=>{const tp=M45.tap;if(!tp||tp.id!==e.pointerId)return;M45.tap=null;if(!P||P.dead||paused)return;const p=rel(e);
   if(Math.hypot(p.x-tp.x,p.y-tp.y)>=12||performance.now()-tp.t>350)return;const en=r22Pick(p.x,p.y);
   if(en){if(M45.lock!==en){m45Lock(en);msg(`노릴 적 고정: ${TYPES[en.k]?TYPES[en.k].n:'적'} (빈 땅을 누르면 풀려요)`,'#ff9a7a')}}
-  else if(M45.lock&&p.x>=W*.45){m45Lock(null);msg('노릴 적 고정을 풀었어요','#a39d8f')}},true);
+  else if(M45.lock&&!m48Joy(p.x)){m45Lock(null);msg('노릴 적 고정을 풀었어요','#a39d8f')}},true);
 {const _ap=aimPoint;aimPoint=function(){if(M45.lock&&!(!touchMode&&mouse.active)){const e=M45.lock;if(m45LockOk(e)&&M45.lockReg===REG.id){const C=r22Cap({cls:P.cls});if(dist(e,P)-hR(e)<=C)return{x:e.x,y:e.y}}}return _ap.apply(this,arguments)}}
 function m45LockTick(){const e=M45.lock;if(e&&(!m45LockOk(e)||M45.lockReg!==REG.id))M45.lock=null}
 

@@ -5977,7 +5977,7 @@ qT('이펙트 v35','마법사 기술 그림 빠짐 없음: 지속 효과(패시�
   const mage=Object.values(SPELLS).filter(s=>s.cls==='mage'&&s.kind!=='passive');const miss=mage.filter(s=>!FX31.M[s.id]&&!FX31.OLD.includes(s.id)).map(s=>s.n);/* v37: 사용자가 예전 그림으로 되돌린 15가지는 짝 없음 */
   qOk(mage.length>=100,'마법사 기술 수 '+mage.length);qOk(!miss.length,'그림 짝이 없는 마법사 기술: '+miss.join(', '));
   const SERVED=/^(?:flare|fx)-[a-z0-9_-]+\.js$/,pks=[...new Set(Object.values(FX31.M).map(m=>m.pk))],bad=pks.filter(pk=>!SERVED.test('fx-'+pk+'.js'));
-  qOk(!bad.length,'서버가 안 내주는 이름: '+bad.join());qOk(/'img\/fx-'\+pk\+'\.js'/.test(String(FX31.load)),'그림 받는 주소 모양이 바뀜 (server.js 규칙도 같이 볼 것)');
+  qOk(!bad.length,'서버가 안 내주는 이름: '+bad.join());qOk(/["']img\/fx-["']\+\w+\+["']\.js["']/.test(String(FX31.load)),/* v48: 압축판은 이름이 줄고 따옴표가 바뀜 */'그림 받는 주소 모양이 바뀜 (server.js 규칙도 같이 볼 것)');
   FX31.P=qFX31Fake();const none=[],chg=[];
   for(const s of mage){if(FX31.OLD.includes(s.id))continue;if(s.charge){chg.push(s.n);continue}/* 모으기 채널링(누르고 있는 동안)은 「이펙트 v33」이 따로 봄 */qPrep('mage',{lvl:140});if(s.job3)qJob3On(s.job3);else if(s.job2)P.job2=s.job2;passT=-1;P.sk[s.id]=10;P.invT=1e9;P.x=QA_SPOT.x;P.y=QA_SPOT.y;followCam();FX31.inst=[];
     const e=qDummy(P.x+170,P.y+30,{lvl:140});qDummy(P.x+230,P.y+80,{lvl:140});let tg={x:e.x,y:e.y};if(s.swap){P.sk.fireelem=10;qCast('fireelem',{x:P.x+80,y:P.y});const fe=allies.find(a=>a.s&&a.s.id==='fireelem');if(fe){fe.x=P.x+300;fe.y=P.y;tg={x:fe.x,y:fe.y}}FX31.inst=[]}/* 자리 바꾸기는 소환수가 있어야 씀 */
@@ -7478,7 +7478,7 @@ qT(QM45,'설정 ⚙ · 저장: 「주우면 바로 금화로」 · 「마을에�
 {const QM46='캐릭터 그림 v46';
 // Codex 그림 목록(character-image-queue.json)의 칸 크기 · 기준점 = 예전 코드 부위와 같아야 한다
 const H46S={mage:{boot:[20,16,10,14,5,[0]],skirt:[36,28,18,2,5],torso:[30,22,15,19,5],head:[44,44,22,40,5],cloak:[44,48,22,4,5],pauld:[40,22,20,8,5,[3,4,5,6,7]],arm:[16,22,8,3,1],armB:[16,22,8,3,1],staff:[32,72,16,46,1]},
-  archer:{boot:[22,18,11,15,5,[0]],skirt:[36,26,18,2,5],torso:[32,22,16,19,5],head:[48,52,24,46,5],cloak:[44,44,22,4,5,[1,2,3,4,5,6,7]],arm:[18,24,9,4,1],armB:[18,24,9,4,1],bow:[40,54,22,27,1],xbow:[40,24,20,12,1],xprod:[30,10,15,3,1],quiver:[16,30,8,14,5,[0]]}};
+  archer:{boot:[22,18,11,15,5,[0]],skirt:[36,26,18,2,5],torso:[32,22,16,19,5],head:[48,52,24,46,5],cloak:[44,44,22,4,5,[1,2,3,4,5,6,7]],arm:[18,24,9,4,1],armB:[18,24,9,4,1],bow:[40,54,22,27,1],xbow:[40,24,20,12,1],xprod:[30,10,15,3,1],quiver:[16,30,8,14,5]}};
 H46S.priest=H46S.mage;
 // 가짜 묶음: 모든 칸을 한 색으로 칠한 그림 (#qa는 진짜 묶음을 받지 않는다)
 function q46Pack(cls){const S=H46S[cls],r={};let y=0;const k=2,W=1024,rows=[];
@@ -7498,8 +7498,8 @@ qT(QM46,'모든 부위 · 단계 · 방향: Codex 그림 칸 크기 · 기준점
       if(!o||o.w!==cw||o.h!==ch||o.ax!==ax||o.ay!==ay)bad.push(nm+' 코드 '+(o&&[o.w,o.h,o.ax,o.ay]));
       if(!e||!/^hcg\//.test(e.key)||e.w!==cw||e.h!==ch||e.ax!==ax||e.ay!==ay)bad.push(nm+' 그림 '+(e&&e.key));else nImg++;
       if(o&&!/^(hero|h18)\//.test(o.key))bad.push(nm+' 예전 '+o.key)}}}
-  qOk(!bad.length,bad.slice(0,6).join(' | ')+' 외 '+bad.length);qOk(nImg===649,'그림 수 '+nImg)});
-qT(QM46,'그림이 없는 것은 예전 그림: 전사 전체 · 궁수 화살통 1~7단계 · 보석 · 얼음 · 별 · 묶음 없음(#qa 기본) · 「그림: 예전 그림」',()=>{
+  qOk(!bad.length,bad.slice(0,6).join(' | ')+' 외 '+bad.length);qOk(nImg===684,'그림 수 '+nImg)});
+qT(QM46,'그림이 없는 것은 예전 그림: 전사 전체 · 묶음에 칸이 없는 궁수 화살통 단계 · 보석 · 얼음 · 별 · 묶음 없음(#qa 기본) · 「그림: 예전 그림」',()=>{
   const it={il:30,rar:1,name:'q'},w={cls:'warrior',gear:{robe:it,staff:Object.assign({},it,{wt:'sword'})}},LW=heroLook18(w);
   q46With(()=>{for(const p of ['boot','skirt','torso','head','cloak','arm','armB'])for(let di=0;di<5;di++){const e=heroPart18('warrior',p,di,LW,1.1,undefined,LW.trim);qOk(!e||/^h18\//.test(e.key),'전사 '+p+' '+(e&&e.key))}
     const a={cls:'archer',gear:{robe:it,staff:Object.assign({},it,{wt:'bow'}),off:Object.assign({},it,{wt:'quiver'})}},LA=heroLook18(a);qOk(LA.ot>=1,'화살통 단계 '+LA.ot);
@@ -7521,6 +7521,475 @@ qT(QM46,'그려 보기: 세 직업 · 단계 0~7 · 8방향 · 걷기 · 시전 
     qOk(px(a)>0&&px(c)===0,'목걸이 그림 '+px(a)+'/'+px(c));qOk(px(d)===0,'뒤를 보면 목걸이 안 보임 '+px(d))})});
 }
 /* ==== hero46 끝 ==== */
+/* ==== gear47 ==== */
+{const QG47='단축바 톱니바퀴 v47';
+const qg47Btn=i=>$(`#bar button.sk[data-slot="${i}"]`);
+const qg47Prep=()=>{qPrep('mage',{lvl:60});const ids=Object.keys(SPELLS).filter(id=>SPELLS[id].cls==='mage'&&SPELLS[id].kind!=='passive'&&!SPELLS[id].job2&&!SPELLS[id].job3).slice(0,6);
+  P.bar=Array(21).fill(null);ids.forEach(id=>P.sk[id]=2);P.bar[0]=ids[0];P.bar[2]=ids[1];P.bar[3]=ids[2];buildBar();return ids};
+qT(QG47,'(휴대폰 플레이어 「단축키옆에 톱니바퀴 작게 만들어서 그자리에서 원하는 키 누르고 바로 스킬 선택하게」) ⚙ 단추가 단축바 물약 앞에 있음 · 누르면 칸 바꾸기(빈 칸까지 다 보임 · ✓) · 다시 누르면 끝 · PC · 가로 · 세로 휴대폰 모두 화면 안 · 칸과 안 겹침',()=>{
+  const ids=qg47Prep();
+  const chk=m=>{const g=$('#g47btn');qOk(g&&$('#bar').contains(g),m+': ⚙ 없음');const sep=$('#bar .sep');if(sep)qOk(g.nextElementSibling===sep,m+': 물약 앞이 아님');
+    qOk(!g47On()&&g.textContent==='⚙'&&qmR(g).width>0,m+': 처음 상태');barPress(g);qOk(g47On()&&bindId===G47.TOK,m+': 안 켜짐');
+    const g2=$('#g47btn');qOk(g2.textContent==='✓'&&g2.classList.contains('on'),m+': ✓ 아님');
+    const all=[...$('#bar').querySelectorAll('button.sk[data-slot]')].filter(b=>+b.dataset.slot<21);qOk(all.every(b=>b.classList.contains('binding')),m+': 칸 표시');
+    if(M22.mode())qOk(m22Shown().filter(b=>b.dataset.slot!=null).length===21,m+': 빈 칸이 안 보임 '+m22Shown().filter(b=>b.dataset.slot!=null).length);
+    const r=qmR(g2),W=M22.vpF?M22.vpF.w:innerWidth,H=M22.vpF?M22.vpF.h:innerHeight;qOk(r.left>=0&&r.right<=W+.5&&r.top>=0&&r.bottom<=H+.5,m+': 화면 밖 '+JSON.stringify(r));
+    for(const b of m22Shown().length?m22Shown():all)if(b!==g2)qOk(!qmOv(qmR(b),r),m+': 칸과 겹침 '+(b.dataset.slot||b.dataset.pot));
+    barPress($('#g47btn'));qOk(!g47On()&&!bindId&&$('#g47btn').textContent==='⚙',m+': 안 꺼짐')};
+  chk('PC');qM22('L',844,390,()=>{qM22Bar(21);buildBar();chk('가로');
+    // 가로 쪽 넘기기: ⚙까지 한 줄에 들어감(쪽 단추 · ⚙ · 물약이 보이는 칸과 안 겹침)
+    const sh=m22Shown(),pg=$('#m43pg'),g=$('#g47btn');qOk(pg&&qmR(pg).width>=40,'쪽 단추');for(const b of [...sh,pg])qOk(!qmOv(qmR(b),qmR(g)),'쪽 넘기기 겹침 '+(b.id||b.dataset.slot||b.dataset.pot));
+    for(const b of [...sh,pg,g]){const r=qmR(b);qOk(r.left>=0&&r.right<=844&&r.bottom<=390,'화면 밖 '+(b.id||b.dataset.slot||b.dataset.pot))}
+    const tops=new Set([...sh,pg,g].map(b=>Math.round(qmR(b).top)));qOk(tops.size===1,'한 줄이 아님 '+[...tops])});
+  // 좁은 가로 휴대폰(667×375)도 ⚙까지 한 줄 · 화면 안
+  qM22('L',667,375,()=>{qM22Bar(21);buildBar();const sh=m22Shown(),pg=$('#m43pg'),g=$('#g47btn'),a=[...sh,pg,g].filter(Boolean);
+    for(const b of a){const r=qmR(b);qOk(r.left>=0&&r.right<=667&&r.bottom<=375,'667 화면 밖 '+(b.id||b.dataset.slot||b.dataset.pot))}
+    qOk(new Set(a.map(b=>Math.round(qmR(b).top))).size===1,'667 한 줄이 아님');for(const b of a)if(b!==g)qOk(!qmOv(qmR(b),qmR(g)),'667 겹침')});
+  qPrep('mage',{lvl:60});qg47Prep();qM22('P',390,844,()=>chk('세로'));return ids.length});
+qT(QG47,'고르기 창: 칸 바꾸기 중 칸을 누르면 그 칸의 「스킬 고르기」 · 배운 스킬만(패시브 · 안 배운 것 · 다른 직업 없음) · 고르면 그 칸에(다른 칸에 있던 것은 자리 바꿈) · 비우기 · 닫기 · 창이 열린 동안 멈춤 · 고른 뒤에도 칸 바꾸기는 켜짐 · PC는 칸의 키를 눌러도 됨 · Esc는 창 먼저',()=>{
+  const ids=qg47Prep();const pas=Object.keys(SPELLS).find(id=>SPELLS[id].cls==='mage'&&SPELLS[id].kind==='passive');if(pas)P.sk[pas]=1;
+  const un=Object.keys(SPELLS).find(id=>SPELLS[id].cls==='mage'&&SPELLS[id].kind!=='passive'&&!P.sk[id]);
+  g47Toggle(true);paused=false;barPress(qg47Btn(7));const box=$('#g47pick');qOk(box&&G47.slot===7&&paused,'창 안 열림');
+  const list=[...box.querySelectorAll('[data-g47]')].map(b=>b.dataset.g47);qOk(list.length===ids.length&&ids.every(id=>list.includes(id)),'목록 '+list.join(','));
+  qOk(!list.includes(pas)&&!list.includes(un),'패시브 · 안 배운 것');qOk(list.every(id=>SPELLS[id].cls==='mage'),'다른 직업');
+  qOk(box.querySelectorAll('.g47g').length>=1&&box.querySelector('[data-g47c="clear"]').disabled,'계열 · 빈 칸 비우기');
+  G47.t=-1e9;box.querySelector(`[data-g47="${ids[4]}"]`).click();qOk(P.bar[7]===ids[4]&&!$('#g47pick')&&g47On()&&!paused,'넣기 '+P.bar[7]);
+  barPress(qg47Btn(7));G47.t=-1e9;$(`#g47pick [data-g47="${ids[1]}"]`).click();qOk(P.bar[7]===ids[1]&&P.bar[2]===ids[4],'자리 바꿈 '+P.bar[2]+'/'+P.bar[7]);
+  barPress(qg47Btn(7));G47.t=-1e9;qClick('#g47pick [data-g47c="clear"]');qOk(P.bar[7]===null&&g47On(),'비우기');
+  barPress(qg47Btn(0));G47.t=-1e9;qClick('#g47pick [data-g47c="close"]');qOk(P.bar[0]===ids[0]&&!$('#g47pick')&&g47On(),'닫기');
+  // PC: 칸 바꾸기 중 그 칸의 키(1 = 칸 2)
+  qKey(SLOTS[2].code);qKey(SLOTS[2].code,'keyup');qOk($('#g47pick')&&G47.slot===2,'키로 열기 '+G47.slot);
+  qKey('Escape');qOk(!$('#g47pick')&&g47On(),'Esc: 창만 닫힘');qKey('Escape');qOk(!g47On()&&!bindId,'Esc 두 번: 끝');
+  // 뒤로(휴대폰): 창 먼저
+  g47Toggle(true);barPress(qg47Btn(5));qOk(u45Back()==='g47'&&!$('#g47pick')&&g47On(),'뒤로: 창');qOk(u45Back()==='bind'&&!g47On(),'뒤로: 칸 바꾸기');
+  return list.length});
+qT(QG47,'고친 버그 v47: 휴대폰에서 칸을 누르면 손가락을 뗄 때 오는 click이 막 열린 고르기 창의 스킬을 눌러 바로 넣어 버림 → 연 뒤 0.4초 click은 흘려보냄 · 추가 단축바 칸도 됨 · 캐릭터를 불러오면 끝 · 새 저장 칸 없음',()=>{
+  const ids=qg47Prep();g47Toggle(true);barPress(qg47Btn(9));const b=$(`#g47pick [data-g47="${ids[3]}"]`);b.click();qOk($('#g47pick')&&P.bar[9]===null,'바로 눌림 '+P.bar[9]);
+  G47.t=performance.now()-G47.GHOST-1;b.click();qOk(!$('#g47pick')&&P.bar[9]===ids[3],'0.4초 뒤 안 됨');
+  P.b44n=1;buildBar();barPress(qg47Btn(B44.BASE+2));G47.t=-1e9;$(`#g47pick [data-g47="${ids[5]}"]`).click();qOk(P.bar[B44.BASE+2]===ids[5],'추가 칸 '+P.bar[B44.BASE+2]);
+  const d=saveData();qOk(d.b44&&d.b44.s[2]===ids[5],'추가 칸 저장');qOk(!('g47' in d)&&!Object.keys(d).some(k=>/g47/.test(k))&&!JSON.stringify(d).includes(G47.TOK),'새 저장 칸 · 표시 글자가 저장에 들어감');
+  barPress(qg47Btn(1));qOk($('#g47pick'),'창');load(d);qOk(!g47On()&&!$('#g47pick')&&P.bar[B44.BASE+2]===ids[5],'불러오면 끝 '+g47On());
+  P.b44n=0;buildBar();return 'ok'});
+}
+/* ==== gear47 끝 ==== */
+/* ==== wfx48 ==== */
+/* v48(Codex 그림 151~162번 · 125번): 전사 기술 그림 12가지 더(wfx48.js) · 마법사 스톤 스킨 새 그림. #qa에서는 파일을 받지 않으므로 가짜 묶음으로 본다 */
+{const QW48='이펙트 v48 전사',QW48_N={151:'불워크',152:'스톤 램파트',153:'포트리스 시프트',154:'레트리뷰션',155:'어스 앵커',156:'언폴른 킹덤',157:'헐 웨폰',158:'익스큐션 리프',159:'블러드 하베스트',160:'워로드 게일',161:'팬텀 라이더즈',162:'차지 오브 더 호스트'};
+// 가짜 새 전사 묶음: 짝이 쓰는 모든 띠에 6칸 (진짜 그림처럼 큰 칸)
+const qW48Fake=()=>{const cv=document.createElement('canvas');cv.width=cv.height=96;const g=cv.getContext('2d');g.fillStyle='#f80';g.fillRect(8,8,80,80);const r={};
+  for(const id in WFX2.M){const m=WFX2.M[id];for(const st of [m.b,m.i])if(st)r[st]=[0,1,2,3,4,5].map(()=>[0,0,96,96,16,16])}
+  return{[WFX2.PK]:{img:cv,meta:{cell:128,size:[96,96],r},mem:1024,used:FX31.now()}}};
+// 그 기술을 배운 130레벨 전사(3차는 그 갈래, 불워크는 2차 수호자) · 허수아비 셋 · 블러드 하베스트용 투혼 10
+const qW48Prep=id=>{const s=SPELLS[id];if(s.job3)qWAPrep('warrior',[id]);else{qPrep('warrior',{lvl:130});qWAClr();if(s.job2){P.job2=s.job2;P.lvl=Math.max(P.lvl,s.upLv||0)}P.sk[id]=10;if(typeof clsGearFor==='function')clsGearFor(id);qMana(id);P.x=QWA_SPOT.x;P.y=QWA_SPOT.y;P.face=0;followCam()}
+  P.invT=1e9;passT=-1;P.hp=maxHp();P.mp=maxMp();WFX2.inst.length=0;FXP.fx.length=0;FXB.fx.length=0;if(id==='bloodharvest')J3W.fz=10;
+  const e=qWADum(P.x+160,P.y+20,{lvl:130});qWADum(P.x+240,P.y+90,{lvl:130});qWADum(P.x+200,P.y-60,{lvl:130});return e};
+// 한 기술을 써 보고: 자기 그림을 그린 수(own) · 그림이 대신해 뺀 예전 효과 수(hid) · 예전 층을 그린 흔적(ev: 기수/바위/칼/검기/지대 빛 그림 · 파란 깃발 · 예전 고리 · 착지 별빛)
+const qW48Run=id=>{const m=WFX2.M[id],e=qW48Prep(id),ev={js:0,flag:0,ring:0,land:0},sp=[];
+  const spy=(obj,k,f)=>{const f0=obj[k];obj[k]=function(){f.apply(this,arguments);return f0.apply(this,arguments)};sp.push(()=>{obj[k]=f0})};
+  const JK={stonerampart:()=>[0,1,2,3,4].map(i=>JS.rock(i)),earthanchor:()=>[JS.zone('a')],weaponthrow:()=>[JS.blade()],lordgale:()=>[JS.wave()],phantomriders:()=>[JS.rider(0),JS.rider(1)],heavenlycharge:()=>[JS.rider(0),JS.rider(1)]}[id],JI=JK?JK():null;
+  // 예전 그림 조각(바위/지대 빛/칼/검기/기수)이 실제로 화면에 찍힌 수 — 만들기만 하고 안 찍는 경우는 세지 않는다
+  // (앞선 시험이 화면 ctx에 drawImage를 직접 붙여 두었을 수 있어 화면 ctx와 공용 원형 둘 다 본다 · 한 번만 셈)
+  if(JI){const DP=CanvasRenderingContext2D.prototype,d0=DP.drawImage,own=Object.prototype.hasOwnProperty.call(ctx,'drawImage'),c0=ctx.drawImage;
+    DP.drawImage=function(im){if(JI.includes(im))ev.js++;return d0.apply(this,arguments)};ctx.drawImage=function(im){if(JI.includes(im))ev.js++;return c0.apply(this,arguments)};
+    sp.push(()=>{DP.drawImage=d0;if(own)ctx.drawImage=c0;else delete ctx.drawImage})}
+  if(id==='bulwark')spy(FXP,'bannerSpr',col=>{if(col==='#3a5a9a')ev.flag++});if(id==='executionleap')spy(WFX,'old0',(c,f)=>{if(f&&f.k==='land')ev.land++});
+  const RC={bulwarkcounter:'#ffe9b0',lordgale:'#ffd0b0',executionleap:'#ffb070'}[id],seen=new Set(),scan=()=>{if(RC)for(const r of rings)if(!r.faint&&r.col===RC&&!seen.has(r)){seen.add(r);ev.ring++}};
+  const own0=()=>(WFX2.cnt[m.b]|0)+(m.i?WFX2.cnt[m.i]|0:0),w0=own0(),h0=WFX2.n.hid,d0=WFX2.n.draw,each=()=>{P.mp=maxMp();P.hp=maxHp();scan()};
+  try{if(SPELLS[id].charge){qMana(id);P.cd[id]=0;P.mp=maxMp();tryCast(id,{x:e.x,y:e.y});qOk(J3CH&&J3CH.id===id,id+' 모으기 안 됨');J3CH.sticky=true;qStep(30,{renderEvery:1,each});j3ChargeRelease()}
+    else qCast(id,{x:e.x,y:e.y});qOk((P.cd[id]||0)>0,id+' 시전이 안 됨');qStep(50,{renderEvery:1,each});
+    return{own:own0()-w0,draw:WFX2.n.draw-d0,hid:WFX2.n.hid-h0,ev,old:ev.js+ev.flag+ev.ring+ev.land}}
+  finally{for(const u of sp.reverse())u()}};
+const QW48_HID='fortressswap unfallenkingdom bulwarkcounter bloodharvest'.split(' ');
+qT(QW48,'짝: 151~162번 띠 14장이 그 그림을 위해 그린 전사 기술 12가지(불워크 ~ 차지 오브 더 호스트)와 짝 · 새 묶음 fx-warrior-phys-2(서버 규칙 안) · 예전 전사 짝 74가지(fx-warrior-phys)는 그대로 · 마법사 스톤 스킨은 125번 · 묶음 fx-mage-earth-2 · 046번 짝은 없어짐',()=>{
+  const byN={};for(const s of Object.values(SPELLS))if(s.cls==='warrior')byN[s.n]=s.id;const bad=[],st=new Set();
+  for(const no in QW48_N){const id=byN[QW48_N[no]],m=id&&WFX2.M[id];if(!m||m.no!==no)bad.push(no+' '+QW48_N[no]+' → '+(m?m.no:'짝 없음'));else{st.add(m.b);if(m.i)st.add(m.i)}if(id&&WFX.M[id])bad.push(id+' 예전 짝에도 있음')}
+  qOk(!bad.length,bad.join(', '));qOk(Object.keys(WFX2.M).length===12&&st.size===14,'짝 '+Object.keys(WFX2.M).length+' · 띠 '+st.size);
+  for(const id in WFX2.M){const s=SPELLS[id];qOk(s&&s.cls==='warrior'&&s.kind!=='passive',id+' 전사 기술이 아님')}
+  qOk(Object.keys(WFX.M).length===74&&WFX.PK==='warrior-phys','예전 짝 '+Object.keys(WFX.M).length);
+  const SV=/^(?:flare|fx)-[a-z0-9_-]+\.js$/;qOk(SV.test('fx-'+WFX2.PK+'.js')&&SV.test('fx-mage-earth-2.js')&&WFX2.PK!==WFX.PK,'서버가 안 내주는 이름');
+  const m=FX31.M.stonebody;qOk(SPELLS.stonebody.n==='스톤 스킨'&&m&&m.b==='fx_125_1_mage_earth_stonebody'&&m.pk==='mage-earth-2'&&m.k==='aura'&&m.f==='invuln'&&m.c==='mage','스톤 스킨 짝 '+JSON.stringify(m));
+  qOk(FX31.M.stoneset&&FX31.M.stoneset.pk==='mage-earth'&&!Object.values(FX31.M).some(q=>q.b.startsWith('fx_046_')),'다른 땅 마법 짝 · 046번이 남음');
+  return `전사 12가지 · 띠 ${st.size}장 · 묶음 fx-${WFX2.PK} · 스톤 스킨 125번`});
+qT(QW48,'그림 묶음이 있을 때: 12가지가 모두 자기 그림을 실제로 그림 · 같은 역할의 예전 층(파란 깃발 · 바위 덩이 · 빛 줄 · 시작 고리 · 부채꼴 빛 · 지대 바닥 빛 · 금빛 원 · 도는 칼 · 착지 고리와 별빛 · 붉은 고리 · 검기 그림 · 놓을 때 고리 · 기수 그림)은 안 그림 · 오류 0',()=>qFX31(()=>{
+  FX31.P=qW48Fake();const none=[],dbl=[];for(const id in WFX2.M){const r=qW48Run(id);if(!(r.own>0))none.push(SPELLS[id].n+'('+id+')');if(r.old)dbl.push(id+' '+JSON.stringify(r.ev));if(QW48_HID.includes(id)&&!(r.hid>0))dbl.push(id+' 예전 효과를 안 뺌');qClear()}
+  qOk(!none.length,'자기 그림이 안 그려진 기술 '+none.length+': '+none.join(', '));qOk(!dbl.length,'예전 층도 같이 그림: '+dbl.join(' | '));return '12가지 모두 자기 그림 · 겹침 0'}));
+qT(QW48,'그림 묶음이 없거나 「예전 그림」일 때: 12가지 모두 예전 그대로(예전 층이 그려지고 빼지 않음) · 새 그림 0 · 묶음이 없으면 시전할 때 받을 줄에 fx-warrior-phys-2가 섬',()=>qFX31(()=>{const out=[];
+  const NEED={stonerampart:'js',earthanchor:'js',weaponthrow:'js',lordgale:'js',phantomriders:'js',heavenlycharge:'js',bulwark:'flag',bulwarkcounter:'ring',executionleap:'ring'};
+  for(const mode of ['none','old']){const bad=[];for(const id in WFX2.M){FX31.P=mode==='none'?{}:qW48Fake();FX31.want={};FX31.q=[];if(mode==='old')GFX.art='old';
+      try{const r=qW48Run(id);if(r.draw||r.own||r.hid)bad.push(id+' 새 '+r.draw+' · 뺌 '+r.hid);if(NEED[id]&&!(r.ev[NEED[id]]>0))bad.push(id+' 예전 '+JSON.stringify(r.ev));if(id==='executionleap'&&!(r.ev.land>0))bad.push(id+' 착지 별빛 없음');
+        if(mode==='none'&&!FX31.q.includes(WFX2.PK))bad.push(id+' 받을 줄 없음')}finally{delete GFX.art;qClear()}}
+    qOk(!bad.length,(mode==='none'?'묶음 없음':'예전 그림')+': '+bad.join(' | '));out.push(mode)}
+  return '묶음 없음 · 「예전 그림」 12가지 모두 예전 그대로'}));
+qT(QW48,'크기와 방향: 언폴른 킹덤 고리 · 어스 앵커 장판은 실제 범위 원 폭 · 익스큐션 리프 착지는 반경 150 원 폭 · 레트리뷰션 부채꼴은 부채꼴 길이와 바라보는 쪽 · 바위 벽은 실제 벽 길이만큼(양 끝) · 불워크 방패는 구역보다 크지 않음',()=>qFX31(()=>{FX31.P=qW48Fake();const out=[];
+  const near=(a,b,t)=>Math.abs(a-b)<=Math.abs(b)*(t||.03)+.5;
+  // 그 띠가 그려질 때의 배율 · 방향 (첫 번 또는 전부)
+  const look=(id,st,o)=>{o=o||{};const e=qW48Prep(id);P.face=o.face||0;const got=[],f0=WFX2.pic;let on=true;
+    WFX2.pic=function(c,PK,s,f,x,y,ax,ay,sx,sy,e1x,e1y){if(on&&s===st&&f&&f[2])got.push({x,y,ax,ay,sx,sy,e1x,e1y,b:WFX.bx(PK,s)});return f0.apply(this,arguments)};
+    try{const t={x:P.x+Math.cos(P.face)*(o.d||160),y:P.y+Math.sin(P.face)*(o.d||160)};if(SPELLS[id].charge){qMana(id);P.cd[id]=0;tryCast(id,t);J3CH.sticky=true;qStep(20,{render:false});on=true;got.length=0;j3ChargeRelease()}else qCast(id,t);
+      for(let i=0;i<60&&got.length<(o.n||1);i++)qStep(1,{renderEvery:1,each:()=>{P.mp=maxMp()}})}finally{WFX2.pic=f0}qOk(got.length,id+' 그림 없음');return got};
+  {const g=look('unfallenkingdom',WFX2.M.unfallenkingdom.b)[0],q=J3W.gfx.find(x=>x.k==='dome'),w=2*q.rad*WFX2.KS;qOk(q.rad===eff('unfallenkingdom',skLv('unfallenkingdom')).rad,'왕국 반지름');qOk(near(g.sx*g.b.vw,w),'왕국 고리 폭 '+qR(g.sx*g.b.vw)+' / '+qR(w));out.push('왕국 '+Math.round(w))}
+  {const g=look('earthanchor',WFX2.M.earthanchor.b)[0],f=(J3W.hold||[]).concat(fields).find(x=>x.s&&x.s.id==='earthanchor'),w=2*f.rad*WFX2.KS;qOk(f.rad===eff('earthanchor',skLv('earthanchor')).rad,'지대 반지름');qOk(near(g.sx*g.b.vw,w),'앵커 장판 폭 '+qR(g.sx*g.b.vw)+' / '+qR(w));out.push('앵커 '+Math.round(w))}
+  {const g=look('executionleap',WFX2.M.executionleap.b)[0],w=2*eff('executionleap',skLv('executionleap')).rad*WFX2.KS;qOk(near(g.sx*g.b.vw,w),'착지 폭 '+qR(g.sx*g.b.vw)+' / '+qR(w));out.push('착지 '+Math.round(w))}
+  {const a=.7,g=look('bulwarkcounter',WFX2.M.bulwarkcounter.i,{face:a})[0],q=J3W.gfx.find(x=>x.k==='cone'&&x.s48==='bulwarkcounter'),L=FX31.scrLen(q.a,q.rad),ra=FX31.scrAng(q.a);
+    qOk(Math.abs(q.a-a)<.01,'부채꼴 방향(게임) '+q.a);qOk(near(g.sx*g.b.w,L),'부채꼴 길이 '+qR(g.sx*g.b.w)+' / '+qR(L));qOk(near(g.e1x,Math.cos(ra),.001)&&near(g.e1y,Math.sin(ra),.001),'부채꼴 그림 방향');out.push('부채꼴 '+Math.round(L))}
+  for(const fc of [.3,-1.2]){const G=look('stonerampart',WFX2.M.stonerampart.b,{face:fc,d:260,n:12}),w=J3W.walls[0],A=W2S(w.x-w.ux*w.h,w.y-w.uy*w.h),B=W2S(w.x+w.ux*w.h,w.y+w.uy*w.h),b=G[0].b;
+    let lo=1e9,hi=-1e9;for(const g of G.slice(0,G.length)){if(g.x===G[0].x&&g.y===G[0].y&&g!==G[0])break;lo=Math.min(lo,g.x-(g.ax-b.x0)*g.sx);hi=Math.max(hi,g.x+(b.x1-g.ax)*g.sx)}
+    const x0=Math.min(A.x,B.x),x1=Math.max(A.x,B.x),tl=Math.max(40,(x1-x0)*.15);qOk(Math.abs(lo-x0)<=tl&&Math.abs(hi-x1)<=tl,'벽 양 끝 '+qR(lo)+'~'+qR(hi)+' / '+qR(x0)+'~'+qR(x1));out.push('벽 '+Math.round(x1-x0))}
+  {const g=look('bulwark',WFX2.M.bulwark.b)[0],f=fields.find(x=>x.s&&x.s.id==='bulwark'),w=2*f.rad*WFX2.KS;qOk(g.sx===g.sy&&g.sx*g.b.vw<=w+.5&&g.sx<=2.3,'불워크 크기 '+qR(g.sx*g.b.vw)+' / 구역 '+qR(w));out.push('불워크 '+Math.round(g.sx*g.b.vw)+'/'+Math.round(w))}
+  return out.join(' · ')}));
+qT(QW48,'같이 하기: 동료 전사가 쓴 기술(바위 벽 · 던진 칼 · 세 번 착지 · 기병대 · 왕국 · 하베스트 · 기수 · 앵커)이 그림으로 · 오류 0 · 동료 효과가 나에게 걸리지 않음(자리 그대로)',()=>qFX31(()=>{FX31.P=qW48Fake();qPrep('mage',{lvl:140});P.x=QA_SPOT.x;P.y=QA_SPOT.y;followCam();
+  try{NET.gerr=[];const out=[],bad=[];for(const id of 'stonerampart weaponthrow executionleap heavenlycharge unfallenkingdom bloodharvest phantomriders earthanchor'.split(' ')){qClear();qWAClr();WFX2.inst.length=0;const r=qPeerOn();Object.assign(r,{cls:'warrior',x:P.x+300,y:P.y-120,face:0});const d0=WFX2.n.draw,px=P.x,py=P.y;
+      netGhostCast({from:'qa_peer',sp:id,L:10,x:Math.round(P.x+460),y:Math.round(P.y-100),pw:200});qStep(id==='executionleap'||id==='heavenlycharge'?60:20,{renderEvery:2,each:()=>{r.seen=performance.now()}});
+      if(!(WFX2.n.draw>d0))bad.push(id+' 동료 그림 없음');if(Math.hypot(P.x-px,P.y-py)>1)bad.push(id+' 내가 움직임');out.push(id)}
+    qOk(!bad.length,bad.join(' | '));qOk(!(NET.gerr||[]).length,'동료 시전 오류 '+(NET.gerr||[]).join());return out.join(' · ')}
+  finally{qPeerOff();qWAClr()}}));
+qT(QW48,'스톤 스킨(마법사): 묶음 fx-mage-earth-2가 있으면 무적 동안 125번 돌 껍질이 몸을 따라 그려지고(예전 시전 빛 대신) 무적이 끝나면 사라짐 · 예전 땅 묶음(fx-mage-earth)만 있으면 예전 빛 그대로이고 받을 줄에 fx-mage-earth-2 · 「예전 그림」이면 예전 그대로',()=>qFX31(()=>{
+  const run=P0=>{FX31.P=P0;FX31.want={};FX31.q=[];FX31.inst=[];qPrep('mage',{lvl:140});P.sk.stonebody=10;P.x=QA_SPOT.x;P.y=QA_SPOT.y;followCam();const n0=FXB.fx.length,d0=FX31.n.draw;qCast('stonebody',{x:P.x+100,y:P.y});const fb=FXB.fx.length-n0;
+    qOk(P.invT>0,'무적이 안 걸림');qStep(20,{renderEvery:1});return{inst:FX31.inst.filter(o=>o.st==='fx_125_1_mage_earth_stonebody'&&o.inv&&o.fol&&o.pk==='mage-earth-2').length,fb,draw:FX31.n.draw-d0}};
+  const F=qFX31Fake();const a=run(F);qOk(a.inst===1&&a.draw>0&&a.fb===0,'그림 '+JSON.stringify(a));P.invT=0;render();qOk(!FX31.inst.some(o=>o.inv&&time-o.t0<o.d),'무적이 끝났는데 남음');
+  const b=run({'mage-earth':F['mage-earth']});qOk(b.inst===0&&b.draw===0&&b.fb>0,'예전 땅 묶음만: '+JSON.stringify(b));qOk(FX31.q.includes('mage-earth-2'),'받을 줄 없음 '+FX31.q);
+  GFX.art='old';try{const c=run(F);qOk(c.inst===0&&c.fb>0&&c.draw===0,'예전 그림: '+JSON.stringify(c))}finally{delete GFX.art}return '새 그림 · 예전 묶음만 · 예전 그림'}));
+qT(QW48,'미리 받기: 단축칸에 올린(배운) 새 전사 기술 · 스톤 스킨의 묶음(fx-warrior-phys-2 · fx-mage-earth-2)을 미리 받을 목록에 넣음 · 안 배운 것은 안 넣음 · 「예전 그림」이면 아무것도 받지 않음(FX31.on)',()=>{
+  qWAPrep('warrior',['heavenlycharge']);P.bar[0]='heavenlycharge';P.bar[1]='lordgale';P.sk.lordgale=0;const s=FX31.barPacks();qOk(s.has('warrior-phys-2'),'전사 묶음 없음 '+[...s]);
+  P.bar[0]=null;const s2=FX31.barPacks();qOk(!s2.has('warrior-phys-2'),'안 배운 기술로 받음 '+[...s2]);
+  qPrep('mage',{lvl:140});P.sk.stonebody=10;P.bar[0]='stonebody';const s3=FX31.barPacks();qOk(s3.has('mage-earth-2'),'스톤 스킨 묶음 없음 '+[...s3]);
+  GFX.art='old';try{qOk(!FX31.on()&&!WFX2.get('stonerampart'),'「예전 그림」인데 켜짐')}finally{delete GFX.art}qClear();return [...s].join()+' · '+[...s3].join()});
+}
+/* ==== wfx48 끝 ==== */
+/* ==== kart48 ==== */
+{const QK48='성장 그림 v48';
+// 진짜 묶음(img/flare-g48-*)과 같은 열쇠를 가진 가짜 묶음 (#qa는 그림을 받지 않으므로)
+const QK48A={'g48-wolf':{idle:[4,8],move:[8,8],atk:[4,8]},'g48-golem':{idle:[4,8],move:[8,8],atk:[4,8]},'g48-hawk':{fly:[8,8],glide:[4,8]},'g48-spirit':{hover:[6,1]},
+  'g48-horse':{idle:[4,8],move:[8,8]},'g48-courser':{idle:[4,8],move:[8,8]},
+  'g48-base':Object.fromEntries([...['smith','herb','dummy','bed'].flatMap(k=>[1,2,3].map(i=>k+'/'+i)),'fence/0','fence/1'].map(k=>[k,[1,1]])),
+  'g48-field':Object.assign({spark:[4,1]},Object.fromEntries(['herb','ore','cry'].flatMap(k=>[k+'/0',k+'/1']).map(k=>[k,[1,1]])))};
+const QK48N=Object.keys(QK48A);
+function qk48Fake(n){const cv=document.createElement('canvas');cv.width=cv.height=4;const a=QK48A[n],r={};for(const k in a){const [nf,nd]=a[k];for(let f=0;f<nf;f++)for(let d=0;d<nd;d++)r[nd>1?`${k}/${f}/${d}`:nf>1?`${k}/${f}`:k]=[0,0,4,4,2,4]}return{img:cv,meta:{g48:1,sc:1,a,r},__n:n}}
+// fn(seen): seen = 이번에 그린 새 그림 [묶음 이름, 열쇠]. 묶음 · 설정 · flDraw는 끝나면 되돌린다
+function qk48(packs,fn){const sv={},wt={},art=GFX.art,f0=flDraw,seen=[];for(const n of QK48N){sv[n]=FL.P[n];wt[n]=FL.want[n];delete FL.P[n];delete FL.want[n]}
+  for(const n of packs)FL.P[n]=qk48Fake(n);delete GFX.art;flDraw=function(c,PK,key){if(PK&&PK.__n){seen.push([PK.__n,key]);return true}return f0.apply(this,arguments)};
+  try{return fn(seen)}finally{flDraw=f0;if(art===undefined)delete GFX.art;else GFX.art=art;for(const n of QK48N){if(sv[n])FL.P[n]=sv[n];else delete FL.P[n];if(wt[n]!==undefined)FL.want[n]=wt[n];else delete FL.want[n]}
+    for(const a of allies)if(a.g42pet)a.gone=true;for(let i=allies.length-1;i>=0;i--)if(allies[i].g42pet)allies.splice(i,1);const m=P&&P.g42&&P.g42.mt;if(m)m.on=0}}
+const qk48Mid=()=>({x:W/2,y:H/2});
+function qk48Pet(k){for(let i=allies.length-1;i>=0;i--)if(allies[i].g42pet)allies.splice(i,1);P.g42.pet={tr:40,k};const a=g42PetMake();a._s=qk48Mid();return a}
+// 동료 넷 · 말 · 거점 · 채집 · 울타리 · 숨은 곳 · 캔 자리를 한 번씩 그린다
+function qk48DrawAll(){for(const k of ['wolf','golem','hawk','spirit']){const a=qk48Pet(k);drawAlly(a);a.x+=4;a.y+=4;drawAlly(a)}
+  const m=g42Mt();m.own=1;m.lv=1;m.on=1;P._s=qk48Mid();drawHero();P.x+=3;drawHero();m.lv=2;drawHero();m.on=0;
+  const b=g42Bs();b.reg='h29_reed';b.b={smith:3,herb:2,dummy:1,bed:3};g42BsProps();for(const d of decor.filter(d=>d.g42bs)){d._s=qk48Mid();drawDecor(d)}
+  const s=qk48Mid();for(const o of [{kind:'g42node',m:'herb',f:.5,near:true},{kind:'g42node',m:'cry',f:0,near:false},{kind:'k48dep',m:'ore'},{kind:'g42bar',hp:null,lb:'뿔피리',on:false},{kind:'g42bar',hp:.3,lb:'울타리',on:true},{kind:'g42ex',f:.6}])
+    drawRegionDecor(Object.assign({k:'q30',q30:1,x:P.x,y:P.y,s:1,v:0,zl:0,_s:s},o))}
+qT(QK48,'묶음이 없을 때(#qa · 받기 전 실패) · 「그림: 예전 그림」: 동료 넷 · 말 · 거점 건물 · 채집 자리 · 울타리 · 숨은 곳 모두 예전 그림 그대로(새 그림 0장) · 오류 0 · 캔 자리 표시 없음 · #qa에서 묶음을 받지 않음',()=>{
+  q42Prep('mage',90,'h29_reed');ctx.save();try{
+  qk48([],seen=>{const n0=K48.n;qk48DrawAll();qOk(seen.length===0&&K48.n===n0,'묶음 없는데 새 그림 '+seen.length);for(const n of QK48N)qOk(FL.want[n]==null,'#qa에서 묶음을 받음 '+n);
+    for(const n of QK48N)qOk(k48Pk(n)===null,'없음이 아님 '+n);
+    const S=g42GSpots('h29_reed');P.x=S[0].x+100;P.y=S[0].y;for(let i=0;i<S.length;i++)G42F.cut['h29_reed'+i]=G42.clock+400;g42GTick(1/30);k48GTick();qOk(![...Q30.mo.values()].some(m=>m.kind==='k48dep'),'묶음 없는데 캔 자리 표시');
+    for(let i=0;i<S.length;i++)delete G42F.cut['h29_reed'+i]});
+  qk48(QK48N,seen=>{GFX.art='old';const n0=K48.n;qk48DrawAll();qOk(seen.length===0&&K48.n===n0,'「예전 그림」인데 새 그림 '+seen.length);for(const n of QK48N)qOk(k48Pk(n)===null,'예전 그림인데 묶음 '+n)});
+  qk48([],seen=>{for(const n of QK48N)FL.want[n]='fail';qk48DrawAll();qOk(seen.length===0,'못 받았는데 새 그림');for(const n of QK48N)qOk(k48Pk(n)===null,'못 받음이 없음이 아님 '+n)});
+  }finally{ctx.restore()}return QK48N.length+'묶음'});
+qT(QK48,'8방향: 화면에서 움직인 방향 → 띠 칸 (0 남 · 1 남서 · 2 서 · 3 북서 · 4 북 · 5 북동 · 6 동 · 7 남동) · 띠 순서 남 남서 서 북서 북 북동 동 남동',()=>{
+  for(let i=0;i<8;i++){const th=Math.PI/2+i*Math.PI/4,sx=Math.cos(th),sy=Math.sin(th),dx=sy+sx/2,dy=sy-sx/2,w=W2S(100+dx*10,100+dy*10),o=W2S(100,100);
+    qOk(Math.abs(Math.atan2(w.y-o.y,w.x-o.x)-Math.atan2(sy,sx))<1e-6||Math.abs(Math.abs(Math.atan2(w.y-o.y,w.x-o.x)-Math.atan2(sy,sx))-6.283)<1e-6,'투영 '+i);
+    qOk(k48Dir(dx,dy)===i,`방향 ${i} → ${k48Dir(dx,dy)}`);qOk(k48Dir(dx*.2+.03,dy*.2)===i,`살짝 비낀 방향 ${i}`)}
+  qOk(k48Dir(1,1)===0&&k48Dir(-1,-1)===4&&k48Dir(1,-1)===6&&k48Dir(-1,1)===2,'세계 축');
+  const K=k48Keys(qk48Fake('g48-wolf'));qOk(K.move.length===8&&K.move[0].length===8&&K.move[3][5]==='move/3/5'&&K.idle.length===4&&K.atk[2][7]==='atk/2/7','열쇠 표');
+  const ks=new Set();for(let t=0;t<1.6;t+=.05)ks.add(k48Pp(4,t,1.6));qOk(ks.size===4,'서기 오가기 '+[...ks]);qOk(k48Pp(4,.8*0+.0,1.6)===0&&k48Pp(4,1.6*4/6+.01,1.6)===2,'오가기 순서');
+  return '8방향'});
+qT(QK48,'동료 짐승 그림(묶음 있을 때): 서 있으면 서기 · 움직이면 그 방향 달리기/걷기 · 덤벼들면 적 쪽으로 치기/물기 · 매는 움직이면 날갯짓 · 멈추면 활공 · 정령은 떠 있기 · 한 번에 한 장 · 고친 버그: v42 늑대 동료가 사냥 동료 그림(fxphys)에 가로채이던 것도 새 그림으로',()=>{
+  q42Prep('mage',90,'h29_reed');ctx.save();const t0=time;let n=0;try{qk48(['g48-wolf','g48-golem','g48-hawk','g48-spirit'],seen=>{
+  for(const k of ['wolf','golem']){const a=qk48Pet(k);seen.length=0;drawAlly(a);qOk(seen.length===1&&seen[0][0]==='g48-'+k&&/^idle\/\d\/0$/.test(seen[0][1]),k+' 처음 서기(남) '+seen.map(x=>x[1]));
+    seen.length=0;a.x+=4;a.y+=4;drawAlly(a);qOk(seen.length===1&&/^move\/\d\/0$/.test(seen[0][1]),k+' 남쪽으로 움직임 '+seen.map(x=>x[1]));
+    seen.length=0;a.x-=4;a.y+=4;drawAlly(a);qOk(seen.length===1&&/^move\/\d\/2$/.test(seen[0][1]),k+' 서쪽으로 움직임 '+seen.map(x=>x[1]));
+    time+=1;seen.length=0;drawAlly(a);qOk(seen.length===1&&/^idle\/\d\/2$/.test(seen[0][1]),k+' 멈추면 서기(보던 쪽) '+seen.map(x=>x[1]));
+    const e=dgMob(REGIONS.h29_reed.mobs[0],a.x+100,a.y-100,80);a.lunge=.2;seen.length=0;drawAlly(a);qOk(seen.length===1&&seen[0][1]==='atk/0/6',k+' 덤벼듦: 적(동쪽) 쪽 치기 첫 장 '+seen.map(x=>x[1]));
+    time+=.3;a.lunge=.05;seen.length=0;drawAlly(a);qOk(/^atk\/[1-3]\/6$/.test(seen[0][1]),k+' 치기 이어짐 '+seen.map(x=>x[1]));time+=.5;seen.length=0;drawAlly(a);qOk(/^idle\/\d\/6$/.test(seen[0][1]),k+' 치기 끝 '+seen.map(x=>x[1]));
+    e.dead=true;enemies.splice(enemies.indexOf(e),1);n++}
+  {const a=qk48Pet('hawk');drawAlly(a);seen.length=0;a.x+=4;a.y-=4;drawAlly(a);qOk(seen.length===1&&seen[0][0]==='g48-hawk'&&/^fly\/\d\/6$/.test(seen[0][1]),'매 날갯짓(동) '+seen.map(x=>x[1]));
+    time+=1;seen.length=0;drawAlly(a);qOk(seen.length===1&&/^glide\/\d\/6$/.test(seen[0][1]),'매 활공 '+seen.map(x=>x[1]));n++}
+  {const a=qk48Pet('spirit'),ks=new Set();for(let i=0;i<30;i++){seen.length=0;time+=.04;drawAlly(a);qOk(seen.length===1&&/^hover\/[0-5]$/.test(seen[0][1]),'정령 '+seen.map(x=>x[1]));ks.add(seen[0][1])}qOk(ks.size>=5,'정령 떠 있기 칸 '+ks.size);n++}
+  // 늑대: 사냥 동료 그림(FXP.pet)이 아니라 이 파일이 그림
+  {const a=qk48Pet('wolf'),p0=FXP.pet;let hit=0;FXP.pet=function(){hit++;return p0.apply(this,arguments)};try{seen.length=0;drawAlly(a)}finally{FXP.pet=p0}qOk(hit===0&&seen.length===1,'늑대가 사냥 동료 그림으로 감 '+hit)}
+  })}finally{time=t0;ctx.restore()}return n+'종'});
+qT(QK48,'말 · 준마(묶음 있을 때): 타고 움직이면 그 방향 달리기 · 멈추면 서기 · 80레벨 준마 훈련 뒤 준마 그림 · 말 한 장 · 사람은 예전처럼 말 위(그린 뒤 자리 되돌림) · 받는 중엔 말 없이(예전 무료 말 묶음을 받지 않음)',()=>{
+  q42Prep('mage',90,'h29_reed');ctx.save();const t0=time;try{qk48(['g48-horse','g48-courser'],seen=>{const m=g42Mt();m.own=1;m.lv=1;m.on=1;P._s=qk48Mid();const y0=P._s.y;
+    drawHero();seen.length=0;P.x+=4;P.y+=4;drawHero();qOk(seen.length===1&&seen[0][0]==='g48-horse'&&/^move\/\d\/0$/.test(seen[0][1]),'말 남쪽 달리기 '+JSON.stringify(seen));qOk(P._s.y===y0,'사람 자리 안 되돌림');
+    seen.length=0;P.x+=4;P.y-=4;drawHero();qOk(/^move\/\d\/6$/.test(seen[0][1]),'말 동쪽 '+seen.map(x=>x[1]));
+    time+=1;seen.length=0;drawHero();qOk(seen.length===1&&/^idle\/\d\/6$/.test(seen[0][1]),'말 서기 '+seen.map(x=>x[1]));
+    m.lv=2;seen.length=0;drawHero();qOk(seen.length===1&&seen[0][0]==='g48-courser','준마 '+JSON.stringify(seen));
+    qOk(g42Horse(P,P._s,G42MD.st)===true,'말을 그렸는데 사람이 안 올라감');
+    // 받는 중: 말 없이 · 예전 말 묶음(m-horse) 요청 없음
+    delete FL.P['g48-courser'];FL.want['g48-courser']=1;const mw=FL.want['m-horse'];delete FL.want['m-horse'];seen.length=0;qOk(g42Horse(P,P._s,G42MD.st)===false&&!seen.length&&FL.want['m-horse']==null,'받는 중인데 말을 그림');if(mw!==undefined)FL.want['m-horse']=mw;
+    const o={x:P.x,y:P.y,_s:qk48Mid(),g42mt:1},st={dx:0,dy:1,x:o.x,y:o.y};seen.length=0;g42Horse(o,o._s,st);qOk(seen.length===1&&seen[0][0]==='g48-horse','다른 사람 말 '+JSON.stringify(seen))})}finally{time=t0;ctx.restore()}return 'ok'});
+qT(QK48,'거점 건물(묶음 있을 때): 넷 모두 단계(1~3)마다 그 건물 그림 한 장 · 예전 소품(모루 · 걸이 · 모닥불 · 화분 · 약초 · 갑옷 받침 · 천막 · 침대)은 안 그림 · 자리 · 충돌 소품은 그대로',()=>{
+  q42Prep('mage',90,'h29_reed');ctx.save();try{qk48(['g48-base'],seen=>{const b=g42Bs();b.reg='h29_reed';
+    for(const L of [1,2,3]){b.b={smith:L,herb:L,dummy:L,bed:L};g42BsProps();const ds=decor.filter(d=>d.g42bs);qOk(ds.length===[0,8,12,14][L]||ds.length>=4,'소품 수 '+ds.length);seen.length=0;
+      const di=ctx.drawImage,fl=ctx.fill;let nd=0;ctx.drawImage=function(){nd++;return di.apply(this,arguments)};ctx.fill=function(){nd++;return fl.apply(this,arguments)};
+      try{for(const d of ds){d._s=qk48Mid();drawDecor(d)}}finally{ctx.drawImage=di;ctx.fill=fl}
+      qOk(JSON.stringify(seen.map(x=>x[1]).sort())===JSON.stringify(['bed','dummy','herb','smith'].map(k=>k+'/'+L)),`${L}단계 ${seen.map(x=>x[1])}`);qOk(nd===0,`${L}단계 예전 소품도 그림 ${nd}`)}
+    b.b={smith:2,herb:0,dummy:3,bed:0};g42BsProps();seen.length=0;for(const d of decor.filter(d=>d.g42bs)){d._s=qk48Mid();drawDecor(d)}qOk(JSON.stringify(seen.map(x=>x[1]).sort())==='["dummy/3","smith/2"]','섞인 단계 '+seen.map(x=>x[1]))})}
+  finally{ctx.restore()}return 'ok'});
+qT(QK48,'채집 자리 · 습격 울타리 · 숨은 곳(묶음 있을 때): 캐기 전 그림 · 캔 뒤 그림 · 울타리가 절반 넘게 상하면 부서진 그림 · 반짝임 4장 · 고친 버그: 캔 뒤 표시를 새 물건으로 넣으면 장식 수가 같아 화면 칸 색인(decoIdx)이 못 봐서 안 그려짐 → 같은 물건의 종류만 바꿈',()=>{
+  q42Prep('mage',90,'h29_reed');ctx.save();try{qk48(['g48-field','g48-base'],seen=>{const s=qk48Mid(),D=o=>{seen.length=0;drawRegionDecor(Object.assign({k:'q30',q30:1,x:P.x,y:P.y,s:1,v:0,zl:0,_s:s},o));return seen.map(x=>x[1]).join()};
+    for(const m of ['herb','ore','cry']){qOk(D({kind:'g42node',m,f:0,near:false})===m+'/0',m+' 캐기 전');qOk(D({kind:'k48dep',m})===m+'/1',m+' 캔 뒤')}
+    qOk(D({kind:'g42bar',hp:null,lb:'a',on:false})==='fence/0','울타리 평소');qOk(D({kind:'g42bar',hp:.6,lb:'a',on:true})==='fence/0','울타리 60%');qOk(D({kind:'g42bar',hp:.4,lb:'a',on:true})==='fence/1','울타리 40% 부서짐');
+    const ks=new Set();for(let i=0;i<20;i++){time+=.05;ks.add(D({kind:'g42ex',f:.5,x:100}))}qOk([...ks].every(k=>/^spark\/[0-3]$/.test(k))&&ks.size===4,'반짝임 '+[...ks]);
+    // 캔 뒤 표시: 같은 물건 · 종류만 바뀜 · 다시 나면 캐기 전으로
+    const S=g42GSpots('h29_reed');P.x=S[0].x+100;P.y=S[0].y;const key='g42g/h29_reed0';g42GTick(1/30);const m1=Q30.mo.get(key);qOk(m1&&m1.kind==='g42node','캐기 전 표시 없음');
+    G42F.cut.h29_reed0=G42.clock+400;g42GTick(1/30);k48GTick();const m2=Q30.mo.get(key);qOk(m2===m1&&m2.kind==='k48dep'&&m2.m===S[0].m,'캔 뒤 표시가 다른 물건 '+(m2&&m2.kind));
+    q30Sync();qOk(decor.includes(m2),'장식 목록에 없음');qOk(decoVisible(0,0,0,0,[]).includes(m2),'화면 칸 색인(움직이는 장식 목록)에 없음');
+    delete G42F.cut.h29_reed0;g42GTick(1/30);k48GTick();qOk(Q30.mo.get(key)===m1&&m1.kind==='g42node','다시 난 자리')})}finally{ctx.restore()}return 'ok'});
+qT(QK48,'받는 중(묶음 요청함 · 아직 안 옴): 늑대 · 골렘 · 정령은 예전 그림, 매는 코드 매(예전 무료 매 묶음을 받지 않음), 새 그림 0장 · 오류 0',()=>{
+  q42Prep('mage',90,'h29_reed');ctx.save();try{qk48([],seen=>{for(const n of QK48N)FL.want[n]=1;const hw=FL.want['m-hawk'];delete FL.want['m-hawk'];const jb=j2Bird;let nb=0;j2Bird=function(){nb++;return jb.apply(this,arguments)};
+    try{for(const k of ['wolf','golem','spirit','hawk']){const a=qk48Pet(k);drawAlly(a)}}finally{j2Bird=jb}
+    qOk(seen.length===0,'새 그림 '+seen.length);qOk(nb===1,'코드 매 '+nb);qOk(FL.want['m-hawk']==null,'예전 매 묶음을 받음');if(hw!==undefined)FL.want['m-hawk']=hw;for(const n of QK48N)qOk(k48Pk(n)===0,'받는 중이 아님 '+n)})}finally{ctx.restore()}return 'ok'});
+}
+/* ==== kart48 끝 ==== */
+/* ==== npc48 ==== */
+{const QN48='마을 사람 서 있는 그림 v48';
+const qN48Ids=()=>Object.keys(N48.id),qN48L=id=>({...TWFOLK[id].L,key:id});
+// 가짜 묶음 (왼쪽 절반만 빨강: 굽기에서 좌우가 뒤집혔는지 본다). 어른 80×155 · 아이 50×113, 발밑 (가운데, 아래 1px 위)
+const qN48Fake=()=>{const cv=document.createElement('canvas');cv.width=cv.height=200;const g=cv.getContext('2d');g.fillStyle='#ff0000';g.fillRect(0,0,40,200);g.fillRect(100,0,25,200);const pk={};
+  for(const id of qN48Ids()){const n=N48.id[id];(pk[n]=pk[n]||{img:cv,meta:{n48:{},ref:154}}).meta.n48[id]=TWFOLK[id].L.child?[100,0,50,113,25,112]:[0,0,80,155,40,154]}return pk};
+function qN48(fn){const sv={},art=GFX.art,bk=SC.bakeLeft;for(const p in N48.town){const n='npc48-'+p;sv[n]=FL.P[n];delete FL.P[n]}
+  const clr=()=>{for(const k of [...SC.map.keys()])if(/^n48\//.test(k)){SC.bytes-=SC.map.get(k).bytes;SC.map.delete(k)}};clr();
+  try{return fn()}finally{for(const n in sv){if(sv[n])FL.P[n]=sv[n];else delete FL.P[n]}if(art===undefined)delete GFX.art;else GFX.art=art;SC.bakeLeft=bk;clr();if(IN)twLeave(true);if(DG)leaveDungeon();if(REG.id!=='home')loadRegion('home')}}
+qT(QN48,'목록: 그림 88장 모두(윌로벤 5명 포함)가 마을별 묶음 6개(브렌힐 · 헤이븐 · 아르덴 · 골드미어 · 엘드홀트 · 사하르) 중 자기 마을 것에 하나씩 · 모두 TWFOLK에 있고 그 마을(방 안 포함)에 한 번씩 서 있음 · 묶음 이름은 서버가 내주는 이름',()=>{
+  qPrep('mage');const ids=qN48Ids();qOk(ids.length===88,'수 '+ids.length);const pks=new Set(Object.values(N48.id));qOk(pks.size===6,'묶음 수 '+pks.size);
+  for(const n of pks)qOk(/^(flare|fx)-[a-z0-9_-]+$/.test('flare-'+n),'서버 이름 규칙 '+n);
+  const placed=new Map();for(const [L,t] of wxTowns())for(const d of L.decor)if(d.k==='tfolk'&&!d.room)placed.set(d.id,(d.town||t).id);for(const f of TW.folk)if(f.room&&f.town)placed.set(f.id,f.town.id);
+  for(const id of ids){qOk(TWFOLK[id]&&TWFOLK[id].L,'TWFOLK 없음 '+id);const tw=placed.get(id);qOk(tw,'게임에 없음 '+id);qOk(N48.town[N48.id[id].slice(6)]===tw,'다른 마을 묶음 '+id+' '+tw)}
+  const cnt={};for(const f of TW.folk)cnt[f.id]=(cnt[f.id]||0)+1;for(const id of ids)qOk(cnt[id]===1,'한 번이 아님 '+id+' '+cnt[id]);
+  return ids.length+'명 · 묶음 '+pks.size});
+qT(QN48,'묶음이 없을 때(받기 전 · #qa)와 「그림: 예전 그림」: 88명 모두 새 그림을 쓰지 않음(예전 그림 그대로) · #qa에서는 묶음을 받지 않음 · 오류 없음',()=>qN48(()=>{qPrep('mage');
+  for(const id of qN48Ids()){SC.bakeLeft=99;const e=twFolkSprite(qN48L(id),0)||twFolkSprite(qN48L(id),0);qOk(e&&!/^n48\//.test(e.key),'묶음 없이 새 그림 '+id)}
+  qOk(!Object.keys(FL.want).some(n=>/^npc48-/.test(n)),'#qa에서 받음');
+  const pk=qN48Fake();Object.assign(FL.P,pk);GFX.art='old';
+  for(const id of qN48Ids()){SC.bakeLeft=99;const e=twFolkSprite(qN48L(id),0)||twFolkSprite(qN48L(id),0);qOk(e&&!/^n48\//.test(e.key),'예전 그림 설정에서 새 그림 '+id)}
+  return 'ok'}));
+qT(QN48,'묶음이 있으면 88명 모두 새 그림: 한 장(서기 · 걷기 같은 그림, 숨쉬기만 1.2% 늘임) · 발밑 기준점 그대로 · 키(어른 60 · 아이 약 44) · 왼쪽 아래를 본 그림을 뒤집어 구움(face 1 = 오른쪽) · 다른 사람(예: 여관 주인 리사)은 예전 그림',()=>qN48(()=>{qPrep('mage');
+  Object.assign(FL.P,qN48Fake());const k=60/154;let n=0;
+  for(const id of qN48Ids()){const L=qN48L(id),ch=!!L.child;SC.bakeLeft=99;const e=twFolkSprite(L,0);qOk(e&&e.key==='n48/'+id,'새 그림 아님 '+id+' '+(e&&e.key));
+    const hw=ch?50:80,hh=ch?113:155,ay=ch?112:154,ax=ch?25:40;
+    qOk(Math.abs(e.w-hw*k)<.01&&Math.abs(e.h-hh*k)<.01,'크기 '+id+' '+e.w+'×'+e.h);qOk(Math.abs(e.ay-ay*k)<.01&&Math.abs(e.ax-(hw-ax)*k)<.01,'기준점 '+id+' '+e.ax+','+e.ay);
+    qOk(Math.abs(e.ay-(ch?43.6:60))<.1,'키 '+id+' '+e.ay);
+    for(const f of [1,2,4])qOk(twFolkSprite(L,f)===e,'걷기 · 숨쉬기 같은 그림 '+id+' '+f);
+    const b=twFolkSprite(L,3);qOk(b&&b.key==='n48/'+id+'/b'&&Math.abs(b.ay-e.ay*1.012)<.01&&Math.abs(b.h-e.h*1.012)<.01&&b.w===e.w&&b.ax===e.ax,'숨쉬기 '+id);
+    // 뒤집힘: 원본 왼쪽 절반이 빨강 → 구운 그림은 오른쪽 절반이 빨강
+    const g=e.cv.getContext('2d'),W=e.cv.width,H=e.cv.height,px=x=>g.getImageData(Math.floor(x*W),Math.floor(H/2),1,1).data;qOk(px(.8)[0]>200&&px(.8)[3]>200&&px(.2)[3]<30,'좌우 뒤집힘 '+id+' '+[...px(.8)]+' / '+[...px(.2)]);n++}
+  // 그림 없는 사람은 그대로
+  for(const id of Object.keys(TWFOLK))if(!N48.id[id]&&TWFOLK[id].L){SC.bakeLeft=99;const e=twFolkSprite({...TWFOLK[id].L,key:id},0);qOk(!e||!/^n48\//.test(e.key),'그림 없는 사람이 바뀜 '+id)}
+  return n+'명'}));
+qT(QN48,'마을에서 그리기: 새 그림의 발밑이 사람 자리 · face 1/-1 모두 같은 자리 · 이름표 높이(어른 72 · 아이 52) · 누르는 상자 그대로 · 걷는 사람도 그림이 그려짐',()=>qN48(()=>{qPrep('mage');
+  Object.assign(FL.P,qN48Fake());const t=v20Town('brenhill');P.x=t.x;P.y=t.y;followCam();const di=ctx.drawImage,dw=[];let n=0;
+  ctx.drawImage=function(...a){if(a.length===9)dw.push(a.slice(5));else if(a.length===5)dw.push(a.slice(1));return di.apply(this,a)};
+  try{for(const d of decor){if(d.k!=='tfolk'||!N48.id[d.id])continue;d._s=W2S(d.x,d.y);
+      for(const fc of [1,-1]){d.face=fc;d.moving=fc<0;d.walkT=.3;SC.bakeLeft=99;twFolkSprite(d.L,0);twFolkSprite(d.L,1);twFolkSprite(d.L,2);dw.length=0;QLBL.length=0;P.x=d.x+40;P.y=d.y+40;
+        twDrawFolk(d);const e=twFolkSprite(d.L,d.moving?1:0);qOk(dw.length>=1,'안 그림 '+d.id);const r=dw[0],bob=d.moving?-Math.abs(Math.sin(d.walkT*14))*1.2:0;
+        if(fc>0){qOk(Math.abs(r[0]-(d._s.x-e.ax))<.01&&Math.abs(r[1]+r[3]-(d._s.y+bob+e.h-e.ay))<.01,'발밑 '+d.id+' '+r)}
+        else qOk(Math.abs(r[0]+e.ax)<.01&&Math.abs(r[1]+e.ay)<.01,'뒤집어 그린 기준점 '+d.id+' '+r);
+        qOk(QLBL.length===1&&Math.abs(QLBL[0].y-(d._s.y-(d.L.child?52:72)))<.01,'이름표 '+d.id);
+        const bx=tw22Box(d,false);qOk(JSON.stringify(bx)===JSON.stringify(d.L.child?[-10,-46,10,2]:[-13,-66,13,2]),'누르는 상자 '+d.id)}
+      d.moving=false;n++}}
+  finally{ctx.drawImage=di;QLBL.length=0}
+  qOk(n>=14,'브렌힐 사람 수 '+n);return n+'명'}));
+qT(QN48,'미리 받기 목록: 그 마을 가까이(안전 지대 + 900) · 방 안이면 그 마을 묶음 · 먼 들판 · 다른 지역 · 던전에서는 없음 · #qa에서는 실제로 받지 않음',()=>qN48(()=>{qPrep('mage');
+  const at=(id,dx,dy)=>{const t=v20Town(id);P.x=t.x+(dx||0);P.y=t.y+(dy||0);return n48Want()};
+  qOk(at('brenhill').includes('npc48-bren'),'브렌힐');qOk(at('haven').includes('npc48-haven'),'헤이븐');qOk(!at('brenhill',6000,6000).length,'먼 들판 '+at('brenhill',6000,6000));
+  qOk(!at('brenhill').some(n=>/arden|gm|el|sh/.test(n)),'다른 지역 묶음');
+  const b=TW.blds.home.find(b=>b.enter==='bren_chapel');twEnter(b);qOk(n48Want().includes('npc48-bren'),'방 안 '+n48Want());twLeave(true);
+  loadRegion('royal');qOk(at('arden').includes('npc48-arden'),'왕도');loadRegion('plains');qOk(at('goldmere').join()==='npc48-gm','골드미어');
+  loadRegion('forest');qOk(at('elderhold').join()==='npc48-el','엘드홀트');loadRegion('desert');qOk(at('sahar').join()==='npc48-sh','사하르');
+  loadRegion('home');enterDungeon(CAVES[0]);qOk(!n48Want().length,'던전');leaveDungeon();n48Pre();qOk(!Object.keys(FL.want).some(n=>/^npc48-/.test(n)),'#qa에서 받음');return 'ok'}));
+qT(QN48,'윌로벤 다섯(꼬마 핍 · 꼬마 솔 · 무기상 도린 · 가죽장이 레아 · 잡화상 몰리, 주인 2026-10-26 「다른 마을로 보내도 돼」): 헤이븐 나루(헤이븐 교차로 안전 지대 안 · 마을 중심 남쪽 강가)에 한 번씩 · 걸을 수 있는 땅(물 · 건물 · 막힘 아님) · 다른 사람 · 문 · 건물과 안 겹침 · 누르는 상자 안 겹침 · 이름 · 역할 · 대사 그대로 · 아이 걷는 길도 걸을 수 있는 땅 · 셋은 말을 걸면 헤이븐의 같은 가게(무기 · 갑옷 · 잡화) · 새 그림으로 그려짐 · 다른 사람 순서 그대로 · 새 저장 값 없음',()=>qN48(()=>{qPrep('mage');
+  const t=v20Town('haven'),L=HOME,Pt=wxTownParts(L,t),W5=['weaponer','tanner','grocer2','kid2','kid3'],NM={weaponer:['무기상 도린','weapon'],tanner:['가죽장이 레아','armor'],grocer2:['잡화상 몰리','general'],kid2:['꼬마 핍',''],kid3:['꼬마 솔','']};
+  const fk=L.decor.filter(d=>d.k==='tfolk'&&!d.room);let walk=0;
+  for(const id of W5){const ds=L.decor.filter(d=>d.k==='tfolk'&&d.id===id);qOk(ds.length===1,'한 번이 아님 '+id+' '+ds.length);const d=ds[0];
+    qOk(d.town===t&&!d.room,'헤이븐이 아님 '+id);qOk(d.n===NM[id][0]&&d.n===TWFOLK[id].n&&d.role===TWFOLK[id].role&&d.lines===TWFOLK[id].lines&&TWFOLK[id].lines.length===1,'이름 · 대사 '+id);
+    qOk((d.shopk||'')===NM[id][1],'가게 종류 '+id+' '+d.shopk);
+    const dd=Math.hypot(d.hx-t.x,d.hy-t.y);qOk(dd<t.safe-40&&d.hy-t.y>350,'나루(남쪽 강가)가 아님 '+id+' '+Math.round(d.hx-t.x)+','+Math.round(d.hy-t.y));qOk(inSafe(d.hx,d.hy,0),'안전 지대 밖 '+id);
+    qOk(!blockedAt(d.hx,d.hy)&&!wxWet(Pt,d.hx,d.hy)&&wxSpotOk(Pt,d.hx,d.hy,null,[],{bld:WXT.bld,door:WXT.door}),'걸을 수 없는 자리 · 건물 · 문 곁 '+id);
+    for(const o of fk)if(o!==d)qOk(Math.hypot(o.hx-d.hx,o.hy-d.hy)>=WXT.npc,'사람과 겹침 '+id+' · '+o.id);
+    const r=tw22Abs(d,d.hx,d.hy,tw22Box(d,false));for(const o of L.decor)if(o!==d&&!o.room&&Math.abs(o.x-d.x)<300&&Math.abs(o.y-d.y)<300&&tw22Box(o,false)&&!tw22Same(o,d))qOk(!tw22Hit(r,tw22Abs(o,o.k==='tfolk'?o.hx:o.x,o.k==='tfolk'?o.hy:o.y,tw22Box(o,false)),0),'누르는 상자 겹침 '+id+' · '+(o.id||o.k));
+    if(d.path){walk++;qOk(d.path.length>=2,'길 '+id);for(const q of d.path)qOk(!blockedAt(q.x,q.y)&&!wxWet(Pt,q.x,q.y),'길이 물 · 막힘 '+id)}
+    if(d.shopk){act=null;tw22Do(d);qOk(act==='shop'&&actTown===t&&actShop===d.shopk,'가게 '+id+' '+act+' '+(actTown&&actTown.id)+' '+actShop);act=null}}
+  qOk(walk>=1,'아이가 하나도 안 걸음');
+  // 마을 decor 뒤에 이어 붙임(다섯이 나란히, 그 뒤에 마을 사람 없음): 다섯 앞의 것들의 순서는 그대로
+  const ix=W5.map(id=>L.decor.findIndex(d=>d.k==='tfolk'&&d.id===id));qOk(ix.every((v,i)=>v===ix[0]+i)&&L.decor.every((d,i)=>i>=ix[0]||!(d.k==='tfolk'&&W5.includes(d.id)))&&L.decor.slice(ix[0]+5).every(d=>d.k!=='tfolk'||!d.town||d.room),'뒤에 이어 붙이지 않음 '+ix);
+  // 새 그림
+  Object.assign(FL.P,qN48Fake());for(const id of W5){const d=L.decor.find(d=>d.k==='tfolk'&&d.id===id);SC.bakeLeft=99;const e=twFolkSprite(d.L,0);qOk(e&&e.key==='n48/'+id&&N48.id[id]==='npc48-haven','새 그림 아님 '+id)}
+  // 저장: 새 값 없음 (다섯 이름 · 아이디가 저장에 안 들어감)
+  const sv=JSON.stringify(saveData());qOk(!W5.some(id=>sv.includes('"'+id+'"'))&&!/n48|npc48/.test(sv),'저장에 새 값');
+  // 다시 불러도 한 번만
+  qOk(n48Willowen()===0&&L.decor.filter(d=>d.k==='tfolk'&&W5.includes(d.id)).length===5,'두 번 세움');
+  return W5.map(id=>{const d=L.decor.find(d=>d.k==='tfolk'&&d.id===id);return id+'('+Math.round(d.hx-t.x)+','+Math.round(d.hy-t.y)+')'}).join(' ')}));
+}
+/* ==== npc48 끝 ==== */
+/* ==== mob48 ==== */
+{const QM48='휴대폰 v48';
+const qm48Vis=b=>{const r=qmR(b);return r.width>0&&r.height>0};
+const qm48In=(r,w,h)=>r.left>=-.5&&r.top>=-.5&&r.right<=w+.5&&r.bottom<=h+.5;
+const qm48Pe=(el,type,id,x,y)=>el.dispatchEvent(new PointerEvent(type,{bubbles:true,cancelable:true,pointerType:'touch',pointerId:id,button:0,buttons:type==='pointerup'?0:1,clientX:x,clientY:y}));
+// 마을 사람(이름 있는)이나 노점 곁으로
+const qm48Town=k=>{const d=decor.find(d=>k==='shop'?d.k==='shop'&&d.tshop:(d.k==='tfolk'||d.k==='npc')&&d.n&&tw22Box(d,true));if(d){P.x=d.x+30;P.y=d.y+110;followCam()}return d};
+qT(QM48,'1. 작은 단추 크게(휴대폰 손가락 높이 40px 이상): 의뢰 알림판 「▾ 의뢰」「일지」「▶ 가기」 · 능력치 +1/+5 · 성장 창 단추 · 지역 지도 탭 · 닫기 · 스킬 창 단축칸 · 844×390과 667×375 모두 화면 안 · 단축바 · 구슬과 안 겹침 · PC는 그대로',()=>{
+  qPrep('mage',{lvl:40});questHud();const out=[];
+  for(const [w,h] of [[844,390],[667,375]])qM22('L',w,h,()=>{questHud();updateHud();const m=w+'×'+h;
+    const qb=[...document.querySelectorAll('#qhud .qh-top button,#qhud .m45go')].filter(qm48Vis);qOk(qb.length>=1,m+' 의뢰 단추 없음');
+    const hud=[...m22Shown(),...document.querySelectorAll('#hud .orb')].filter(qm48Vis);
+    for(const b of qb){const r=qmR(b);qOk(r.height>=39.5,m+' 의뢰 단추 높이 '+r.height);qOk(qm48In(r,w,h),m+' 의뢰 단추 화면 밖');for(const o of hud)qOk(!qmOv(r,qmR(o)),m+' 의뢰 단추가 단축바 · 구슬과 겹침')}
+    P.ap=10;openPanel('char');const st=[...pbody.querySelectorAll('button[data-stat]')];qOk(st.length>=2,m+' 능력치 단추 없음');for(const b of st){const r=qmR(b);qOk(r.width>=39.5&&r.height>=39.5,m+' 능력치 단추 '+r.width+'×'+r.height)}const sH=Math.round(qmR(st[0]).height);closePanel();
+    g42Open('main');const gb=[...pbody.querySelectorAll('.v20row .btns button,.v20box .btns button,.g42tabs button')].filter(qm48Vis);qOk(gb.length>=1,m+' 성장 창 단추 없음');for(const b of gb)qOk(qmR(b).height>=39.5,m+' 성장 창 단추 높이 '+qmR(b).height+' '+b.textContent.trim());closePanel();
+    wmapOpen();const wb=[...document.querySelectorAll('#wmap .wtop button')].filter(qm48Vis);qOk(wb.length>=2,m+' 지도 단추 없음');for(const b of wb){const r=qmR(b);qOk(r.height>=39.5&&qm48In(r,w,h),m+' 지도 단추 '+r.height+' '+b.textContent.trim())}
+    for(let i=0;i<wb.length;i++)for(let j=i+1;j<wb.length;j++)qOk(!qmOv(qmR(wb[i]),qmR(wb[j])),m+' 지도 단추끼리 겹침');const wH=Math.round(qmR(wb[0]).height);wmapClose();
+    openPanel('tree');const dk=[...pbody.querySelectorAll('.dock20 .dks')];qOk(dk.length>=7,m+' 단축칸 줄 없음');const r=qmR(dk[0]);qOk(r.width>=39.5&&r.height>=39.5,m+' 단축칸 '+r.width+'×'+r.height);closePanel();
+    out.push(`${m} 의뢰 ${Math.round(qmR(qb[0]).height)} · 능력치 ${sH} · 지도 ${wH} · 단축칸 ${Math.round(r.width)}`)});
+  qM22('',0,0,()=>{questHud();const b=$('#qhud .qh-top button');if(b)qOk(qmR(b).height<39.5,'PC 의뢰 단추가 바뀜 '+qmR(b).height);P.ap=10;openPanel('char');const s=pbody.querySelector('button[data-stat]');qOk(s&&qmR(s).height<39.5,'PC 능력치 단추가 바뀜');closePanel()});
+  return out.join(' / ')});
+qT(QM48,'6. 스킬 트리(가로 휴대폰): 위계를 옆으로 눕혀 모든 위계가 보임(844×390 · 667×375 · 640×360 모든 탭이 옆으로 밀지 않고 한 화면) · 설명 칸 260px, 좁은 휴대폰은 트리가 들어가는 만큼만 좁힘(사용자 「설명칸을 좁혀줘 그럼. 다 보이게」 · 130px 이상 · 글이 옆으로 안 잘림) · 아이콘 30px 이상(667부터 34px) · 누르면 고르기 그대로 · 3차 · 상위 목록도 한 화면(667 이상) · 세로 · PC는 그대로',()=>{
+  qPrep('mage',{lvl:140});P.job2='archmage';P.job3='archsorcerer';P.sp=3;const out=[];
+  for(const [w,h] of [[844,390],[667,375],[640,360]])qM22('L',w,h,()=>{openPanel('tree');const m=w+'×'+h,nt=pbody.querySelectorAll('.treetabs button').length;qOk(nt>=4,m+' 탭 수 '+nt);const res=[];
+    for(let i=0;i<nt;i++){pbody.querySelectorAll('.treetabs button')[i].click();const card=panel.querySelector('.card');qOk(card.classList.contains('m48t'),m+' 눕힌 트리 아님 '+i);
+      const tr=pbody.querySelector('.tree');if(tr){qOk(tr.classList.contains('m48f'),m+' 트리 안 바뀜 '+i);const sc=qmR(pbody.querySelector('.treescroll')),ns=[...tr.querySelectorAll(':scope>.node')],rl=[...tr.querySelectorAll(':scope>.rl')];
+        let hid=0;for(const n of ns){const r=qmR(n);qOk(r.width>=(w>=667?33.5:29.5),m+' 아이콘 '+r.width);qOk(r.top>=sc.top-1&&r.bottom<=sc.bottom+1,m+' 아이콘 위아래 잘림 '+i);if(r.left<sc.left-1||r.right>sc.right+1)hid++}
+        qOk(!hid,m+' 다 안 보임 '+i+' ('+hid+')');qOk(!pbody.querySelector('.m48cue:not([hidden])'),m+' 밀어 보기 표시가 남음 '+i);for(const e of rl)qOk(qmR(e).right<=sc.right+1,m+' 위계 이름 잘림 '+i);
+        // 설명 칸 폭: 844는 260 그대로 · 좁으면 (본문 폭 - 8 - 위계 수×38 - 2)까지만 좁힘(130 이상)
+        const dt=pbody.querySelector('.t27r'),dw=qmR(dt).width,want=Math.max(130,Math.min(260,pbody.clientWidth-8-rl.length*38-2-(tr.querySelector('.m48h')?46:0)));qOk(Math.abs(dw-want)<1.5,m+' 설명 칸 폭 '+dw+' / '+want);
+        if(w===844)qOk(Math.abs(dw-260)<1,m+' 844 설명 칸이 260이 아님 '+dw);qOk(dw>=129.5&&dw<=260.5,m+' 설명 칸 범위 '+dw);const de=dt.querySelector('.detail');if(de)qOk(de.scrollWidth<=de.clientWidth+1,m+' 설명 글 옆 잘림 '+i);
+        res.push(rl.length+'단 '+Math.round(qmR(ns[0]).width)+'px 설명'+Math.round(dw))}
+      else{const sc=pbody.querySelector('.m48sc'),rows=[...pbody.querySelectorAll('.j2row')];qOk(sc&&rows.length,m+' 목록 없음 '+i);const r0=qmR(sc);
+        for(const r of rows.map(qmR))qOk(r.height<=44.5&&(w<667||r.top>=r0.top-1&&r.bottom<=r0.bottom+1),m+' 목록 칸 '+r.height+' 잘림 '+i);/* 640×360 같은 더 좁은 화면은 목록을 위아래로 넘겨 봄 */res.push(rows.length+'칸')}}
+    // 누르면 고르기
+    pbody.querySelectorAll('.treetabs button')[0].click();const n=[...pbody.querySelectorAll('.tree .node[data-node]')].find(n=>n.dataset.node!==nodeSel);if(n){const id=n.dataset.node;n.click();qOk(nodeSel===id&&pbody.querySelector('.tree.m48f'),m+' 누르기 안 됨')}
+    closePanel();qOk(!panel.querySelector('.card.m48t'),m+' 닫아도 남음');out.push(m+' '+res.join(','))});
+  for(const [md,w,h] of [['',0,0],['P',390,844]])qM22(md,w,h,()=>{openPanel('tree');qOk(!panel.querySelector('.card.m48t')&&!pbody.querySelector('.m48f,.m48cue,.m48dw,.m48sc'),(md||'PC')+' 트리가 바뀜');closePanel()});
+  return out.join(' / ')});
+qT(QM48,'4. 마을 이름표(휴대폰): 화면에서 13px 정도 · 어두운 바탕 · 이름표를 누르면 그 사람(노점)을 고름(tw22Pick) · PC는 그대로',()=>{qPrep('mage',{lvl:40});const out=[];
+  for(const k of ['folk','shop']){const d=qm48Town(k);if(!d){out.push(k+' 없음');continue}
+    qM22('L',844,390,()=>{followCam();render();qOk(M48.hitN>0&&M48.hitF===frameN,k+' 누를 이름표 없음');let ok=0,hit=null;
+      for(let i=0;i<M48.hitN;i++){const o=M48.hit[i];if(k==='shop'&&o.d.k!=='shop')continue;hit=o;const g=tw22Pick((o.x0+o.x1)/2,(o.y0+o.y1)/2,true);qOk(g===o.d,k+' 이름표 누르기 → '+(g?g.n||g.k:'없음'));ok++}
+      qOk(ok>0,k+' 이름표 없음');const hp=(hit.y1-hit.y0)*CZ;qOk(hp>=18,k+' 이름표 높이 '+hp);out.push(`${k} ${ok}개 · ${Math.round(hp)}px`)})}
+  qM22('',0,0,()=>{const f=M48.hitF;render();qOk(!m48Big()&&M48.hitF===f,'PC 이름표가 바뀜')});return out.join(' · ')});
+qT(QM48,'3. 왼손 모드(설정 · 처음은 끔 · 없으면 끔): 걷기는 화면 오른쪽 · 화면 누르기 마법은 왼쪽 · 단축바 · 의뢰 알림판 왼쪽 · 안 겹침 · 화면 안 · 끄면 원래대로 · PC는 영향 없음',()=>{qPrep('mage',{lvl:40});questHud();const lh0=M45.dev.lh;
+  qOk(lh0===0,'처음 값 '+lh0);const out=[];
+  try{delete M45.dev.lh;qM22('L',844,390,()=>qOk(!m48Lh()&&m48Joy(W*.2),'값이 없는데 왼손'));M45.dev.lh=0;
+    for(const [w,h] of [[844,390],[667,375]])qM22('L',w,h,()=>{const m=w+'×'+h,c=qmR(cv),pe=(id,f)=>qm48Pe(cv,'pointerdown',id,c.left+W*f*CZ,c.top+H*.5*CZ),pu=id=>window.dispatchEvent(new PointerEvent('pointerup',{pointerType:'touch',pointerId:id}));
+      qOk(m48Joy(W*.2)&&!m48Joy(W*.8),m+' 보통 조이스틱 쪽');pe(41,.2);qOk(joy&&joy.id===41&&!fireTouch,m+' 보통 걷기');pu(41);
+      m48SetLh(1);buildBar();s26Lay();M48.bkTick=0;M48.lay=0;updateHud();questHud();qOk(document.body.classList.contains('m48lh'),m+' 표시 없음');
+      qOk(m48Joy(W*.8)&&!m48Joy(W*.2),m+' 왼손 조이스틱 쪽');pe(42,.8);qOk(joy&&joy.id===42&&!fireTouch,m+' 오른쪽으로 걷기 안 됨');pu(42);pe(43,.2);qOk(!joy&&fireTouch&&fireTouch.id===43,m+' 왼쪽 누르기 마법 안 됨');pu(43);
+      const sh=m22Shown(),qh=$('#qhud'),all=[...sh,...document.querySelectorAll('#hud .orb,#m43pg,#act,#qhud')].filter(qm48Vis);
+      qOk(sh.length&&sh.every(b=>qmR(b).left+qmR(b).width/2<w/2),m+' 단축바가 왼쪽이 아님');if(qm48Vis(qh))qOk(qmR(qh).left<w/2,m+' 의뢰 알림판이 왼쪽이 아님');
+      for(const b of all)qOk(qm48In(qmR(b),w,h),m+' 화면 밖 '+(b.id||b.dataset.slot||b.className));
+      for(const b of sh)for(const o of document.querySelectorAll('#hud .orb,#act,#qhud'))if(qm48Vis(o))qOk(!qmOv(qmR(b),qmR(o)),m+' 겹침 '+(b.dataset.slot||b.dataset.pot)+'/'+(o.id||o.className));
+      out.push(m+' 단축바 x'+Math.round(qmR(sh[0]).left));m48SetLh(0);buildBar();qOk(!document.body.classList.contains('m48lh')&&m48Joy(W*.2),m+' 끄기 안 됨')});
+    M45.dev.lh=1;qM22('',0,0,()=>{m48Body();qOk(!m48Lh()&&!document.body.classList.contains('m48lh')&&m48Joy(W*.2),'PC에서 왼손')})}
+  finally{M45.dev.lh=0;m48Body();joy=null;fireTouch=null}return out.join(' · ')});
+qT(QM48,'5. 단축바 밀어서 쪽 넘기기(가로 휴대폰): 옆으로 밀면 다음 · 앞 쪽 · 민 손가락은 마법 안 씀(누르기 · 끌어 겨누기 · 꾹 계속 쓰기) · 짧게 누르면 그대로 시전 · 위아래 · 느린 끌기는 밀기 아님 · 쪽이 하나 · ⚙ 칸 바꾸기 · 배치 바꾸기 중엔 밀기 없음 · 꾹 계속 쓰기는 0.09초 늦게 시작',()=>{
+  qPrep('mage',{lvl:60});const out=[];
+  try{qM22('L',844,390,()=>{qM22Bar(14);buildBar();M43.pg=0;m43Page();qOk(M43.pgN>=2&&m48SwOk(),'쪽이 둘 이상인데 밀기 안 됨 '+M43.pgN);const pgN=M43.pgN;
+    const live=()=>m22Shown().filter(b=>b.dataset.slot!=null&&P.bar[+b.dataset.slot]&&!b.classList.contains('m43off'));const aim=live().find(b=>m45Aimable(P.bar[+b.dataset.slot]))||live()[0];qOk(aim,'칸 없음');
+    const swipe=(b,id,dx,dy,slow)=>{const r=qmR(b),x=r.left+r.width/2,y=r.top+r.height/2;qm48Pe(b,'pointerdown',id,x,y);if(slow&&M48.sw)M48.sw.t-=1000;qm48Pe(b,'pointermove',id,x+dx*.5,y+dy*.5);qm48Pe(b,'pointermove',id,x+dx,y+dy);qm48Pe(b,'pointerup',id,x+dx,y+dy);qOk(!M48.sw&&!UXB.bars.has(id)&&!M45.aim,'손가락 기록이 남음')};
+    const clean=()=>{P.cd={};P.mp=maxMp();castReset();return P.mp};
+    let mp=clean();swipe(aim,51,-60,4);qOk(M43.pg===1,'왼쪽으로 밀어도 다음 쪽이 아님 '+M43.pg);qOk(P.mp===mp&&!Object.keys(P.cd).some(k=>P.cd[k]>0),'밀었는데 마법이 나감');
+    const b2=live()[0];mp=clean();swipe(b2,52,60,-3);qOk(M43.pg===0,'오른쪽으로 밀어도 앞 쪽이 아님 '+M43.pg);qOk(P.mp===mp,'밀었는데 마법이 나감 2');
+    swipe(live()[0],53,4,-40);qOk(M43.pg===0,'위아래로 끌었는데 넘어감');swipe(live()[0],54,-60,0,true);qOk(M43.pg===0,'느리게 끌었는데 넘어감');swipe(live()[0],55,-20,0);qOk(M43.pg===0,'조금 끌었는데 넘어감');
+    // 짧게 누르기 = 시전
+    {const b=live()[0],id=P.bar[+b.dataset.slot];mp=clean();const r=qmR(b);qm48Pe(b,'pointerdown',56,r.left+10,r.top+10);qm48Pe(b,'pointerup',56,r.left+10,r.top+10);qOk(P.cd[id]>0||P.mp<mp,'짧게 눌렀는데 시전 안 됨 '+id)}
+    // 꾹 계속 쓰기: 밀 수 있으면 0.09초 늦게(겨누는 마법이 아닌 칸)
+    const on=live().find(b=>{const id=P.bar[+b.dataset.slot];return !(uxbAimable(id)&&cdOf(id)>=UXB.AIM_CD)});
+    if(on){clean();const r=qmR(on);qm48Pe(on,'pointerdown',57,r.left+10,r.top+10);const s=UXB.bars.get(57);qOk(s&&s.hold==='wait'&&Math.abs(s.w-(UXB.HOLD_AIM-M48.GRACE))<1e-9,'늦추기 없음 '+(s&&s.hold));
+      qStep(3,{render:false});qOk(!s.fired,'0.09초 전에 나감');qStep(4,{render:false});qOk(s.fired,'꾹 계속 쓰기가 안 됨');qm48Pe(on,'pointerup',57,r.left+10,r.top+10);out.push('꾹 '+P.bar[+on.dataset.slot])}
+    // ⚙ 칸 바꾸기 · 배치 바꾸기 중엔 밀기 없음
+    g47Toggle(true);qOk(!m48SwOk(),'⚙ 칸 바꾸기 중 밀기');g47Toggle(false);UXB.edit=1;qOk(!m48SwOk(),'배치 바꾸기 중 밀기');UXB.edit=0;qOk(m48SwOk(),'다시 켜지지 않음');
+    // 쪽이 하나면 밀기 없음 · 꾹 계속 쓰기는 바로
+    qM22Bar(3);buildBar();m43Page();qOk(!m48SwOk(),'한 쪽인데 밀기');if(on){const b=live().find(b=>{const id=P.bar[+b.dataset.slot];return !(uxbAimable(id)&&cdOf(id)>=UXB.AIM_CD)});if(b){const r=qmR(b);qm48Pe(b,'pointerdown',58,r.left+10,r.top+10);const s=UXB.bars.get(58);qOk(s&&s.hold==='on','한 쪽인데 늦춤');qm48Pe(b,'pointerup',58,r.left+10,r.top+10)}}
+    out.push(`쪽 ${pgN} · 밀기 ${M48.SW_ON}px/${M48.SW_MS}ms`)});
+    qM22('',0,0,()=>qOk(!m48Ph(),'PC가 휴대폰'))}
+  finally{UXB.edit=0;M48.sw=null;M43.pg=0;try{g47Toggle(false)}catch(_){}try{fb28Cancel()}catch(_){}UXB.bars.clear();M45.aim=null;castReset();P.cd={}}return out.join(' · ')});
+qT(QM48,'2. 저장 지키기: 휴대폰 브라우저도 저장 지켜 달라고 한 번 부탁(navigator.storage.persist) · 7일에 한 번까지 「저장 코드 복사하기」 쪽지(마을 · 5레벨부터 · 45초 뒤 · 계정 저장이면 안 뜸) · 누르면 원래 내보내기(코드) · 다음에 · 새 키만 쓰고 캐릭터 저장은 안 건드림 · PC는 안 뜸',async()=>{
+  qPrep('mage',{lvl:40});const D=864e5,now=Date.now(),q0=M48.qaLast,out=[];
+  try{M48.qaLast=null;qOk(m48BkDue(now),'처음인데 안 뜸');M48.qaLast=now-6*D;qOk(!m48BkDue(now),'6일인데 뜸');M48.qaLast=now-7*D-1;qOk(m48BkDue(now),'7일 지났는데 안 뜸');M48.qaLast=now+D;qOk(m48BkDue(now),'시계가 뒤로 감');
+    M48.qaLast=null;const d=qm48Town('folk');qOk(d,'마을 사람 없음');const t=performance.now();M48.bkT0=t-M48.BK_WAIT-1;
+    qM22('L',844,390,()=>{qOk(m48BkWant(t),'마을 · 40레벨인데 안 뜸');P.lvl=3;qOk(!m48BkWant(t),'3레벨인데 뜸');P.lvl=40;M48.bkT0=t-1000;qOk(!m48BkWant(t),'들어오자마자 뜸');M48.bkT0=t-M48.BK_WAIT-1;
+      const a0=ACC;ACC={uid:'qa'};try{qOk(!m48BkWant(t),'계정 저장인데 뜸')}finally{ACC=a0}openPanel('char');qOk(!m48BkWant(t),'창이 열렸는데 뜸');closePanel();
+      const x=P.x,y=P.y;P.x=QA_SPOT.x;P.y=QA_SPOT.y;qOk(!m48BkWant(t),'들판에서 뜸');P.x=x;P.y=y;
+      const raw=localStorage.getItem(M48.BK_KEY),ch=qRaw('arseia-char-'+QA_SLOT);const el=m48BkShow();qOk(!el.hidden&&M48.qaLast>0&&!m48BkDue(Date.now()),'쪽지 · 시간 기록');qOk(localStorage.getItem(M48.BK_KEY)===raw,'시험 중 진짜 키에 씀');
+      const r=qmR(el);qOk(qm48In(r,844,390),'쪽지 화면 밖');for(const b of el.querySelectorAll('button'))qOk(qmR(b).height>=39.5,'쪽지 단추 높이');
+      el.querySelector('[data-m48bk="x"]').click();qOk(el.hidden,'다음에 안 닫힘');
+      m48BkShow().querySelector('[data-m48bk="go"]').click();qOk(!$('#intro').hidden,'내보내기 화면 안 열림');const eb=$(`#introBody [data-expbox="${curSlot}"]`),tx=eb&&(eb.querySelector('textarea')?eb.querySelector('textarea').value:eb.textContent);
+      qOk(tx&&/ARSEIA/.test(tx),'저장 코드 없음');qOk(el.hidden,'쪽지가 남음');$('#intro').hidden=true;paused=false;qOk(typeof qRaw('arseia-char-'+QA_SLOT)==='string'&&qRaw('arseia-char-'+QA_SLOT).length>=(ch||'').length*.5,'캐릭터 저장이 사라짐');out.push('코드 '+tx.trim().slice(0,8))});
+    qM22('',0,0,()=>qOk(!m48BkWant(t),'PC에서 뜸'));
+    // 저장 지켜 달라는 부탁: 이미 지켜지면 다시 안 함 · 없으면 넘어감
+    let n=0;const st=p=>({persisted:()=>Promise.resolve(p),persist:()=>{n++;return Promise.resolve(true)}});qOk(m48Persist(st(false))===1,'부탁 안 함');await qSleep();await qSleep();qOk(n===1,'부탁 횟수 '+n);
+    m48Persist(st(true));await qSleep();await qSleep();qOk(n===1,'이미 지켜지는데 또 부탁');qOk(m48Persist({})===0,'없을 때');
+    for(const f of [m48BkMark,m48BkLast,m48BkShow,m48BkHide,m48Export,m48SetLh,m48Body,m48Persist])qOk(!/removeItem|\.clear\(\)/.test(String(f)),'지우는 코드 '+f.name);
+    qOk(!/^arseia-(char-|apprentice-save)/.test(M48.BK_KEY),'캐릭터 키를 씀');out.push('부탁 '+n+'번')}
+  finally{M48.qaLast=q0;m48BkHide();$('#intro').hidden=true;paused=false}return out.join(' · ')});
+qT(QM48,'설정 ⚙(휴대폰만): 조작 탭 「왼손 모드」 끔/켬 · 저장 탭 「저장 코드 복사하기」 · PC는 없음',()=>{qPrep('mage',{lvl:40});
+  try{qM22('L',844,390,()=>{set24Open(true);const el=SET24.el,b=el.querySelector('[data-m48lh="1"]'),x=el.querySelector('[data-m48exp]');qOk(b&&b.closest('[data-tab45]').dataset.tab45==='조작','왼손 모드가 조작 탭에 없음');qOk(x&&x.dataset.tab45==='저장','저장 코드 단추가 저장 탭에 없음');
+    b.click();qOk(M45.dev.lh===1&&document.body.classList.contains('m48lh'),'켜기 안 됨');qOk(SET24.el.querySelector('[data-m48lh="1"]').classList.contains('on'),'켬 표시');SET24.el.querySelector('[data-m48lh="0"]').click();qOk(M45.dev.lh===0&&!document.body.classList.contains('m48lh'),'끄기 안 됨');set24Open(false)});
+    qM22('',0,0,()=>{set24Open(true);qOk(!SET24.el.querySelector('[data-m48lh],[data-m48exp]'),'PC에 휴대폰 설정');set24Open(false)})}
+  finally{M45.dev.lh=0;m48Body();set24Open(false)}return '조작 · 저장'});
+}
+/* ==== mob48 끝 ==== */
+/* ==== opt48 ==== */
+{const QO48='휴대폰 가볍게 v48';
+// 시험용 가짜 몬스터 묶음: 작은 캔버스를 풀어 둔 그림(ImageBitmap)으로
+const qo48Meta=id=>{const f=[0,1,2,3,4,5,6,7].map(i=>id+'/stance/0/'+i),r={};for(const k of f)r[k]=[0,0,16,16,8,16];return{mon:{[id]:{stance:{n:1,dur:1,type:'loop',f:[f]}}},r}};
+const qo48Cv=(w,h,col)=>{const c=document.createElement('canvas');c.width=w;c.height=h;const g=c.getContext('2d');g.fillStyle=col;g.fillRect(0,0,w,h);return c};
+const qo48Bm=async(w,h,col)=>await createImageBitmap(qo48Cv(w,h,col));
+const qo48Clean=(names,keep)=>{for(const n of names){if(keep[n])FL.P[n]=keep[n];else delete FL.P[n];delete FL.want[n];delete OP48.use[n];delete OP48.ev[n];delete OP48.src[n];delete FL.mk[n.slice(2)]}};
+qT(QO48,'② 몬스터 그림 묶음 내려놓기: 상한(시험 0.5MB)을 넘으면 1분 넘게 안 그린 몬스터 묶음부터 내려놓음 · 1분 안에 그린 것 · 몬스터가 아닌 묶음(마을 · 주인공 등)은 그대로 · 상한 안이면 아무것도 안 함 · 그림을 닫고 잘라 둔 칸 · 색 입힌 칸도 버림 · 다시 필요하면 받도록 표시',async()=>{qPrep('mage');
+  const N=['m-qa48a','m-qa48b','m-qa48c','qa48town'],keep={};for(const n of N)keep[n]=FL.P[n];const flcB=FLC.b,fltB=FLT.b,on=OP48.on;
+  try{qOk(!OP48.on,'#qa에서 저절로 내려놓기가 켜짐');
+    const A=await qo48Bm(256,256,'#a33'),B=await qo48Bm(256,256,'#3a3'),C=await qo48Bm(256,256,'#33a'),T=await qo48Bm(512,512,'#aa3');
+    FL.P['m-qa48a']={img:A,meta:qo48Meta('qa48a')};FL.P['m-qa48b']={img:B,meta:qo48Meta('qa48b')};FL.P['m-qa48c']={img:C,meta:qo48Meta('qa48c')};FL.P['qa48town']={img:T,meta:{r:{}}};
+    const now=performance.now()+1e6;OP48.use['m-qa48a']=now-200000;OP48.use['m-qa48b']=now-90000;OP48.use['m-qa48c']=now-1000;OP48.use['qa48town']=0;
+    // 잘라 둔 칸 · 색 입힌 칸
+    const crop=FLC.get(A,[0,0,16,16]);qOk(crop&&FLC.w.get(A),'잘라 둔 칸이 안 생김');const tc=flTinted(FL.P['m-qa48a'],'qa48a/stance/0/0','#ff0000',.4);qOk(tc&&FL.tint.has('qa48a/stance/0/0#ff0000'),'색 입힌 칸이 안 생김');
+    const tb=flTinted(FL.P['m-qa48b'],'qa48b/stance/0/0','#ff0000',.4);
+    qOk(op48Sweep(now,64*1048576,60000).length===0&&FL.P['m-qa48a'],'상한 안인데 내려놓음');
+    // 0.5MB 상한: 몬스터 묶음 3개(0.75MB) → 가장 오래된 a만 내려놓으면 0.5MB
+    const c0=FLC.b,t0=FLT.b,out=op48Sweep(now,.5*1048576,60000);qOk(out.join()==='m-qa48a','내려놓은 것 '+out.join());
+    qOk(!FL.P['m-qa48a']&&FL.P['m-qa48b']&&FL.P['m-qa48c']&&FL.P['qa48town'],'남은 묶음');qOk(!flPack('m-qa48a'),'내려놓은 묶음이 flPack에 남음');
+    qOk(A.width===0,'그림을 안 닫음 '+A.width);qOk(!FLC.w.get(A)&&FLC.b===c0-16*16*4,'잘라 둔 칸 '+(c0-FLC.b));qOk(!FL.tint.has('qa48a/stance/0/0#ff0000')&&FLT.b===t0-tc.width*tc.height*4&&FL.tint.has('qa48b/stance/0/0#ff0000'),'색 입힌 칸');
+    qOk(FL.want['m-qa48a']===0&&OP48.ev['m-qa48a']===1,'다시 받을 표시');flNeed('m-qa48a');qOk(!FL.want['m-qa48a'],'#qa에서 다시 받음');
+    // 더 낮은 상한: b(90초 전)는 내려놓고, c(1초 전 = 지금 그리는 것)는 상한을 넘어도 그대로, 몬스터가 아닌 묶음도 그대로
+    const out2=op48Sweep(now,1,60000);qOk(out2.join()==='m-qa48b'&&FL.P['m-qa48c']&&FL.P['qa48town']&&T.width===512,'둘째 '+out2.join());
+    // 그린 시각 기록: flPack이 몬스터 묶음을 돌려주면 지금 시각
+    OP48.use['m-qa48c']=0;const t1=performance.now();flPack('m-qa48c');qOk(OP48.use['m-qa48c']>=t1,'쓴 시각 기록 안 됨');flPack('qa48town');qOk(OP48.use['qa48town']===0,'몬스터 아닌 묶음 시각');
+    qOk(!op48Drop('qa48town')&&FL.P['qa48town'],'몬스터 아닌 묶음을 내려놓음');
+  }finally{qo48Clean(N,keep);OP48.on=on}
+  return 'ok'});
+qT(QO48,'② 내려놓은 몬스터 묶음을 다시 풀기: 기억해 둔 목록 · 그림 주소로 다시 풀어 그림이 돌아옴(flReady · 다시 푼 수) · 그동안은 예전 그림(flPack 없음) · 그림을 글자로 담은 data: 주소는 기억하지 않음(묶음 파일을 다시 받음)',async()=>{qPrep('mage');
+  const N=['m-qa48r','m-qa48d'],keep={};for(const n of N)keep[n]=FL.P[n];
+  try{const blob=await new Promise(r=>qo48Cv(32,32,'#c84').toBlob(r,'image/png')),url=URL.createObjectURL(blob),meta=qo48Meta('qa48r');
+    const wait=async f=>{for(let i=0;i<60&&!f();i++)await new Promise(r=>setTimeout(r,50));return f()};
+    window.FLARE_PACK('m-qa48r',meta,url);qOk(OP48.src['m-qa48r']&&OP48.src['m-qa48r'][1]===url,'주소를 기억 안 함');
+    qOk(await wait(()=>FL.P['m-qa48r']),'처음 풀기가 안 됨');const im0=FL.P['m-qa48r'].img;qOk(im0.width===32,'크기 '+im0.width);
+    qOk(op48Drop('m-qa48r')&&!flPack('m-qa48r'),'내려놓기');const re=OP48.re;
+    qOk(op48Again('m-qa48r')&&FL.want['m-qa48r']===1&&OP48.re===re+1,'다시 풀기 시작');qOk(!op48Again('m-qa48r'),'두 번 시작함');
+    qOk(await wait(()=>FL.P['m-qa48r']),'다시 풀기가 안 됨');const P1=flPack('m-qa48r');qOk(P1&&P1.img!==im0&&P1.img.width===32&&P1.meta===meta&&!OP48.ev['m-qa48r']&&OP48.use['m-qa48r']>0,'다시 푼 묶음');
+    window.FLARE_PACK('m-qa48d',qo48Meta('qa48d'),qo48Cv(8,8,'#48c').toDataURL());qOk(!OP48.src['m-qa48d'],'data: 주소를 기억함');qOk(await wait(()=>FL.P['m-qa48d']),'data: 풀기');
+    op48Drop('m-qa48d');qOk(!op48Again('m-qa48d')&&OP48.ev['m-qa48d']&&!FL.want['m-qa48d'],'data: 묶음은 원래 길(묶음 파일 다시 받기)로');
+    URL.revokeObjectURL(url);
+  }finally{qo48Clean(N,keep)}
+  return 'ok'});
+qT(QO48,'⑤ 첫 화면 캐릭터 미리보기 그림은 버튼이 나온 뒤 굽기: introButtons 직후에는 버튼만(미리보기 캔버스 아직 안 구움) · 다음 그리기 뒤 구워짐 · 그 사이 화면을 또 만들면 마지막 것만 · 떨어져 나간 화면은 안 구움',async()=>{qPrep('mage');
+  const keep=paused,hid=$('#intro').hidden,dp=Math.min(2,window.devicePixelRatio||1);
+  try{$('#intro').hidden=false;paused=true;introButtons(false);const cv=[...document.querySelectorAll('#introBody canvas.pv')];
+    qOk(cv.length>=4&&document.querySelector('#introBody [data-cls="mage"]'),'버튼 · 미리보기 칸 '+cv.length);qOk(cv.every(c=>c.width!==64*dp),'바로 구움');qOk(OP48.pvQ&&OP48.pvQ[0]===$('#introBody'),'나중에 구울 것 없음');
+    // 다음 그리기(requestAnimationFrame) → 그 뒤(setTimeout)에 굽는다. #qa는 그리기 차례를 붙잡아 두므로(__QA.hold) 마지막 것을 직접 부른다
+    const H=window.__QA&&window.__QA.held,cb=H&&H.length?H.pop():null;qOk(cb,'다음 그리기에 걸어 두지 않음');if(cb)cb(performance.now());qOk(OP48.pvQ&&cv.every(c=>c.width!==64*dp),'버튼이 그려지는 차례에 바로 구움');
+    for(let i=0;i<40&&OP48.pvQ;i++)await new Promise(r=>setTimeout(r,25));qOk(!OP48.pvQ,'버튼을 그린 뒤에도 안 구움');
+    qOk(cv.every(c=>c.width===64*dp&&c.height===84*dp),'구운 크기 '+cv.map(c=>c.width+'x'+c.height).join(','));
+    // 두 번 부르면 마지막 화면만 · 지금 화면의 캔버스가 구워짐
+    introButtons(false);const a=[...document.querySelectorAll('#introBody canvas.pv')];introButtons(false);const b=[...document.querySelectorAll('#introBody canvas.pv')];
+    op48PvRun();qOk(b.every(c=>c.width===64*dp)&&a.every(c=>c.width!==64*dp),'마지막 화면만 아님');qOk(!OP48.pvQ,'남음');
+    const d=document.createElement('div');d.innerHTML='<canvas class="pv" data-pv="mage"></canvas>';heroPreviews(d);op48PvRun();qOk(d.firstChild.width!==64*dp,'떨어져 나간 화면을 구움');
+  }finally{$('#intro').hidden=hid;paused=keep;OP48.pvQ=null}
+  return 'ok'});
+}
+/* ==== opt48 끝 ==== */
 window.__QA_RUN=qaRun;
 setTimeout(()=>{qaRun().catch(e=>{window.__QA_RESULT={fatal:String(e&&e.stack||e),results:[],summary:{total:0,pass:0,fail:1}}})},120);
 }

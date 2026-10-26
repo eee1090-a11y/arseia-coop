@@ -296,7 +296,7 @@ function tw22GoTick(dt){const g=T22.go;if(!g)return;const d=g.d;
   const a=W2S(d.x,d.y),b=W2S(P.x,P.y),vx=a.x-b.x,vy=a.y-b.y,l=Math.hypot(vx,vy)||1;joy={id:'tw22',ox:0,oy:0,x:vx/l*44,y:vy/l*44}}
 cv.addEventListener('pointerdown',e=>{if(T22.go)tw22Stop();if(!tw22Can())return;if(e.pointerType==='mouse'&&e.button!==0)return;
   const p=rel(e),touch=e.pointerType!=='mouse',d=tw22Pick(p.x,p.y,touch);if(!d)return;
-  if(touch&&p.x<W*.45){T22.tap={id:e.pointerId,x:p.x,y:p.y,t:performance.now(),d};return}// 조이스틱 자리: 뗄 때 톡 누른 것이면
+  if(touch&&m48Joy(p.x)){T22.tap={id:e.pointerId,x:p.x,y:p.y,t:performance.now(),d};return}// 조이스틱 자리: 뗄 때 톡 누른 것이면
   e.stopImmediatePropagation();e.preventDefault();tw22Click(d)},true);
 addEventListener('pointerup',e=>{const tp=T22.tap;if(!tp||tp.id!==e.pointerId)return;T22.tap=null;const p=rel(e);
   if(Math.hypot(p.x-tp.x,p.y-tp.y)<12&&performance.now()-tp.t<400&&tw22Can()){if(joy&&joy.id===e.pointerId)joy=null;tw22Click(tp.d)}},true);

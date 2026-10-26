@@ -231,7 +231,7 @@ cv.addEventListener('pointermove',e=>{const p=rel(e);
 cv.addEventListener('pointerdown',e=>{const p=rel(e);
   if(e.pointerType==='mouse'){mouse.x=p.x;mouse.y=p.y;mouse.active=true;touchMode=false;if(e.button===0)mouse.l=true;if(e.button===2)mouse.r=true;return}
   touchMode=true;try{cv.setPointerCapture(e.pointerId)}catch(_){}
-  if(p.x<W*.45&&!joy)joy={id:e.pointerId,ox:p.x,oy:p.y,x:p.x,y:p.y};else fireTouch={id:e.pointerId,x:p.x,y:p.y}});
+  if(m48Joy(p.x)&&!joy)joy={id:e.pointerId,ox:p.x,oy:p.y,x:p.x,y:p.y};else fireTouch={id:e.pointerId,x:p.x,y:p.y}});
 const upH=e=>{if(e.pointerType==='mouse'){if(e.button===0)mouse.l=false;if(e.button===2)mouse.r=false}
   if(joy&&e.pointerId===joy.id)joy=null;if(fireTouch&&e.pointerId===fireTouch.id)fireTouch=null};
 addEventListener('pointerup',upH);addEventListener('pointercancel',upH);

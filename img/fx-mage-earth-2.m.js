@@ -1,0 +1,1 @@
+window.FX_PACK&&FX_PACK("mage-earth-2",{"cell":128,"size":[1024,92],"r":{"fx_125_1_mage_earth_stonebody":[[60,0,59,91,35,18],[0,0,60,92,35,17],[119,0,60,91,35,18],[179,0,60,91,35,18]]}},"img/fx-mage-earth-2.webp")
