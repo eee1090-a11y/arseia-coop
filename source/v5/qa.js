@@ -5334,6 +5334,49 @@ qT('휴대폰 v30','의뢰 알림판 0.7초 길게 눌러 옮기기 · 짧게는
     m30QDown(ev(r.x+20,r.y+20));await new Promise(s=>setTimeout(s,FB28.hold+150));qOk(M30Q.d&&M30Q.d.on&&q.classList.contains('fb28moving'),'길게 눌러도 옮기기 안 됨');m30QMove(ev(r.x-180,r.y-60));m30QUp(ev());
     const a=q.getBoundingClientRect();qOk(Math.abs(a.x-(r.x-200))<3&&Math.abs(a.width-r.width)<2,'옮긴 자리 '+a.x+' 폭 '+a.width);qOk(FB28.pos.L_qhud,'자리 기억 없음');fb28Reset();qOk(!q.style.left&&!FB28.pos.L_qhud,'되돌리기')})}
   finally{FB28.pos=p0;fb28Restore()}return '0.7초 · 끌기 · 되돌리기'});
+qT('의뢰 알림판 v50','길게 누른 뒤 알림판을 새로 그려도 그 손가락을 따라가고 끝남 · 그 뒤 걷기 손가락이 움직여도 알림판은 그대로 (사용자 2026-10-30 「만지지도 않았는데 계속 밑으로 내려오는데」)',async()=>{qPrep('mage');const p0=FB28.pos;FB28.pos={};
+  const tev=(type,tg,id,x,y,down)=>{const t=new Touch({identifier:id,target:tg,clientX:x,clientY:y});const ev=new TouchEvent(type,{bubbles:true,cancelable:true,touches:down?[t]:[],changedTouches:[t],targetTouches:down?[t]:[]});tg.dispatchEvent(ev)};
+  try{for(const [m,w,h] of [['L',844,390],['P',390,844]])await qM22(m,w,h,async()=>{FB28.pos={};fb28Restore();questHud();const q=$('#qhud');qOk(q&&!q.hidden,m+': 알림판 없음');
+    const b=q.querySelector('.qh-top button'),r0=q.getBoundingClientRect(),br=b.getBoundingClientRect(),sx=br.left+5,sy=br.top+5;
+    tev('touchstart',b,11,sx,sy,1);await new Promise(s=>setTimeout(s,FB28.hold+150));qOk(M30Q.d&&M30Q.d.on,m+': 길게 눌러도 옮기기 안 됨');
+    q._h='';questHud();qOk(!b.isConnected,m+': 시험용 다시 그리기 안 됨');// 의뢰 글이 바뀌어 단추가 새로 그려짐 → 손가락 신호는 빠진 단추로만 온다
+    tev('touchmove',b,11,sx-120,sy-40,1);const a=q.getBoundingClientRect();qOk(Math.abs(a.left-(r0.left-120))<3&&Math.abs(a.top-(r0.top-40))<3,`${m}: 손가락을 안 따라감 ${Math.round(a.left)},${Math.round(a.top)}`);
+    tev('touchend',b,11,sx-120,sy-40,0);qOk(!M30Q.d&&!q.classList.contains('fb28moving'),m+': 옮기기가 안 끝남');qOk(FB28.pos[m+'_qhud'],m+': 자리 기억 없음');
+    const keep=JSON.stringify(FB28.pos[m+'_qhud']),cv=$('#game'),jx=w*.15,jy=h-80;
+    tev('touchstart',cv,12,jx,jy,1);for(let i=1;i<=6;i++)tev('touchmove',cv,12,jx+i*6,jy+i*3,1);tev('touchend',cv,12,jx+36,jy+18,0);
+    const c=q.getBoundingClientRect();qOk(Math.abs(c.left-a.left)<2&&Math.abs(c.top-a.top)<2,`${m}: 걷기 손가락에 알림판이 움직임 ${Math.round(c.left)},${Math.round(c.top)}`);qOk(JSON.stringify(FB28.pos[m+'_qhud'])===keep,m+': 저장 자리가 바뀜');
+    // 알림판을 길게 누르고 있는 동안 걷기 손가락이 닿아 움직임: 알림판은 걷기 손가락을 따르지 않음 · 걷기 손가락을 떼도 옮기기는 이어짐
+    const b2=q.querySelector('.qh-top button'),r2=b2.getBoundingClientRect();tev('touchstart',b2,14,r2.left+5,r2.top+5,1);await new Promise(s=>setTimeout(s,FB28.hold+150));qOk(M30Q.d&&M30Q.d.on,m+': 길게 눌러도 옮기기 안 됨(2)');
+    {const t1=new Touch({identifier:13,target:cv,clientX:jx,clientY:jy}),t2=new Touch({identifier:14,target:b2,clientX:r2.left+5,clientY:r2.top+5});cv.dispatchEvent(new TouchEvent('touchstart',{bubbles:true,cancelable:true,touches:[t2,t1],changedTouches:[t1]}))}
+    const s0=q.getBoundingClientRect();
+    {const t1=new Touch({identifier:13,target:cv,clientX:jx+50,clientY:jy+30}),t2=new Touch({identifier:14,target:b2,clientX:r2.left+5,clientY:r2.top+5});cv.dispatchEvent(new TouchEvent('touchmove',{bubbles:true,cancelable:true,touches:[t2,t1],changedTouches:[t1]}))}
+    const s1=q.getBoundingClientRect();qOk(Math.abs(s1.left-s0.left)<2&&Math.abs(s1.top-s0.top)<2,m+': 다른 손가락을 따라감');
+    {const t1=new Touch({identifier:13,target:cv,clientX:jx+50,clientY:jy+30}),t2=new Touch({identifier:14,target:b2,clientX:r2.left+5,clientY:r2.top+5});cv.dispatchEvent(new TouchEvent('touchend',{bubbles:true,cancelable:true,touches:[t2],changedTouches:[t1]}));qOk(M30Q.d,m+': 걷기 손가락을 떼니 옮기기가 끝남');
+      b2.dispatchEvent(new TouchEvent('touchend',{bubbles:true,cancelable:true,touches:[],changedTouches:[t2]}))}qOk(!M30Q.d,m+': 옮기기가 안 끝남(2)');
+    fb28Reset();qOk(!q.style.left,m+': 되돌리기')})}
+  finally{FB28.pos=p0;fb28Restore();M30Q.d=null}return '가로 · 세로 · 새로 그려도 · 다른 손가락'});
+qT('의뢰 알림판 v50','손가락을 잃은 채 남은 옮기기는 다음에 화면을 누르면 끝남(알림판은 그 자리)',()=>{qPrep('mage');const p0=FB28.pos;FB28.pos={};
+  try{return qM22('L',844,390,()=>{questHud();const q=$('#qhud');fb28Move('qhud',300,120);const r=q.getBoundingClientRect();M30Q.d={x:10,y:10,r,on:true,id:77};
+    const cv=$('#game'),t=new Touch({identifier:78,target:cv,clientX:100,clientY:330});cv.dispatchEvent(new TouchEvent('touchstart',{bubbles:true,touches:[t],changedTouches:[t]}));
+    qOk(!M30Q.d||M30Q.d.id!==77,'남은 옮기기가 그대로');cv.dispatchEvent(new TouchEvent('touchmove',{bubbles:true,cancelable:true,touches:[new Touch({identifier:78,target:cv,clientX:160,clientY:360})],changedTouches:[]}));
+    cv.dispatchEvent(new TouchEvent('touchend',{bubbles:true,touches:[],changedTouches:[t]}));const a=q.getBoundingClientRect();qOk(Math.abs(a.left-r.left)<2&&Math.abs(a.top-r.top)<2,'알림판이 움직임 '+Math.round(a.left)+','+Math.round(a.top));
+    fb28Reset();return '그 자리에서 끝'})}finally{FB28.pos=p0;fb28Restore();M30Q.d=null}});
+qT('의뢰 알림판 v50','옮겨 둔 알림판 자리를 다시 켤 때도 읽음 (단축칸 · 기록창만 읽던 것) · 0~1로 맞춤 · 이상한 값은 버림',()=>{const o=fb28Clean({zoom:1,pos:{L_qhud:{x:.4,y:.51},P_qhud:{x:2,y:-1},L_bar:{x:.2,y:.3}}});
+  qOk(o.pos.L_qhud&&o.pos.L_qhud.x===.4&&o.pos.L_qhud.y===.51,'가로 자리 안 읽음 '+JSON.stringify(o.pos.L_qhud));qOk(o.pos.P_qhud&&o.pos.P_qhud.x===1&&o.pos.P_qhud.y===0,'세로 자리 맞춤 '+JSON.stringify(o.pos.P_qhud));qOk(o.pos.L_bar&&o.pos.L_bar.x===.2,'단축칸 자리 잃음');
+  const b=fb28Clean({pos:{L_qhud:{x:'a',y:null},P_qhud:5}});qOk(!b.pos.L_qhud&&!b.pos.P_qhud,'이상한 값을 읽음');qOk(Object.keys(fb28Clean(null).pos).length===0,'빈 설정');return '가로 · 세로 · 맞춤'});
+qT('의뢰 알림판 v50','옮긴 알림판은 다시 놓을 때 알림판 높이가 달라도 같은 높이(윗변 t) · t 없는 예전 자리는 예전대로',()=>{qPrep('mage');const p0=FB28.pos;
+  try{return qM22('L',844,390,()=>{questHud();const q=$('#qhud');FB28.pos={L_qhud:{x:.5,y:.5,t:.3}};fb28Restore();fb28Apply('qhud');const y1=Math.round(q.getBoundingClientRect().top);qOk(Math.abs(y1-117)<=1,'윗변 자리 '+y1);
+    const ex=document.createElement('div');ex.textContent='시험 줄';ex.style.height='40px';q.appendChild(ex);fb28Restore();fb28Apply('qhud');const y2=Math.round(q.getBoundingClientRect().top);ex.remove();qOk(Math.abs(y2-y1)<=1,'알림판이 길어지니 자리가 바뀜 '+y1+'→'+y2);
+    const c=fb28Clean({pos:{L_qhud:{x:.5,y:.5,t:3}}});qOk(c.pos.L_qhud.t===1,'t 맞춤');qOk(!('t' in fb28Clean({pos:{L_qhud:{x:.5,y:.5}}}).pos.L_qhud),'예전 자리에 t가 생김');
+    FB28.pos={L_qhud:{x:.5,y:.5}};fb28Restore();fb28Apply('qhud');const r=q.getBoundingClientRect(),want=.5*(390-r.height);qOk(Math.abs(r.top-want)<=1.5,'예전 자리 계산이 바뀜 '+Math.round(r.top)+'/'+Math.round(want));return '윗변 '+y1+'px'})}
+  finally{FB28.pos=p0;fb28Restore()}});
+qT('의뢰 알림판 v50','세로 화면: 옮겨 둔 알림판은 강화 아이콘이 늘고 줄어도 그 높이 · 되돌리면 다시 작은 지도 아래',()=>{qPrep('mage');const p0=FB28.pos,on0=MOB.on;FB28.pos={};MOB.on=()=>true;
+  try{return qM22('P',390,844,()=>{questHud();const q=$('#qhud'),rc=document.querySelector('#hud .rightcol');fb28Move('qhud',40,60);FB28.pos.P_qhud={x:.1,y:.07};const y0=Math.round(q.getBoundingClientRect().top);
+    const tick=()=>{MOB.nextT=0;MOB.tick()};tick();P.shield=50;P.shieldT=30;P.hot={t:30,hps:1};P.ward={t:30};P.buffs=Object.assign(P.buffs||{},{q50a:{t:30},q50b:{t:30},q50c:{t:30},q50d:{t:30},q50e:{t:30}});const rb0=Math.round(rc.getBoundingClientRect().bottom);tick();
+    const rb1=Math.round(rc.getBoundingClientRect().bottom);qOk(rb1>rb0||rb1>y0,'시험용 강화 줄이 안 늘어남 '+rb0+'→'+rb1);qOk(Math.round(q.getBoundingClientRect().top)===y0,'강화가 걸리니 알림판이 내려감 '+y0+'→'+Math.round(q.getBoundingClientRect().top));
+    P.shieldT=0;P.hot=null;P.ward=null;for(const k of ['q50a','q50b','q50c','q50d','q50e'])delete P.buffs[k];tick();qOk(Math.round(q.getBoundingClientRect().top)===y0,'강화가 풀리니 알림판이 움직임');
+    fb28Reset();tick();const rb=Math.round(rc.getBoundingClientRect().bottom);qOk(Math.abs(Math.round(q.getBoundingClientRect().top)-(rb+6))<=1,'되돌린 뒤 작은 지도 아래가 아님 '+Math.round(q.getBoundingClientRect().top)+' / '+rb);return '그 높이 '+y0+'px'})}
+  finally{MOB.on=on0;FB28.pos=p0;fb28Restore();MOB.qTop=-1;if(P){P.shieldT=0;P.hot=null;P.ward=null}}});
 qT('화면·마을 v30','가짜코 동상 물: 안쪽 바닥에 있고 앞 테두리·기둥·받침 계단은 덮지 않음',()=>{qPrep('mage');const cv0=document.createElement('canvas');cv0.width=180;cv0.height=250;const PK={img:cv0,meta:{r:{'076_statue_false_nose_single':[0,0,180,250,92.5,239]}}},g=cv0.getContext('2d');
   f29Statue(g,PK,HOME.decor.find(d=>d.k==='statue'),92.5,239,1);const a=(x,y)=>g.getImageData(x,y,1,1).data[3];
   qOk(a(40,172)>0&&a(140,170)>0&&a(34,176)>0,'안쪽 바닥에 물 없음');qOk(a(90,207)===0&&a(40,205)===0,'앞 테두리에 물');qOk(a(92,170)===0&&a(92,195)===0,'기둥·계단에 물');return '안쪽 바닥만'});
@@ -6686,16 +6729,6 @@ qT(QM45,'5 그림 메뉴 막대 + 창 사이 바로 이동: ☰ → 그림+글�
     MOB.menu(true);u45Build();for(const b of $('#u45bar').querySelectorAll('.u45c')){const r=qmR(b);qOk(r.left>=0&&r.right<=390&&r.height>=44,'세로 막대 칸 화면 밖')}const q=$('#qhud');qOk(!q||getComputedStyle(q).visibility==='hidden'||q.hidden,'세로 막대 위에 알림판');MOB.menu(false);out.push('세로 ok')});
   openPanel('tree');u45Sync();qOk(!document.body.classList.contains('u45rail')&&!q45Vis($('#u45rail')),'PC 옆 띠');closePanel();qOk(qmR($('#treeBtn')).width>0&&!q45Vis($('#u45bar'))&&!q45Vis($('#u45quick')),'PC 단추 줄이 바뀜');
   return out.join(' · ')});
-qT(QM45,'P5 ☰ 옆 그림 단추: 스킬 트리 · 가방 · 성장 · 지도(· 대화) 늘 보임 · 40px 이상 · 귀환 단추와 8px 이상 · 캐릭터 칸 · 미니맵 · 의뢰 알림판과 안 겹침 · 누르면 그 창 · 빨간 점 같이 · 보기 거리 0.85 · 0.72에도 같은 자리 · PC 없음',()=>{qPrep('mage',{lvl:40});const out=[];const z0=GFX.zoom;
-  try{for(const [m,w,h] of [['L',844,390],['P',390,844]])qM22(m,w,h,()=>{questHud();u45Build();const q=$('#u45quick');qOk(q45Vis(q),m+' 그림 단추 줄 없음');const ks=[...q.querySelectorAll('[data-u45c]')].map(b=>b.dataset.u45c);
-      qOk(['tree','bag','g42','map'].every(k=>ks.includes(k))&&!ks.includes('set')&&!ks.includes('quest'),m+' 칸 '+ks);const tp=qmR($('#m22tp')),R=[...q.querySelectorAll('.u45c')].map(qmR);
-      for(const r of R){qOk(r.width>=38&&r.height>=40&&r.left>=0&&r.right<=w,m+' 단추 크기 '+Math.round(r.width));qOk(qmGap(r,tp)>=8,m+' 귀환과 붙음 '+Math.round(qmGap(r,tp)))}
-      const sel=['#hud .who','#hud .rightcol','#minimap'].concat(m==='L'?['#qhud']:[]);for(const s of sel){const e=document.querySelector(s);if(e&&q45Vis(e))for(const r of R)qOk(!qmOv(r,qmR(e)),m+' 겹침 '+s)}
-      const at=R.map(r=>Math.round(r.left)+','+Math.round(r.top)).join(' ');for(const z of [.85,.72]){GFX.zoom=z;resize();updateHud();const at2=[...q.querySelectorAll('.u45c')].map(qmR).map(r=>Math.round(r.left)+','+Math.round(r.top)).join(' ');qOk(at2===at,`${m} 보기 거리 ${z}에서 자리 바뀜`)}GFX.zoom=z0;resize();
-      P.sp=2;u45SeenReset();u45DotTick();qOk(q.querySelector('[data-u45c="tree"]').classList.contains('u45d'),m+' 그림 단추 빨간 점');P.sp=0;u45DotTick();
-      q.querySelector('[data-u45c="bag"]').click();qOk(!panel.hidden&&tab==='char',m+' 가방 안 열림');closePanel();out.push(`${m} ${ks.length}개 · 귀환과 ${Math.round(qmGap(R[R.length-1],tp))}px`)})}
-  finally{GFX.zoom=z0;resize()}
-  qOk(!q45Vis($('#u45quick')),'PC에 그림 단추');return out.join(' · ')});
 qT(QM45,'P6 위쪽 정보칸 얇게: 휴대폰 캐릭터 칸은 레벨 동그라미 + 이름 + 3px 경험치 줄(위계 · 휴식 글 숨김, 누르면 펼침) · 의뢰 알림판은 폭이 좁고 더 비침, 누르면 진하게 · v43 저절로 접기 그대로 · PC 그대로',()=>{qPrep('mage',{lvl:62});const out=[];
   updateHud();const pcWho=qmR(document.querySelector('#hud .who')).height;
   qM22('L',844,390,()=>{document.body.classList.remove('u45who');questHud();const who=document.querySelector('#hud .who');const h1=qmR(who).height;qOk(!q45Vis($('#rank'))&&!q45Vis($('#g42hud')),'위계 · 휴식 글이 보임');
@@ -8002,6 +8035,55 @@ qT(QO48,'⑤ 첫 화면 캐릭터 미리보기 그림은 버튼이 나온 뒤 �
   return 'ok'});
 }
 /* ==== opt48 끝 ==== */
+/* ==== fix50m 휴대폰 메뉴는 모두 ☰ 안 ==== */
+{const QF50M='휴대폰 메뉴 ☰ v50';
+const qF50Menu=['treeBtn','charBtn','g42Btn','mapBtn','chatBtn','coopBtn','setBtn'];
+qT(QF50M,'고친 버그(사용자 2026-10-30 「메뉴는 다 햄버거 버튼안에」): 휴대폰 가로 844×390 · 915×412 · 세로 390×844 · 360×740에서 ☰를 닫은 채로는 메뉴 단추가 하나도 안 보임(☰ 옆 그림 단추 줄 #u45quick · 스킬 트리 · 가방 · 성장 · 지도 · 대화 · 같이 · 설정 단추 모두) · 레벨을 올려도 · 창을 열고 닫아도 · 보기 거리 0.72에도 · 빨간 점은 ☰에 뜸 · ☰를 누르면 막대에 모든 칸(가방 · 스킬 트리 · 성장 · 지도 · 의뢰 · 설정, 서버에서는 같이 · 대화도) · 칸을 누르면 그 창 · PC는 단추 줄 그대로',()=>{qPrep('mage',{lvl:40});const out=[];const z0=GFX.zoom;
+  const shown=()=>{const v=[];if(q45Vis($('#u45quick')))v.push('u45quick');for(const id of qF50Menu){const e=document.getElementById(id);if(q45Vis(e))v.push(id)}
+    for(const e of document.querySelectorAll('[data-u45c]'))if(q45Vis(e)&&!e.closest('#u45bar')&&!e.closest('#u45rail'))v.push('칸 '+e.dataset.u45c);
+    const t=$('#hud .tools');if(t)for(const b of t.querySelectorAll(':scope>button'))if(b.id!=='menuBtn'&&q45Vis(b))v.push('tools '+(b.id||b.textContent.trim()));return [...new Set(v)]};
+  try{for(const [m,w,h] of [['L',844,390],['L',915,412],['P',390,844],['P',360,740]])qM22(m,w,h,()=>{questHud();u45Build();MOB.menu(false);
+      qOk(q45Vis($('#menuBtn')),`${m} ${w}x${h} ☰ 없음`);let v=shown();qOk(!v.length,`${m} ${w}x${h} ☰ 밖에 보이는 메뉴: ${v}`);
+      P.lvl=41;updateHud();u45Build();v=shown();qOk(!v.length,`${m} ${w}x${h} 레벨 뒤 보임: ${v}`);
+      openPanel('tree');closePanel();updateHud();v=shown();qOk(!v.length,`${m} ${w}x${h} 창을 닫은 뒤 보임: ${v}`);
+      GFX.zoom=.72;resize();updateHud();v=shown();qOk(!v.length,`${m} ${w}x${h} 보기 거리 0.72에서 보임: ${v}`);GFX.zoom=z0;resize();updateHud();
+      P.sp=2;u45SeenReset();u45DotTick();qOk($('#menuBtn').classList.contains('u45d'),m+' ☰ 빨간 점 없음');P.sp=0;u45DotTick();
+      MOB.menu(true);u45Build();const bar=$('#u45bar');qOk(q45Vis(bar),m+' ☰ 막대 안 열림');const ks=[...bar.querySelectorAll('[data-u45c]')].filter(q45Vis).map(b=>b.dataset.u45c);
+      const need=u45Cells().map(c=>c.k);qOk(['bag','tree','g42','map','quest','set'].every(k=>need.includes(k))&&need.every(k=>ks.includes(k)),`${m} 막대 칸 ${ks} / 있어야 ${need}`);
+      bar.querySelector('[data-u45c="bag"]').click();qOk(!panel.hidden&&tab==='char',m+' 가방 안 열림');closePanel();MOB.menu(false);
+      out.push(`${m} ${w}x${h} 막대 ${ks.length}칸`)})}
+  finally{GFX.zoom=z0;resize();MOB.menu(false)}
+  qOk(q45Vis($('#treeBtn'))&&q45Vis($('#mapBtn'))&&!q45Vis($('#u45quick')),'PC 단추 줄이 바뀜');return out.join(' · ')});
+}
+/* ==== fix50m 끝 ==== */
+/* ==== v50 파티 방장 넘기기 (fix50c.js · server.js v50) ==== */
+qT('파티 방장 넘기기 v50','(사용자 「여전히 던전은 같이 들어가지지도 않고 파티하면 필드에 몹이 없어」) 판 번호 cv 50 · 방장이 아닌 사람의 몬스터 소식은 안 받음 · 방장 소식이 끊기면 까닭 알림 · 서버가 방장을 넘기면 내가 방장/참가자로 바뀜 · 끊겼다 이어지면 그사이 방장이 된 동료의 파티로',()=>{qPrep('mage',{lvl:30});const out=[];
+  const keep={lobby:NET.lobby,roomHost:NET.roomHost,rj:CO22.rj,rjT:CO22.rjT};
+  try{let {r,sent}=qPty(2,{host:false});NET.guest=true;NET.hostId='qa_peer';NET.on=true;
+    netMe();qOk(sent.some(m=>m.t==='me'&&m.cv===50),'판 번호 cv 50 아님 '+JSON.stringify(sent.filter(m=>m.t==='me')));out.push('cv 50');
+    // 방장이 아닌 사람이 보낸 몬스터 소식은 받지 않는다
+    const e0={id:991,k:FIELD_TYPES[0],x:P.x+300,y:P.y,hp:10,max:10,r:12,lvl:1,dead:false,anim:0,hurt:0};enemies=[e0];F50.snapAt=1;
+    netOnMsg({t:'snap',from:'qa_other',a:netArea(),en:[],pr:[],wr:[]});qOk(enemies.length===1&&F50.snapAt===1,'다른 사람 소식을 받음');
+    netOnMsg({t:'snap',from:'qa_peer',a:netArea(),en:[],pr:[],wr:[]});qOk(enemies.length===0&&F50.snapAt>1,'방장 소식을 안 받음');out.push('방장 소식만');
+    // 방장 소식이 5초 끊기면 까닭을 한 번 알려 준다
+    const now=performance.now();F50.snapAt=now-F50.QUIET-100;F50.joinAt=0;F50.told=0;CO22.cap=[];f50Quiet(now);let W=CO22.cap;CO22.cap=null;
+    qOk(W.some(t=>t.includes('QA 동료')&&t.includes('화면이 멈춘 것 같아요')&&t.includes('이어받아')),'까닭 알림 없음 '+W.join('/')+JSON.stringify({on:NET.on,g:NET.guest,t:F50.told,s:Math.round(F50.snapAt),j:Math.round(F50.joinAt),n:Math.round(now)}));
+    CO22.cap=[];f50Quiet(now+1000);W=CO22.cap;CO22.cap=null;qOk(!W.length,'또 알림');
+    F50.snapAt=now;F50.told=0;CO22.cap=[];f50Quiet(now+1000);W=CO22.cap;CO22.cap=null;qOk(!W.length,'소식이 오는데 알림');out.push('끊김 알림');
+    // 서버가 나에게 방장을 넘김
+    enemies=[Object.assign({},e0)];CO22.rj={host:false,hid:'qa_peer',hn:'QA 동료',t:Date.now()};CO22.cap=[];netOnMsg({t:'host',id:'qa_me',n:'나'});W=CO22.cap;CO22.cap=null;
+    qOk(NET.host&&!NET.guest&&NET.hostId==='qa_me'&&!enemies.length,'방장이 안 됨 '+JSON.stringify({h:NET.host,g:NET.guest,id:NET.hostId,n:enemies.length}));
+    qOk(W.some(t=>t.includes('내가 방장')),'방장 알림 없음');qOk(CO22.rj.host===true&&CO22.rj.hid==='qa_me','다시 잇기 기록이 방장이 아님');out.push('내가 방장');
+    // 방장이던 내가 던전에 있다가 자리를 비운 사이 넘어감 → 참가자 · 던전에서 나옴
+    enterDungeon(CAVES[0]);qOk(DG&&!DG.net,'시험 준비');CO22.cap=[];netOnMsg({t:'host',id:'qa_peer',n:'QA 동료'});W=CO22.cap;CO22.cap=null;
+    qOk(!NET.host&&NET.guest&&NET.hostId==='qa_peer'&&!DG,'참가자가 안 됨');qOk(W.some(t=>t.includes('자리를 비운 사이 QA 동료님이 방장')),'넘어감 알림 없음 '+W.join('/'));
+    qOk(CO22.rj.host===false&&CO22.rj.hid==='qa_peer','다시 잇기 기록이 참가자가 아님');out.push('자리 비우면 참가자');
+    // 끊겼다 다시 이어짐: 나는 방장이었지만 그사이 같은 파티 동료가 방장 → 그 파티로 참가
+    NET.on=false;NET.host=NET.guest=false;NET.peers.clear();NET.roomHost=77;NET.lobby=[{id:77,n:'QA 동료'}];CO22.rj={host:true,hid:'qa_me',hn:'나',t:Date.now(),pn:['QA 동료']};CO22.rjT=-1e9;sent.length=0;
+    co22Rejoin(performance.now());qOk(sent.some(m=>m.t==='join'&&m.host===false),'동료 파티로 참가 안 함 '+JSON.stringify(sent));
+    NET.lobby=[{id:77,n:'모르는 사람'}];CO22.rj={host:true,hid:'qa_me',hn:'나',t:Date.now(),pn:['QA 동료']};CO22.rjT=-1e9;sent.length=0;
+    co22Rejoin(performance.now());qOk(!sent.some(m=>m.t==='join'),'모르는 사람 파티로 들어감');out.push('다시 이으면 동료 파티로')}
+  finally{CO22.cap=null;F50.told=0;F50.snapAt=0;NET.lobby=keep.lobby;NET.roomHost=keep.roomHost;CO22.rj=keep.rj;CO22.rjT=keep.rjT;if(DG)leaveDungeon();enemies=[];qPtyOff();NET.hostId=0;loadRegion('home')}return out.join(' · ')});
 window.__QA_RUN=qaRun;
 setTimeout(()=>{qaRun().catch(e=>{window.__QA_RESULT={fatal:String(e&&e.stack||e),results:[],summary:{total:0,pass:0,fail:1}}})},120);
 }

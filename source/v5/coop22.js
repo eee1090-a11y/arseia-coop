@@ -109,7 +109,8 @@ function co22Tick(now){
 // 끊겼다가 다시 연결되면 같은 파티로 (참가자: 같은 방장의 방이 있으면 참가 · 방장: 방이 없으면 다시 열기)
 function co22Rejoin(now){const R=CO22.rj;if(!R||!R.t)return;if(Date.now()-R.t>CO22.RJMS){CO22.rj=null;co22Store();return}
   if(!NET.ws||NET.ws.readyState!==1||NET.pendInv||now-CO22.rjT<4000||!co22InGame())return;
-  if(R.host){if(NET.roomHost)return;CO22.rjT=now;R.drop=1;netConnect(true);return}
-  const H=NET.lobby.find(o=>o.id===NET.roomHost);if(!H||!(H.id===R.hid||(R.hn&&H.n===R.hn)))return;CO22.rjT=now;R.drop=1;msg(`연결이 다시 이어졌습니다 · ${H.n}님의 파티로 돌아갑니다`,'#9fe0ff');netConnect(false)}
+  const rooms=NET.lobby.some(o=>'h' in o);// v50 서버: 방이 여러 개 (h = 그 방의 방장)
+  if(R.host){if(!rooms&&NET.roomHost)return;CO22.rjT=now;R.drop=1;netConnect(true);return}
+  const H=rooms?NET.lobby.find(o=>o.h&&(o.id===R.hid||R.hn&&o.n===R.hn)):NET.lobby.find(o=>o.id===NET.roomHost);if(!H||!(H.id===R.hid||(R.hn&&H.n===R.hn)))return;CO22.rjT=now;R.drop=1;msg(`연결이 다시 이어졌습니다 · ${H.n}님의 파티로 돌아갑니다`,'#9fe0ff');netConnect(false,'',H.id)}
 setInterval(()=>{if(window.__QA&&!CO22.qa)return;try{co22Tick(co22Now())}catch(e){if(window.__QA)throw e}},500);
 setTimeout(()=>{try{if(window.__game)Object.assign(window.__game,{CO22,co22Tick,co22Go,co22Prompt,co22HostReq,co22Cave,co22Rejoin})}catch(_){}},0);

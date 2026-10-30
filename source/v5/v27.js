@@ -82,7 +82,7 @@ function f27Who(list){const ids=new Set(),nw=[];for(const o of list||[]){if(!o||
   F27.seen=ids;for(const o of nw){const C=CLASSES[o.c],t=`${o.n||'누군가'}님이 접속했습니다${C?` (${C.n} Lv ${o.l|0})`:''}`;F27.log.push(t);
     msg(t,'#9fe0ff');if(window.COOP_SERVER)try{chatSys(t,'#9fe0ff')}catch(_){}try{if(typeof sfx==='function')sfx('ui')}catch(_){}f27Toast(o,t)}}
 // 알림 쪽지: 내가 파티를 열 수 있고(혼자이거나 방장) 친구가 혼자이면 「파티에 초대」 단추 (9번: 같은 서버에 있기만 하고 파티가 아니면 던전에 같이 안 들어감)
-const f27CanInv=o=>!!o&&!o.r&&(NET.on?NET.host:!NET.roomHost);
+const f27CanInv=o=>!!o&&!o.r&&(NET.on?NET.host:true);// v50: 방이 여러 개라 혼자면 늘 내 방을 만들어 초대
 function f27Toast(o,t){let el=document.getElementById('f27t');if(!el){el=document.createElement('div');el.id='f27t';el.setAttribute('role','status');document.body.appendChild(el)}
   clearTimeout(F27.tt);const inv=f27CanInv(o);
   el.innerHTML=`<span></span>${inv?'<button class="primary" type="button" data-f27inv>파티에 초대</button>':''}<button class="ghost" type="button" data-f27x>닫기</button>`;el.querySelector('span').textContent=t;el.hidden=false;

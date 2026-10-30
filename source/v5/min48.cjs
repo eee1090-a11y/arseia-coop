@@ -13,7 +13,7 @@ const [IN,OUT]=process.argv.slice(2);if(!IN||!OUT){console.error('사용법: nod
 const s=fs.readFileSync(IN,'utf8'),HEAD='<script>\n(()=>{',a=s.indexOf(HEAD);if(a<0){console.error('게임 코드 시작(<script>\\n(()=>{)을 못 찾음');process.exit(1)}
 const b=s.indexOf('</script>',a);if(b<0||b!==s.lastIndexOf('</script>')){console.error('게임 코드가 마지막 <script>가 아님');process.exit(1)}
 const js=s.slice(a+8,b);
-(async()=>{const t0=Date.now();const r=await terser.minify(js,{ecma:2020,module:false,toplevel:false,compress:false,mangle:{keep_fnames:false,safari10:false},
+(async()=>{const t0=Date.now();const r=await terser.minify(js,{ecma:2020,module:false,toplevel:false,compress:false,mangle:{keep_fnames:false,safari10:false,reserved:['QA']},
     format:{ascii_only:false,comments:false,inline_script:true,beautify:false,semicolons:true}});
   if(!r||!r.code){console.error('줄이기 실패');process.exit(1)}
   const out=s.slice(0,a+9)+r.code+'\n'+s.slice(b);if(out.indexOf(HEAD)!==a){console.error('줄인 코드 시작이 <script>\\n(()=>{ 가 아님');process.exit(1)}fs.writeFileSync(OUT,out);

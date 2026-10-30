@@ -13,17 +13,18 @@ function netMe(){netSend({t:'me',name:netName(),cls:P.cls,lvl:P.lvl,cv:19})}// v
 function netOpenWs(){if(!window.COOP_SERVER||NET.ws)return;
   let ws;try{ws=new WebSocket((location.protocol==='https:'?'wss://':'ws://')+location.host)}catch(_){netStatus('서버에 연결할 수 없습니다');return}
   NET.ws=ws;
-  ws.onopen=()=>{netMe();if(NET.want!=null){netSend({t:'join',name:netName(),host:NET.want});NET.want=null}};
+  ws.onopen=()=>{netMe();if(NET.want!=null){netSend({t:'join',name:netName(),host:NET.want,to:NET.want?0:NET.joinTo||0});NET.want=null}};
   ws.onmessage=ev=>{let m;try{m=JSON.parse(ev.data)}catch(_){return}netOnMsg(m)};
   ws.onclose=()=>{if(NET.ws!==ws)return;const was=NET.on;NET.ws=null;netReset();NET.lobby=[];NET.roomHost=0;netUI();
     netStatus(was?'연결이 끊겼습니다. 혼자 하기로 돌아왔습니다':'서버 연결이 끊겼습니다. 다시 연결하는 중…');if(was)msg('같이 하기 연결이 끊겼습니다','#ff9a6a');
     setTimeout(netOpenWs,3000)};
 }
-function netConnect(asHost,name){
-  if(NET.on)return;
+// v50: 방이 여러 개 · to = 들어갈 방의 사람(초대한 사람). 없으면 서버가 고른다(예전 「참가하기」)
+function netConnect(asHost,name,to){
+  if(NET.on)return;NET.joinTo=asHost?0:(+to||0);
   name=(name||'').trim().slice(0,16);if(name){try{localStorage.setItem('arseia-coop-name',name)}catch(_){}}
   NET.name=netName();netStatus('연결하는 중…');
-  if(NET.ws&&NET.ws.readyState===1){netMe();netSend({t:'join',name:NET.name,host:asHost})}else{NET.want=asHost;netOpenWs()}
+  if(NET.ws&&NET.ws.readyState===1){netMe();netSend({t:'join',name:NET.name,host:asHost,to:NET.joinTo})}else{NET.want=asHost;netOpenWs()}
 }
 function netReset(){const g=NET.guest;NET.on=NET.host=NET.guest=false;NET.peers.clear();NET.hostId=0;
   if(g){enemies=[];projs=projs.filter(p=>p.owner==='p');warns=[];if(DG&&DG.net)leaveDungeon()}netUI()}
@@ -165,27 +166,27 @@ function netParty(){let el=document.getElementById('party');
   el.innerHTML=h||'<div class="pm"><span>아직 아무도 없습니다</span></div>'}
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function netUI(){const box=document.getElementById('coopBody');if(!box)return;
-  const st=`<p class="muted" id="coopSt">${esc(NET.status||'')}</p>`,others=NET.lobby.filter(o=>o.id!==NET.id),room=!!NET.roomHost;
+  const st=`<p class="muted" id="coopSt">${esc(NET.status||'')}</p>`,others=NET.lobby.filter(o=>o.id!==NET.id),room=others.some(o=>o.h)||!!NET.roomHost&&!NET.lobby.some(o=>'h' in o);
   // 접속자 목록: 파티 중이면 표시, 초대할 수 있으면 초대 버튼
-  const canInv=NET.on||!room;
-  let lob='';for(const o of others){const inP=o.r,tag=inP?(o.id===NET.roomHost?'파티장':'파티 중'):'혼자';
-    lob+=`<li><span>${esc(o.n)} · ${CLASSES[o.c]?CLASSES[o.c].n:''} Lv ${o.l} <em class="muted">${tag}</em></span>${!inP&&canInv?`<button class="ghost sm" type="button" data-inv="${o.id}">초대</button>`:''}</li>`}
+  const canInv=true;// v50: 방이 여러 개라 늘 초대할 수 있다 (혼자면 내 방을 만들고 초대)
+  let lob='';for(const o of others){const inP=o.r,isH='h' in o?o.h:o.id===NET.roomHost,tag=inP?(isH?'파티장':'파티 중'):'혼자';
+    lob+=`<li><span>${esc(o.n)} · ${CLASSES[o.c]?CLASSES[o.c].n:''} Lv ${o.l} <em class="muted">${tag}</em></span>${!inP&&canInv?`<button class="ghost sm" type="button" data-inv="${o.id}">초대</button>`:''}${inP&&!NET.on&&o.rid?`<button class="ghost sm" type="button" data-join="${o.id}">참가</button>`:''}</li>`}
   const lobby=`<h3>지금 접속한 사람 ${others.length?`(${others.length})`:''}</h3><ul class="lob">${lob||'<li class="muted">아직 아무도 없습니다. 친구에게 서버 주소를 보내 주세요.</li>'}</ul>`;
   if(NET.on){
     box.innerHTML=`<p>${NET.host?'내가 <b>파티장</b>입니다. 이 창을 닫아도 되지만 게임 창은 닫지 마세요. 몬스터 계산을 내 컴퓨터가 합니다.':'파티에 참가했습니다.'}</p>${lobby}${st}<div class="row"><button class="ghost" type="button" id="coopLeave">파티 나가기 (혼자 하기)</button></div>`;
     box.querySelector('#coopLeave').onclick=()=>netLeave()}
-  else{box.innerHTML=`<p>같은 서버 주소로 들어온 친구와 함께 사냥합니다. 친구를 <b>초대</b>하면 내가 파티장이 됩니다.${room?' 이미 만들어진 파티가 있으니 <b>참가하기</b>를 누르세요.':''}</p>
+  else{box.innerHTML=`<p>같은 서버 주소로 들어온 친구와 함께 사냥합니다. 친구를 <b>초대</b>하면 내가 파티장이 됩니다.${room?' 이미 있는 파티에 들어가려면 그 사람 옆의 <b>참가</b>를 누르세요.':''}</p>
     <label class="muted">내 이름 <input id="coopName" maxlength="16" value="${esc(netName())}" style="margin-left:6px"></label>${lobby}
-    <div class="row" style="margin-top:10px">${room?'':'<button class="primary" type="button" id="coopHost">혼자 파티 만들기</button>'}${room?'<button class="primary" type="button" id="coopJoin">참가하기</button>':''}</div>${st}
+    <div class="row" style="margin-top:10px"><button class="primary" type="button" id="coopHost">내 파티 만들기</button>${room?'<button class="primary" type="button" id="coopJoin">참가하기</button>':''}</div>${st}
     <p class="muted" style="font-size:12px">경험치와 전리품은 각자 따로 받고, 캐릭터는 각자의 브라우저에 저장됩니다. 던전은 파티가 함께 들어가고 함께 나옵니다. Enter 키로 대화합니다.</p>`;
     const nmI=box.querySelector('#coopName');nmI.onchange=()=>{const v=nmI.value.trim().slice(0,16);if(v){try{localStorage.setItem('arseia-coop-name',v)}catch(_){}NET.meK='';netMe()}};
-    const h=box.querySelector('#coopHost');if(h)h.onclick=()=>netConnect(true,nmI.value);const j=box.querySelector('#coopJoin');if(j)j.onclick=()=>netConnect(false,nmI.value)}
-  for(const b of box.querySelectorAll('[data-inv]'))b.onclick=()=>netInvite(+b.dataset.inv)}
+    const h=box.querySelector('#coopHost');if(h)h.onclick=()=>netConnect(true,nmI.value);const j=box.querySelector('#coopJoin');if(j)j.onclick=()=>{const hs=others.filter(o=>o.h);netConnect(false,nmI.value,hs.length===1?hs[0].id:0)}}// v50: 파티가 하나면 그 파티로, 여럿이면 서버가 가장 잘 돌아가는 파티로
+  for(const b of box.querySelectorAll('[data-inv]'))b.onclick=()=>netInvite(+b.dataset.inv);
+  for(const b of box.querySelectorAll('[data-join]'))b.onclick=()=>{const i=document.getElementById('coopName');netConnect(false,i?i.value:'',+b.dataset.join)}}
 // 파티 초대
 function netInvite(id){const o=NET.lobby.find(x=>x.id===id);if(!o)return;
   if(NET.on){netSend({t:'inv',to:id});chatSys(`${o.n}님에게 파티 초대를 보냈습니다`,'#9fe0ff')}
-  else if(!NET.roomHost){NET.pendInv=id;const i=document.getElementById('coopName');netConnect(true,i?i.value:'')}
-  else netStatus('이미 다른 파티가 있습니다. 참가하기를 누르세요')}
+  else{NET.pendInv=id;const i=document.getElementById('coopName');netConnect(true,i?i.value:'')}}// v50: 다른 파티가 있어도 내 방을 만들어 초대
 function netInvGot(m){if(NET.on){netSend({t:'invr',to:m.from,ok:0});return}
   NET.invs=NET.invs.filter(v=>v.from!==m.from);NET.invs.push({from:m.from,n:m.n,t:performance.now()});chatSys(`${m.n}님이 파티에 초대했습니다`,'#ffd98a');invUI()}
 function invUI(){let el=document.getElementById('invite');const now=performance.now();NET.invs=NET.invs.filter(v=>now-v.t<60000);
@@ -193,7 +194,7 @@ function invUI(){let el=document.getElementById('invite');const now=performance.
   if(!el){el=document.createElement('div');el.id='invite';document.body.appendChild(el)}
   const v=NET.invs[NET.invs.length-1];
   el.innerHTML=`<p><b>${esc(v.n)}</b>님이 파티에 초대했습니다</p><div class="row"><button class="primary" type="button" id="invOk">수락</button><button class="ghost" type="button" id="invNo">거절</button></div>`;
-  el.querySelector('#invOk').onclick=()=>{netSend({t:'invr',to:v.from,ok:1});NET.invs=[];invUI();netConnect(false)};
+  el.querySelector('#invOk').onclick=()=>{netSend({t:'invr',to:v.from,ok:1});NET.invs=[];invUI();netConnect(false,'',v.from)};// v50: 초대한 사람의 방으로
   el.querySelector('#invNo').onclick=()=>{netSend({t:'invr',to:v.from,ok:0});NET.invs=NET.invs.filter(x=>x!==v);invUI()};
   clearTimeout(invUI.tm);invUI.tm=setTimeout(invUI,60500)}
 // 대화
