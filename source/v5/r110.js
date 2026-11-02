@@ -363,4 +363,11 @@ function r110TerrFix(id,w){const L=RCACHE[id];if(!L)return;const K=R110L.lake,mi
 {const _tb=terrBuild;terrBuild=function(id){const T=_tb.apply(this,arguments);try{if(id===R110.lake){const L=RCACHE[id],K=R110L.lake,I=R110L.isle;
   r110Clear(L,d=>((d.x-K.cx)/(K.rx+30))**2+((d.y-K.cy)/(K.ry+30))**2<1&&Math.hypot(d.x-I.x,d.y-I.y)>I.r+20&&!(d.k==='iceboulder'&&hash(d.x|0,d.y|0)<.1))}}catch(e){if(window.__QA)throw e}return T}}
 r110Post();
+// 의뢰 목표 자리: 지옥 지역 자리 셈(world3.js)이 둥지 자리를 쓰는데 새 땅은 둥지가 없어서 그동안만 지도 가운데를 둥지 자리로 (wx.js와 같은 뜻)
+{const _z=wxRegZone;wxRegZone=function(id,k){const L=RCACHE[id];if(!L||L.lair||!R110.ids.includes(id))return _z.apply(this,arguments);L.lair={x:WORLD/2,y:WORLD/2};try{return _z.apply(this,arguments)}finally{L.lair=null}}}
+// 현상금 게시판(bty36.js와 같은 방식): 마을마다 그 지역 들판 몬스터 넷 중 날마다 셋. 광장은 몬스터가 없어 가까운 호수 것을 씀
+if(typeof BTY_BOARDS==='object'&&typeof v20AddProp==='function'){const M={r110_square_camp:R110.lake,r110_lake_camp:R110.lake,r110_peak_camp:R110.peak,r110_jungle_camp:R110.jungle,r110_aurora_camp:R110.aurora},OFF=[[150,-90],[-150,90],[120,140],[-120,-130],[200,0],[-200,0]];
+  for(const id in M){if(BTY_BOARDS[id])continue;const reg=M[id],mobs=(REGIONS[reg].mobs||[]).filter(k=>TYPES[k]);if(!mobs.length)continue;BTY_BOARDS[id]={reg,mobs};if(!v20Town(id))continue;
+    let d=null;for(const o of OFF){d=v20AddProp(id,o[0],o[1],{k:'bboard',pv:0,use:'bty:'+id});if(d)break}if(d)BTY_PROP[id]=d}
+  v20SyncDecor()}
 setTimeout(()=>{if(window.__game)Object.assign(window.__game,{R110V,R110L,R110_VIEWS,R110_FISH,r110S,r110Clean,r110FishCatch,r110RaftGo,r110Summit})},0);

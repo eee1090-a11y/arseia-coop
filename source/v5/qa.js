@@ -1059,7 +1059,7 @@ qT('월드','12개 지역: 포탈 · 동굴 · 둥지 · 채집 자리에서 마
   for(const id of REG_IDS){const {L,ok}=qWxReach(id),pts=[...L.edges.map(e=>['포탈 '+e.side,e]),...L.caves.map(c=>['동굴 '+c.cave.n,c]),...(L.lair?[['둥지',L.lair]]:[])/* v26 왕도는 둥지 없음 */,...Object.keys(L.spots||{}).flatMap(s=>L.spots[s].map((p,i)=>[s+'#'+i,p]))];
     for(const [nm,p] of pts){n++;if(!wxCanReach(ok,p.x,p.y))bad.push(`${id} ${nm}`)}}
   qOk(!bad.length,'못 닿음: '+bad.slice(0,8).join(', '));return `${n}곳`});
-for(const D of WX_DUNGEONS)qT('월드',`지역 던전 ${D.n} (${REGIONS[D.reg].n}): 들어가기 · 보스 · 처치 · 빛나는 문 → 같은 지역 동굴 앞`,()=>{qPrep('mage',{lvl:Math.max(40,D.lvl)});P.invT=1e9;qWxTo(D.reg);
+for(const D of WX_DUNGEONS.filter(D=>!D.cath)/* 아홉 첨탑 대성당은 종 · 색유리 뒤에 보스가 나와서 「v51 대성당」 시험이 같은 것(들어가기 · 보스 · 처치 · 전리품 · 빛나는 문 → 동굴 앞)을 봄 */)qT('월드',`지역 던전 ${D.n} (${REGIONS[D.reg].n}): 들어가기 · 보스 · 처치 · 빛나는 문 → 같은 지역 동굴 앞`,()=>{qPrep('mage',{lvl:Math.max(40,D.lvl)});P.invT=1e9;qWxTo(D.reg);
   const c=CAVES.find(c=>c.cave===D);qOk(c,'동굴 없음');qOk(!blockedAt(c.x,c.y+40),'동굴 앞이 물/용암');
   qOk(qActAt(c.x,c.y+40)==='dungeon'&&actCave===c,`입구 act=${act}`);doAct();qOk(DG&&DG.d===D,'못 들어감');qOk(REG.id===D.reg,'지역이 바뀜');
   const bs=enemies.filter(e=>TYPES[e.k].boss),ms=enemies.filter(e=>TYPES[e.k].mini);qOk(bs.length===1&&bs[0].k===D.boss,`보스 ${bs.map(e=>e.k)}`);qOk(ms.length===2&&D.minis.every(k=>ms.some(e=>e.k===k)),`준보스 ${ms.map(e=>e.k)}`);
@@ -1107,7 +1107,7 @@ qT('월드','지역 의뢰: 선행(req) 전엔 잠김 · 끝나면 열림 · 채
   for(const d of sp){qOk(wxCanReach(ok,d.x,d.y),'못 닿는 채집 자리');const L=sqUseLive(d);if(sqAllDone(g2))break;qOk(L&&/캐기|줍기/.test(L.label),`라벨 ${L&&L.label}`);P.x=d.x;P.y=d.y+30;qStep(1,{render:false});
     qOk(act==='tw_use'||sqUseLive(d),'채집 자리 act 없음');sqUse(d)}
   qOk(sqAllDone(g2),'채집이 안 끝남');const m=sqMarks(false);qStep(2);loadRegion('home');return `자리 ${sp.length}곳 · 표시 ${m.length}`});
-qT('월드','지역 마을 의뢰 60개(+v30 새 사냥터 24개 · v36 지역 의뢰): 주는 사람 · 받는 사람이 마을에 있고, 목표 자리가 있고 닿음 (던전/둥지/채집)',()=>{qPrep('mage',{lvl:60});qOk(WX_SQ.length===60+Q30_SQ.length+Q36_SQ.length&&Q30_SQ.length===24,`${WX_SQ.length}개`);const bad=[],kinds={};
+qT('월드','지역 마을 의뢰 60개(+v30 새 사냥터 24개 · v36 지역 의뢰): 주는 사람 · 받는 사람이 마을에 있고, 목표 자리가 있고 닿음 (던전/둥지/채집)',()=>{qPrep('mage',{lvl:60});qOk(WX_SQ.length===60+Q30_SQ.length+Q36_SQ.length+(typeof R110_SQ==='object'?R110_SQ.length:0)/* v51 새 땅 마을 의뢰 */&&Q30_SQ.length===24,`${WX_SQ.length}개`);const bad=[],kinds={};
   for(const q of WX_SQ){const T=ALLTOWNS.find(t=>t.id===q.town);if(!T){bad.push(q.id+' 마을 없음');continue}kinds[q.kind]=(kinds[q.kind]||0)+1;
     {const f=sqFolk(q.giver),g=sqFolk(sqTurn(q));if(!f||f.town!==T)bad.push(`${q.id}: 주는 사람 ${q.giver} 없음`);if(!g||!ALLTOWNS.includes(g.town))bad.push(`${q.id}: 받는 사람 ${sqTurn(q)} 없음`)}
     P.lvl=Math.max(60,q.lvl|0);const s=sqState();if(q.req)s.d[q.req]=1;s.a={};qOk(sqAvail(q)==='ok',`${q.id} ${sqAvail(q)}`);sqAccept(q.id);
@@ -1982,7 +1982,7 @@ qT('책 v20','얻는 곳: 아르덴 잡화점(책 칸 · 금화) · 던전 주�
 const h2i=h=>{const i=h.indexOf('<h2>반지와 목걸이');return i<0?1e9:i};
 qT('책 v20','읽기 쪽지 · 서고 창이 휴대폰 폭(390)에 맞음 · 게임을 멈추지 않음',()=>{qPrep('mage',{lvl:10});bookGain('w8');const r=BKC.getBoundingClientRect(),cs=getComputedStyle(BKC);qOk(!BKC.hidden&&r.width<=Math.min(440,innerWidth-24)+1,`쪽지 폭 ${r.width}`);qOk(cs.position==='fixed'&&cs.overflowY==='auto','쪽지 스크롤');
   qOk(!paused,'쪽지가 게임을 멈춤');bkT=.05;qStep(6);qOk(BKC.hidden,'쪽지가 저절로 닫히지 않음');openCodex();cxSub='books';renderPanel();qOk(pbody.innerHTML.includes('밤마다 골목이 바뀌는 도시'),'서고에 읽은 책 없음');cxSub='items';qClosePanels();return '440px 이하 · 22초 뒤 닫힘'});
-qT('현상금 v20','게시판 28곳(v20 13곳 + v36 15곳) · 걸어서 닿고 마을 사람과 안 겹침 · 날짜+게시판이 같으면 같은 현상금 · 셋 모두 다른 몬스터',()=>{qPrep('archer',{lvl:40});const ids=Object.keys(BTY_BOARDS);qOk(ids.length===28,'게시판 '+ids.length);
+qT('현상금 v20','게시판 28곳(v20 13곳 + v36 15곳) · 걸어서 닿고 마을 사람과 안 겹침 · 날짜+게시판이 같으면 같은 현상금 · 셋 모두 다른 몬스터',()=>{qPrep('archer',{lvl:40});const ids=Object.keys(BTY_BOARDS);qOk(ids.length===28+(typeof R110==='object'?5:0),'게시판 '+ids.length);/* v51 새 땅 마을 다섯 */
   for(const id of ids){const d=BTY_PROP[id];qOk(d,id+' 게시판 없음');const t=v20Town(id),L=v20L(t.reg||'home');qOk(L.decor.includes(d),id+' 장식에 없음');const Pt=wxTownParts(L,t);
     for(const f of Pt.folk)qOk(Math.hypot(f.hx-d.x,f.hy-d.y)>=WXT.npc,`${id} 게시판이 ${f.n}와 겹침`);if(L.lq){const ok=L.okT||(L.okT=wxReach(L.lq,t.x,t.y));qOk(wxCanReach(ok,d.x,d.y),id+' 게시판에 못 닿음')}
     qOk(sqUseLive(d)&&/현상금 게시판/.test(sqUseLive(d).label),id+' 라벨');const a=btyToday('2026-10-08',id),b=btyToday('2026-10-08',id),c=btyToday('2026-10-09',id);
@@ -3262,7 +3262,7 @@ qT(QQ22,'1막 12개를 차례로 끝까지: 목표 자리가 늘 있고(입구 �
     qOk(P.q.st===2,q.t+' 완료 아님');questFinish();r.push(q.t)}qOk(P.q.i===12,'1막 끝 아님');return r.length+'개'}finally{qClosePanels()}});
 qT(QQ22,'겹치는 반복 목표(같은 들판 몬스터 N마리 · 그 몬스터 전리품) 줄임: 직업마다 앞 → 뒤',()=>{qPrep('mage',{lvl:30});
   const B={mage:{grind:51,pair:2,dup:12},priest:{grind:52,pair:2,dup:14},warrior:{grind:52,pair:2,dup:11},archer:{grind:52,pair:2,dup:12}},r=[];let b0=0,a0=0;
-  const s36=new Set(typeof Q36_SQ==='object'?Q36_SQ.map(q=>q.id):[]);/* v36: 주인이 잡기 · 모으기를 다른 의뢰와 고루 섞어 달라 함 → v22 줄인 것(옛 의뢰)은 그대로 보고, 전체에서 잡기 · 모으기가 40%를 넘지 않음 */
+  const s36=new Set([...(typeof Q36_SQ==='object'?Q36_SQ:[]),...(typeof R110_SQ==='object'?R110_SQ:[])].map(q=>q.id));/* v51: 새 땅 의뢰 20개도 v36처럼 전체 비율(40%)로만 봄 *//* v36: 주인이 잡기 · 모으기를 다른 의뢰와 고루 섞어 달라 함 → v22 줄인 것(옛 의뢰)은 그대로 보고, 전체에서 잡기 · 모으기가 40%를 넘지 않음 */
   for(const c in B){const A=q22Rep(c),a=q22Rep(c,s36),b=B[c];b0+=b.grind;a0+=a.grind;qOk(A.pair===0,`${c} 잡고 또 그 전리품(v36 포함) ${A.pair}`);qOk(A.dup<=2,`${c} 겹침(v36 포함) ${A.dup} ${A.dl.join(' ')}`);qOk(A.grind<=A.vis*.4,`${c} 반복 목표 비율 ${A.grind}/${A.vis}`);qOk(a.pair===0,`${c} 잡고 또 그 전리품 ${a.pair}`);qOk(a.dup<=2,`${c} 겹침 ${a.dup} ${a.dl.join(' ')}`);qOk(a.grind<=b.grind-8&&a.grind>=Math.round(a.vis*.15),`${c} 반복 목표 의뢰 ${b.grind}→${a.grind}`);
     r.push(`${c} 반복 ${b.grind}→${a.grind}/${a.vis} · 겹침 ${b.dup}→${a.dup} · 잡고+전리품 ${b.pair}→${a.pair}`)}
   return r.join(' | ')+` · 합 ${b0}→${a0} (${Math.round((1-a0/b0)*100)}% 줄임)`});
@@ -4188,7 +4188,7 @@ qT('보스 v26','모르가스 쉽게: 부하(재의 사도)는 30초에 둘(처�
     qOk(vol.length&&Math.max(...vol)<=10,'분노 부채 '+[...new Set(vol)]);qOk(cloneVol.length&&cloneVol.every(n=>n===5),'분신 부채 '+cloneVol);out.push('보스 부채 '+[...new Set(vol)].join('/')+' · 분신 부채 5')}finally{bossThink=think0;if(DG)leaveDungeon()}
   return out.join(' · ')});
 qT('보스 v26','보스방 3배: 모든 지역의 모든 동굴 던전에서 보스방이 v24 넓이(원래 방의 2.25배 · 큰 보스 2.6배)의 3배 이상 · 보스가 가운데 · 남은 방과 떨어짐 · 걸어서 감 · 방 8개 이상',()=>{let n=0,mn=99,eat=0;const bad=[];qPrep('mage',{lvl:60});P.invT=1e9;
-  for(const id of Object.keys(REGIONS)){if(DG)leaveDungeon();loadRegion(id);for(const c of CAVES.slice()){if(!c.cave||c.cave.trial||c.cave.arena||c.cave.w3k==='trial')continue;if(DG)leaveDungeon();K22.m.clear();enterDungeon(c);qOk(!DG||DG.d===c.cave,'다른 던전이 열림 '+c.cave.n);if(!DG||!DG.boss){bad.push(c.cave.n+' 못 들어감');continue}
+  for(const id of Object.keys(REGIONS)){if(DG)leaveDungeon();loadRegion(id);for(const c of CAVES.slice()){if(!c.cave||c.cave.trial||c.cave.arena||c.cave.w3k==='trial'||c.cave.cath/* 대성당은 정해진 모양(큰 홀이 보스방) · 「v51 대성당」 시험 */)continue;if(DG)leaveDungeon();K22.m.clear();enterDungeon(c);qOk(!DG||DG.d===c.cave,'다른 던전이 열림 '+c.cave.n);if(!DG||!DG.boss){bad.push(c.cave.n+' 못 들어감');continue}
     const br=DG.rooms.find(r=>r.b24);if(!br){bad.push(c.cave.n+' 넓힌 방 없음');continue}const t=TYPES[c.cave.boss]||{},need=((t.sc||2)>=2.7?2.6:2.25)*3,k=br.w*br.h/br.b24;mn=Math.min(mn,k/need*3);if(k<need-1e-9)bad.push(`${c.cave.n} ×${k.toFixed(2)}<${need.toFixed(2)}`);eat+=br.b26||0;
     const b=DG.boss,bi=Math.floor((b.x-OX)/TS),bj=Math.floor((b.y-OY)/TS);if(!(bi>=br.i&&bi<br.i+br.w&&bj>=br.j&&bj<br.j+br.h))bad.push(c.cave.n+' 보스가 방 밖');
     for(const o of DG.rooms)if(o!==br&&br.i<=o.i+o.w&&br.i+br.w>=o.i&&br.j<=o.j+o.h&&br.j+br.h>=o.j)bad.push(c.cave.n+' 다른 방과 붙음');if(DG.rooms.length<8)bad.push(c.cave.n+' 방 '+DG.rooms.length);
@@ -5104,7 +5104,7 @@ qT('피드백 v28','6. 피어싱 관통 피해 증가와 짧은 감속 · 파워
   qOk(SPELLS.powershot.mult>=SPELLS.quickshot.mult*2.5&&SPELLS.powershot.knock>0,'파워 배율/밀치기');qClear();qNoRec();P.sk.powershot=1;const e=dgMob('goblin',P.x+120,P.y,10);e.hp=e.max=1e6;e.atkCd=1e9;e.stunT=20;const x=e.x;qCast('powershot',e);qStep(20,{render:false});qOk(e.hp<1e6&&e.x>x,'파워 밀치기 안 됨');
   qClear();qNoRec();P.sk.siegeshot=1;const f=qDummy(P.x+220,P.y+80);qCast('siegeshot',{x:P.x+500,y:P.y});qOk(f.hits>0,'넓힌 가장자리 안 맞음');qOk(eff('siegeshot',1).w===54&&FXP.fx.some(o=>o.k==='beamp'&&o.w===54),'시즈 그림 폭');return '관통 피해 '+es.map(e=>Math.round(e.taken)).join(' / ')});
 qT('피드백 v28','7. 모든 던전: 중간보스 체력 > 가장 강한 정예 ×3 · 최종 보스 체력보다 작음 · 정예보다 공격력 높음',()=>{qPrep('mage');let n=0;
-  try{for(const rg of Object.keys(REGIONS)){loadRegion(rg);for(const c of CAVES.slice()){const d=c.cave;if(!(d.minis||[]).length||!d.boss||d.trial)continue;enterDungeon(c);const es=enemies.filter(e=>(d.minis||[]).includes(e.k)),a=fb28Elite(d,DG.lvl,P.diff),boss=DG.boss;qOk(es.length===d.minis.length,d.n+' 중간보스 없음');
+  try{for(const rg of Object.keys(REGIONS)){loadRegion(rg);for(const c of CAVES.slice()){const d=c.cave;if(!(d.minis||[]).length||!d.boss||d.trial||d.cath/* 대성당 준보스 넷 · 보스는 나중에: 「v51 대성당」 시험이 같은 세기 규칙을 봄 */)continue;enterDungeon(c);const es=enemies.filter(e=>(d.minis||[]).includes(e.k)),a=fb28Elite(d,DG.lvl,P.diff),boss=DG.boss;qOk(es.length===d.minis.length,d.n+' 중간보스 없음');
     for(const e of es){qOk(e.max>a.hp*3,d.n+' '+e.k+' 체력 '+e.max+'/'+a.hp);qOk(e.max<boss.max&&e.dmg<boss.dmg,d.n+' 최종보다 강함');qOk(e.dmg>a.dmg,d.n+' 공격력 안 높음');n++}leaveDungeon()}}}finally{if(DG)leaveDungeon();loadRegion('home')}return n+'마리'});
 
 qT('피드백 v28','7b. 3막 모든 중간보스: 정예 ×3보다 높은 체력 · 연결된 다음 구역 최종 보스보다 약함 · 세 난이도에서 고정 체력',()=>{let n=0;
@@ -8086,8 +8086,10 @@ qT('파티 방장 넘기기 v50','(사용자 「여전히 던전은 같이 들�
   finally{CO22.cap=null;F50.told=0;F50.snapAt=0;NET.lobby=keep.lobby;NET.roomHost=keep.roomHost;CO22.rj=keep.rj;CO22.rjT=keep.rjT;if(DG)leaveDungeon();enemies=[];qPtyOff();NET.hostId=0;loadRegion('home')}return out.join(' · ')});
 /* ===== v51 110레벨 이후 새 땅 다섯 곳 · 아홉 첨탑 대성당 (사용자 2026-11-02) ===== */
 const qR110=(id,lvl)=>{qW3Prep('mage',lvl||125);W3.qaOpen=true;qWxTo(id);return RCACHE[id]};
-qT('v51 새 땅','다섯 지도: 지옥 전용 · 천둥 우는 첨봉 동쪽 → 첨탑 광장 → 호수 · 첨봉 · 밀림 · 빙관 · 세계 지도 자리 겹침 없음 · 지역 번호는 맨 끝 · 음악 · 마을(짝문 · 상점 · 창고)',()=>{
-  const out=[];qOk(REGIONS.thunder.edges.E===R110.sq,'천둥 첨봉 동쪽');qOk(REG_IDS.slice(-5).join()===R110.ids.join(),'맨 끝 '+REG_IDS.slice(-6).join());
+qT('v51 새 땅','다섯 지도: 지옥 전용 · 눈잠든 순례길 동쪽 → 첨탑 광장 → 호수 · 첨봉 · 밀림 · 빙관 · 세계 지도 자리 겹침 없음 · 지역 번호는 맨 끝 · 음악 · 마을(짝문 · 상점 · 창고)',()=>{
+  const out=[];qOk(REGIONS.h29_snow.edges.E===R110.sq&&REGIONS[R110.sq].edges.W==='h29_snow','눈잠든 순례길 동쪽');qOk(!Object.values(REGIONS.thunder.edges).includes(R110.sq),'천둥 첨봉과 이음 없음');
+  {const V=Object.values(WPOS);qOk(Math.min(...V.map(p=>p[0]))>=-2&&Math.max(...V.map(p=>p[0]))<=5&&Math.min(...V.map(p=>p[1]))>=-3&&Math.max(...V.map(p=>p[1]))<=3,'세계 지도 칸 범위가 넓어짐(가로 -2~5 · 세로 -3~3)')}
+  {const DV={W:[-1,0],E:[1,0],N:[0,-1],S:[0,1]};for(const id of R110.ids)for(const sd in REGIONS[id].edges){const to=REGIONS[id].edges[sd],a=WPOS[id],b=WPOS[to];qOk(a&&b&&b[0]-a[0]===DV[sd][0]&&b[1]-a[1]===DV[sd][1],`${id} ${sd} 지도 방향`)}}qOk(REG_IDS.slice(-5).join()===R110.ids.join(),'맨 끝 '+REG_IDS.slice(-6).join());
   for(const id of R110.ids){const D=REGIONS[id];qOk(D&&D.hell,id+' 지옥 전용');qOk(WPOS[id]&&!Object.keys(WPOS).some(k=>k!==id&&String(WPOS[k])===String(WPOS[id])),id+' 지도 자리');
     for(const sd in D.edges){const to=D.edges[sd];qOk(REGIONS[to]&&REGIONS[to].edges[OPP[sd]]===id,`${id} ${sd} → ${to} 되돌아오는 길`)}
     qOk(BGM_REG[id],id+' 음악');const L=qR110(id);const T=L.town;qOk(T&&T.gate&&T.shop&&T.stash,id+' 마을');qOk(!blockedAt(T.gate.x+40,T.gate.y+40),id+' 짝문 앞 막힘');
@@ -8180,8 +8182,11 @@ qT('v51 대성당','보스 바실리온: 무너지는 지붕 조각(금빛 원 �
   qR1C();const C=DG.ct;enemies=[];for(let k=0;k<8;k++)C.bell[k]=1;C.st=1;C.seq=[0,1,2,3];C.prog=0;for(const k of C.seq)r110cRing(k,null);const B=DG.boss;qOk(B,'보스');
   P.x=B.x+260;P.y=B.y+260;followCam();C.dT=0;C.gT=0;qStep(2);qOk(warns.filter(w=>w.col==='#e0b030').length>=5,'지붕 '+warns.filter(w=>w.col==='#e0b030').length);qOk(warns.some(w=>w.col!=='#e0b030'&&w.rad===72),'빛줄기');
   qStep(120,{renderEvery:4,each:()=>{P.hp=maxHp()}});B.hp=B.max*.45;qStep(3);qOk(enemies.filter(e=>e.k==='ct_icon').length>=2&&C.kn===1,'금박 기사 '+enemies.filter(e=>e.k==='ct_icon').length);
-  const S0=r110S(),n0=S0.cath|0;qKillE(B);qStep(3);qOk(B.dead&&DG.bossDead&&DG.portals.length>=2&&S0.cath===n0+1&&S0.d.b_ct_tsar&&C.st===3,'쓰러뜨림');
-  const c=RCACHE[R110.sq].caves.find(c=>c.cave.cath);leaveDungeon();enterDungeon(c);qOk(DG.kept22&&DG.ct&&DG.ct.st===3&&DG.bossDead,'다시 들어감');leaveDungeon();
+  {const el=fb28Elite(DG.d,DG.lvl,P.diff);for(const k of DG.d.minis){const m=dgMob(k,B.x+300,B.y,DG.lvl+1);enemies.pop();qOk(m.max>el.hp*3&&m.max<B.max&&m.dmg>el.dmg&&m.dmg<B.dmg,k+' 준보스 세기 '+m.max+'/'+el.hp+'/'+B.max)}}
+  const S0=r110S(),n0=S0.cath|0;loot=[];qKillE(B);qStep(3);qOk(B.dead&&DG.bossDead&&DG.portals.length>=2&&S0.cath===n0+1&&S0.d.b_ct_tsar&&C.st===3,'쓰러뜨림');
+  {const its=loot.filter(l=>l.kind==='item');qOk(its.length>=2&&its.length<=3&&its[0].item.rar>=3,'전리품 '+its.map(l=>l.item.rar))}
+  {const ex=DG.portals[DG.portals.length-1],c0=RCACHE[R110.sq].caves.find(c=>c.cave.cath);qOk(qActAt(ex.x,ex.y)==='exit','빛나는 문 '+act);doAct();qOk(!DG&&REG.id===R110.sq&&Math.abs(P.x-c0.x)<1&&Math.abs(P.y-(c0.y+80))<1,'나온 자리')}
+  const c=RCACHE[R110.sq].caves.find(c=>c.cave.cath);enterDungeon(c);qOk(DG.kept22&&DG.ct&&DG.ct.st===3&&DG.bossDead,'다시 들어감');leaveDungeon();
   K22.m.clear();enterDungeon(c);const C2=DG.ct;qOk(C2&&C2.st===0&&!DG.boss,'새 대성당');V20NET.r1cs({b:'10101010',s:'9310',p:99,st:7,m:'시험'});qOk(C2.bell.join('')==='10101010'&&C2.seq.join()==='3,1,0'&&C2.prog===4&&C2.st===3,'소식 '+JSON.stringify(C2));
   V20NET.r1cs({b:'xx',s:5,p:-3,st:-1});qOk(C2.bell.join('')==='10101010'&&C2.prog===0&&C2.st===0,'이상한 소식');V20NET.r1cb({i:1},null);qOk(C2.bell[1]===0,'방장 아닌데 종 부탁 받음');
   leaveDungeon();return '쓰러뜨림 '+S0.cath});

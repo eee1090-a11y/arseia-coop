@@ -109,7 +109,7 @@ function r110cCamp(){const L=RCACHE[R110.sq];if(!L||!L.town)return null;const t=
   L.decor.push(b);(TW.blds[L.id]||(TW.blds[L.id]=[])).push(b);if(L.lights)L.lights.push(b);if(typeof tw22Safe==='function')tw22Safe(L,t);return b}
 const R1C_CAMP=r110cCamp();
 {const _tg=terrGrid;terrGrid=function(id){const w=_tg.apply(this,arguments);try{const b=R1C_CAMP;if(w&&id===R110.sq&&b){const F=b.foot[0];
-  for(let j=0;j<TNC;j++)for(let i=0;i<TNC;i++){const k=terrIdx(i,j);if(!w[k])continue;const x=(i+.5)*TCS,y=(j+.5)*TCS;if(x>F[0]-200&&x<F[2]+200&&y>F[1]-200&&y<F[3]+260)w[k]=0}}}catch(e){if(window.__QA)throw e}return w}}
+  for(let j=0;j<TNC;j++)for(let i=0;i<TNC;i++){const k=terrIdx(i,j);if(!w[k])continue;const x=(i+.5)*TCS,y=(j+.5)*TCS;if(x>F[0]-200&&x<F[2]+200&&y>F[1]-200&&y<F[3]+260||Math.max(Math.abs(x-3000),Math.abs(y-3000))<2450)w[k]=0}}}/* 광장은 탁 트이게: 가운데 4900 네모 안 절벽 없음(바깥 띠만 남김) */catch(e){if(window.__QA)throw e}return w}}
 delete TERR[R110.sq];
 {const _dc=drawCave;drawCave=function(d){if(!DG&&d.cave&&d.cave.cath)return;return _dc.apply(this,arguments)}}
 // 양파 지붕: (x,y)는 지붕 밑 가운데(화면) · rx 반지름 · h 높이 · 무늬 spiral/zig/dia/stripe

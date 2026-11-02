@@ -80,6 +80,30 @@ const R110_DG=[
   {id:R110.cath,reg:R110.sq,at:'near',n:'아홉 첨탑 대성당',x:3000,y:2300,lvl:95,floor:[92,72,56],wall:['#a85a40','#3a1a14','#e0b080'],torch:'#ffe0a0',mobs:['ct_choir','ct_icon','ct_dome'],minis:['m_ct_bell','m_ct_glass'],boss:'b_ct_tsar',loot:'모든 원소 · 상급 유니크(드묾)',cath:1}
 ];
 WX_DUNGEONS.push(...R110_DG);
+// 마을 의뢰: 마을마다 넷(잡기 · 모으기 · 던전). 보상 공식은 다른 마을 의뢰와 같음(sqXp · 금화 레벨×8)
+const r1q=(id,town,giver,lvl,kind,t,say,done,goals)=>({id,town,giver,lvl,kind,t,say,done,goals,rw:{xp:1,gold:lvl*8,pot:2}});
+const R110_SQ=[
+ r1q('r110q_lake_1','r110_lake_camp','r110_ulgen',112,'처치','얼음 위의 은빛 갈기','은빛 갈기 늑대들이 낚시 구멍 곁에서 사람을 노려요. 물고기 냄새를 맡고 오는 거죠. 몇 마리만 쫓아내 주면 다들 마음 놓고 낚시할 수 있을 거예요.','이제야 얼음 위에서 등을 돌리고 앉을 수 있겠네요. 고마워요.',[{type:'kill',k:['lk1_wolf'],n:8,d:'은빛 갈기 호수늑대 8마리 처치'}]),
+ r1q('r110q_lake_2','r110_lake_camp','r110_ulgen',114,'수집','얼어붙은 숨결','얼음 숨결 혼령이 지나간 자리엔 하얀 서리 구슬이 남아요. 그걸 낚싯줄에 달면 줄이 얼지 않거든요. 혼령을 달래 주고 서리 구슬을 모아 주세요.','이 구슬이면 겨울 내내 줄이 얼지 않겠어요.',[{type:'collect',k:['lk1_mist'],p:.55,n:6,item:'서리 구슬',d:'얼음 숨결 혼령에게서 서리 구슬 6개 모으기'}]),
+ r1q('r110q_lake_3','r110_lake_camp','r110_ulgen',116,'처치','바위섬을 지키는 이들','바위섬 무당 파수꾼들이 요즘 섬에 오는 사람을 모두 막아요. 기둥에 천을 묶으러 가는 사람까지요. 파수꾼들을 물러서게 해 주세요.','섬으로 가는 얼음길이 다시 열렸대요. 기둥에 파란 천이 하나 더 늘었어요.',[{type:'kill',k:['lk1_ward'],n:6,d:'바위섬 무당 파수꾼 6마리 처치'}]),
+ r1q('r110q_lake_4','r110_lake_camp','r110_ulgen',118,'던전','호수 밑의 주인','바위섬 밑 동굴에 호수의 주인이 산다는 얘기, 들었어요? 요즘 얼음 밑에서 큰 그림자가 지나가면 구멍마다 물고기가 사라져요. 동굴 깊은 곳의 주인을 만나 보세요.','물고기들이 돌아왔어요! 얼음 밑이 다시 은빛으로 반짝여요.',[{type:'kill',k:['b_lk1_seal'],n:1,d:'얼음 밑 무당 동굴의 누르간 쓰러뜨리기'}]),
+ r1q('r110q_peak_1','r110_peak_camp','r110_dato',118,'처치','산길의 큰뿔','구름뿔 큰산양들이 산길 한가운데를 막고 비키질 않아요. 뿔에 받히면 골짜기까지 굴러가요. 길을 좀 터 주세요.','이제 짐 진 사람들도 산길을 오를 수 있겠어요.',[{type:'kill',k:['pk1_ram'],n:8,d:'구름뿔 큰산양 8마리 처치'}]),
+ r1q('r110q_peak_2','r110_peak_camp','r110_dato',120,'수집','바람칼 깃털','바람칼 독수리 깃털은 바람을 가른대요. 그걸 돌무덤 깃발에 달면 옆바람이 불기 전에 미리 떨려서 알려 줘요. 깃털을 모아 주세요.','깃발마다 깃털을 달았어요. 이제 바람이 오기 전에 알 수 있어요.',[{type:'collect',k:['pk1_eagle'],p:.55,n:6,item:'바람칼 깃털',d:'바람칼 독수리에게서 깃털 6개 모으기'}]),
+ r1q('r110q_peak_3','r110_peak_camp','r110_dato',122,'처치','돌탑의 수도승들','옛 수도승들이 아직도 돌탑 둘레를 돌며 기도한대요. 그런데 산 사람을 보면 길을 막아요. 쉬게 해 주세요.','종소리가 다시 맑게 울려요. 그분들도 이제 쉬시겠지요.',[{type:'kill',k:['pk1_monk'],n:7,d:'돌탑 수도승 망령 7마리 처치'}]),
+ r1q('r110q_peak_4','r110_peak_camp','r110_dato',124,'던전','봉우리를 감은 바람','낙석 협곡 굴 깊은 곳에서 바람뱀이 봉우리를 감고 있대요. 그놈이 몸을 틀 때마다 돌이 굴러 내려와요. 굴 끝까지 가 보세요.','오늘은 돌이 하나도 안 굴러왔어요! 정상까지 조용해요.',[{type:'kill',k:['b_pk1_roc'],n:1,d:'낙석 협곡 굴의 카즈라 쓰러뜨리기'}]),
+ r1q('r110q_jg_1','r110_jungle_camp','r110_ikaru',124,'처치','강물 속 큰뱀','흙탕강 큰뱀이 뗏목 밑을 따라와요. 나루에 내리는 사람을 노리죠. 나루 둘레 큰뱀을 좀 잡아 주세요.','오늘은 뗏목이 무사히 세 나루를 다 돌았어요.',[{type:'kill',k:['jg1_snake'],n:8,d:'흙탕강 큰뱀 8마리 처치'}]),
+ r1q('r110q_jg_2','r110_jungle_camp','r110_ikaru',126,'수집','독화살 개구리의 독','독화살 개구리 독을 아주 조금 묻히면 물고기가 잘 잡혀요. 마을 사람들 저녁거리예요. 개구리를 잡아 독주머니를 모아 주세요.','오늘 저녁은 강 생선 잔치예요!',[{type:'collect',k:['jg1_frog'],p:.55,n:6,item:'독주머니',d:'독화살 개구리에게서 독주머니 6개 모으기'}]),
+ r1q('r110q_jg_3','r110_jungle_camp','r110_ikaru',128,'처치','점박이 사냥꾼','점박이 재규어가 강가 마을까지 내려왔어요. 기둥 집 위로도 뛰어올라요. 숲으로 돌려보내 주세요.','아이들이 다시 강가에서 놀아요.',[{type:'kill',k:['jg1_jaguar'],n:7,d:'점박이 밀림 재규어 7마리 처치'}]),
+ r1q('r110q_jg_4','r110_jungle_camp','r110_ikaru',130,'던전','흙탕강의 왕','덩굴에 삼켜진 황금 신전에 흙탕강의 왕이 산대요. 그놈이 꼬리를 치면 강물이 거꾸로 흘러요. 신전 깊은 곳으로 가 주세요.','강물이 다시 바다 쪽으로 흘러요. 뗏목꾼들이 노래를 불러요.',[{type:'kill',k:['b_jg1_croc'],n:1,d:'황금 신전의 카이만 우루 쓰러뜨리기'}]),
+ r1q('r110q_au_1','r110_aurora_camp','r110_sanna',130,'처치','모닥불을 노리는 늑대','극야 늑대들이 모닥불 둘레를 맴돌아요. 불을 지키는 사람이 잠들기만 기다리죠. 늑대들을 쫓아 주세요.','오늘 밤은 모두 불 곁에서 편히 잘 수 있겠어요.',[{type:'kill',k:['au1_wolf'],n:8,d:'극야 늑대 8마리 처치'}]),
+ r1q('r110q_au_2','r110_aurora_camp','r110_sanna',132,'수집','흰곰의 털','극야 흰곰 털로 짠 장갑이면 손가락이 얼지 않아요. 파수막 사람들 장갑이 다 해졌어요. 흰곰 털을 모아 주세요.','새 장갑이에요! 손끝이 따뜻해요.',[{type:'collect',k:['au1_bear'],p:.55,n:6,item:'흰곰 털',d:'극야 흰곰에게서 털 6뭉치 모으기'}]),
+ r1q('r110q_au_3','r110_aurora_camp','r110_sanna',134,'처치','빙관의 옛 파수병','얼음 속에 갇혔던 옛 파수병들이 깨어나 파수막을 자기들 것이라고 해요. 이제 그들의 차례는 끝났다고 알려 주세요.','파수막 깃발이 다시 우리 것이 됐어요.',[{type:'kill',k:['au1_guard'],n:7,d:'빙관 파수병 7마리 처치'}]),
+ r1q('r110q_au_4','r110_aurora_camp','r110_sanna',136,'던전','하늘을 헤엄치는 고래','얼음 고래의 무덤 깊은 곳에서 오로라를 삼키는 고래가 잠들어 있대요. 그 고래가 깨면 하늘의 빛이 꺼진대요. 먼저 가서 막아 주세요.','오늘 밤 오로라가 어느 때보다 밝아요.',[{type:'kill',k:['b_au1_whale'],n:1,d:'얼음 고래의 무덤의 오로르 쓰러뜨리기'}]),
+ r1q('r110q_sq_1','r110_square_camp','r110_iliya',132,'처치','성가를 부르는 망령','대성당 안에서 성가 망령들이 끝없이 노래해요. 그 노래를 오래 들으면 순례자들이 길을 잃어요. 망령들을 잠재워 주세요.','노랫소리가 잦아들었어요. 순례자들이 다시 광장에 모여요.',[{type:'kill',k:['ct_choir'],n:8,d:'아홉 첨탑 대성당의 노래하는 성가 망령 8마리 처치'}]),
+ r1q('r110q_sq_2','r110_square_camp','r110_iliya',133,'수집','금박 조각','금박 성화 기사들의 갑옷에서 떨어진 금박을 모으면 무너진 성화를 다시 칠할 수 있어요. 대성당 안에서 모아 주세요.','이 금박이면 큰 성화 하나는 되살릴 수 있겠어요.',[{type:'collect',k:['ct_icon'],p:.55,n:6,item:'금박 조각',d:'금박 성화 기사에게서 금박 조각 6개 모으기'}]),
+ r1q('r110q_sq_3','r110_square_camp','r110_iliya',134,'처치','종지기와 색유리 수녀','예배당마다 종지기와 색유리 수녀가 종을 지키고 있어요. 그들을 넘어서야 종을 울릴 수 있어요.','종소리가 하나씩 돌아오고 있어요.',[{type:'kill',k:['m_ct_bell','m_ct_glass'],n:2,d:'종지기 · 색유리 수녀 2명 쓰러뜨리기'}]),
+ r1q('r110q_sq_4','r110_square_camp','r110_iliya',138,'던전','첨탑의 주인','여덟 종을 모두 울리고 색유리 순서대로 다시 치면 첨탑의 주인이 내려온대요. 그분이 대성당을 놓아줘야 순례자들이 들어갈 수 있어요.','아홉 첨탑이 모두 밝아졌어요. 이제 순례자들이 첨탑을 세며 웃어요.',[{type:'kill',k:['b_ct_tsar'],n:1,d:'아홉 첨탑 대성당의 바실리온 쓰러뜨리기'}])];
+WX_SQ.push(...R110_SQ);
 // 마을 사람 (지역 놀이를 알려 준다 · 이름은 마을 전체에서 하나뿐)
 Object.assign(WX_FOLK,{
  r110_ulgen:{town:'r110_lake_camp',at:[-170,-140],n:'얼음 낚시꾼 울겐',role:'낚시꾼',L:{body:'#5a4a3a',cape:'#8a6a4a',hair:'#2a1a10',hs:0,hat:1,hatC:'#6a5a4a',prop:'staff'},
@@ -96,7 +120,7 @@ Object.assign(WX_FOLK,{
 // 마을 모습(전초 마을 꾸미기)
 Object.assign(WX_TWOUT,{
  [R110.lake]:{st:'frost',local:['호숫가 어부','#5a6a7a',3,'얼음이 맑은 날엔 발밑으로 물고기가 지나가는 게 보여.'],props:['nets','barrel','crate','snowpine']},
- [R110.peak]:{st:'storm',local:['양치기','#6a5a3a',3,'구름이 발밑에 깔리는 날이면 정상에서 세상 끝까지 보여.'],props:['haystack','crate','fence','rock']},
+ [R110.peak]:{st:'crag',local:['양치기','#6a5a3a',3,'구름이 발밑에 깔리는 날이면 정상에서 세상 끝까지 보여.'],props:['haystack','crate','fence','rock']},
  [R110.jungle]:{st:'tamal',local:['강가 상인','#3a6a3a',6,'강은 길이자 시장이야. 뗏목 없이는 아무 데도 못 가.'],props:['bigleaf','boat','nets','kegs']},
  [R110.aurora]:{st:'frostcamp',local:['얼음 집 짓는 이','#4a5a6a',3,'하늘이 초록으로 일렁이면 모두 밖으로 나와. 그건 축제야.'],props:['iceboulder','barrel','crate','snowpine']},
  [R110.sq]:{st:'vigil',local:['순례자','#6a3a2a',2,'첨탑이 아홉 개래. 세어 보면 늘 하나가 모자라.'],props:['banner','crate','kegs','barrel']}
@@ -104,7 +128,7 @@ Object.assign(WX_TWOUT,{
 // 지역 붙이기 (region.js가 h29Install()을 부를 때 · 옹기여신 뒤)
 function r110Install(){const IC=REGIONS.ice.th,JG=REGIONS.jungle.th;
   const reg=(id,o)=>{REGIONS[id]={id,hell:1,zs:300,zcap:8,noLair:1,straight:1,...o}};
-  reg(R110.sq,{n:'첨탑 광장',base:70,zcap:1,col:'#ffcf8a',entry:'W',edges:{W:'thunder',N:R110.peak,E:R110.lake,S:R110.jungle},seed:229,royal:0,
+  reg(R110.sq,{n:'첨탑 광장',base:70,zcap:1,col:'#ffcf8a',entry:'W',edges:{W:'h29_snow',N:R110.peak,E:R110.lake,S:R110.jungle},seed:229,royal:0,
     at:[3000,3200],side:{W:{x:1250,y:3200},E:{x:4750,y:3200},N:{x:3000,y:1250},S:{x:3000,y:4750}},
     town:{id:'r110_square_camp',n:'첨탑 광장',area:'대성당 앞 광장',desc:'알록달록한 양파 모양 첨탑 아홉 개가 솟은 대성당 앞 광장. 순례자들이 첨탑을 세며 길을 묻습니다.',roof:['#a83a2a','#2a6a4a','#c88a2a','#2a4a8a']},
     th:{pal:[[150,146,140],[132,128,124]],deep:[120,116,112],liq:{col:[50,80,100],th:9,kind:'water'},grass:60,gm:[1,1,1],flow:0,fcol:['#f4f0e4','#ffd76a'],tile:.25,paint:'snow'},
@@ -125,8 +149,8 @@ function r110Install(){const IC=REGIONS.ice.th,JG=REGIONS.jungle.th;
     town:{id:'r110_aurora_camp',n:'극야 파수막',area:'얼음 바다 끝',desc:'해가 뜨지 않는 얼음 바다 끝의 파수막. 하늘이 초록과 보랏빛으로 일렁이는 날이면 모두가 밖으로 나옵니다.',roof:['#2a3a5a','#3a4a5a','#2a4a4a','#3a3a5a']},
     th:{...IC,pal:[[150,166,186],[128,144,168]],deep:[90,104,132],liq:{...IC.liq,th:.86}},
     mix:[['iceboulder',14],['icespike',12],['snowpine',6],['frozenbones',4]],mobs:['au1_bear','au1_wolf','au1_whale','au1_guard']});
-  Object.assign(WX_WPOS,{[R110.sq]:[6,2],[R110.peak]:[6,1],[R110.lake]:[7,2],[R110.jungle]:[6,3],[R110.aurora]:[7,1]});
-  REGIONS.thunder.edges.E=R110.sq;
+  Object.assign(WX_WPOS,{[R110.sq]:[4,-2],[R110.lake]:[5,-2],[R110.jungle]:[4,-1],[R110.peak]:[4,-3],[R110.aurora]:[5,-3]});/* 지도 칸(x -2~5 · y -3~3)을 넓히지 않게 북동쪽 빈 칸에 · 이음 방향과 지도 방향이 같다 */
+  REGIONS.h29_snow.edges.E=R110.sq;
   for(const k in R110_TYPES){const t=R110_TYPES[k];if(!MON[t.draw])t.draw=t.alt||'wolf'}
   // 던전 자리: 마을에서 떨어진 곳 (대성당은 광장 북쪽 대성당 건물 문 · r110.js가 건물을 세운다)
   const at={r110_lkcave:[3730,3110],r110_pkcave:[4300,1900],r110_jgtemple:[1700,4100],r110_aucrypt:[4300,1700]};
