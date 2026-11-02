@@ -118,7 +118,7 @@ function darkHv(){let hv=hover;if(!hv){let bd=760;for(const e of enemies)if(e.bi
   const dt=darkTier();if(dt>0&&ts&&!ts.textContent.includes('어둠 '))ts.textContent+=` · 어둠 ${dt}단계`})}}
 /* ===== 매 1/4초: 등불 켜기 · 들어온 곳 알림 · 같이 하기 보내기 ===== */
 V20.slowTick.push(st=>{if(!P)return;const s=darkSt();
-  if(P.w3&&(P.w3.lord|0)>0&&s.open<1){s.open=1;msg('꺼진 등대지기의 집에 「어둠의 등불」이 켜졌습니다 · 지옥 140 지역을 더 깊은 어둠으로 바꿀 수 있습니다','#c8a0ff');banner={t:'어둠의 등불',sub:'꺼진 등대지기의 집 · 어둠 1단계가 열렸습니다',col:'#b48aff',life:3,max:3};save()}
+  if(P.w3&&(P.w3.lord|0)>0&&s.open<1){s.open=1;msg('「불 꺼진 왕도」의 쉼터 「꺼진 등대지기의 집」에 「어둠의 등불」이 켜졌습니다 · 거기서 지옥 140 지역을 더 깊은 어둠으로 바꿀 수 있습니다 (세계 지도 ✦)','#c8a0ff');banner={t:'어둠의 등불',sub:'꺼진 등대지기의 집 · 어둠 1단계가 열렸습니다',col:'#b48aff',life:3,max:3};save()}
   const t=darkTier(),key=t+'|'+(DG?'d'+(DG.ci|0):REG.id);if(key!==D21.key){D21.key=key;if(t>0){const M=DARK_ROW(t);msg(`어둠 ${t}단계 · 몬스터 생명력 ${darkPct(M.hp)} · 보스·정예 피해 ${darkPct(M.dmg)} · 경험치 ${darkPct(M.xp)} · 아이템 찾기 ${darkPct(M.find)}`,'#c8a0ff')}D21.sendT=0}
   if(NET.on&&NET.host){D21.sendT-=st;if(D21.sendT<=0){D21.sendT=1;v20Send('h21',darkPayload())}}});
 function darkPayload(){return{dt:darkTier(),dh:darkHere()?1:0,a:netArea(),ec:echoList(),af:enemies.filter(e=>e.afx&&e.id&&!e.dead).slice(0,40).map(e=>[e.id,e.afx])}}

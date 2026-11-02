@@ -30,7 +30,7 @@ const MAIN_V18={sword:['atk'],polearm:['atk'],bow:['atk'],xbow:['atk'],shield:['
 const STATN_V18={str:'힘',dex:'민첩',atk:'공격력',ias:'공격 속도 %',acc:'명중',blk:'막기 확률 %',eva:'회피 확률 %',pdmg:'물리 피해 %'};
 Object.assign(STATN,STATN_V18);
 const AFX_POOL_V18={warrior:['str','dex','atk','hp','mp','regen','crit','cdr','ias','acc','pdmg'],archer:['dex','str','atk','hp','mp','regen','crit','cdr','ias','acc','pdmg','eva']};
-const SCORE_V18={str:3,dex:3,atk:3,ias:5,acc:1,blk:4,eva:5,pdmg:2};
+const SCORE_V18={str:3,dex:3,atk:3,ias:12,acc:1,blk:4,eva:5,pdmg:7};// v51: 공격 속도 5→12 · 물리 피해 2→7 (b2.js ITEM_W 설명)
 const UNIQ_V18=[
   {n:'브렌힐 수비대장의 검',slot:'staff',wt:'sword',cls:'warrior',st:{atk:1.3,tr_0:2,blk:5,ls:3},lore:'마을 문을 마지막까지 지킨 칼.'},
   {n:'용뼈 글레이브',slot:'staff',wt:'polearm',cls:'warrior',st:{atk:1.4,tr_1:2,pdmg:20,crit:6},lore:'자루가 무거울수록 끝이 날카롭다.'},

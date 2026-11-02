@@ -201,10 +201,45 @@ const gBuf={};
 function gArr(n,len){return new Float32Array(len)} // 일감마다 따로 (나눠 굽는 동안 섞이지 않게)
 const GSTAT={n:0,ms:0,last:0,sl:[]};
 // 한 조각 굽기는 여러 프레임에 나눠 한다 (yield 마다 쉬어 갈 수 있음)
+// [v51 최적화] 땅 한 조각의 점 색 계산 (예전 paintGround 안쪽 그대로). 밖의 것을 쓰지 않아 일꾼(Worker)에서도 똑같이 돈다
+function gPix(J,py0,py1,D){const {N,inv,ox,oy,gx0,gy0,GG,NG,KI,M,SA,TA,MX,LG,hasL,TXh,TXr,HK,WSA,GNZ,kind,LTh,LTr,lc,LAVA_LUT}=J;
+  const clamp=(v,a,b)=>v<a?a:v>b?b:v,smooth=(a,b,v)=>{const t=clamp((v-a)/(b-a),0,1);return t*t*(3-2*t)};
+  const rs=SA.map(()=>new Float32Array(NG)),rt=SA.map(()=>new Float32Array(NG*3)),rl=new Float32Array(NG),rm=new Float32Array(NG),sv=new Float32Array(M),SH=4.2;
+  for(let py=py0;py<py1;py++){
+    const wy=oy+(py+.5)*inv,gyf=(wy-gy0)/GG,j=gyf|0,fy=gyf-j,q0=j*NG,q1=q0+NG;
+    for(let a=0;a<M;a++){const Sk=SA[a],Tk=TA[a],r=rs[a],t=rt[a];for(let i=0;i<NG;i++){r[i]=Sk[q0+i]+(Sk[q1+i]-Sk[q0+i])*fy;for(let c=0;c<3;c++)t[i*3+c]=Tk[(q0+i)*3+c]+(Tk[(q1+i)*3+c]-Tk[(q0+i)*3+c])*fy}}
+    for(let i=0;i<NG;i++){rm[i]=MX[q0+i]+(MX[q1+i]-MX[q0+i])*fy;if(hasL)rl[i]=LG[q0+i]+(LG[q1+i]-LG[q0+i])*fy}
+    let o=py*N*4;
+    for(let px=0;px<N;px++,o+=4){const wx=ox+(px+.5)*inv,gxf=(wx-gx0)/GG,i=gxf|0,fx=gxf-i;
+      const u=(wx-wy)*KI+65536,v=(wx+wy)*KI*.5+65536,ti=((v&255)<<8)|(u&255),ti2=((((v*.71+37)|0)&255)<<8)|(((u*.71+91)|0)&255),mx=rm[i]+(rm[i+1]-rm[i])*fx;
+      const tw=((wy&255)<<8)|(wx&255);let best=-1e9;for(let a=0;a<M;a++){const r=rs[a],s=r[i]+(r[i+1]-r[i])*fx+(WSA[a]?TXh[a][tw]:TXh[a][ti]*(1-mx)+TXh[a][ti2]*mx)*HK[a]+(GNZ[(ti+a*40503)&65535]-.5)*.75;sv[a]=s;if(s>best)best=s}
+      let R=0,G=0,B=0,ws=0;
+      for(let a=0;a<M;a++){let w=1-(best-sv[a])*SH;if(w<=0)continue;w*=w;const t=rt[a],X=TXr[a],i3=i*3,ws_=WSA[a],p=(ws_?tw:ti)*3,p2=(ws_?tw:ti2)*3,m1=(1-mx)/128*w,m2=mx/128*w;
+        R+=(t[i3]+(t[i3+3]-t[i3])*fx)*(X[p]*m1+X[p2]*m2);G+=(t[i3+1]+(t[i3+4]-t[i3+1])*fx)*(X[p+1]*m1+X[p2+1]*m2);B+=(t[i3+2]+(t[i3+5]-t[i3+2])*fx)*(X[p+2]*m1+X[p2+2]*m2);ws+=w}
+      R/=ws;G/=ws;B/=ws;
+      if(hasL){const Lb=rl[i]+(rl[i+1]-rl[i])*fx;if(Lb>.3){const Lv=Lb+(GNZ[ti]-.5)*.14;
+        if(Lv>.36){const wet=smooth(.36,.5,Lv),a=smooth(.465,.535,Lv),d=clamp((Lv-.5)/.32,0,1),X=LTr,p=ti*3,hh=LTh[ti]+.5;let wr,wg,wb;
+          if(kind==='lava'){const heat=clamp(hh*hh*1.3+d*.1,0,1),li=(heat*255|0)*3;wr=LAVA_LUT[li];wg=LAVA_LUT[li+1];wb=LAVA_LUT[li+2];
+            const rim=1-smooth(.5,.6,Lv);wr*=1-rim*.6;wg*=1-rim*.75;wb*=1-rim*.7;R=R*(1-wet*.5)+wet*26;G*=1-wet*.55;B*=1-wet*.55}
+          else if(kind==='ice'){const k1=X[p]/128;wr=(lc[0]*2.9-d*30)*k1;wg=(lc[1]*3-d*24)*k1;wb=(lc[2]*2.4-d*10)*k1;const rim=1-smooth(.5,.56,Lv);wr+=(235-wr)*rim*.55;wg+=(240-wg)*rim*.55;wb+=(250-wb)*rim*.55}
+          else{const k1=X[p]/128,dd=Math.pow(d,.7);const sh=(1-smooth(0,.35,d))*.55;wr=(lc[0]*(1.25-dd*.75)*(1-sh)+R*sh)*k1;wg=(lc[1]*(1.25-dd*.75)*(1-sh)+G*sh*1.05)*k1;wb=(lc[2]*(1.2-dd*.6)*(1-sh)+B*sh*1.1)*k1;
+            const fo=clamp(1-Math.abs(Lv-.53)/.025,0,1)*smooth(.42,.7,GNZ[ti2])*(.6+.4*(X[p]/255));wr+=(215-wr)*fo*.6;wg+=(228-wg)*fo*.6;wb+=(230-wb)*fo*.6;R*=1-wet*.4;G*=1-wet*.38;B*=1-wet*.3}
+          R+=(wr-R)*a;G+=(wg-G)*a;B+=(wb-B)*a}}}
+      D[o]=R;D[o+1]=G;D[o+2]=B;D[o+3]=255}}}
+// [v51 최적화] 땅 점 색 일꾼: 처음 쓸 때 한 번 만든다. 재질 그림(무늬)은 처음 한 번만 보내고 번호로 부른다
+const GWK={w:null,bad:false,sync:false,id:new WeakMap(),nid:1,jobs:new Map(),k:0,n:0,
+  ok(){if(this.bad||this.sync||window.__QA||location.hash==='#qa'||typeof Worker!=='function'||typeof Blob!=='function'||typeof URL==='undefined')return false;if(this.w)return true;
+    try{const src='const gPixW=('+gPix.toString()+');const TXS={};let GNZ=null,LUT=null;onmessage=e=>{const m=e.data;try{if(m.tx)for(const t of m.tx)TXS[t.id]=t;if(m.gnz){GNZ=m.gnz;LUT=m.lut}const J=m.J;J.TXh=J.tid.map(i=>TXS[i].h);J.TXr=J.tid.map(i=>TXS[i].rgb);J.LTh=J.lid?TXS[J.lid].h:null;J.LTr=J.lid?TXS[J.lid].rgb:null;J.GNZ=GNZ;J.LAVA_LUT=LUT;const D=new Uint8ClampedArray(J.N*J.N*4);gPixW(J,0,J.N,D);postMessage({k:m.k,buf:D},[D.buffer])}catch(err){postMessage({k:m.k,err:String(err)})}}';
+      const w=new Worker(URL.createObjectURL(new Blob([src],{type:'text/javascript'})));w.onmessage=e=>{const j=this.jobs.get(e.data.k);if(!j)return;this.jobs.delete(e.data.k);if(e.data.buf)j.buf=e.data.buf;else{j.err=1;this.bad=true}};
+      w.onerror=()=>{this.bad=true;for(const j of this.jobs.values())j.err=1;this.jobs.clear()};this.w=w;this.first=true}catch(_){this.bad=true;return false}return true},
+  tid(t){let i=this.id.get(t);if(!i){i=this.nid++;this.id.set(t,i)}return i},
+  run(J,TX,LT){if(!this.ok())return null;const tx=[],sent=this.sent||(this.sent=new Set()),add=t=>{const i=this.tid(t);if(!sent.has(i)){sent.add(i);tx.push({id:i,h:t.h,rgb:t.rgb})}return i};
+    const Jw=Object.assign({},J,{TXh:null,TXr:null,LTh:null,LTr:null,GNZ:null,LAVA_LUT:null,tid:TX.map(add),lid:LT?add(LT):0}),k=++this.k,j={buf:null,err:0};this.jobs.set(k,j);this.n++;
+    try{this.w.postMessage({k,J:Jw,tx,gnz:this.first?J.GNZ:null,lut:this.first?J.LAVA_LUT:null});this.first=false}catch(_){this.jobs.delete(k);this.bad=true;return null}return j}};
 function* paintChunkG(g,ox,oy){const sc=g.getTransform().a;let fx=null;
   if(DG)paintDungeonChunk(g,ox,oy,sc);else fx=yield* paintGround(g,ox,oy,sc);
   g.setTransform(sc,0,0,sc,0,0);return fx}
-function paintChunk(g,ox,oy){const t0=performance.now(),it=paintChunkG(g,ox,oy);let r;while(!(r=it.next()).done);const dt=performance.now()-t0;GSTAT.n++;GSTAT.ms+=dt;return r.value}
+function paintChunk(g,ox,oy){const t0=performance.now(),sy=GWK.sync;GWK.sync=true;const it=paintChunkG(g,ox,oy);let r;try{while(!(r=it.next()).done);}finally{GWK.sync=sy}const dt=performance.now()-t0;GSTAT.n++;GSTAT.ms+=dt;return r.value}
 function* paintGround(g,ox,oy,sc){
   const N=Math.round(CH*sc),inv=CH/N,NG=GNG,gx0=ox-GMG*GG,gy0=oy-GMG*GG;
   // 이 조각 둘레의 길 조각만 골라 둔다
@@ -222,28 +257,10 @@ function* paintGround(g,ox,oy,sc){
   const TX=AK.map(k=>gtex(GMAT[k])),HK=AK.map(k=>GHK[GMAT[k]]*1.4),WSA=AK.map(k=>GMAT[k]==='flag'?1:0);
   const kind=hasL?REG.th.liq.kind:null,LT=hasL?gtex(kind==='lava'?'lava':kind==='ice'?'ice':'water'):null,lc=hasL?REG.th.liq.col:null;
   const img=g.createImageData(N,N),D=img.data;
-  const rs=AK.map(()=>new Float32Array(NG)),rt=AK.map(()=>new Float32Array(NG*3)),rl=new Float32Array(NG),rm=new Float32Array(NG),sv=new Float32Array(M),SH=4.2;
-  let ts=performance.now();for(let py=0;py<N;py++){if(py%40===39||((py&3)===3&&performance.now()-ts>3)){yield;ts=performance.now()}// v41 밀림: 40줄마다 + 3ms 넘으면 쉬어 감
-    const wy=oy+(py+.5)*inv,gyf=(wy-gy0)/GG,j=gyf|0,fy=gyf-j,q0=j*NG,q1=q0+NG;
-    for(let a=0;a<M;a++){const Sk=S[AK[a]],Tk=T[AK[a]],r=rs[a],t=rt[a];for(let i=0;i<NG;i++){r[i]=Sk[q0+i]+(Sk[q1+i]-Sk[q0+i])*fy;for(let c=0;c<3;c++)t[i*3+c]=Tk[(q0+i)*3+c]+(Tk[(q1+i)*3+c]-Tk[(q0+i)*3+c])*fy}}
-    for(let i=0;i<NG;i++){rm[i]=MX[q0+i]+(MX[q1+i]-MX[q0+i])*fy;if(hasL)rl[i]=LG[q0+i]+(LG[q1+i]-LG[q0+i])*fy}
-    let o=py*N*4;
-    for(let px=0;px<N;px++,o+=4){const wx=ox+(px+.5)*inv,gxf=(wx-gx0)/GG,i=gxf|0,fx=gxf-i;
-      const u=(wx-wy)*KI+65536,v=(wx+wy)*KI*.5+65536,ti=((v&255)<<8)|(u&255),ti2=((((v*.71+37)|0)&255)<<8)|(((u*.71+91)|0)&255),mx=rm[i]+(rm[i+1]-rm[i])*fx;
-      const tw=((wy&255)<<8)|(wx&255);let best=-1e9;for(let a=0;a<M;a++){const r=rs[a],s=r[i]+(r[i+1]-r[i])*fx+(WSA[a]?TX[a].h[tw]:TX[a].h[ti]*(1-mx)+TX[a].h[ti2]*mx)*HK[a]+(GNZ[(ti+a*40503)&65535]-.5)*.75;sv[a]=s;if(s>best)best=s}
-      let R=0,G=0,B=0,ws=0;
-      for(let a=0;a<M;a++){let w=1-(best-sv[a])*SH;if(w<=0)continue;w*=w;const t=rt[a],X=TX[a].rgb,i3=i*3,ws_=WSA[a],p=(ws_?tw:ti)*3,p2=(ws_?tw:ti2)*3,m1=(1-mx)/128*w,m2=mx/128*w;
-        R+=(t[i3]+(t[i3+3]-t[i3])*fx)*(X[p]*m1+X[p2]*m2);G+=(t[i3+1]+(t[i3+4]-t[i3+1])*fx)*(X[p+1]*m1+X[p2+1]*m2);B+=(t[i3+2]+(t[i3+5]-t[i3+2])*fx)*(X[p+2]*m1+X[p2+2]*m2);ws+=w}
-      R/=ws;G/=ws;B/=ws;
-      if(hasL){const Lb=rl[i]+(rl[i+1]-rl[i])*fx;if(Lb>.3){const Lv=Lb+(GNZ[ti]-.5)*.14;
-        if(Lv>.36){const wet=smooth(.36,.5,Lv),a=smooth(.465,.535,Lv),d=clamp((Lv-.5)/.32,0,1),X=LT.rgb,p=ti*3,hh=LT.h[ti]+.5;let wr,wg,wb;
-          if(kind==='lava'){const heat=clamp(hh*hh*1.3+d*.1,0,1),li=(heat*255|0)*3;wr=LAVA_LUT[li];wg=LAVA_LUT[li+1];wb=LAVA_LUT[li+2];
-            const rim=1-smooth(.5,.6,Lv);wr*=1-rim*.6;wg*=1-rim*.75;wb*=1-rim*.7;R=R*(1-wet*.5)+wet*26;G*=1-wet*.55;B*=1-wet*.55}
-          else if(kind==='ice'){const k1=X[p]/128;wr=(lc[0]*2.9-d*30)*k1;wg=(lc[1]*3-d*24)*k1;wb=(lc[2]*2.4-d*10)*k1;const rim=1-smooth(.5,.56,Lv);wr+=(235-wr)*rim*.55;wg+=(240-wg)*rim*.55;wb+=(250-wb)*rim*.55}
-          else{const k1=X[p]/128,dd=Math.pow(d,.7);const sh=(1-smooth(0,.35,d))*.55;wr=(lc[0]*(1.25-dd*.75)*(1-sh)+R*sh)*k1;wg=(lc[1]*(1.25-dd*.75)*(1-sh)+G*sh*1.05)*k1;wb=(lc[2]*(1.2-dd*.6)*(1-sh)+B*sh*1.1)*k1;
-            const fo=clamp(1-Math.abs(Lv-.53)/.025,0,1)*smooth(.42,.7,GNZ[ti2])*(.6+.4*(X[p]/255));wr+=(215-wr)*fo*.6;wg+=(228-wg)*fo*.6;wb+=(230-wb)*fo*.6;R*=1-wet*.4;G*=1-wet*.38;B*=1-wet*.3}
-          R+=(wr-R)*a;G+=(wg-G)*a;B+=(wb-B)*a}}}
-      D[o]=R;D[o+1]=G;D[o+2]=B;D[o+3]=255}}
+  // [v51 최적화] 점 색 계산은 일꾼(Worker)에게 맡겨 화면이 멈추지 않게 한다. 결과는 같은 계산이라 똑같다. 일꾼을 못 쓰면(검사 · 오류) 예전처럼 여기서 조금씩
+  const J={N,inv,ox,oy,gx0,gy0,GG,NG,KI,M,SA:AK.map(k=>S[k]),TA:AK.map(k=>T[k]),MX,LG,hasL,TXh:TX.map(t=>t.h),TXr:TX.map(t=>t.rgb),HK,WSA,GNZ,kind,LTh:LT?LT.h:null,LTr:LT?LT.rgb:null,lc,LAVA_LUT};
+  const wj=GWK.run(J,TX,LT);if(wj){const t0=performance.now();while(!wj.buf&&!wj.err&&performance.now()-t0<4000)yield 'W';if(wj.buf&&wj.buf.length===D.length)D.set(wj.buf);else wj.fail=1}
+  if(!wj||wj.fail){let ts=performance.now();for(let py=0;py<N;py+=4){gPix(J,py,Math.min(N,py+4),D);if(py%40>=36||performance.now()-ts>3){yield;ts=performance.now()}}}
   g.putImageData(img,0,0);yield;
   // 길: 바퀴 자국과 박힌 돌 (월드 길 모양에서 정해지므로 조각 경계에서 이어진다)
   g.save();g.setTransform(sc,0,0,sc,-ox*sc,-oy*sc);g.lineCap='round';g.lineJoin='round';
@@ -316,7 +333,8 @@ function runChunkJobs(budget){const t0=performance.now();if(paused&&!GJOBS.lengt
 const pcx=P.x/CH,pcy=P.y/CH;
   for(let i=GJOBS.length-1;i>=0;i--)if(GJOBS[i].ready||chunks.get(GJOBS[i].cx*1000+GJOBS[i].cy)!==(GJOBS[i].par||GJOBS[i]))GJOBS.splice(i,1);
   GJOBS.sort((a,b)=>(b.used-a.used)||(Math.hypot(a.cx+.5-pcx,a.cy+.5-pcy)-Math.hypot(b.cx+.5-pcx,b.cy+.5-pcy)));
-  for(const c of GJOBS){while(!c.ready){const t1=performance.now(),r=c.job.next(),dt=performance.now()-t1;c.ms+=dt;GSTAT.sl.push(dt);if(GSTAT.sl.length>4000)GSTAT.sl.shift();if(r.done){isoBusy=frameN;c.ready=true;c.fx=r.value;c.job=null;c.pv=null;GSTAT.n++;GSTAT.ms+=c.ms;GSTAT.last=c.ms;if(c.par){const p=c.par;p.cv=c.cv;p.fx=c.fx;p.iso=null;p.stale=0;p.rb=null}}
+  for(const c of GJOBS){while(!c.ready){const t1=performance.now(),r=c.job.next(),dt=performance.now()-t1;c.ms+=dt;GSTAT.sl.push(dt);if(GSTAT.sl.length>4000)GSTAT.sl.shift();if(r.value==='W'&&!r.done)break;// v51: 일꾼이 계산 중이면 다음 조각으로
+      if(r.done){isoBusy=frameN;c.ready=true;c.fx=r.value;c.job=null;c.pv=null;GSTAT.n++;GSTAT.ms+=c.ms;GSTAT.last=c.ms;if(c.par){const p=c.par;p.cv=c.cv;p.fx=c.fx;p.iso=null;p.stale=0;p.rb=null}}
       if(performance.now()-t0>budget)return}}}
 // 땅 그리기: 보이는 조각(없으면 미리보기) → 굽기 일감 → 여유가 있으면 화면 밖 한 겹을 미리 일감에 올린다
 const GVIS=[];

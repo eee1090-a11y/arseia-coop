@@ -84,7 +84,7 @@ V20.slowTick.push(st=>{if(!P||P.dead||!g42BsHere())return;g42BsHarvest();const L
 function g42BsProps(){for(let i=decor.length-1;i>=0;i--)if(decor[i].g42bs)decor.splice(i,1);const b=g42Bs();if(!g42BsHere())return;const T=RCACHE[REG.id]&&RCACHE[REG.id].town;if(!T)return;
   const R0=tSafe(T)*.62,keys=Object.keys(G42_BSB);let a=v20Hash(REG.id)%628/100;
   for(const k of keys){const L=b.b[k]|0;if(!L)continue;const B=G42_BSB[k];let at=null;
-    for(let t=0;t<40&&!at;t++){const aa=a+t*.16,x=T.x+Math.cos(aa)*R0,y=T.y+Math.sin(aa)*R0;if(!blockedAt(x,y)&&!blockedAt(x+50,y+30)&&!blockedAt(x-50,y+30)&&!decor.some(d=>(d.k==='bld'||d.k==='shop'||d.k==='stash'||d.k==='fountain'||d.k==='gate'||d.g42bs)&&Math.hypot(d.x-x,d.y-y)<110)){at={x,y};a=aa+.7}}
+    for(let t=0;t<40&&!at;t++){const aa=a+t*.16,x=T.x+Math.cos(aa)*R0,y=T.y+Math.sin(aa)*R0;if(!blockedAt(x,y)&&!blockedAt(x+50,y+30)&&!blockedAt(x-50,y+30)&&!decor.some(d=>(d.k==='bld'||d.k==='shop'||d.k==='stash'||d.k==='fountain'||d.k==='gate'||d.g42bs||d.use==='g51:bs')&&Math.hypot(d.x-x,d.y-y)<110)){at={x,y};a=aa+.7}}
     if(!at)continue;B.art.slice(0,1+L).forEach(([pk,dx,dy],i)=>decor.push({k:pk,x:at.x+dx,y:at.y+dy,s:1,v:0,zl:0,g42bs:1,tprop:1,pv:i}))}}
 {const _lr=loadRegion;loadRegion=function(){const r=_lr.apply(this,arguments);try{if(P)g42BsProps()}catch(e){if(window.__QA)throw e}return r}}
 {const _ld=load;load=function(){const ok=_ld.apply(this,arguments);try{if(ok&&P)g42BsProps()}catch(e){if(window.__QA)throw e}return ok}}

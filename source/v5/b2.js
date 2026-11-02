@@ -96,9 +96,15 @@ function affixPool(il,cls){
   // 계열 마법(+tr_)은 일반 장비에서 드물게만 붙는다: items.js의 TREE_AFX 참고
   const els=[...new Set(mine.filter(isDmg).map(s=>s.el))];if(els.length)p.push('el_'+pick(els));
   return p}
+/* v51 사용자 2026-11-02 「마나와 같은 부차적인 자원 스탯보다는 지능이나 치명타, 속성 공격과 같은 공격력 쪽이 더 강함의 기준과 어울리니까」
+   비교 점수(지금보다 좋음/약함 · 약한 것 팔기 · 반지 칸 고르기)만 바꾼다. 아이템 능력치 · 전투 계산은 그대로.
+   공격 쪽(지능 · 공격력 · 치명타 · 치명 피해 · 쓰는 속성 피해 · 물리 피해 · 공격 속도 · 재사용)을 무겁게, 마나 · 마나 회복 · 마나 소모 · 처치 시 마나 · 생명력은 가볍게.
+   속성 피해는 배운 공격 마법에 그 속성이 있을 때만 무겁게(×7, 없으면 ×2). 전사는 생명력 ×0.4(다른 직업 ×0.3). 힘 · 민첩 · 공격 속도 · 물리 피해 등은 cls2.js SCORE_V18. */
+const ITEM_W={int:3,hp:.3,mp:.2,regen:3,crit:15,critd:7,cdr:6,mcost:1,all:30,ls:6,mk:1,ms:2,dr:4,proc_chain:3,proc_bird:3,proc_frost:3,proc_nova:3};
+function itemElUsed(el){if(!P||!P.sk)return false;for(const id in P.sk)if(P.sk[id]>0){const S=SPELLS[id];if(S&&S.el===el&&isDmg(S))return true}return false}
 function itemScore(it){if(!it)return 0;let v=0;for(const [k,x] of Object.entries(it.stats)){
-  if(k.startsWith('sk_'))v+=x*((P.sk&&P.sk[k.slice(3)])?16:4);else if(k.startsWith('tr_'))v+=x*18;else if(k.startsWith('el_'))v+=x*1.5;
-  else v+=x*({int:3,hp:.5,mp:.6,regen:8,crit:3,cdr:2.5,mcost:1.5,all:30,ls:6,mk:2,ms:2,dr:4,proc_chain:3,proc_bird:3,proc_frost:3,proc_nova:3}[k]||1)}if(it.set)v+=25;return v}
+  if(k.startsWith('sk_'))v+=x*((P.sk&&P.sk[k.slice(3)])?16:4);else if(k.startsWith('tr_'))v+=x*18;else if(k.startsWith('el_'))v+=x*(itemElUsed(k.slice(3))?7:2);
+  else v+=x*(k==='hp'&&P&&P.cls==='warrior'?.4:ITEM_W[k]||1)}if(it.set)v+=25;return v}
 const itemPrice=it=>Math.max(1,Math.round(it.il*4*(it.rar+1)));
 const statOne=(k,v)=>PROCN[k]?`<b style="color:#ff9a6a">적중 시 ${v}% 확률로 ${PROCN[k]}</b>`:k.startsWith('sk_')||k.startsWith('tr_')||k==='all'?`<b style="color:#ffd76a">+${v} ${statName(k)}</b>`:`+${v} ${statName(k)}`;
 const statLine=it=>Object.entries(it.stats).map(([k,v])=>statOne(k,v)).join(' · ')+(it.set?setLine(it):'')+(typeof rfLine==='function'?rfLine(it):'')+(it.lore?`<div class="muted" style="font-style:italic">${it.lore}</div>`:'');
