@@ -8321,6 +8321,21 @@ qT('v51 대성당','보스 바실리온: 무너지는 지붕 조각(금빛 원 �
   K22.m.clear();enterDungeon(c);const C2=DG.ct;qOk(C2&&C2.st===0&&!DG.boss,'새 대성당');V20NET.r1cs({b:'10101010',s:'9310',p:99,st:7,m:'시험'});qOk(C2.bell.join('')==='10101010'&&C2.seq.join()==='3,1,0'&&C2.prog===4&&C2.st===3,'소식 '+JSON.stringify(C2));
   V20NET.r1cs({b:'xx',s:5,p:-3,st:-1});qOk(C2.bell.join('')==='10101010'&&C2.prog===0&&C2.st===0,'이상한 소식');V20NET.r1cb({i:1},null);qOk(C2.bell[1]===0,'방장 아닌데 종 부탁 받음');
   leaveDungeon();return '쓰러뜨림 '+S0.cath});
+/* ==== v52 단축바 단축키 글자 (fix52k.js) ==== */
+qT('단축키 글자 v52','(사용자 「단축바에서 어떤 스킬이 어떤 단축키인지 알아볼 수가 없어」) PC: 칸마다 단축키가 어두운 바탕 · 12px 굵은 밝은 글자로 그림 위에 보임(가운데 점을 누르면 그 글자) · 등급 표시 칸도 · 추가 단축바의 키 없는 칸은 흐린 칸 번호와 「단축키 없음」 설명 · 키를 정하면 진하게',()=>{const out=[];
+  if(document.body.classList.contains('m22'))return '휴대폰 화면이라 건너뜀';
+  qPrep('mage',{lvl:40});const keepN=P.b44n;try{const ids=Object.values(SPELLS).filter(s=>s.cls==='mage'&&!s.passive).map(s=>s.id);for(const id of ids)P.sk[id]=Math.max(1,P.sk[id]|0);
+    P.b44n=1;b44Fix();for(let i=0;i<31;i++)P.bar[i]=ids[i%ids.length];buildBar();
+    const ks=[...barEl.querySelectorAll('.sk[data-slot] .k')];qOk(ks.length>=31,'칸 수 '+ks.length);let bad=[];
+    for(const k of ks){const i=+k.closest('.sk').dataset.slot;if(i>=B44.BASE)continue;const cs=getComputedStyle(k),r=k.getBoundingClientRect();
+      const bg=cs.backgroundColor.match(/[\d.]+/g)||[],a=bg.length>3?+bg[3]:bg.length?1:0;
+      if(parseFloat(cs.fontSize)<12||a<.5||+cs.fontWeight<600||k.textContent!==SLOTS[i].k)bad.push(i+':'+cs.fontSize+'/'+cs.backgroundColor+'/'+k.textContent);
+      if(!(r.width>0&&r.height>0))bad.push(i+' 크기 0');const zk=+cs.zIndex||0;/* 같은 칸 안에서 단축키 글자와 겹치는 다른 것이 위에 그려지지 않음 */for(const c of k.closest('.sk').children){if(c===k)continue;const q=c.getBoundingClientRect();if(q.right<=r.left||q.left>=r.right||q.bottom<=r.top||q.top>=r.bottom)continue;const zc=+getComputedStyle(c).zIndex||0;if(zc>=zk)bad.push(i+' 가려짐 '+(c.className&&c.className.baseVal!=null?c.className.baseVal:c.className||c.tagName)+' z'+zc)}}
+    qOk(!bad.length,'잘 안 보이는 단축키 '+bad.slice(0,6).join(' | '));out.push('기본 칸 '+ks.filter(k=>+k.closest('.sk').dataset.slot<B44.BASE).length);
+    const t=barEl.querySelector('.sk.t22 .k');if(t){const m=t.closest('.sk').querySelector('.t22s'),a=t.getBoundingClientRect(),b=m&&m.getBoundingClientRect();qOk(!b||a.left>=b.right-1,'등급 표시와 겹침');out.push('등급 칸')}
+    const x=barEl.querySelector(`.sk[data-slot="${B44.BASE}"]`);qOk(x&&x.querySelector('.k.k52n')&&x.title.includes('단축키 없음'),'키 없는 추가 칸 표시');
+    qOk(kbSet('s'+B44.BASE,'S+KeyZ')==='','키 정하기 실패');buildBar();const y=barEl.querySelector(`.sk[data-slot="${B44.BASE}"]`);qOk(y&&!y.querySelector('.k52n')&&y.querySelector('.k').textContent==='⇧Z'&&!y.title.includes('단축키 없음'),'키 정한 추가 칸 '+(y&&y.querySelector('.k').outerHTML));out.push('추가 칸')}
+  finally{try{kbSet('s'+B44.BASE,'')}catch(_){}P.b44n=keepN;buildBar()}return out.join(' · ')});
 window.__QA_RUN=qaRun;
 setTimeout(()=>{qaRun().catch(e=>{window.__QA_RESULT={fatal:String(e&&e.stack||e),results:[],summary:{total:0,pass:0,fail:1}}})},120);
 }
