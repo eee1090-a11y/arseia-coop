@@ -8321,6 +8321,18 @@ qT('v51 대성당','보스 바실리온: 무너지는 지붕 조각(금빛 원 �
   K22.m.clear();enterDungeon(c);const C2=DG.ct;qOk(C2&&C2.st===0&&!DG.boss,'새 대성당');V20NET.r1cs({b:'10101010',s:'9310',p:99,st:7,m:'시험'});qOk(C2.bell.join('')==='10101010'&&C2.seq.join()==='3,1,0'&&C2.prog===4&&C2.st===3,'소식 '+JSON.stringify(C2));
   V20NET.r1cs({b:'xx',s:5,p:-3,st:-1});qOk(C2.bell.join('')==='10101010'&&C2.prog===0&&C2.st===0,'이상한 소식');V20NET.r1cb({i:1},null);qOk(C2.bell[1]===0,'방장 아닌데 종 부탁 받음');
   leaveDungeon();return '쓰러뜨림 '+S0.cath});
+qT('휴대폰 v52','창을 열면 중요한 의뢰 카드 숨기기(mobile52.js · 고친 버그: 카드가 가방 · 상점 · 스킬 트리 · 도감 창 한가운데를 덮음): 가로 · 작은 가로 · 세로 휴대폰에서 창이 열리면 카드가 안 보이고 창을 닫으면 그대로 다시 보임(지워지지 않음 · 단추 그대로) · PC는 창이 열려도 그대로',async()=>{
+  const qa0=QN21.qa;QN21.qa=true;const out=[];
+  const show=()=>{qPrep('mage',{lvl:50});P.job2=null;QN21.seen.clear();qnClose21();const L=qImpList21();qnShow21(L.length?L:SQ.filter(q=>qImp21(q)).slice(0,1));return $('#qn21')};
+  const vis=el=>!!el&&el.isConnected&&getComputedStyle(el).display!=='none';
+  try{
+    for(const [m,w,h] of [['L',844,390],['L',667,375],['P',390,844]])await qM22(m,w,h,async()=>{closePanel();const el=show();qOk(el,m+' 카드가 안 뜸');m52Sync();qOk(vis(el),`${w}×${h} 창 없을 때 카드가 안 보임`);
+      for(const t of ['char','tree','codex']){openPanel(t);await Promise.resolve();m52Sync();qOk(!vis(el)&&el.isConnected,`${w}×${h} ${t} 창 위에 카드가 보임`);
+        closePanel();await Promise.resolve();m52Sync();qOk(vis(el)&&$('#qn21')===el&&el.querySelector('[data-qn="later"]'),`${w}×${h} ${t} 창을 닫아도 카드가 안 돌아옴`)}
+      out.push(`${w}×${h}`)});
+    await qM22('',0,0,async()=>{const el=show();openPanel('codex');m52Sync();qOk(vis(el),'PC: 창이 열리면 카드가 숨겨짐(PC는 그대로여야 함)');closePanel();m52Sync();qOk(vis(el),'PC 닫은 뒤');out.push('PC 그대로')});
+  }finally{closePanel();qnClose21();QN21.qa=qa0;m52Sync()}
+  return out.join(' · ')});
 window.__QA_RUN=qaRun;
 setTimeout(()=>{qaRun().catch(e=>{window.__QA_RESULT={fatal:String(e&&e.stack||e),results:[],summary:{total:0,pass:0,fail:1}}})},120);
 }
