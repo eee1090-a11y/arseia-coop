@@ -6064,12 +6064,12 @@ qT('이펙트 v37','사용자 요청: ① 마법사 번개 계열 14가지 · �
   // ④ 범위 맞춤: 칸 폭 100인 가짜 그림으로, 그림 폭(배율×100)이 범위 원의 화면 폭(2·r·KI·√2)과 같음
   {const W=r=>2*r*KI*1.4142,wide=id=>{const m=FX31.M[id],pk=FX31.P[m.pk];pk.vw={};for(const st of [m.b,m.i])if(st)pk.meta.r[st]=[0,1,2,3,4,5].map(()=>[0,0,100,60,14,34])};
     for(const id of ['quake','meteor','stonerain','arrowrain','earthbind'])wide(id);const bad=[];
-    const chk=(id,r,o)=>{if(!o){bad.push(id+' 그림 없음');return}const w=(o.sc)*100;if(Math.abs(w/W(r)-1)>.03)bad.push(id+' '+Math.round(w)+'/'+Math.round(W(r)))};
+    const chk=(id,r,o)=>{if(!o){bad.push(id+' 그림 없음');return}/* v53 fxalign: 그림 전체가 아니라 그림의 땅 폭(표에 있으면 그 폭)이 범위 원 폭과 같아야 함 */const g=typeof FXA==='object'&&o.st&&FXA.g(o.st),w=(o.sc)*(g?g[2]:100);if(Math.abs(w/W(r)-1)>.03)bad.push(id+' '+Math.round(w)+'/'+Math.round(W(r)))};
     for(const [cls,id,st] of [['mage','quake','b'],['mage','meteor','b'],['mage','stonerain','i'],['archer','arrowrain','i'],['archer','earthbind','b']]){qPrep(cls,{lvl:140});if(cls==='archer'&&typeof clsGearFor==='function')clsGearFor(id);P.sk[id]=10;P.x=QA_SPOT.x;P.y=QA_SPOT.y;followCam();FX31.inst=[];
       const e=qDummy(P.x+170,P.y+30,{lvl:140});const sk=[];const _sh=skyHit;skyHit=function(x,y,s,dmg,rad,hitR){sk.push(hitR||rad);return _sh.apply(this,arguments)};
       try{qCast(id,{x:e.x,y:e.y});qStep(90,{render:false,each:()=>{P.mp=maxMp()}})}finally{skyHit=_sh}
       const m=FX31.M[id],o=FX31.inst.find(o=>o.st===(st==='i'?m.i:m.b)||o.st2===m.i);const s=eff(id,10);
-      chk(id,st==='i'?(sk[0]||s.rad):(s.rad||100),o&&(o.st2===m.i?{sc:o.sc}:o))}
+      chk(id,st==='i'?(sk[0]||s.rad):(s.rad||100),o&&(o.st2===m.i?{sc:o.sc,st:o.st2}:o))}
     qOk(!bad.length,'범위와 그림 폭이 다름: '+bad.join(', '));out.push('범위 맞춤 5')}
   // ⑤ 겹침 없음: 화살비의 예전 쏟아지는 화살 · 강화(오라) 시전 빛
   {FX31.P=qFX31Fake();let n=0;const _as=FXP.arrowSpr;FXP.arrowSpr=function(){n++;return _as.apply(this,arguments)};
@@ -8311,7 +8311,7 @@ qT('v51 대성당','종과 색유리: 지키는 무리가 남은 예배당 종�
   qStep(10,{renderEvery:2});leaveDungeon();return '순서 '+C.seq.map(r110cNm).join('→')});
 qT('v51 대성당','보스 바실리온: 무너지는 지붕 조각(금빛 원 · 사람마다 하나) · 색유리 빛줄기(줄 원) · 반 남으면 금박 기사 둘(혼자) · 쓰러뜨리면 나가는 문 · 쓰러뜨린 수 · 도감 · 다시 들어가면 그대로 · 같이 하기 소식(이상한 값 고침)',()=>{
   qR1C();const C=DG.ct;enemies=[];for(let k=0;k<8;k++)C.bell[k]=1;C.st=1;C.seq=[0,1,2,3];C.prog=0;for(const k of C.seq)r110cRing(k,null);const B=DG.boss;qOk(B,'보스');
-  P.x=B.x+260;P.y=B.y+260;followCam();C.dT=0;C.gT=0;qStep(2);qOk(warns.filter(w=>w.col==='#e0b030').length>=5,'지붕 '+warns.filter(w=>w.col==='#e0b030').length);qOk(warns.some(w=>w.col!=='#e0b030'&&w.rad===72),'빛줄기');
+  P.x=B.x+260;P.y=B.y+260;followCam();C.dT=0;C.gT=0;qStep(2);qOk(warns.filter(w=>w.col==='#e0b030').length>=5,'지붕 '+warns.filter(w=>w.col==='#e0b030').length);qOk(warns.some(w=>w.rad===72),'빛줄기');/* v53: 빛줄기 색은 일곱 색 가운데 하나라 1/8로 지붕과 같은 금빛 → 색 대신 반지름 72(지붕 110 · 120)로 찾음 */
   qStep(120,{renderEvery:4,each:()=>{P.hp=maxHp()}});B.hp=B.max*.45;qStep(3);qOk(enemies.filter(e=>e.k==='ct_icon').length>=2&&C.kn===1,'금박 기사 '+enemies.filter(e=>e.k==='ct_icon').length);
   {const el=fb28Elite(DG.d,DG.lvl,P.diff);for(const k of DG.d.minis){const m=dgMob(k,B.x+300,B.y,DG.lvl+1);enemies.pop();qOk(m.max>el.hp*3&&m.max<B.max&&m.dmg>el.dmg&&m.dmg<B.dmg,k+' 준보스 세기 '+m.max+'/'+el.hp+'/'+B.max)}}
   const S0=r110S(),n0=S0.cath|0;loot=[];qKillE(B);qStep(3);qOk(B.dead&&DG.bossDead&&DG.portals.length>=2&&S0.cath===n0+1&&S0.d.b_ct_tsar&&C.st===3,'쓰러뜨림');
@@ -8336,6 +8336,59 @@ qT('단축키 글자 v52','(사용자 「단축바에서 어떤 스킬이 어떤
     const x=barEl.querySelector(`.sk[data-slot="${B44.BASE}"]`);qOk(x&&x.querySelector('.k.k52n')&&x.title.includes('단축키 없음'),'키 없는 추가 칸 표시');
     qOk(kbSet('s'+B44.BASE,'S+KeyZ')==='','키 정하기 실패');buildBar();const y=barEl.querySelector(`.sk[data-slot="${B44.BASE}"]`);qOk(y&&!y.querySelector('.k52n')&&y.querySelector('.k').textContent==='⇧Z'&&!y.title.includes('단축키 없음'),'키 정한 추가 칸 '+(y&&y.querySelector('.k').outerHTML));out.push('추가 칸')}
   finally{try{kbSet('s'+B44.BASE,'')}catch(_){}P.b44n=keepN;buildBar()}return out.join(' · ')});
+/* ==== v53 이펙트 범위 맞춤 (fxalign.js) ==== */
+/* 사용자 「스킬 이펙트가 실제 그 범위와 일치하도록 · 세이크리드 선은 해 아래 동그란 빛이 범위와 맞아야」. 그림 자리 · 크기만 바뀜(판정 · 피해 그대로) */
+{const QFA='이펙트 범위 맞춤 v53';
+qT(QFA,'보정표: 땅 중심 · 폭 표(G)의 띠가 모두 실제 기술 짝(마법사 · 사제 · 궁수 · 전사)의 띠이고 값이 칸 안 · 부채꼴 표(C)는 부채꼴 기술 띠 · 도는 고리(O)는 도는 기술 띠 · 세이크리드 선 값',()=>{
+  const used=new Map(),add=(st,id,k)=>{if(st)used.set(st.slice(3),(used.get(st.slice(3))||[]).concat([[id,k]]))};
+  for(const id in FX31.M){const m=FX31.M[id];for(const st of [m.b,m.i,m.bo,m.fa,m.fu,m.pa])add(st,id,m.k)}
+  for(const M of [WFX.M,WFX2.M])for(const id in M){const m=M[id];add(m.b,id,'w');add(m.i,id,'w')}
+  const bad=[];let n=0;
+  for(const st in FXA.G){const v=FXA.G[st];n++;if(!used.has(st))bad.push(st+' 쓰는 기술 없음');if(!(v.length===3&&v[0]>=0&&v[0]<=128&&v[1]>=0&&v[1]<=128&&v[2]>=20&&v[2]<=128))bad.push(st+' 값 '+v)}
+  for(const st in FXA.C){const v=FXA.C[st],u=used.get(st)||[];if(!u.some(q=>q[1]==='cone'))bad.push(st+' 부채꼴 아님');if(!(v[0]>=0&&v[1]<=128&&v[1]-v[0]>=40))bad.push(st+' 부채꼴 값 '+v)}
+  for(const st of FXA.O){if(!FXA.G[st]||!(used.get(st)||[]).some(q=>q[1]==='orbit'))bad.push(st+' 도는 고리 아님')}
+  qOk(!bad.length,bad.join(', '));qOk(n>=44&&Object.keys(FXA.C).length>=9,'표 크기 '+n+'/'+Object.keys(FXA.C).length);
+  const h=FXA.g(FX31.M.holysun.b);qOk(h&&h[1]>=78&&h[1]<=88&&h[2]<84,'세이크리드 선: 해 아래 빛 원 자리 '+h);
+  return '땅 '+n+' · 부채꼴 '+Object.keys(FXA.C).length+' · 고리 '+FXA.O.size});
+qT(QFA,'그리기: 표에 있는 그림은 땅 중심이 범위 중심에, 땅 폭이 범위 지름에 옴(세이크리드 선 장판 · 부채꼴 · 전사 착지) · 표에 없는 그림은 예전 그대로',()=>qFX31(()=>{FX31.P=qFX31Fake();const D=FLC.draw,got=[];FLC.draw=function(c,im,sx,sy,sw,sh,dx,dy,dw,dh){got.push([dx,dy,dw]);return D.apply(this,arguments)};
+  try{const m=FX31.M.holysun,PK=FX31.P[m.pk],f=PK.meta.r[m.b][0],v=FXA.g(m.b);
+    got.length=0;FX31.img(ctx,PK,f,500,300,64,64,1,1,0,1);qOk(got.length===1&&Math.abs(got[0][0]-(500+f[4]-v[0]))<.01&&Math.abs(got[0][1]-(300+f[5]-v[1]))<.01,'기준점 '+JSON.stringify(got));
+    const o=FX31.M.firestorm,f2=FX31.P[o.pk].meta.r[o.b][0];got.length=0;FX31.img(ctx,FX31.P[o.pk],f2,500,300,64,64,1,1,0,1);qOk(Math.abs(got[0][0]-(500+f2[4]-64))<.01&&Math.abs(got[0][1]-(300+f2[5]-64))<.01,'표에 없는 그림이 움직임');
+    qOk(FX31.visW(PK,m.b)===v[2]&&FX31.visW(FX31.P[o.pk],o.b)===16,'폭 '+FX31.visW(PK,m.b));
+    // 장판: 실제 범위 반지름 180 → 땅 폭이 화면 지름(2·r·KI·√2)과 같음, 땅 중심이 장판 자리
+    fields.length=0;const fx={x:P.x+200,y:P.y,rad:180,t:1,max:6,s:SPELLS.holysun,a31:m};fields.push(fx);got.length=0;S();try{FX31.drawGround(ctx,W2S)}finally{G()}
+    const s=W2S(fx.x,fx.y),sc=2*180*KI*1.4142/v[2],g=got[0];fields.length=0;
+    qOk(g&&Math.abs(g[0]-(s.x+(f[4]-v[0])*sc))<.5&&Math.abs(g[1]-(s.y+(f[5]-v[1])*sc))<.5&&Math.abs(g[2]-f[2]*sc)<.5,'장판 '+JSON.stringify(g)+' 기대 '+[s.x+(f[4]-v[0])*sc,s.y+(f[5]-v[1])*sc]);
+    // 부채꼴: 시작점 · 길이
+    const c=FX31.M.ember,cv=FXA.C[c.b.slice(3)],q=FX31.add({st:c.b,pk:c.pk,x:P.x,y:P.y,z:16,d:.1,rot:0,sc:2,ax:18,ay:64});qOk(q.ax===cv[0]&&Math.abs(q.sc-2*FX31.C*.82/(cv[1]-cv[0]))<1e-9,'부채꼴 '+q.ax+' '+q.sc);
+    const q2=FX31.add({st:FX31.M.dragonbreath.b,pk:'mage-fire',x:P.x,y:P.y,z:16,d:.1,rot:0,sc:2,ax:18,ay:64});qOk(q2.ax===18&&q2.sc===2,'표에 없는 부채꼴이 바뀜');FX31.inst=[];
+    // 전사 착지(볼트 계열 leap): 폭과 바닥 줄
+    const wm=WFX.M.vault,wv=FXA.g(wm.b),fk={vw:0};const PKw={img:PK.img,meta:{cell:128,size:[16,16],r:{[wm.b]:[[0,0,16,16,56,56]]}}};
+    qOk(WFX.bx(PKw,wm.b).vw===wv[2],'전사 폭');got.length=0;WFX.img(ctx,PKw,wm.b,PKw.meta.r[wm.b][0],400,300,64,WFX.GY.leap,1,1,0,1);qOk(got.length===1&&Math.abs(got[0][1]-(56-wv[1]))<.01,'전사 바닥 '+JSON.stringify(got));
+    return 'n '+JSON.stringify(FXA.n)}finally{FLC.draw=D}}));
+}
+/* ==== v53 보스 경고 가시성 (warnvis.js) ==== */
+/* 사용자 「큰 장판기술을 쓰면 보스의 장판이 안보이는 문제가 있어. 이것도 가시성을 해결해줘」. 그림만 바뀜(경고 판정 · 피해 · 시간 그대로) */
+{const QWV='보스 경고 가시성 v53';
+qT(QWV,'겹침: 보스 경고와 겹치는 큰 기술 그림만 40%로 옅게 · 안 겹치는 그림 · 작은 그림 · 경고 없을 때는 그대로',()=>qFX31(()=>{FX31.P=qFX31Fake();const D=FLC.draw,got=[];FLC.draw=function(c){got.push(c.globalAlpha);return D.apply(this,arguments)};
+  const sw=warns.slice();warns.length=0;
+  try{const PK=FX31.P['mage-fire']||Object.values(FX31.P)[0],f=[0,0,16,16,56,56];
+    const wx=P.x+150,wy=P.y;warns.push({x:wx,y:wy,rad:90,t:1.2,max:1.5,dmg:100,col:'#ff4020'});WV.fr=-1;
+    const s=W2S(wx,wy);
+    got.length=0;FX31.img(ctx,PK,f,s.x,s.y,64,64,3,3,0,1);qOk(got.length===1&&Math.abs(got[0]-WV.DIM)<.01,'겹친 큰 그림 진하기 '+got);
+    got.length=0;FX31.img(ctx,PK,f,s.x+3000,s.y+3000,64,64,3,3,0,1);qOk(got.length===1&&got[0]===1,'안 겹친 그림 '+got);
+    got.length=0;FX31.img(ctx,PK,f,s.x,s.y,64,64,.5,.5,0,1);qOk(got.length===1&&got[0]===1,'작은 그림(화살 · 입자) '+got);
+    warns.length=0;WV.fr=-1;got.length=0;FX31.img(ctx,PK,f,s.x,s.y,64,64,3,3,0,1);qOk(got.length===1&&got[0]===1,'경고 없을 때 '+got);
+    return 'dim '+WV.n.dim}finally{FLC.draw=D;warns.length=0;for(const w of sw)warns.push(w);WV.fr=-1}}));
+qT(QWV,'덧그림: 글자 · 체력바 바로 전(모든 기술 그림 뒤)에 보스 경고를 또렷하게 한 번 더 그림 · 오류 없음 · 판정 값 그대로',()=>{
+  const sw=warns.slice();warns.length=0;
+  try{const w={x:P.x+120,y:P.y,rad:110,t:.3,max:1.5,dmg:100,col:'#ffd040'};warns.push(w);const keep=JSON.stringify(w);
+    const n0=WV.n.draw;drawV5Labels();qOk(WV.n.draw===n0+1,'그린 수 '+(WV.n.draw-n0));
+    qOk(JSON.stringify(w)===keep,'경고 값이 바뀜');qOk(ctx.globalAlpha===1&&ctx.globalCompositeOperation==='source-over','그리기 설정이 남음');
+    const ord=[],fd=FXB.draw,wd=WV.draw;FXB.draw=function(){ord.push('fx');return fd.apply(this,arguments)};WV.draw=function(){ord.push('wv');return wd.apply(this,arguments)};
+    try{render()}finally{FXB.draw=fd;WV.draw=wd}const a=ord.lastIndexOf('fx'),b=ord.lastIndexOf('wv');qOk(a>=0&&b>a,'그리는 순서 '+ord.join(','));
+    return 'draw '+WV.n.draw}finally{warns.length=0;for(const q of sw)warns.push(q)}});
+}
 window.__QA_RUN=qaRun;
 setTimeout(()=>{qaRun().catch(e=>{window.__QA_RESULT={fatal:String(e&&e.stack||e),results:[],summary:{total:0,pass:0,fail:1}}})},120);
 }
