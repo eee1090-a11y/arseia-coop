@@ -3957,7 +3957,7 @@ qT('설정 v24','위 단추 줄: 스킬 트리 · 캐릭터 · 지도는 그대�
       const r=el.getBoundingClientRect();if(r.left<0||r.right>innerWidth+1||r.bottom>innerHeight+1)bad.push('화면 밖')}
     el.querySelector('[data-s24go="auBtn"]').click();if(!el.hidden||!$('#auPanel')||$('#auPanel').hidden)bad.push('소리 창');$('#auPanel').hidden=true;
     $('#setBtn').click();el.querySelector('[data-s24go="gfxBtn"]').click();if(!$('#gfxPanel')||$('#gfxPanel').hidden)bad.push('화면 창');else $('#gfxPanel').hidden=true;
-    $('#setBtn').click();el.querySelector('[data-s24q="low"]').click();if(GFX.q!=='low'||Q.lvl!==0||gfxDprCap()!==1)bad.push(`낮음 ${GFX.q} ${Q.lvl} ${gfxDprCap()}`);for(let i=0;i<600;i++)Q.tick(8);if(Q.lvl!==0)bad.push('낮음인데 올라감');
+    $('#setBtn').click();el.querySelector('[data-s24q="low"]').click();if(GFX.q!=='low'||Q.lvl!==0||gfxDprCap()!==gfxLowCap())bad.push(`낮음 ${GFX.q} ${Q.lvl} ${gfxDprCap()}`);for(let i=0;i<600;i++)Q.tick(8);if(Q.lvl!==0)bad.push('낮음인데 올라감');
     {const gs=localStorage.getItem('arseia-gfx')||'';if(!/"q":"low"/.test(gs))bad.push('저장 '+gs)}
     el.querySelector('[data-s24q="mid"]').click();for(let i=0;i<1200;i++)Q.tick(8);if(Q.lvl!==1||gfxDprCap()!==1.25)bad.push(`보통 ${Q.lvl}`);
     el.querySelector('[data-s24q="auto"]').click();el.querySelector('[data-s24f="30"]').click();if(GFX.fps!==30||frameCapMs()<33)bad.push('프레임');Q.lvl=2;Q.ema=16.7;for(let i=0;i<300;i++)Q.tick(qTickMs(33.4));if(Q.lvl!==2)bad.push('30프레임을 느림으로 침 '+Q.lvl);
@@ -4834,7 +4834,7 @@ qT('성능','v25 쉬는 화면 자동 절전: 2초 동안 움직임 없으면 30
     qOk(busy<17||!document.hasFocus(),`움직일 때 ${busy}`);qOk(idle>33,`쉴 때 ${idle}`);qOk(s30>33,'절전 설정');return `움직임 ${busy} · 쉼 ${idle} · 절전 ${s30}ms`}finally{GFX.fps=f0;IDLE.t=t0}});
 qT('성능','v25 자동 해상도: 「자동」에서만 쓰고, 높음·보통·낮음은 고른 값 그대로',()=>{const q0=GFX.q,c0=AUTOR.cap;
   try{GFX.q='auto';AUTOR.cap=1.25;const a=gfxDprCap();GFX.q='high';const h=gfxDprCap();GFX.q='mid';const m=gfxDprCap();GFX.q='low';const l=gfxDprCap();
-    qOk(a===1.25&&h===1.5&&m===1.25&&l===1,`자동 ${a} 높음 ${h} 보통 ${m} 낮음 ${l}`);return `자동 ${a} · 높음 ${h} · 보통 ${m} · 낮음 ${l}`}finally{GFX.q=q0;AUTOR.cap=c0;resize()}});
+    qOk(a===1.25&&h===1.5&&m===1.25&&l===gfxLowCap(),`자동 ${a} 높음 ${h} 보통 ${m} 낮음 ${l}`)/* v56: 낮음 = 화면 화소의 75%(최대 1) */;return `자동 ${a} · 높음 ${h} · 보통 ${m} · 낮음 ${l}`}finally{GFX.q=q0;AUTOR.cap=c0;resize()}});
 qT('성능','v26 던전 벽 묶어 그리기: 묶어 그린 화면이 벽마다 그린 화면과 같음 (방 4곳 · 벽 앞뒤 몬스터 포함)',()=>{qPrep('mage');
   try{enterDungeon(CAVES[0]);qOk(DG,'던전 못 들어감');const k=Object.keys(TYPES).find(k=>!TYPES[k].boss&&!TYPES[k].mini);let worst=0,early=0,n=0;
     const shot=()=>{render();return ctx.getImageData(0,0,cv.width,cv.height).data};
@@ -8395,8 +8395,10 @@ qT(QWV,'덧그림: 글자 · 체력바 바로 전(모든 기술 그림 뒤)에 �
 // 칸 크기 · 기준점 · 칸 수 (Codex 목록 m1-image-queue.json · m2-image-queue.json과 같음)
 const H54S={warrior:{boot:[22,18,11,15,5],skirt:[36,26,18,2,5],torso:[32,22,16,19,5],head:[48,52,24,46,5],cloak:[44,44,22,4,5,[2,3,4,5,6,7]],arm:[18,24,9,4,1],armB:[18,24,9,4,1],sword:[20,52,10,40,1],polearm:[22,84,11,60,1],shield:[28,32,14,15,1,[0,1]]},
   mage:{torso:[30,22,15,19,5],skirt:[36,28,18,2,5],boot:[20,16,10,14,5],arm:[16,22,8,3,1],armB:[16,22,8,3,1],cloak:[44,48,22,4,5],pauld:[40,22,20,8,5],staff:[32,72,16,46,1],ring:[16,22,8,3,1],ring2:[16,22,8,3,1],amulet:[30,22,15,19,5]},
-  archer:{torso:[32,22,16,19,5],skirt:[36,26,18,2,5],boot:[22,18,11,15,5],arm:[18,24,9,4,1],armB:[18,24,9,4,1],cloak:[44,44,22,4,5]}};
+  archer:{torso:[32,22,16,19,5],skirt:[36,26,18,2,5],boot:[22,18,11,15,5],arm:[18,24,9,4,1],armB:[18,24,9,4,1],cloak:[44,44,22,4,5],bow:[40,54,22,27,1],xbow:[40,24,20,12,1],xprod:[30,10,15,3,1],quiver:[16,30,8,14,5],ring:[18,24,9,4,1],ring2:[18,24,9,4,1],amulet:[32,22,16,19,5]}};
 H54S.priest=H54S.mage;
+// v55: 전사 장비 겉모습 (모자 빼고)
+H54S.gwarrior={torso:[32,22,16,19,5],skirt:[36,26,18,2,5],boot:[22,18,11,15,5],arm:[18,24,9,4,1],armB:[18,24,9,4,1],cloak:[44,44,22,4,5],sword:[20,52,10,40,1],polearm:[22,84,11,60,1],shield:[28,32,14,15,1],ring:[18,24,9,4,1],ring2:[18,24,9,4,1],amulet:[32,22,16,19,5]};
 // 예전(v46) 단계 그림 묶음 칸
 const H54L={mage:{boot:[20,16,10,14,5,[0]],skirt:[36,28,18,2,5],torso:[30,22,15,19,5],head:[44,44,22,40,5],cloak:[44,48,22,4,5],pauld:[40,22,20,8,5,[3,4,5,6,7]],arm:[16,22,8,3,1],armB:[16,22,8,3,1],staff:[32,72,16,46,1]},
   archer:{boot:[22,18,11,15,5,[0]],skirt:[36,26,18,2,5],torso:[32,22,16,19,5],head:[48,52,24,46,5],cloak:[44,44,22,4,5,[1,2,3,4,5,6,7]],arm:[18,24,9,4,1],armB:[18,24,9,4,1],bow:[40,54,22,27,1],xbow:[40,24,20,12,1],xprod:[30,10,15,3,1],quiver:[16,30,8,14,5]}};
@@ -8404,7 +8406,7 @@ function q54Pack(spec,ts,vs){const r={},rows=[];let y=0;const k=2;
   for(const p in spec){const [cw,ch,ax,ay,n,tt]=spec[p];for(const t of tt||ts)for(const v of vs&&vs[p]||[null]){r[p+'/'+t+(v!=null?'/'+v:'')]=[0,y,n,cw,ch,ax,ay];rows.push([y,cw*k*n,ch*k]);y+=ch*k}}
   const cv=document.createElement('canvas');cv.width=1024;cv.height=y;const g=cv.getContext('2d');g.fillStyle='#00ffff';for(const [yy,w,h] of rows)g.fillRect(0,yy,w,h);return{img:cv,meta:{sc:k,r}}}
 function q54With(fn,names){const a0=GFX.art,keep={},C=q54With.c||(q54With.c={});
-  const mk=n=>C[n]||(C[n]=n==='hero-warrior'?q54Pack(H54S.warrior,[0,1,2,3,4,5,6,7],{shield:[0,1]}):n.startsWith('gear-')?q54Pack(H54S[n.slice(5)],[0,1,2]):n==='hero-archer'?q54Pack(H54L.archer,[0,1,2,3,4,5,6,7],{bow:[0,1,2]}):q54Pack(H54L.mage,[0,1,2,3,4,5,6,7]));
+  const mk=n=>C[n]||(C[n]=n==='hero-warrior'?q54Pack(H54S.warrior,[0,1,2,3,4,5,6,7],{shield:[0,1]}):n==='gear-warrior'?q54Pack(H54S.gwarrior,[0,1,2],{shield:[0,1]}):n.startsWith('gear-')?q54Pack(H54S[n.slice(5)],[0,1,2],{bow:[0,1,2]}):n==='hero-archer'?q54Pack(H54L.archer,[0,1,2,3,4,5,6,7],{bow:[0,1,2]}):q54Pack(H54L.mage,[0,1,2,3,4,5,6,7]));
   try{GFX.art='new';for(const n of names){keep[n]=FL.P[n];FL.P[n]=mk(n)}return fn()}finally{GFX.art=a0;for(const n in keep){if(keep[n])FL.P[n]=keep[n];else delete FL.P[n]}}}
 qT(QM54,'전사: 모든 부위 · 단계 · 방향이 그림(칸 크기 · 기준점 = 예전 코드 부위) · 아직 없는 방패 2~7단계와 0~1단계 망토 없음 · 묶음 없음 · 「예전 그림」은 예전 그대로',()=>{
   const bad=[];let nImg=0,nOld=0;
@@ -8419,8 +8421,8 @@ qT(QM54,'전사: 모든 부위 · 단계 · 방향이 그림(칸 크기 · 기�
   const L=heroLook18({cls:'warrior',gear:{robe:{il:40,rar:0,name:'q'}}}),o=heroPart18('warrior','torso',0,L,1.1);qOk(o&&/^h18\//.test(o.key),'묶음 없을 때 '+(o&&o.key));
   qOk(!bad.length,bad.slice(0,6).join(' | ')+' 외 '+bad.length);qOk(nImg===4*8*5+6*5+4*8+4,'그림 수 '+nImg);qOk(nOld===12,'예전 방패 '+nOld);return `그림 ${nImg} · 예전 방패 ${nOld}`});
 qT(QM54,'장비 겉모습: 일반 · 마법은 예전 단계 그림 · 희귀/세트는 1등급 이상 · 유니크는 2등급 · 단계 6~7은 2등급 · 반지(손) · 목걸이(가슴) 겹 · 궁수는 옷만(활 · 모자 그대로) · 0단계 궁수 망토 없음',()=>{
-  const N=['hero-mage','hero-priest','hero-archer','gear-mage','gear-priest','gear-archer'];
-  const k=(cls,p,gear,v)=>q54With(()=>{const h={cls,gear},L=cls==='archer'?heroLook18(h):heroLook(h);const e=cls==='archer'?heroPart18(cls,p,0,L,1.1,v,L.trim):heroPart(cls,p,0,L,1.1);return e?e.key:'null'},N);
+  const N=['hero-mage','hero-priest','hero-archer','hero-warrior','gear-mage','gear-priest','gear-archer','gear-warrior'];
+  const k=(cls,p,gear,v)=>q54With(()=>{const h={cls,gear},H18=cls==='archer'||cls==='warrior',L=H18?heroLook18(h):heroLook(h);const e=H18?heroPart18(cls,p,0,L,1.1,v,L.trim):heroPart(cls,p,0,L,1.1);return e?e.key:'null'},N);
   const R=(t,rar,x)=>Object.assign({il:t*8+1,rar,name:'q'+t+rar},x||{}),bad=[];
   const ex=(nm,got,re)=>{if(!re.test(got))bad.push(nm+' → '+got)};
   for(const cls of ['mage','priest']){
@@ -8441,14 +8443,77 @@ qT(QM54,'장비 겉모습: 일반 · 마법은 예전 단계 그림 · 희귀/�
   ex('궁수 일반',k('archer','torso',{robe:R(4,0)}),/^hcg\/archer\/torso\/4\//);
   ex('궁수 희귀',k('archer','torso',{robe:R(4,2)}),/^hcg\/gear-archer:torso\/1\//);
   ex('궁수 유니크 팔',k('archer','armB',{robe:R(1,4)}),/^hcg\/gear-archer:armB\/2\//);
-  ex('궁수 희귀 활',k('archer','bow',{robe:R(4,2),staff:R(4,4,{wt:'bow'})},1),/^hcg\/archer\/bow\/4\/1\//);
+  ex('궁수 유니크 활 당김 1',k('archer','bow',{robe:R(4,2),staff:R(4,4,{wt:'bow'})},1),/^hcg\/gear-archer:bow\/2\/1\//);
+  ex('궁수 마법 활',k('archer','bow',{staff:R(4,1,{wt:'bow'})},2),/^hcg\/archer\/bow\/4\/2\//);
+  ex('궁수 희귀 석궁',k('archer','xbow',{staff:R(0,2,{wt:'xbow'})}),/^hcg\/gear-archer:xbow\/1\//);
+  ex('궁수 희귀 석궁 부품',k('archer','xprod',{staff:R(7,3,{wt:'xbow'})}),/^hcg\/gear-archer:xprod\/2\//);
+  ex('궁수 유니크 화살통',k('archer','quiver',{off:R(2,4,{wt:'quiver'})}),/^hcg\/gear-archer:quiver\/2\//);
+  ex('궁수 목걸이',k('archer','torso',{robe:R(5,1),amulet:R(5,0)}),/^hcg\/hero-archer:torso\/5\+gear-archer:amulet\/1\//);
+  ex('궁수 반지',k('archer','arm',{robe:R(1,2),ring:R(1,5)}),/^hcg\/gear-archer:arm\/1\+gear-archer:ring\/2\//);
+  ex('전사 일반 몸통',k('warrior','torso',{robe:R(4,0)}),/^hcg\/hero-warrior:torso\/4\//);
+  ex('전사 희귀 몸통',k('warrior','torso',{robe:R(4,2)}),/^hcg\/gear-warrior:torso\/1\//);
+  ex('전사 유니크 칼',k('warrior','sword',{staff:R(0,4,{wt:'sword'})}),/^hcg\/gear-warrior:sword\/2\//);
+  ex('전사 세트 장병기',k('warrior','polearm',{staff:R(7,3,{wt:'polearm'})}),/^hcg\/gear-warrior:polearm\/2\//);
+  ex('전사 희귀 방패 뒤',k('warrior','shield',{robe:R(5,0),staff:R(5,0,{wt:'sword'}),off:R(5,2,{wt:'shield'})},1),/^hcg\/gear-warrior:shield\/1\/1\//);
+  ex('전사 일반 5단계 방패(아직 그림 없음)',k('warrior','shield',{off:R(5,0,{wt:'shield'})},0),/^h18\//);
+  ex('전사 머리는 단계 그림',k('warrior','head',{robe:R(4,4)}),/^hcg\/hero-warrior:head\/4\//);
+  ex('전사 1단계 유니크 망토 없음',k('warrior','cloak',{robe:R(1,4)}),/^null$/);
+  ex('전사 반지 2',k('warrior','armB',{robe:R(6,0),ring2:R(0,4)}),/^hcg\/hero-warrior:armB\/6\+gear-warrior:ring2\/2\//);
   ex('궁수 0단계 망토',k('archer','cloak',{robe:R(0,4)}),/^null$/);
   ex('궁수 1단계 유니크 망토',k('archer','cloak',{robe:R(1,4)}),/^hcg\/gear-archer:cloak\/2\//);
   {const L=heroLook({cls:'mage',gear:{robe:R(7,5)}});const e=q54With(()=>{const A0=GFX.art;GFX.art='old';try{return heroPart('mage','torso',0,L,1.1)}finally{GFX.art=A0}},N);ex('예전 그림 설정',e&&e.key,/^hero\//)}
   const L=heroLook({cls:'mage',gear:{robe:R(7,5)}});ex('묶음 없음',heroPart('mage','torso',0,L,1.1).key,/^hero\//);
-  qOk(!bad.length,bad.slice(0,5).join(' | ')+' 외 '+bad.length);return '확인 '+(14*2+8)});
+  qOk(!bad.length,bad.slice(0,5).join(' | ')+' 외 '+bad.length);return '확인 '+(14*2+22)});
+qT(QM54,'고친 버그 v55: 희귀 이상 장비 · 반지 · 목걸이를 그릴 때 장비 겉모습 묶음을 받기 시작함 (v54는 받지 않아 진짜 게임에서 그림이 안 나왔음)',()=>{
+  const f0=flNeed,asked=[],keep={};for(const n of ['gear-mage','gear-priest','gear-archer','gear-warrior']){keep[n]=FL.P[n];delete FL.P[n]}const a0=GFX.art;
+  try{GFX.art='new';flNeed=n=>{asked.push(n)};
+    const R=(t,rar,x)=>Object.assign({il:t*8+1,rar,name:'w'+t+rar},x||{});
+    heroPart('mage','torso',0,heroLook({cls:'mage',gear:{robe:R(2,2)}}),1.1);
+    heroPart('priest','arm',0,heroLook({cls:'priest',gear:{ring:R(0,0)}}),1.1);
+    {const L=heroLook18({cls:'archer',gear:{staff:R(3,4,{wt:'bow'})}});heroPart18('archer','bow',0,L,1.1,0,L.trim)}
+    {const L=heroLook18({cls:'warrior',gear:{off:R(6,2,{wt:'shield'})}});heroPart18('warrior','shield',0,L,1.1,0,L.trim)}
+    const n0=asked.length;heroPart('mage','torso',0,heroLook({cls:'mage',gear:{robe:R(2,1)}}),1.1);
+    for(const n of ['gear-mage','gear-priest','gear-archer','gear-warrior'])qOk(asked.includes(n),n+' 안 받음 · '+asked.join(','));
+    qOk(!asked.slice(n0).some(n=>n.startsWith('gear-')),'일반 · 마법만 끼면 받지 않음 '+asked.slice(n0));return asked.join(',')}
+  finally{flNeed=f0;GFX.art=a0;for(const n in keep)if(keep[n])FL.P[n]=keep[n]}});
 qT(QM54,'저장은 그대로: 겉모습 계산이 장비 · 캐릭터 값을 바꾸지 않음',()=>{const gear={robe:{il:50,rar:4,name:'a'},staff:{il:9,rar:2,name:'b'},ring:{il:1,rar:0,name:'c'},ring2:{il:60,rar:5,name:'d'},amulet:{il:30,rar:3,name:'e'}},s=JSON.stringify(gear);
   const L=heroLook({cls:'priest',gear}),L2=heroLook18({cls:'warrior',gear});qOk(JSON.stringify(gear)===s,'장비 값이 바뀜');qOk(L.g54&&L.g54.r===2&&L.g54.w===1&&L.g54.r1===0&&L.g54.r2===2&&L.g54.am===1,'등급 '+JSON.stringify(L.g54));qOk(L2.g54&&L2.g54.r===2,'전사 등급');return JSON.stringify(L.g54)});
+}
+{const QM56='저사양 v56';
+qT(QM56,'1 「낮음」은 게임 그림을 화면 화소의 75%로(최대 1): 보통 화면 0.75 · 125% 화면 0.94 · 고해상도 · 폰은 예전처럼 1 · 캔버스만 작아지고 글자 · 메뉴는 그대로',()=>{const q0=GFX.q,out=[];
+  try{for(const [d,want] of [[1,.75],[1.25,.9375],[1.5,1],[3,1]])qDpr(d,()=>{GFX.q='low';resize();const cw=cv.clientWidth||innerWidth;qOk(Math.abs(gfxDprCap()-want)<1e-9,`dpr ${d}: ${gfxDprCap()} (기대 ${want})`);
+      qOk(Math.abs(cv.width-Math.round(cw*want*CZ/CZ))<=1,`dpr ${d}: 캔버스 ${cv.width} (기대 ${Math.round(cw*want)})`);qOk(Math.abs(W-cw/CZ)<1e-6,'세계 넓이 W가 바뀜 '+W);out.push(d+'→'+want)});
+    return out.join(' · ')}finally{GFX.q=q0;resize()}});
+qT(QM56,'2 「자동」: 보통 화면(배율 100%)도 계속 버벅이면 75%까지 내려가고 그 아래로는 안 감 · 여유가 30초면 다시 1 · 고해상도 화면은 예전처럼 1이 바닥',()=>{const c0=AUTOR.cap,q0=GFX.q,l0=Q.lvl,s0={...AUTOR};
+  try{const r1=qDpr(1,()=>{GFX.q='auto';Q.lvl=0;AUTOR.cap=1.5;AUTOR.init=1;AUTOR.ema=16.7;AUTOR.slowT=AUTOR.fastT=0;
+      for(let i=0;i<110;i++)arTick(25,12,16.6);qOk(AUTOR.cap===.75,'1배 화면 첫 단계에서 바로 0.75 '+AUTOR.cap);for(let i=0;i<400;i++)arTick(40,30,16.6);qOk(AUTOR.cap===.75,'0.75 아래로 안 감 '+AUTOR.cap);
+      resize();qOk(Math.abs(cv.width-Math.round((cv.clientWidth||innerWidth)*.75))<=1,'캔버스 '+cv.width);
+      for(let i=0;i<2200;i++)arTick(16.7,3,16.6);qOk(AUTOR.cap===1,'여유 30초 뒤 1로 '+AUTOR.cap);for(let i=0;i<4400;i++)arTick(16.7,3,16.6);qOk(AUTOR.cap===1,'1배 화면에서 1 위로는 안 올림(쓸데없는 다시 굽기) '+AUTOR.cap);return 'dpr1 1.5→0.75→1'});
+    const r2=qDpr(2,()=>{GFX.q='auto';Q.lvl=0;AUTOR.cap=1.5;AUTOR.init=1;AUTOR.ema=16.7;AUTOR.slowT=AUTOR.fastT=0;for(let i=0;i<800;i++)arTick(40,30,16.6);qOk(AUTOR.cap===1,'고해상도 바닥 1 '+AUTOR.cap);return 'dpr2 바닥 1'});
+    return r1+' · '+r2}finally{Object.assign(AUTOR,s0);AUTOR.cap=c0;GFX.q=q0;Q.lvl=l0;resize()}});
+qT(QM56,'3 그래픽 가속 알림: 소프트웨어 그리기 이름을 알아봄 · 알림 글에 켜는 방법 · 닫으면 다시 안 나옴 · #qa · 폰에서는 안 띄움 · 캐릭터 저장 키는 안 건드림',()=>{
+  for(const n of ['Google SwiftShader','ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero)))','llvmpipe (LLVM 15.0.7, 256 bits)','Microsoft Basic Render Driver'])qOk(lap56SoftName(n),'소프트웨어로 못 봄 '+n);
+  for(const n of ['ANGLE (Intel, Intel(R) UHD Graphics 620 Direct3D11 vs_5_0 ps_5_0)','ANGLE (NVIDIA, NVIDIA GeForce GTX 1650)','Apple M1','Mali-G78'])qOk(!lap56SoftName(n),'하드웨어를 소프트웨어로 봄 '+n);
+  const keys0=Object.keys(localStorage).filter(k=>/^arseia-char-/.test(k)).map(k=>k+'='+localStorage.getItem(k).length).join();const v0=localStorage.getItem(LAP56.tipKey),g0=LAP56.gpu,sh0=LAP56.shown;
+  try{LAP56.gpu={soft:true,name:'qa'};LAP56.shown=false;qOk(lap56TipCheck()===false,'#qa 에서 알림이 뜸');const el=lap56TipEl();qOk(/그래픽 가속/.test(el.textContent)&&/설정 → 시스템/.test(el.textContent),'안내 글 '+el.textContent.slice(0,40));
+    el.hidden=false;el.querySelector('[data-lap56="ok"]').click();qOk(el.hidden&&lap56TipSeen(),'닫기 · 기억');
+    const ks=Object.keys(localStorage).filter(k=>/^arseia-char-/.test(k)).map(k=>k+'='+localStorage.getItem(k).length).join();qOk(ks===keys0,'캐릭터 키가 바뀜');return 'SwiftShader · llvmpipe · Basic Render 알아봄 · 닫으면 기억'}
+  finally{LAP56.gpu=g0;LAP56.shown=sh0;if(v0!=null)localStorage.setItem(LAP56.tipKey,v0)}});
+qT(QM56,'4 땅 조각 줄 나눠 붙이기: 마름모 밖 투명 귀퉁이를 빼서 그리는 넓이 약 2배 → 1.3배 · 마름모 안 화소는 통째로 붙인 것과 같음',()=>{const s=1,w=Math.ceil((2*CH*KI+ISO_PAD*2)*s),h=Math.ceil((CH*KI+ISO_PAD*2)*s);
+  const src=document.createElement('canvas');src.width=w;src.height=h;const g=src.getContext('2d');g.setTransform(s*KI,s*KI/2,-s*KI,s*KI/2,s*(CH*KI+ISO_PAD),s*ISO_PAD);for(let i=0;i<8;i++)for(let j=0;j<8;j++){g.fillStyle=`rgb(${i*30},${j*30},${(i*j*7)%255})`;g.fillRect(i*CH/8,j*CH/8,CH/8+.5,CH/8+.5)}
+  const mk=()=>{const c=document.createElement('canvas');c.width=w+40;c.height=h+40;const x=c.getContext('2d');x.fillStyle='#123';x.fillRect(0,0,c.width,c.height);return x},A=mk(),B=mk(),on=ISO_STRIP;
+  let area=0;const _d=B.drawImage;B.drawImage=function(...a){if(a.length===9)area+=a[3]*a[4];return _d.apply(this,a)};
+  try{ISO_STRIP=false;isoStrips(src,20,20,s,A);ISO_STRIP=true;isoStrips(src,20,20,s,B)}finally{ISO_STRIP=on}
+  const a=A.getImageData(0,0,w+40,h+40).data,b=B.getImageData(0,0,w+40,h+40).data;let n=0;for(let i=0;i<a.length;i++)if(a[i]!==b[i])n++;
+  qOk(n===0,'화소가 다름 '+n);const r=area/(w*h);qOk(r<.75&&r>.55,'그리는 넓이 비율 '+r.toFixed(2));return `화소 같음 · 넓이 ${(r*100).toFixed(0)}% (마름모 하나 기준, 겹침 포함 2배 → 약 1.3배)`});
+qT(QM56,'5 PC 「낮음」: 오래 안 쓴 몬스터 그림 내려놓기를 PC에서도 (폰은 이미) · 낮음이 아니면 안 함',()=>{const q0=GFX.q,o0=OP48.on;
+  try{OP48.on=false;GFX.q='low';qOk(lap56Low(),'PC 낮음인데 꺼짐');GFX.q='auto';qOk(!lap56Low(),'자동인데 켜짐');OP48.on=true;GFX.q='low';qOk(!lap56Low(),'폰은 opt48이 이미 함');
+    const t=performance.now(),cut=op48Sweep(t,1e15,0);qOk(Array.isArray(cut),'내려놓기 함수');return '낮음 · PC에서만 켜짐'}finally{GFX.q=q0;OP48.on=o0}});
+qT(QM56,'6 「낮음」을 고르고 프레임 상한이 60이면 설정 창에 「30으로 바꾸기」 · 누르면 30 · 30이거나 낮음이 아니면 안 보임',()=>{const q0=GFX.q,f0=GFX.fps,el=SET24.el;
+  try{GFX.fps=60;set24Open(true);el.querySelector('[data-s24q="low"]').click();const n=document.getElementById('lap56fps');qOk(n&&q45Vis?q45Vis(n):!!n,'안내 줄 없음');
+    n.querySelector('button').click();qOk(GFX.fps===30&&fps30(),'30으로 안 바뀜 '+GFX.fps);qOk(!document.getElementById('lap56fps'),'30인데 줄이 남음');
+    GFX.fps=60;el.querySelector('[data-s24q="mid"]').click();qOk(!document.getElementById('lap56fps'),'보통인데 줄이 보임');return '낮음 + 60 → 한 줄 · 누르면 30'}
+  finally{set24Open(false);if(GFX.q!==q0)set24Q(q0||'auto');GFX.fps=f0;gfxSave();set24Open(false)}});
 }
 window.__QA_RUN=qaRun;
 setTimeout(()=>{qaRun().catch(e=>{window.__QA_RESULT={fatal:String(e&&e.stack||e),results:[],summary:{total:0,pass:0,fail:1}}})},120);

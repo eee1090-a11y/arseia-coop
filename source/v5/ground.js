@@ -364,7 +364,14 @@ function isoBlit(c,cx,cy){const s=DPR;
     c.iso={cv:cv2,s}}
   c.isoU=frameN;
   const wx=cx*CH,wy=cy*CH,sx=(wx-wy)*KI-camX+shx-CH*KI-ISO_PAD,sy=(wx+wy)*KI/2-camY+shy-ISO_PAD;
-  ctx.setTransform(1,0,0,1,0,0);ctx.drawImage(c.iso.cv,Math.round(sx*s),Math.round(sy*s));G();return true}
+  ctx.setTransform(1,0,0,1,0,0);isoStrips(c.iso.cv,Math.round(sx*s),Math.round(sy*s),s);G();return true}
+// [v56 저사양] 화면 방향 땅 조각은 마름모라 네모째 붙이면 투명한 네 귀퉁이까지 그려 땅을 약 2번 덮었다.
+// 위아래로 6줄로 나눠 줄마다 마름모가 걸치는 폭(+여유)만 같은 자리에 그대로 옮겨 그린다 → 그리는 넓이 약 2배 → 약 1.3배. 옮기는 그림은 같은 그림의 같은 화소라 모습은 그대로.
+const ISO_NS=6;let ISO_STRIP=true;// ISO_STRIP: 점검용(끄면 예전처럼 통째로)
+function isoStrips(cv,X,Y,s,g){g=g||ctx;if(!ISO_STRIP){g.drawImage(cv,X,Y);return}const w=cv.width,h=cv.height,xc=(CH*KI+ISO_PAD)*s,yc=(CH*KI/2+ISO_PAD)*s,hh=CH*KI/2*s,hw=CH*KI*s,m=ISO_MG*s;
+  for(let i=0;i<ISO_NS;i++){const y0=Math.floor(h*i/ISO_NS),y1=Math.floor(h*(i+1)/ISO_NS);if(y1<=y0)continue;const yn=Math.max(y0,Math.min(y1,yc)),half=Math.min(w/2,hw*Math.max(0,1-Math.abs(yn-yc)/hh)+m);
+    const x0=Math.max(0,Math.floor(xc-half)),x1=Math.min(w,Math.ceil(xc+half));if(x1>x0)g.drawImage(cv,x0,y0,x1-x0,y1-y0,X+x0,Y+y0,x1-x0,y1-y0)}}
+let ISO_MG=6;
 // [v27] 화면 방향 그림이 아직 없는 조각(새로 보인 조각 · 장식이 바뀐 조각): 땅을 돌려 그리고, 그 조각에 구워 넣을 낮은 장식(밀 · 꽃 · 돌 …)도
 // 이번 프레임에 조각 안쪽만 잘라 직접 그린다 → 화면 가장자리나 다시 굽는 동안 작은 장식이 사라졌다 나타나는 깜빡임이 없다.
 function isoFallback(c,cx,cy){ctx.drawImage(c.cv,cx*CH,cy*CH,CH+1,CH+1);if(DG)return;decoIdx();const fl=DFLAT.get(cx*1000+cy);if(!fl||!fl.length)return;
