@@ -1065,7 +1065,7 @@ for(const D of WX_DUNGEONS.filter(D=>!D.cath)/* 아홉 첨탑 대성당은 종 �
   const bs=enemies.filter(e=>TYPES[e.k].boss),ms=enemies.filter(e=>TYPES[e.k].mini);qOk(bs.length===1&&bs[0].k===D.boss,`보스 ${bs.map(e=>e.k)}`);qOk(ms.length===2&&D.minis.every(k=>ms.some(e=>e.k===k)),`준보스 ${ms.map(e=>e.k)}`);
   qOk(enemies.filter(e=>!TYPES[e.k].boss&&!TYPES[e.k].mini).every(e=>D.mobs.includes(e.k)),'다른 졸개');P.invT=1e9;qStep(20,{renderEvery:10});
   const e=DG.boss,n0=DG.portals.length;loot=[];hurtE(e,e.hp+10,{el:'arcane'});qOk(e.dead&&DG.bossDead,'보스가 안 쓰러짐');qOk(DG.portals.length===n0+1,'빛나는 문이 안 생김');
-  {const its=loot.filter(l=>l.kind==='item');qOk(its.length>=2&&its.length<=3&&its[0].item.rar>=3,`전리품 ${its.map(l=>l.item.rar)} (첫 개는 유니크·세트 이상 · v21: 셋째 덤은 잡템이면 줄 수 있음)`)}const ex=DG.portals[DG.portals.length-1];
+  {const its=loot.filter(l=>l.kind==='item');qOk(its.length>=2&&its.length<=3+(D.crater?1:0)/* v57 큰 구덩이: 첫 처치 상급 상자 하나 더 */&&its[0].item.rar>=3,`전리품 ${its.map(l=>l.item.rar)} (첫 개는 유니크·세트 이상 · v21: 셋째 덤은 잡템이면 줄 수 있음)`)}const ex=DG.portals[DG.portals.length-1];
   qOk(qActAt(ex.x,ex.y)==='exit',`빛나는 문 act=${act}`);doAct();qOk(!DG,'안 나옴');qOk(REG.id===D.reg,`나온 지역 ${REG.id}`);
   qOk(Math.abs(P.x-c.x)<1&&Math.abs(P.y-(c.y+80))<1,`나온 자리 (${Math.round(P.x)},${Math.round(P.y)})`);qStep(3);loadRegion('home');return `Lv${D.lvl} ${TYPES[D.boss].n}`});
 qT('월드','새 몬스터 97종: 그리기 · 이동 · 공격에 NaN 없음',()=>{qPrep('mage',{lvl:60});const ks=Object.keys(WX_TYPES),bad=[];qOk(ks.filter(k=>typeof WX21_TYPES==='undefined'||!WX21_TYPES[k]).length===97,`${ks.length}종`);let hit=false;const keepHit=hitPlayer;
@@ -1110,7 +1110,7 @@ qT('월드','지역 의뢰: 선행(req) 전엔 잠김 · 끝나면 열림 · 채
 qT('월드','지역 마을 의뢰 60개(+v30 새 사냥터 24개 · v36 지역 의뢰): 주는 사람 · 받는 사람이 마을에 있고, 목표 자리가 있고 닿음 (던전/둥지/채집)',()=>{qPrep('mage',{lvl:60});qOk(WX_SQ.length===60+Q30_SQ.length+Q36_SQ.length+(typeof R110_SQ==='object'?R110_SQ.length:0)/* v51 새 땅 마을 의뢰 */+(typeof G100_SQ==='object'?G100_SQ.length:0)/* v57 100+ 새 땅 */&&Q30_SQ.length===24,`${WX_SQ.length}개`);const bad=[],kinds={};
   for(const q of WX_SQ){const T=ALLTOWNS.find(t=>t.id===q.town);if(!T){bad.push(q.id+' 마을 없음');continue}kinds[q.kind]=(kinds[q.kind]||0)+1;
     {const f=sqFolk(q.giver),g=sqFolk(sqTurn(q));if(!f||f.town!==T)bad.push(`${q.id}: 주는 사람 ${q.giver} 없음`);if(!g||!ALLTOWNS.includes(g.town))bad.push(`${q.id}: 받는 사람 ${sqTurn(q)} 없음`)}
-    P.lvl=Math.max(60,q.lvl|0);const s=sqState();if(q.req)s.d[q.req]=1;s.a={};qOk(sqAvail(q)==='ok',`${q.id} ${sqAvail(q)}`);sqAccept(q.id);
+    P.lvl=Math.max(60,q.lvl|0);P.job3=q.j3||P.job3;/* v57 갈래 이야기 의뢰는 그 갈래만 */const s=sqState();if(q.req)s.d[q.req]=1;s.a={};qOk(sqAvail(q)==='ok',`${q.id} ${sqAvail(q)}`);sqAccept(q.id);
     q.goals.forEach((g,j)=>{if(j>0)for(let k=0;k<j;k++)sqProgress(q,k,99,true);const tg=sqTarget(q);if(!tg){bad.push(`${q.id} 목표${j} 자리 없음`);return}
       if(tg.reg&&tg.reg!=='home'){const {L,ok}=qWxReach(tg.reg);if(!wxCanReach(ok,tg.x,tg.y))bad.push(`${q.id} 목표${j} 못 닿음`);if(tg.cave!=null&&!(L.caves[tg.cave]&&[...L.caves[tg.cave].cave.minis,L.caves[tg.cave].cave.boss,...L.caves[tg.cave].cave.mobs].some(k=>(g.k||[]).includes(k))))bad.push(`${q.id} 동굴 표시가 다름`)}
       if(g.type==='gather'&&(SQSPOT[g.use]||[]).length<g.n)bad.push(`${q.id} 채집 자리 ${(SQSPOT[g.use]||[]).length}<${g.n}`)});
@@ -8592,6 +8592,52 @@ qT(QG2,'저장 2차: 증표 · 틈 · 가 본 땅 · 기술 변형 왕복 · 이
   qOk(load(d,QA_SLOT)&&P.g100.tok===7&&P.g100.tk.got===9&&P.g100.rf===4&&P.g100.d.rf.plateau===123&&P.g100.k.g1_salt===1&&P.g100.sv[112].v==='wide','왕복');
   qOk(load(Object.assign({},d,{g100:{tok:'x',tk:5,rf:-2,sv:[3]}}),QA_SLOT)&&P.g100.tok===0&&JSON.stringify(P.g100.tk)==='{}'&&P.g100.rf===0&&JSON.stringify(P.g100.sv)==='{}','이상한 값');
   qOk(qRaw('arseia-char-'+QA_SLOT)===ch0,'캐릭터 키');P.g100=g100Clean(null);return '왕복'});
+}
+{const QG3='v57 100+ 성장 3';
+const qX=f=>{G100X.qa=true;try{return f()}finally{G100X.qa=false}};
+qT(QG3,'어둠 맛보기: 130레벨에 1~3단계 · 재의 군주 전에는 3단계를 깨도 4단계 안 열림 · 군주를 쓰러뜨리면 바로 4단계 · 성장 탭에서 고름',()=>qX(()=>{qW3Prep('mage',129);if(!P.w3)P.w3={};P.w3.lord=0;P.dark=darkClean(null);P.g100=g100Clean(null);
+  g100DarkTick();qOk(P.dark.open===0,'129에 열림');P.lvl=130;g100DarkTick();qOk(P.dark.open===3,'130 '+P.dark.open);
+  V20A.d21set(2);qOk(P.dark.cur===2,'고르기');qOk(/어둠 단계/.test(g100DarkHtml())&&/3단계/.test(g100DarkHtml()),'탭 칸');
+  darkClear(2);qOk(P.dark.open===3&&P.dark.top===2,'2단계 깸');darkClear(3);qOk(P.dark.open===3&&P.dark.top===3&&g100Pe().dk===1,'군주 전 4단계 '+P.dark.open);
+  P.dark.open=6;g100DarkTick();qOk(P.dark.open===3,'군주 전 넘침');P.w3.lord=1;g100DarkTick();qOk(P.dark.open===4&&!g100Pe().dk,'군주 뒤 '+P.dark.open);
+  darkClear(4);qOk(P.dark.open===5,'4단계 깸 '+P.dark.open);P.w3.lord=0;P.lvl=120;P.dark=darkClean(null);g100DarkTick();qOk(P.dark.open===0,'120');qOk(g100DarkHtml()==='','120 탭');
+  P.dark=darkClean(null);P.g100=g100Clean(null);return '3단계'}));
+qT(QG3,'룬 미리: 101~140 레벨마다 1점(모두 40) · 각인 막대 값은 그대로 · 찍은 점수는 불러와도 남음',()=>qX(()=>{qW3Prep('mage',100);P.rune=runeFresh();g100PvTick();qOk(P.rune.n===0,'100에 점수');
+  P.lvl=115;g100PvTick();qOk(P.rune.n===15&&P.rune.pv===15&&runeLeft()===15,'115 '+P.rune.n);qOk(runeNeed()===runeNeed(0)&&runeNeed()===RUNE_XP0,'막대 '+runeNeed());g100PvTick();qOk(P.rune.n===15,'두 번');
+  qOk(runeTabOn()&&/미리 받은 각인 점수/.test(runeTabHtml()),'탭');runeAdd('hp',10);P.lvl=140;g100PvTick();qOk(P.rune.n===40&&runeLeft()===30,'140 '+P.rune.n);
+  P.rune.n=42;qOk(runeNeed()===RUNE_XP0+2*RUNE_XPN,'번 점수 값 '+runeNeed());const d=JSON.parse(JSON.stringify(saveData()));qOk(d.rune.pv===40,'저장 pv');
+  qOk(load(d,QA_SLOT)&&P.rune.n===42&&P.rune.pv===40&&P.rune.a.hp===10&&runeNeed()===RUNE_XP0+2*RUNE_XPN,'불러오기 '+JSON.stringify(P.rune).slice(0,90));
+  d.rune.xp=RUNE_XP0+2*RUNE_XPN+5;qOk(load(d,QA_SLOT)&&P.rune.xp<RUNE_XP0+2*RUNE_XPN,'막대 다듬기 '+P.rune.xp);P.rune=runeFresh();return '40점'}));
+qT(QG3,'짐승: 110레벨 둘째 기술(넷) · 125레벨 각성(생명력 · 공격 ×1.2 · 빛남) · 그리기 오류 없음',()=>{qW3Prep('mage',125);const G=window.__g42;
+  const mk=k=>{for(let i=allies.length-1;i>=0;i--)if(allies[i].g42pet)allies.splice(i,1);P.g42.pet={tr:40,k};return g42PetMake()};
+  const a1=mk('wolf');G100X.petAwLv=999;let a0;try{a0=mk('wolf')}finally{G100X.petAwLv=125}qOk(a1.g100aw&&!a0.g100aw&&a1.max===Math.round(a0.max*1.2)&&Math.abs(a1.dmg-a0.dmg*1.2)<1e-6,'각성 '+a0.max+'→'+a1.max);
+  for(const k of ['wolf','hawk','golem','spirit']){enemies=[];const a=mk(k);const e=qMob('wolf',200,125);e.big=false;a.x=e.x+40;a.y=e.y;const h0=e.hp,s0=P.shield||0;P.mp=0;const n=g100PetSkill2(a,k);
+    if(k==='spirit')qOk(n&&(P.shield||0)>s0&&P.mp>0,'정령');else qOk(n&&e.hp<h0,k+' 피해');if(k==='golem')qOk(e.stunT>0,'기절');if(k==='wolf')qOk(e.slowT>0,'느려짐')}
+  enemies=[];const a=mk('wolf');const e=qMob('wolf',200,125);e.hp=e.max=1e12;a.x=e.x+40;a.y=e.y;P.lvl=109;G100X.pT=5;q42Tk(30);qOk(G100X.pT===5,'109에 기술');P.lvl=110;q42Tk(30);qOk(G100X.pT<5,'110 기술 시계');
+  a.g100aw=1;a._s={x:200,y:200};drawAlly(a);qOk(/물어뜯기/.test(g100PetHtml()),'탭 글');enemies=[];for(let i=allies.length-1;i>=0;i--)if(allies[i].g42pet)allies.splice(i,1);P.g42.pet={};return 'ok'});
+qT(QG3,'말: 120레벨 바람 갈기 훈련(준마 뒤 · 마을 · 금화 · 광석) → 같은 걸음에 +60% · 털빛은 증표 10개 · 내 말 그림에만',()=>{const G=G42Q_();q42Prep('mage',125,'h29_reed');const T=RCACHE.h29_reed.town;P.x=T.x;P.y=T.y;q42Tk(2);
+  const M=G.g42Mat();M.herb=30;M.ore=200;P.gold=1e7;P.g100=g100Clean(null);V20A.g42mtbuy();V20A.g100mtup();qOk(!g100Pe().mt,'준마 전에 훈련');V20A.g42mtup();P.lvl=119;V20A.g100mtup();qOk(!g100Pe().mt,'119에 훈련');P.lvl=125;
+  P.x=T.x+3000;q42Tk(2);V20A.g100mtup();qOk(!g100Pe().mt,'마을 밖 훈련');P.x=T.x;P.y=T.y;q42Tk(2);const g0=P.gold;V20A.g100mtup();qOk(g100Pe().mt===1&&P.gold===g0-G100X.mtGold,'훈련');
+  P.x=T.x+800;P.y=T.y;q42Tk(2);const walk=()=>{keys.add('KeyD');const x0=P.x,y0=P.y;q42Tk(30);keys.delete('KeyD');return Math.hypot(P.x-x0,P.y-y0)};V20A.g42mton();q42Tk(25);
+  const d2=walk();delete g100Pe().mt;P.x=T.x+800;P.y=T.y;q42Tk(2);const d1=walk();g100Pe().mt=1;qOk(d2>d1*1.03&&d2<d1*1.12,'+10% '+Math.round(d1)+'→'+Math.round(d2));V20A.g42mton();
+  P.x=T.x;P.y=T.y;q42Tk(2);const s=g100S();s.tok=15;V20A.g100hc('black');qOk(s.tok===5&&g100Pe().ho==='black'&&g100Hc().includes('black'),'털빛 '+s.tok);V20A.g100hc('white');qOk(s.tok===5&&g100Pe().ho==='black','증표 모자람');
+  let seen=null;const sh=Kit.shadow;Kit.shadow=function(){seen=ctx.filter;return sh.apply(this,arguments)};try{const f0=ctx.filter;g42Horse(P,{x:100,y:100},{dx:0,dy:1,x:P.x,y:P.y});qOk(seen===G100X.hc.black.f&&ctx.filter===f0,'내 말 '+seen);
+    seen=null;const o={x:1,y:1};g42Horse(o,{x:100,y:100},{dx:0,dy:1,x:1,y:1});qOk(seen!==G100X.hc.black.f,'남의 말')}finally{Kit.shadow=sh}
+  V20A.g100hc('');qOk(!g100Pe().ho&&g100Hc().includes('black'),'처음대로');V20A.g100hc('black');qOk(s.tok===5&&g100Pe().ho==='black','가진 털빛 다시');qOk(/바람 갈기 훈련/.test(g100MtHtml()),'탭');P.g100=g100Clean(null);return Math.round(d1)+'→'+Math.round(d2)});
+qT(QG3,'갈래 이야기 의뢰 24편: 첨탑 광장 하엘 · 내 갈래만 · 앞 편을 마쳐야 · 셋째 편 처음 마치면 유니크 하나와 칭호',()=>{qW3Prep('mage',112);const [b0,b1]=JOB3_IDS.mage;P.job3=b0;qOk(G100_STQ.length===24&&TW.folk.some(f=>f.id==='g1_seren'),'의뢰 · 하엘');
+  for(const q of G100_STQ){qOk(SQBY[q.id]===q&&q.goals.every(g=>g.k.every(k=>TYPES[k])),'자료 '+q.id)}
+  const id=n=>`g100st_${b0}_${n}`,s=sqState();for(const q of G100_STQ){delete s.a[q.id];delete s.d[q.id]}
+  qOk(sqAvail(SQBY[id(1)])==='ok','내 갈래 '+sqAvail(SQBY[id(1)]));qOk(sqAvail(SQBY[`g100st_${b1}_1`])==='locked','다른 갈래');qOk(sqAvail(SQBY[id(2)])==='locked','앞 편 전');
+  const pj=P.job3;P.job3=null;qOk(sqAvail(SQBY[id(1)])==='locked','3차 전');P.job3=pj;
+  s.d[id(1)]=1;s.d[id(2)]=1;P.lvl=138;qOk(sqAvail(SQBY[id(3)])==='ok','셋째 '+sqAvail(SQBY[id(3)]));P.bag=[];sqAccept(id(3));s.a[id(3)].c.g0=1;sqFinish(id(3));
+  qOk(s.d[id(3)]===1&&P.bag.length===1&&P.bag[0].rar>=4,'유니크 '+(P.bag[0]&&P.bag[0].rar));qOk(v20TitlesHave().some(t=>t.id==='g100st_'+b0),'칭호');qOk(!v20TitlesHave().some(t=>t.id==='g100st_'+b1),'다른 칭호');
+  qOk(sqAvail(SQBY[id(3)])==='done','다시');for(const q of G100_STQ){delete s.a[q.id];delete s.d[q.id]}P.bag=[];return b0});
+qT(QG3,'저장 3차: 말 훈련 · 털빛 · 등불 막음 · 미리 받은 점수 왕복 · 이상한 값 · 캐릭터 키 그대로',()=>{qW3Prep('mage',135);const ch0=qRaw('arseia-char-'+QA_SLOT);P.g100=g100Clean(null);const pe=g100Pe();
+  pe.mt=1;pe.hc=['black','zz'];pe.ho='black';pe.dk=1;P.rune=runeFresh();P.rune.n=35;P.rune.pv=35;const d=JSON.parse(JSON.stringify(saveData()));
+  qOk(load(d,QA_SLOT)&&P.g100.pe.mt===1&&P.g100.pe.ho==='black'&&g100Hc().join()==='black'&&P.g100.pe.dk===1&&P.rune.pv===35&&P.rune.n===35,'왕복');
+  qOk(load(Object.assign({},d,{g100:{pe:[1]},rune:Object.assign({},d.rune,{pv:'x'})}),QA_SLOT)&&JSON.stringify(P.g100.pe)==='{}'&&P.rune.pv===0,'이상한 값');
+  qOk(load(Object.assign({},d,{rune:Object.assign({},d.rune,{pv:999})}),QA_SLOT)&&P.rune.pv===40,'pv 상한');
+  qOk(qRaw('arseia-char-'+QA_SLOT)===ch0,'캐릭터 키');P.g100=g100Clean(null);P.rune=runeFresh();return '왕복'});
 }
 }
 window.__QA_RUN=qaRun;
