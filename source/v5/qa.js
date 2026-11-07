@@ -8557,6 +8557,42 @@ qT(QG,'저장 P.g100: 왕복 · 이상한 값 · 옛 저장(없음)은 기본 ·
   const d2=Object.assign({},d);delete d2.g100;qOk(load(d2,QA_SLOT)&&P.g100&&P.g100.st===0,'옛 저장');
   qOk(load(d,QA_SLOT)&&P.g100.st===3&&P.g100.bk.b_sm1_queen===2&&P.g100.tr[105]==='a','왕복');qOk(qRaw('arseia-char-'+QA_SLOT)===ch0,'캐릭터 키');P.g100=g100Clean(null);return '왕복 · 기본값'});
 }
+{const QG2='v57 100+ 성장 2';
+qT(QG2,'강자의 증표: 나보다 낮으면 없음 · 보스 2 · 떠도는 강자 5 · 틈의 수호자 3 · 마을 안에서만 바꿈 · 칭호 한 번',()=>{qW3Prep('mage',135);const s=g100S();s.tok=0;s.tk={};
+  qOk(g100TokRoll({k:'wolf',lvl:130})===0,'낮은 몬스터');qOk(g100TokRoll({k:'b_sm1_queen',lvl:148,boss:1})===2,'보스');qOk(g100TokRoll({k:'st_peak',lvl:142,slot:5,stg:1})===5,'강자');qOk(g100TokRoll({k:'wolf',lvl:150,g100gd:1})===3,'수호자');
+  P.lvl=99;qOk(g100TokRoll({k:'b_sm1_queen',lvl:148,boss:1})===0,'100 아래');P.lvl=135;
+  qWxTo('plateau');enemies=[];const T=RCACHE.plateau.town;P.x=T.x+3000;P.y=T.y+3000;s.tok=100;qOk(!g100ShopBuy('ash')&&s.tok===100,'마을 밖에서 바꿈');
+  P.x=T.x;P.y=T.y;const b0=P.bag.length;qOk(g100ShopBuy('rare')&&s.tok===88&&P.bag.length===b0+1&&P.bag[P.bag.length-1].rar>=2,'희귀');
+  qOk(g100ShopBuy('title')&&g100Tk().ttl&&!g100ShopBuy('title')&&s.tok===48,'칭호 한 번');g100TokAdd(2);qOk(s.tok===50&&g100Tk().got===2,'모은 수');
+  s.tok=0;s.tk={};loadRegion('home');return '규칙 · 바꾸기'});
+qT(QG2,'틈: 열린 땅에서 F · 무리 셋 + 수호자 · 다 잡으면 상자 · 10분 칸마다 한 번 · 싸움터를 벗어나면 실패 · 참가자는 못 엶',()=>{qW3Prep('mage',135);const s=g100S();s.rf=0;s.d={};s.tok=0;
+  const r='plateau';G100R.qaReg=r;try{qWxTo(r);enemies=[];const h=g100RfHere();qOk(h,'틈 자리');
+  P.x=h.x+40;P.y=h.y;followCam();qStep(2);qOk(act==='g100_rift','F '+act);doAct();const F=G100RV.rift;qOk(F&&F.w===1&&F.mobs.length>=5&&F.lv>=140,'시작 '+(F&&F.lv));
+  qOk(F.mobs.every(e=>e.elite&&(e.lvl<=G100.capLv||e.g1)),'정예 · 힘 묶음');
+  let n=0;while(G100RV.rift&&n++<20){for(const e of G100RV.rift.mobs.slice())qKillE(e);P.hp=maxHp();qStep(2)}
+  qOk(!G100RV.rift&&s.rf===1&&g100RfDone(r)&&s.tok>=3,'깸 '+s.rf+' 증표 '+s.tok);P.x=h.x+40;P.y=h.y;qStep(2);doAct();qOk(!G100RV.rift,'같은 칸에 또 열림');
+  s.d={};doAct();qOk(G100RV.rift,'다시 열기');P.x=h.x+G100R.R*1.6;P.y=h.y;qStep(2);qOk(!G100RV.rift&&s.rf===1,'벗어나도 계속');
+  const g0=NET.guest;try{NET.guest=true;s.d={};P.x=h.x+40;P.y=h.y;qOk(!g100RfStart()&&!G100RV.rift,'참가자가 엶')}finally{NET.guest=g0}
+  }finally{G100R.qaReg=null}s.rf=0;s.d={};s.tok=0;s.tk={};enemies=[];loadRegion('home');return r});
+qT(QG2,'업적 「100레벨 이후」 11개 · 밀물 버티기 셈 · 새 땅 가 보기',()=>{qW3Prep('mage',135);const A=G42.ach.filter(a=>a.grp==='100레벨 이후');qOk(A.length===11,'개수 '+A.length);
+  const s=g100S();s.k={};s.tk={};qWxTo(G100.coast);enemies=[];qStep(2);qOk(s.k[G100.coast]===1,'가 봄');G100V.force.tide=1;try{P.x=3000;P.y=G100T.tideY+200;P.invT=1e9;qStep(120,{each:()=>{enemies=[]}});qOk((+g100Tk().tide)>1.5,'밀물 '+g100Tk().tide)}finally{G100V.force.tide=null}
+  qOk(A.every(a=>typeof a.cur()==='number'),'셈');s.k={};s.tk={};loadRegion('home');return '11개'});
+qT(QG2,'주간 계약 땅 100~140 · 습격 방어전 새 땅 · 도전 던전이 새 땅 던전에도 붙음',()=>{qW3Prep('mage',135);const rs=g42WkRegs();qOk(rs.length&&rs.every(r=>G100R.regs.includes(r)||G100.ids.includes(r)),'계약 땅 '+rs);
+  P.lvl=90;qOk(!g42WkRegs().some(r=>G100R.regs.includes(r)),'90레벨에 100 땅');P.lvl=135;
+  for(const r of G100R.regs.concat(G100.ids))qOk(G42_RD.includes(r),'습격 '+r);
+  qWxTo(G100.salt);const c=CAVES.find(q=>q.cave&&q.cave.id==='g1_saltdg');const o0=G42D.on;try{G42D.on=true;enterDungeon(c);qOk(DG&&g42ChOk()&&DG.g42ch,'도전 안 붙음')}finally{G42D.on=o0;if(DG)leaveDungeon()}
+  loadRegion('home');return rs.join(',')});
+qT(QG2,'3차 기술 변형: 112 · 124 · 136 칸 · 넓게(범위 ×1.3 피해 ×0.85) · 빠르게(재사용 ×0.7) · 한 기술은 한 칸 · 레벨 전엔 안 됨 · 비우기',()=>{qW3Prep('mage',130);P.job3=JOB3_IDS.mage[0];const s=g100S();s.sv={};
+  const L=g100SvList();qOk(L.length>=3,'기술 '+L);const id=L[0],e0=eff(id,10),c0=cdOf(id);V20A.g100sv('112:'+id+':wide');const e1=eff(id,10);
+  qOk(Math.abs(e1.mult-e0.mult*.85)<1e-9&&(!(e0.r>0)||Math.abs(e1.r-e0.r*1.3)<1e-9),'넓게');V20A.g100sv('124:'+id+':quick');qOk(!s.sv[112]&&s.sv[124].v==='quick'&&Math.abs(cdOf(id)-Math.max(.15,c0*.7))<1e-9,'한 칸만 · 빠르게');
+  V20A.g100sv('136:'+L[1]+':focus');qOk(!s.sv[136],'136 전에 고름');V20A.g100sv('124:');qOk(!s.sv[124]&&Math.abs(cdOf(id)-c0)<1e-9,'비우기');
+  V20A.g100sv('112:'+id+':focus');P.lvl=111;qOk(Math.abs(eff(id,10).mult-e0.mult)<1e-9,'레벨이 내려가도 붙음');P.lvl=130;P.job3=JOB3_IDS.mage[1];qOk(!g100SvOf(id),'다른 갈래');s.sv={};return id});
+qT(QG2,'저장 2차: 증표 · 틈 · 가 본 땅 · 기술 변형 왕복 · 이상한 값 · 캐릭터 키 그대로',()=>{qW3Prep('mage',135);const ch0=qRaw('arseia-char-'+QA_SLOT);P.g100=g100Clean(null);const s=g100S();
+  s.tok=7;s.tk={got:9,ttl:1,tide:12.5};s.rf=4;s.d.rf={plateau:123};s.k={g1_salt:1};s.sv={112:{id:'quadorb',v:'wide'}};const d=JSON.parse(JSON.stringify(saveData()));
+  qOk(load(d,QA_SLOT)&&P.g100.tok===7&&P.g100.tk.got===9&&P.g100.rf===4&&P.g100.d.rf.plateau===123&&P.g100.k.g1_salt===1&&P.g100.sv[112].v==='wide','왕복');
+  qOk(load(Object.assign({},d,{g100:{tok:'x',tk:5,rf:-2,sv:[3]}}),QA_SLOT)&&P.g100.tok===0&&JSON.stringify(P.g100.tk)==='{}'&&P.g100.rf===0&&JSON.stringify(P.g100.sv)==='{}','이상한 값');
+  qOk(qRaw('arseia-char-'+QA_SLOT)===ch0,'캐릭터 키');P.g100=g100Clean(null);return '왕복'});
+}
 }
 window.__QA_RUN=qaRun;
 setTimeout(()=>{qaRun().catch(e=>{window.__QA_RESULT={fatal:String(e&&e.stack||e),results:[],summary:{total:0,pass:0,fail:1}}})},120);
