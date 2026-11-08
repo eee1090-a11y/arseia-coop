@@ -14,8 +14,8 @@ window.__g100=G100V;
 const g100Now=()=>Date.now()/1000+G100V.toff;
 const g100Day=()=>Math.floor((Date.now()+9*3600e3)/86400000);
 const g100In=id=>!DG&&!IN&&REG&&REG.id===id;
-const g100Land=()=>!DG&&!IN&&REG&&G100.ids.includes(REG.id);
-const g100DgIn=()=>!!(DG&&DG.d&&(G100.dgs.includes(DG.d.id)||DG.d.id===G100.crater));
+const g100Land=()=>!DG&&!IN&&REG&&G100.all.includes(REG.id);
+const g100DgIn=()=>!!(DG&&DG.d&&(G100.dgs.includes(DG.d.id)||DG.d.id===G100.crater||G100.dgx.includes(DG.d.id)));
 const g100Tide=()=>{if(G100V.force.tide!=null)return !!G100V.force.tide;if(window.__QA)return false;/* #qa: 시계 탓에 옛 던전 공통 시험이 흔들리지 않게 · 밀물 시험은 force로 */return (g100Now()%G100T.tideCyc)>=G100T.tideCyc-G100T.tideLen};
 const g100TideLeft=()=>{const t=g100Now()%G100T.tideCyc,hi=G100T.tideCyc-G100T.tideLen;return t>=hi?G100T.tideCyc-t:hi-t};
 queueMicrotask(()=>{try{if(typeof BGM_REG==='object')Object.assign(BGM_REG,{[G100.salt]:'snow',[G100.coast]:'sea',[G100.cave]:'dark',[G100.spire]:'field'})}catch(_){}});
@@ -26,10 +26,10 @@ if(typeof G42_GREG==='object')Object.assign(G42_GREG,{[G100.salt]:{herb:.1,ore:.
 const g100Obj=v=>!!v&&typeof v==='object'&&!Array.isArray(v);
 const g100Int=(v,mx)=>Number.isFinite(+v)?Math.max(0,Math.min(mx||1e9,Math.floor(+v))):0;
 function g100Clean(raw){const o=g100Obj(raw)?Object.assign({},raw):{};
-  for(const k of ['bk','d','k','tr','sv','ex','tk','pe','qs'])o[k]=g100Obj(o[k])?Object.assign({},o[k]):{};
+  for(const k of ['bk','d','k','tr','sv','ex','tk','pe','qs','g140'])o[k]=g100Obj(o[k])?Object.assign({},o[k]):{};
   o.bx=Array.isArray(o.bx)?[...new Set(o.bx.map(v=>v|0).filter(v=>v>0&&v<=200))]:[];
   for(const k of ['tok','rf','st','rp','sh'])o[k]=g100Int(o[k]);return o}
-const g100Empty=o=>!['bk','d','k','tr','sv','ex','tk','pe','qs'].some(k=>Object.keys(o[k]).length)&&!o.bx.length&&!o.tok&&!o.rf&&!o.st&&!o.rp&&!o.sh;
+const g100Empty=o=>!['bk','d','k','tr','sv','ex','tk','pe','qs','g140'].some(k=>Object.keys(o[k]).length)&&!o.bx.length&&!o.tok&&!o.rf&&!o.st&&!o.rp&&!o.sh;
 const g100S=()=>{if(!P)return g100Clean(null);if(!g100Obj(P.g100)||!g100Obj(P.g100.bk)||!Array.isArray(P.g100.bx))P.g100=g100Clean(P.g100);return P.g100};
 {const _sd=saveData;saveData=function(){const d=_sd.apply(this,arguments);try{if(d&&P&&P.g100){const s=g100Clean(P.g100);if(!g100Empty(s))d.g100=s}}catch(e){if(window.__QA)throw e}return d}}
 {const _ld=load;load=function(d){const ok=_ld.apply(this,arguments);if(ok){try{P.g100=g100Clean(d&&d.g100)}catch(e){if(window.__QA)throw e;P.g100=g100Clean(null)}g100Reset()}return ok}}
@@ -40,14 +40,14 @@ const g100Once=(k,t,c)=>{if(G100V.said[k])return;G100V.said[k]=1;msg(t,c||'#cfe8
 
 /* ===== 1) 레벨 · 봉인 · 몬스터 세기 ===== */
 // b1.js levelAt은 99에서 멈춘다(지옥 +40 = 139) → 새 땅에서는 그 끝을 없앤다(같은 식).
-{const _la=levelAt;levelAt=function(x,y){if(!DG&&REG&&G100.ids.includes(REG.id)){let l=999;for(const t of lvAnch()){const d=Math.hypot(x-t.x,y-t.y);l=Math.min(l,t.base+Math.min(REG.zc||99,Math.max(0,d-SAFE)/(REG.zs||ZSTEP)))}return l}return _la.apply(this,arguments)}}
-{const _b=w3BlockReg;w3BlockReg=function(id){const m=_b.apply(this,arguments);if(m||!G100.ids.includes(id)||W3.qaOpen)return m;if(P.lvl<G100.minLv)return `${G100.minLv}레벨부터 들어갈 수 있는 강한 땅입니다 (지금 Lv${P.lvl}) · 몬스터 141~158레벨`;return ''}}
+{const _la=levelAt;levelAt=function(x,y){if(!DG&&REG&&G100.all.includes(REG.id)){let l=999;for(const t of lvAnch()){const d=Math.hypot(x-t.x,y-t.y);l=Math.min(l,t.base+Math.min(REG.zc||99,Math.max(0,d-SAFE)/(REG.zs||ZSTEP)))}return l}return _la.apply(this,arguments)}}
+{const _b=w3BlockReg;w3BlockReg=function(id){const m=_b.apply(this,arguments);if(m||!G100.all.includes(id)||W3.qaOpen)return m;if(P.lvl<G100.minLv)return `${G100.minLv}레벨부터 들어갈 수 있는 강한 땅입니다 (지금 Lv${P.lvl}) · 몬스터 141~158레벨`;return ''}}
 // 정할 것 ①: 140 넘는 몬스터 — 한 대 피해는 140레벨 것, 생명력 +3%/레벨 (처음 한 번)
 function g100Fix(e){if(!e||e.g1||!(e.lvl>G100.capLv))return;e.g1=1;const L=e.lvl,c=G100.capLv;
   let f=(1+.18*(c-1))/(1+.18*(L-1));if(e._b24&&typeof B24==='object'&&B24.dmg)f*=B24.dmg(c)/B24.dmg(L);e.dmg*=f;if(e.dmg2)e.dmg2*=f;
   const k=1+G100.hpPer*(L-c);e.hp=Math.round(e.hp*k);e.max=Math.round(e.max*k)}
 // 첫 만남 안내
-function g100Enter(){const id=REG.id;if(!G100.ids.includes(id))return;const D=REGIONS[id];
+function g100Enter(){const id=REG.id;if(!G100.all.includes(id))return;const D=REGIONS[id];
   banner={t:D.n,sub:`지옥 Lv${w3LvOf(id)}~ · 나보다 강한 땅 · 한 대 피해는 140레벨 몬스터와 같고 더 단단합니다`,col:D.col,life:3,max:3}}
 
 /* ===== 2) 지도 다듬기 ===== */
@@ -83,13 +83,13 @@ function g100Post(){
     const sp=[];for(let i=0;i<300&&sp.length<22;i++){const x=400+s()*5200,y=400+s()*5200;if(!r110Free(L,x,y,240)||sp.some(q=>Math.hypot(q.x-x,q.y-y)<420)||G100L.spireY.some(Y=>Math.abs(y-Y(x))<W0+160)||road(x,y)<150)continue;sp.push(g100D(x,y,'spire',{v:s()}))}
     r110Clear(L,d=>br.some(b=>Math.hypot(d.x-b.x,d.y-b.y)<160));L.decor.push(...sp,...br);L.g100={br,sp}}}
   g100Labels()}
-function g100Labels(){for(const id of [...G100.ids,R110.jungle]){const L=RCACHE[id];if(!L||!L.edges)continue;for(const e of L.edges){const D=REGIONS[e.to];if(!D)continue;e.label=`${D.n}로 · ${D.hell?'지옥 ':''}Lv${D.base+(D.hell?40:0)}~`}}}
+function g100Labels(){for(const id of [...G100.all,R110.jungle]){const L=RCACHE[id];if(!L||!L.edges)continue;for(const e of L.edges){const D=REGIONS[e.to];if(!D)continue;e.label=`${D.n}로 · ${D.hell?'지옥 ':''}Lv${D.base+(D.hell?40:0)}~`}}}
 // 바위 언덕(terrain.js): 거울 물 · 다리 · 새 물건 둘레에는 세우지 않음
-{const _tg=terrGrid;terrGrid=function(id){const w=_tg.apply(this,arguments);try{if(w&&G100.ids.includes(id))g100TerrFix(id,w)}catch(e){if(window.__QA)throw e}return w}}
+{const _tg=terrGrid;terrGrid=function(id){const w=_tg.apply(this,arguments);try{if(w&&G100.all.includes(id))g100TerrFix(id,w)}catch(e){if(window.__QA)throw e}return w}}
 function g100TerrFix(id,w){const L=RCACHE[id];if(!L)return;const mine=L.decor.filter(d=>d.k==='g100'),M=id===G100.salt&&L.g100?L.g100.mirrors:[];
   for(let j=0;j<TNC;j++)for(let i=0;i<TNC;i++){const k=terrIdx(i,j);if(!w[k])continue;const x=(i+.5)*TCS,y=(j+.5)*TCS;
     if(M.some(m=>((x-m.x)/(m.rx+160))**2+((y-m.y)/(m.ry+160))**2<1)||id===G100.coast&&y>G100T.tideY-100||mine.some(d=>Math.abs(d.x-x)<170&&Math.abs(d.y-y)<170))w[k]=0}}
-{const _z=wxRegZone;wxRegZone=function(id,k){const L=RCACHE[id];if(!L||L.lair||!G100.ids.includes(id))return _z.apply(this,arguments);L.lair={x:WORLD/2,y:WORLD/2};try{return _z.apply(this,arguments)}finally{L.lair=null}}}
+{const _z=wxRegZone;wxRegZone=function(id,k){const L=RCACHE[id];if(!L||L.lair||!G100.all.includes(id))return _z.apply(this,arguments);L.lair={x:WORLD/2,y:WORLD/2};try{return _z.apply(this,arguments)}finally{L.lair=null}}}
 
 /* ===== 3) 땅마다 놀이 ===== */
 const g100OnMirror=(x,y)=>{const L=RCACHE[G100.salt],M=L&&L.g100?L.g100.mirrors:G100L.mirrors;return M.some(m=>((x-m.x)/m.rx)**2+((y-m.y)/m.ry)**2<1)};
@@ -119,9 +119,9 @@ function g100SpireTick(dt){const b=g100OnBridge();
 
 /* ===== 5) 매 프레임 ===== */
 {const _u=update;update=function(dt){const r=_u.apply(this,arguments);if(!P||paused)return r;try{g100Tick(dt)}catch(e){if(window.__QA)throw e}return r}}
-const g100Here=()=>DG?!!(DG.d&&(G100.dgs.includes(DG.d.id)||DG.d.id===G100.crater)):!IN&&!!REG&&G100.ids.includes(REG.id);
+const g100Here=()=>DG?!!(DG.d&&(G100.dgs.includes(DG.d.id)||DG.d.id===G100.crater||G100.dgx.includes(DG.d.id))):!IN&&!!REG&&G100.all.includes(REG.id);
 function g100Tick(dt){if(g100Here())for(const e of enemies)if(!e.g1&&e.lvl>G100.capLv)g100Fix(e);
-  if(DG||IN){G100V.gust=null;return}const id=REG.id;if(G100V.lastReg!==id){G100V.lastReg=id;if(G100.ids.includes(id))g100Enter()}
+  if(DG||IN){G100V.gust=null;return}const id=REG.id;if(G100V.lastReg!==id){G100V.lastReg=id;if(G100.all.includes(id))g100Enter()}
   if(id===G100.coast)g100CoastTick(dt);else G100V.prevT=null;
   if(id===G100.cave)g100CaveTick(dt);else G100V.shroom=0;
   if(id===G100.spire)g100SpireTick(dt);else G100V.gust=null}
@@ -188,7 +188,7 @@ function g100DrawDark(){const L=RCACHE[G100.cave],K=L&&L.g100;if(!K||!P._s)retur
   ctx.globalCompositeOperation='source-over';ctx.drawImage(G100C.cv,0,0,W,H);
   // 천장 빛 실 (푸른 별빛)
   ctx.globalCompositeOperation='lighter';for(const t of K.thr){const s=W2S(t.x,t.y);if(s.x<-40||s.y<-200||s.x>W+40||s.y>H+40)continue;for(let i=0;i<t.n;i++){const k=.5+.5*Math.sin(time*1.4+t.ph+i);ctx.globalAlpha=.35+.45*k;glow(s.x+i*9-t.n*4,s.y-180-i*7+Math.sin(time+i)*3,3+2*k,'#7ad8ff')}}ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over'}
-for(const id of G100.ids)delete TERR[id];
+for(const id of G100.all)delete TERR[id];
 g100Post();
 // 현상금 게시판 (bty36.js · r110과 같은 방식)
 if(typeof BTY_BOARDS==='object'&&typeof v20AddProp==='function'){const M={g1_salt_camp:G100.salt,g1_coast_camp:G100.coast,g1_cave_camp:G100.cave,g1_spire_camp:G100.spire},OFF=[[150,-90],[-150,90],[120,140],[-120,-130],[200,0],[-200,0]];

@@ -16,6 +16,7 @@
 const G100={salt:'g1_salt',coast:'g1_coast',cave:'g1_cave',spire:'g1_spire',crater:'g1_crater',
   ids:['g1_salt','g1_coast','g1_cave','g1_spire'],dgs:['g1_saltdg','g1_coastdg','g1_cavedg','g1_spiredg'],bosses:['b_sm1_queen','b_bc1_serp','b_bl1_drake','b_sp1_king'],
   minLv:130,capLv:140,hpPer:.03,atkMul:.9};
+G100.all=[...G100.ids];G100.dgx=[];// 140 넘는 땅 전부(이 넷 + g140d.js 별 너머 땅) · 그 던전(크레이터 · 별 너머 · 별의 탑). 1 · 2차 셈(새 땅 넷 업적 · 계약)은 G100.ids 그대로
 const G100_TYPES={};
 {const T=k=>TYPES[k]||WX_TYPES[k],W=k=>WX_TYPES[k]||TYPES[k];
  const mk=(id,stat,draw,o)=>{const s=T(stat);G100_TYPES[id]={...s,draw,alt:o.alt||s.alt||'wolf',...o,atk:(s.atk||1.2)*G100.atkMul,reg:1,g100:1}};

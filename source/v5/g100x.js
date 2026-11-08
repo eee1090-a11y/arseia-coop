@@ -91,4 +91,4 @@ function g100StUniq(){let it=makeItem(Math.min(P.lvl,MAXLV),true,P.cls,'uniq');i
 {const _f=sqFinish;sqFinish=function(id){const q=SQBY[id],first=!!(q&&q.g100tt&&P&&!(sqState().d[id]>0));const r=_f.apply(this,arguments);
   try{if(first&&sqState().d[id]>0){g100StUniq();msg(`칭호 「${q.g100tt}」를 얻었습니다 (캐릭터 창 칭호)`,'#ffe39a');save()}}catch(err){if(window.__QA)throw err}return r}}
 if(typeof V20==='object'&&V20.titles)for(const q of G100_STQ)if(q.g100tt)V20.titles.push({id:'g100st_'+q.j3,n:q.g100tt,col:'#ffe39a',src:`갈래 이야기 의뢰 「${q.t}」`,have:()=>!!(P&&sqState().d[q.id]>0)});
-window.__g100x={G100X,g100DarkTick,g100PvTick,g100PvWant,g100PetSkill2,g100Pe,g100Hc};
+window.__g100xb={G100X,g100DarkTick,g100PvTick,g100PvWant,g100PetSkill2,g100Pe,g100Hc};
