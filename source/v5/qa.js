@@ -8574,7 +8574,7 @@ qT(QG2,'틈: 열린 땅에서 F · 무리 셋 + 수호자 · 다 잡으면 상�
   qOk(F.mobs.every(e=>e.elite&&(e.lvl<=G100.capLv||e.g1)),'정예 · 힘 묶음');
   let n=0;while(G100RV.rift&&n++<20){for(const e of G100RV.rift.mobs.slice())qKillE(e);P.hp=maxHp();qStep(2)}
   qOk(!G100RV.rift&&s.rf===1&&g100RfDone(r)&&s.tok>=3,'깸 '+s.rf+' 증표 '+s.tok);P.x=h.x+40;P.y=h.y;qStep(2);doAct();qOk(!G100RV.rift,'같은 칸에 또 열림');
-  s.d={};doAct();qOk(G100RV.rift,'다시 열기');P.x=h.x+G100R.R*1.6;P.y=h.y;qStep(2);qOk(!G100RV.rift&&s.rf===1,'벗어나도 계속');
+  s.d={};doAct();qOk(G100RV.rift,'다시 열기');/* v57: 틈 자리는 10분 칸마다 바뀌어, 오른쪽 1.6R 자리가 막힌 땅이면 캐릭터가 다시 밀려 들어와 시각에 따라 실패했음 → 캐릭터 대신 싸움터 가운데를 멀리 옮겨 같은 규칙을 봄 */G100RV.rift.x=P.x+G100R.R*1.6;G100RV.rift.y=P.y;qStep(2);qOk(!G100RV.rift&&s.rf===1,'벗어나도 계속');
   const g0=NET.guest;try{NET.guest=true;s.d={};P.x=h.x+40;P.y=h.y;qOk(!g100RfStart()&&!G100RV.rift,'참가자가 엶')}finally{NET.guest=g0}
   }finally{G100R.qaReg=null}s.rf=0;s.d={};s.tok=0;s.tk={};enemies=[];loadRegion('home');return r});
 qT(QG2,'업적 「100레벨 이후」 11개 · 밀물 버티기 셈 · 새 땅 가 보기',()=>{qW3Prep('mage',135);const A=G42.ach.filter(a=>a.grp==='100레벨 이후');qOk(A.length===11,'개수 '+A.length);
