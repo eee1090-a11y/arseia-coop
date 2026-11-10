@@ -8395,8 +8395,10 @@ qT(QWV,'덧그림: 글자 · 체력바 바로 전(모든 기술 그림 뒤)에 �
 // 칸 크기 · 기준점 · 칸 수 (Codex 목록 m1-image-queue.json · m2-image-queue.json과 같음)
 const H54S={warrior:{boot:[22,18,11,15,5],skirt:[36,26,18,2,5],torso:[32,22,16,19,5],head:[48,52,24,46,5],cloak:[44,44,22,4,5,[2,3,4,5,6,7]],arm:[18,24,9,4,1],armB:[18,24,9,4,1],sword:[20,52,10,40,1],polearm:[22,84,11,60,1],shield:[28,32,14,15,1,[0,1]]},
   mage:{torso:[30,22,15,19,5],skirt:[36,28,18,2,5],boot:[20,16,10,14,5],arm:[16,22,8,3,1],armB:[16,22,8,3,1],cloak:[44,48,22,4,5],pauld:[40,22,20,8,5],staff:[32,72,16,46,1],ring:[16,22,8,3,1],ring2:[16,22,8,3,1],amulet:[30,22,15,19,5]},
-  archer:{torso:[32,22,16,19,5],skirt:[36,26,18,2,5],boot:[22,18,11,15,5],arm:[18,24,9,4,1],armB:[18,24,9,4,1],cloak:[44,44,22,4,5]}};
+  archer:{torso:[32,22,16,19,5],skirt:[36,26,18,2,5],boot:[22,18,11,15,5],arm:[18,24,9,4,1],armB:[18,24,9,4,1],cloak:[44,44,22,4,5],bow:[40,54,22,27,1],xbow:[40,24,20,12,1],xprod:[30,10,15,3,1],quiver:[16,30,8,14,5],ring:[18,24,9,4,1],ring2:[18,24,9,4,1],amulet:[32,22,16,19,5]}};
 H54S.priest=H54S.mage;
+// v55: 전사 장비 겉모습 (모자 빼고)
+H54S.gwarrior={torso:[32,22,16,19,5],skirt:[36,26,18,2,5],boot:[22,18,11,15,5],arm:[18,24,9,4,1],armB:[18,24,9,4,1],cloak:[44,44,22,4,5],sword:[20,52,10,40,1],polearm:[22,84,11,60,1],shield:[28,32,14,15,1],ring:[18,24,9,4,1],ring2:[18,24,9,4,1],amulet:[32,22,16,19,5]};
 // 예전(v46) 단계 그림 묶음 칸
 const H54L={mage:{boot:[20,16,10,14,5,[0]],skirt:[36,28,18,2,5],torso:[30,22,15,19,5],head:[44,44,22,40,5],cloak:[44,48,22,4,5],pauld:[40,22,20,8,5,[3,4,5,6,7]],arm:[16,22,8,3,1],armB:[16,22,8,3,1],staff:[32,72,16,46,1]},
   archer:{boot:[22,18,11,15,5,[0]],skirt:[36,26,18,2,5],torso:[32,22,16,19,5],head:[48,52,24,46,5],cloak:[44,44,22,4,5,[1,2,3,4,5,6,7]],arm:[18,24,9,4,1],armB:[18,24,9,4,1],bow:[40,54,22,27,1],xbow:[40,24,20,12,1],xprod:[30,10,15,3,1],quiver:[16,30,8,14,5]}};
@@ -8404,7 +8406,7 @@ function q54Pack(spec,ts,vs){const r={},rows=[];let y=0;const k=2;
   for(const p in spec){const [cw,ch,ax,ay,n,tt]=spec[p];for(const t of tt||ts)for(const v of vs&&vs[p]||[null]){r[p+'/'+t+(v!=null?'/'+v:'')]=[0,y,n,cw,ch,ax,ay];rows.push([y,cw*k*n,ch*k]);y+=ch*k}}
   const cv=document.createElement('canvas');cv.width=1024;cv.height=y;const g=cv.getContext('2d');g.fillStyle='#00ffff';for(const [yy,w,h] of rows)g.fillRect(0,yy,w,h);return{img:cv,meta:{sc:k,r}}}
 function q54With(fn,names){const a0=GFX.art,keep={},C=q54With.c||(q54With.c={});
-  const mk=n=>C[n]||(C[n]=n==='hero-warrior'?q54Pack(H54S.warrior,[0,1,2,3,4,5,6,7],{shield:[0,1]}):n.startsWith('gear-')?q54Pack(H54S[n.slice(5)],[0,1,2]):n==='hero-archer'?q54Pack(H54L.archer,[0,1,2,3,4,5,6,7],{bow:[0,1,2]}):q54Pack(H54L.mage,[0,1,2,3,4,5,6,7]));
+  const mk=n=>C[n]||(C[n]=n==='hero-warrior'?q54Pack(H54S.warrior,[0,1,2,3,4,5,6,7],{shield:[0,1]}):n==='gear-warrior'?q54Pack(H54S.gwarrior,[0,1,2],{shield:[0,1]}):n.startsWith('gear-')?q54Pack(H54S[n.slice(5)],[0,1,2],{bow:[0,1,2]}):n==='hero-archer'?q54Pack(H54L.archer,[0,1,2,3,4,5,6,7],{bow:[0,1,2]}):q54Pack(H54L.mage,[0,1,2,3,4,5,6,7]));
   try{GFX.art='new';for(const n of names){keep[n]=FL.P[n];FL.P[n]=mk(n)}return fn()}finally{GFX.art=a0;for(const n in keep){if(keep[n])FL.P[n]=keep[n];else delete FL.P[n]}}}
 qT(QM54,'전사: 모든 부위 · 단계 · 방향이 그림(칸 크기 · 기준점 = 예전 코드 부위) · 아직 없는 방패 2~7단계와 0~1단계 망토 없음 · 묶음 없음 · 「예전 그림」은 예전 그대로',()=>{
   const bad=[];let nImg=0,nOld=0;
@@ -8419,8 +8421,8 @@ qT(QM54,'전사: 모든 부위 · 단계 · 방향이 그림(칸 크기 · 기�
   const L=heroLook18({cls:'warrior',gear:{robe:{il:40,rar:0,name:'q'}}}),o=heroPart18('warrior','torso',0,L,1.1);qOk(o&&/^h18\//.test(o.key),'묶음 없을 때 '+(o&&o.key));
   qOk(!bad.length,bad.slice(0,6).join(' | ')+' 외 '+bad.length);qOk(nImg===4*8*5+6*5+4*8+4,'그림 수 '+nImg);qOk(nOld===12,'예전 방패 '+nOld);return `그림 ${nImg} · 예전 방패 ${nOld}`});
 qT(QM54,'장비 겉모습: 일반 · 마법은 예전 단계 그림 · 희귀/세트는 1등급 이상 · 유니크는 2등급 · 단계 6~7은 2등급 · 반지(손) · 목걸이(가슴) 겹 · 궁수는 옷만(활 · 모자 그대로) · 0단계 궁수 망토 없음',()=>{
-  const N=['hero-mage','hero-priest','hero-archer','gear-mage','gear-priest','gear-archer'];
-  const k=(cls,p,gear,v)=>q54With(()=>{const h={cls,gear},L=cls==='archer'?heroLook18(h):heroLook(h);const e=cls==='archer'?heroPart18(cls,p,0,L,1.1,v,L.trim):heroPart(cls,p,0,L,1.1);return e?e.key:'null'},N);
+  const N=['hero-mage','hero-priest','hero-archer','hero-warrior','gear-mage','gear-priest','gear-archer','gear-warrior'];
+  const k=(cls,p,gear,v)=>q54With(()=>{const h={cls,gear},H18=cls==='archer'||cls==='warrior',L=H18?heroLook18(h):heroLook(h);const e=H18?heroPart18(cls,p,0,L,1.1,v,L.trim):heroPart(cls,p,0,L,1.1);return e?e.key:'null'},N);
   const R=(t,rar,x)=>Object.assign({il:t*8+1,rar,name:'q'+t+rar},x||{}),bad=[];
   const ex=(nm,got,re)=>{if(!re.test(got))bad.push(nm+' → '+got)};
   for(const cls of ['mage','priest']){
@@ -8441,12 +8443,39 @@ qT(QM54,'장비 겉모습: 일반 · 마법은 예전 단계 그림 · 희귀/�
   ex('궁수 일반',k('archer','torso',{robe:R(4,0)}),/^hcg\/archer\/torso\/4\//);
   ex('궁수 희귀',k('archer','torso',{robe:R(4,2)}),/^hcg\/gear-archer:torso\/1\//);
   ex('궁수 유니크 팔',k('archer','armB',{robe:R(1,4)}),/^hcg\/gear-archer:armB\/2\//);
-  ex('궁수 희귀 활',k('archer','bow',{robe:R(4,2),staff:R(4,4,{wt:'bow'})},1),/^hcg\/archer\/bow\/4\/1\//);
+  ex('궁수 유니크 활 당김 1',k('archer','bow',{robe:R(4,2),staff:R(4,4,{wt:'bow'})},1),/^hcg\/gear-archer:bow\/2\/1\//);
+  ex('궁수 마법 활',k('archer','bow',{staff:R(4,1,{wt:'bow'})},2),/^hcg\/archer\/bow\/4\/2\//);
+  ex('궁수 희귀 석궁',k('archer','xbow',{staff:R(0,2,{wt:'xbow'})}),/^hcg\/gear-archer:xbow\/1\//);
+  ex('궁수 희귀 석궁 부품',k('archer','xprod',{staff:R(7,3,{wt:'xbow'})}),/^hcg\/gear-archer:xprod\/2\//);
+  ex('궁수 유니크 화살통',k('archer','quiver',{off:R(2,4,{wt:'quiver'})}),/^hcg\/gear-archer:quiver\/2\//);
+  ex('궁수 목걸이',k('archer','torso',{robe:R(5,1),amulet:R(5,0)}),/^hcg\/hero-archer:torso\/5\+gear-archer:amulet\/1\//);
+  ex('궁수 반지',k('archer','arm',{robe:R(1,2),ring:R(1,5)}),/^hcg\/gear-archer:arm\/1\+gear-archer:ring\/2\//);
+  ex('전사 일반 몸통',k('warrior','torso',{robe:R(4,0)}),/^hcg\/hero-warrior:torso\/4\//);
+  ex('전사 희귀 몸통',k('warrior','torso',{robe:R(4,2)}),/^hcg\/gear-warrior:torso\/1\//);
+  ex('전사 유니크 칼',k('warrior','sword',{staff:R(0,4,{wt:'sword'})}),/^hcg\/gear-warrior:sword\/2\//);
+  ex('전사 세트 장병기',k('warrior','polearm',{staff:R(7,3,{wt:'polearm'})}),/^hcg\/gear-warrior:polearm\/2\//);
+  ex('전사 희귀 방패 뒤',k('warrior','shield',{robe:R(5,0),staff:R(5,0,{wt:'sword'}),off:R(5,2,{wt:'shield'})},1),/^hcg\/gear-warrior:shield\/1\/1\//);
+  ex('전사 일반 5단계 방패(아직 그림 없음)',k('warrior','shield',{off:R(5,0,{wt:'shield'})},0),/^h18\//);
+  ex('전사 머리는 단계 그림',k('warrior','head',{robe:R(4,4)}),/^hcg\/hero-warrior:head\/4\//);
+  ex('전사 1단계 유니크 망토 없음',k('warrior','cloak',{robe:R(1,4)}),/^null$/);
+  ex('전사 반지 2',k('warrior','armB',{robe:R(6,0),ring2:R(0,4)}),/^hcg\/hero-warrior:armB\/6\+gear-warrior:ring2\/2\//);
   ex('궁수 0단계 망토',k('archer','cloak',{robe:R(0,4)}),/^null$/);
   ex('궁수 1단계 유니크 망토',k('archer','cloak',{robe:R(1,4)}),/^hcg\/gear-archer:cloak\/2\//);
   {const L=heroLook({cls:'mage',gear:{robe:R(7,5)}});const e=q54With(()=>{const A0=GFX.art;GFX.art='old';try{return heroPart('mage','torso',0,L,1.1)}finally{GFX.art=A0}},N);ex('예전 그림 설정',e&&e.key,/^hero\//)}
   const L=heroLook({cls:'mage',gear:{robe:R(7,5)}});ex('묶음 없음',heroPart('mage','torso',0,L,1.1).key,/^hero\//);
-  qOk(!bad.length,bad.slice(0,5).join(' | ')+' 외 '+bad.length);return '확인 '+(14*2+8)});
+  qOk(!bad.length,bad.slice(0,5).join(' | ')+' 외 '+bad.length);return '확인 '+(14*2+22)});
+qT(QM54,'고친 버그 v55: 희귀 이상 장비 · 반지 · 목걸이를 그릴 때 장비 겉모습 묶음을 받기 시작함 (v54는 받지 않아 진짜 게임에서 그림이 안 나왔음)',()=>{
+  const f0=flNeed,asked=[],keep={};for(const n of ['gear-mage','gear-priest','gear-archer','gear-warrior']){keep[n]=FL.P[n];delete FL.P[n]}const a0=GFX.art;
+  try{GFX.art='new';flNeed=n=>{asked.push(n)};
+    const R=(t,rar,x)=>Object.assign({il:t*8+1,rar,name:'w'+t+rar},x||{});
+    heroPart('mage','torso',0,heroLook({cls:'mage',gear:{robe:R(2,2)}}),1.1);
+    heroPart('priest','arm',0,heroLook({cls:'priest',gear:{ring:R(0,0)}}),1.1);
+    {const L=heroLook18({cls:'archer',gear:{staff:R(3,4,{wt:'bow'})}});heroPart18('archer','bow',0,L,1.1,0,L.trim)}
+    {const L=heroLook18({cls:'warrior',gear:{off:R(6,2,{wt:'shield'})}});heroPart18('warrior','shield',0,L,1.1,0,L.trim)}
+    const n0=asked.length;heroPart('mage','torso',0,heroLook({cls:'mage',gear:{robe:R(2,1)}}),1.1);
+    for(const n of ['gear-mage','gear-priest','gear-archer','gear-warrior'])qOk(asked.includes(n),n+' 안 받음 · '+asked.join(','));
+    qOk(!asked.slice(n0).some(n=>n.startsWith('gear-')),'일반 · 마법만 끼면 받지 않음 '+asked.slice(n0));return asked.join(',')}
+  finally{flNeed=f0;GFX.art=a0;for(const n in keep)if(keep[n])FL.P[n]=keep[n]}});
 qT(QM54,'저장은 그대로: 겉모습 계산이 장비 · 캐릭터 값을 바꾸지 않음',()=>{const gear={robe:{il:50,rar:4,name:'a'},staff:{il:9,rar:2,name:'b'},ring:{il:1,rar:0,name:'c'},ring2:{il:60,rar:5,name:'d'},amulet:{il:30,rar:3,name:'e'}},s=JSON.stringify(gear);
   const L=heroLook({cls:'priest',gear}),L2=heroLook18({cls:'warrior',gear});qOk(JSON.stringify(gear)===s,'장비 값이 바뀜');qOk(L.g54&&L.g54.r===2&&L.g54.w===1&&L.g54.r1===0&&L.g54.r2===2&&L.g54.am===1,'등급 '+JSON.stringify(L.g54));qOk(L2.g54&&L2.g54.r===2,'전사 등급');return JSON.stringify(L.g54)});
 }
