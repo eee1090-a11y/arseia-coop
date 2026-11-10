@@ -1,11 +1,11 @@
 /* ---------- v21 HUNT: 어둠 단계 1~10 (설계: rpg/endgame/엔드컨텐츠-설계서.md 3절 B1) ----------
    「재의 군주」를 처음 쓰러뜨리면(P.w3.lord>0) 꺼진 등대지기의 집에 「어둠의 등불」이 켜진다. 등불에서 단계를 고르면
-   지옥의 140 지역(재가 내리는 고원 · 불 꺼진 왕도 · 그 던전 · 잿빛 메아리 지역과 그 던전 둘)이 그 단계가 된다.
+   지옥에서 몬스터가 100레벨부터 나오는 지역 전부와 그 던전, 오늘의 잿빛 메아리 지역과 그 던전 둘이 그 단계가 된다 (v57, 예전엔 고원 · 왕도만).
    · 단계 t: 몬스터 생명력 +40%·t, 보스·준보스·던전 정예 피해 +6%·t, 경험치(각인) +15%·t, 아이템 찾기 +10%·t, 무리 +5%·t (모두 덧셈)
    · 들판 몬스터(정예 포함)의 한 대 피해는 단계와 상관없이 그대로 → 필드 한 대 상한 유지. 단계가 오르면 체력과 무리 수가 는다.
    · 5단계부터 정예에 수식어 하나(쇠 같은 피부 · 얼음 숨결 · 피를 마시는 · 불씨를 품은 · 되살아나는). 이름 앞에 붙고 발밑 고리 색이 다르다.
-   · 단계 깨기: 그 단계에서 140 지역 던전 보스 하나 처치 → 다음 단계가 열린다 (파티원 각자 화면에서, 자기 열린 단계가 그 단계 이상일 때).
-   · 재의 결정(ashGain, GROW): 140 지역에서 단계가 오를수록 더 (아래 darkAsh).
+   · 단계 깨기: 그 단계에서 대상 지역 던전 보스 하나 처치 → 다음 단계가 열린다 (파티원 각자 화면에서, 자기 열린 단계가 그 단계 이상일 때).
+   · 재의 결정(ashGain, GROW): 대상 지역에서 단계가 오를수록 더 (아래 darkAsh).
    · 같이 하기: 방장이 단계를 정하고 몬스터를 키운다. 참가자는 'v20x' h21 메시지로 단계 · 메아리 · 수식어를 받는다.
    저장: P.dark={open,cur,top} (없으면 기본값, 모르는 칸은 그대로 다시 씀). */
 const DARK_MAX=10;
@@ -28,12 +28,17 @@ function darkSt(){if(!P.dark||typeof P.dark!=='object'||Array.isArray(P.dark))P.
 {const _ld=load;load=function(d,slot){const ok=_ld.apply(this,arguments);if(ok){D21.raw=!!(d&&d.dark);P.dark=darkClean(d&&d.dark);if(P.w3&&(P.w3.lord|0)>0&&P.dark.open<1)P.dark.open=1;D21.h=null}return ok}}
 {const _ng=newGame;newGame=function(){const r=_ng.apply(this,arguments);if(P){P.dark=darkClean(null);D21.raw=false;D21.h=null}return r}}
 /* ===== 지금 어디 · 몇 단계 ===== */
-const D21_W3=new Set(['plateau','capital']);
+// v57: 대상 지역 = 지옥에서 몬스터가 D21_MIN레벨부터 나오는 지역 전부 (사용자 2026-11-07 「해당하는 맵들이 무슨 규칙에 따른 건지 알 수가 없어」)
+// 예전(v21~v56)에는 그때 있던 140 지역 둘(재가 내리는 고원 · 불 꺼진 왕도)만 적어 두어, 뒤에 생긴 비슷한 레벨 지역이 빠져 있었다.
+const D21_MIN=100;
+const darkRegLv=id=>{const D=REGIONS[id];return D?(D.base|0)+DIFF[2].add:0};// 지옥 시작 레벨
+const darkRegOk=id=>!!REGIONS[id]&&id!=='home'&&darkRegLv(id)>=D21_MIN;
+const darkRegList=()=>Object.keys(REGIONS).filter(darkRegOk);
 // 140 던전: 고원·왕도 던전(재의 왕좌 포함, 시험의 방 · 3차 시험 방 제외) 또는 오늘 메아리 지역의 던전 둘
-function darkDgOk(d){if(!DG||!d||DG.j3t||(DG.ci|0)>=900)return false;if(typeof W3_DG!=='undefined'&&W3_DG.has(d.id))return d.w3k!=='trial';return echoDg(d)}
+function darkDgOk(d){if(!DG||!d||DG.j3t||(DG.ci|0)>=900)return false;if(d.w3k==='trial')return false;if(darkRegOk(d.reg))return true;return echoDg(d)}
 function darkHere(){if(!P||IN)return false;
   if(NET.guest){const h=D21.h;return !!(h&&h.dh&&h.a===netArea()&&time-h.at<6)}
-  if(P.diff!==2)return false;if(DG)return darkDgOk(DG.d);return D21_W3.has(REG.id)||echoHere()}
+  if(P.diff!==2)return false;if(DG)return darkDgOk(DG.d);return darkRegOk(REG.id)||echoHere()}
 function darkTier(){if(!P)return 0;if(NET.guest){const h=D21.h;return h&&h.dh&&h.a===netArea()&&time-h.at<6?h.t|0:0}
   if(!darkHere())return 0;const s=darkSt();return Math.min(s.cur|0,s.open|0)}
 function darkMods(t){if(t==null)t=darkTier();return DARK_ROW(clamp(t|0,0,DARK_MAX))}
@@ -97,7 +102,7 @@ const darkLit=()=>!!(P&&P.dark&&(P.dark.open|0)>0);
 {const _p=twDrawProp;twDrawProp=function(d){const r=_p.apply(this,arguments);if(d&&d.k==='d21lamp'&&darkLit()&&d._s){const s=d._s,cur=P.dark.cur|0;ctx.globalCompositeOperation='lighter';ctx.globalAlpha=.55+.25*Math.sin(time*3);glow(s.x,s.y-112,18+cur*2.2,'#b48aff');ctx.globalAlpha=.9;ctx.drawImage(flameCv('#b48aff',Math.floor(time*10)&3),s.x-7,s.y-126,14,22);ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over'}return r}}
 const darkPct=v=>`+${Math.round(v*100)}%`;
 V20P.d21={title:()=>'어둠의 등불',html(){const s=darkSt(),g=NET.guest,cur=s.cur|0,ht=darkTier();
-  let h=`<p class="muted" style="margin-top:0">단계를 고르면 <b>지옥</b>의 140 지역(재가 내리는 고원 · 불 꺼진 왕도 · 그 던전 · 잿빛 메아리 지역과 그 던전)이 그 단계로 바뀝니다. 그 단계에서 던전 보스 하나를 쓰러뜨리면 다음 단계가 열립니다.<br>들판 몬스터의 한 대 피해는 그대로이고 체력과 무리 수가 늘어납니다. 피해가 오르는 것은 보스 · 준보스와 던전 정예뿐입니다. 5단계부터 정예에게 수식어가 하나씩 붙습니다. 2~3인이면 한두 단계 위도 갈 만합니다.</p>`;
+  let h=`<p class="muted" style="margin-top:0">단계를 고르면 <b>지옥</b>에서 몬스터가 <b>100레벨 이상</b>인 지역 전부와 그 던전, 오늘의 잿빛 메아리 지역(140레벨 캐릭터)과 그 던전이 그 단계로 바뀝니다. 대상 지역은 세계 지도 · 짝문의 보라색 굵은 테두리와 미니맵의 ✦로 보입니다. 그 단계에서 던전 보스 하나를 쓰러뜨리면 다음 단계가 열립니다.<br>들판 몬스터의 한 대 피해는 그대로이고 체력과 무리 수가 늘어납니다. 피해가 오르는 것은 보스 · 준보스와 던전 정예뿐입니다. 5단계부터 정예에게 수식어가 하나씩 붙습니다. 2~3인이면 한두 단계 위도 갈 만합니다.</p>`;
   h+=`<div class="v20box"><b>지금: ${cur?`어둠 ${cur}단계`:'꺼짐 (지옥 그대로)'}</b> <span class="muted">· 열린 단계 ${s.open} · 깬 가장 높은 단계 ${s.top|0}${P.diff!==2?' · 지옥 난이도에서만 바뀝니다':''}</span>${g?`<div class="muted" style="margin-top:4px">같이 하기: 방장이 고른 단계를 따릅니다 (지금 ${ht?ht+'단계':'꺼짐'})</div>`:''}</div>`;
   h+=`<div class="v20row"><div><b>끄기</b> <span class="muted" style="font-size:12px">· 지옥 그대로</span></div><div class="btns">${cur===0?'<button type="button" disabled>고름</button>':v20Btn('d21set',0,'고르기',{dis:g})}</div></div>`;
   for(let t=1;t<=DARK_MAX;t++){const M=DARK_ROW(t),open=t<=s.open,clr=t<=(s.top|0);
@@ -105,7 +110,7 @@ V20P.d21={title:()=>'어둠의 등불',html(){const s=darkSt(),g=NET.guest,cur=s
       !open?`<button type="button" disabled title="${t-1}단계를 깨면 열림">잠김</button>`:cur===t?'<button type="button" disabled>고름</button>':v20Btn('d21set',t,'고르기',{cls:'primary',dis:g})}</div></div>`}
   h+=`<p class="muted" style="font-size:12px">정예 수식어: ${DARK_AFX_IDS.map(k=>`<span style="color:${DARK_AFX[k].col}">${DARK_AFX[k].n}</span>(${DARK_AFX[k].d})`).join(' · ')}</p>`;return h}};
 V20A.d21set=v=>{if(NET.guest)return;const s=darkSt(),t=Math.floor(+v);if(!(t>=0&&t<=s.open))return;s.cur=t;
-  msg(t?`어둠 ${t}단계를 골랐습니다 · 지옥 140 지역에서 새로 나오는 몬스터부터 바뀝니다`:'어둠 단계를 껐습니다','#c8a0ff');burst(P.x,P.y,'#b48aff',20,100,3,24);D21.sendT=0;save()};
+  msg(t?`어둠 ${t}단계를 골랐습니다 · 지옥의 대상 지역(100레벨 이상)에서 새로 나오는 몬스터부터 바뀝니다`:'어둠 단계를 껐습니다','#c8a0ff');burst(P.x,P.y,'#b48aff',20,100,3,24);D21.sendT=0;save()};
 /* ===== 표시: 수식어 고리 · 이름 · 대상 칸 ===== */
 {const _d=drawEnemy;drawEnemy=function(e){if(e&&e.afx&&e._s){const A=DARK_AFX[e.afx];if(A){const R0=monRing(A.col),r=e.r*1.75;ctx.drawImage(R0.cv,e._s.x-r,e._s.y-r*.5,r*2,r)}}return _d.apply(this,arguments)}}
 {const _l=drawV5Labels;drawV5Labels=function(){_l.apply(this,arguments);if(!P)return;ctx.textAlign='center';ctx.font='700 12px '+FONT;ctx.lineWidth=3;ctx.strokeStyle='rgba(0,0,0,.85)';
@@ -118,7 +123,7 @@ function darkHv(){let hv=hover;if(!hv){let bd=760;for(const e of enemies)if(e.bi
   const dt=darkTier();if(dt>0&&ts&&!ts.textContent.includes('어둠 '))ts.textContent+=` · 어둠 ${dt}단계`})}}
 /* ===== 매 1/4초: 등불 켜기 · 들어온 곳 알림 · 같이 하기 보내기 ===== */
 V20.slowTick.push(st=>{if(!P)return;const s=darkSt();
-  if(P.w3&&(P.w3.lord|0)>0&&s.open<1){s.open=1;msg('「불 꺼진 왕도」의 쉼터 「꺼진 등대지기의 집」에 「어둠의 등불」이 켜졌습니다 · 거기서 지옥 140 지역을 더 깊은 어둠으로 바꿀 수 있습니다 (세계 지도 ✦)','#c8a0ff');banner={t:'어둠의 등불',sub:'꺼진 등대지기의 집 · 어둠 1단계가 열렸습니다',col:'#b48aff',life:3,max:3};save()}
+  if(P.w3&&(P.w3.lord|0)>0&&s.open<1){s.open=1;msg('「불 꺼진 왕도」의 쉼터 「꺼진 등대지기의 집」에 「어둠의 등불」이 켜졌습니다 · 거기서 지옥 100레벨 이상 지역을 더 깊은 어둠으로 바꿀 수 있습니다 (세계 지도 ✦ · 보라 테두리 = 대상 지역)','#c8a0ff');banner={t:'어둠의 등불',sub:'꺼진 등대지기의 집 · 어둠 1단계가 열렸습니다',col:'#b48aff',life:3,max:3};save()}
   const t=darkTier(),key=t+'|'+(DG?'d'+(DG.ci|0):REG.id);if(key!==D21.key){D21.key=key;if(t>0){const M=DARK_ROW(t);msg(`어둠 ${t}단계 · 몬스터 생명력 ${darkPct(M.hp)} · 보스·정예 피해 ${darkPct(M.dmg)} · 경험치 ${darkPct(M.xp)} · 아이템 찾기 ${darkPct(M.find)}`,'#c8a0ff')}D21.sendT=0}
   if(NET.on&&NET.host){D21.sendT-=st;if(D21.sendT<=0){D21.sendT=1;v20Send('h21',darkPayload())}}});
 function darkPayload(){return{dt:darkTier(),dh:darkHere()?1:0,a:netArea(),ec:echoList(),af:enemies.filter(e=>e.afx&&e.id&&!e.dead).slice(0,40).map(e=>[e.id,e.afx])}}
