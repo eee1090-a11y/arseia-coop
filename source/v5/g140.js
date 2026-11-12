@@ -51,6 +51,9 @@ const G140G={
     live:()=>({label:g140Open()?'하늘 계단 오르기 · 부서진 하늘섬':'하늘 계단 (잠김)',col:'#fff6a0',q:0}),go:()=>g140Stair(G140.sky)},
   down:{id:'g140down',reg:G140.sky,k:'g140stair',n:'내려가는 계단',h:200,dot:'#cfe8ff',
     lab:()=>({t:'내려가는 계단 · 구름 돌기둥 숲',s:'',col:'#cfe8ff'}),live:()=>({label:'구름 계단 내려가기 · 구름 돌기둥 숲',col:'#cfe8ff',q:0}),go:()=>g140Stair(G100.spire)}};
+/* v60: 세계 지도에 하늘 계단 길 (구름 돌기둥 숲 ↔ 부서진 하늘섬). 걸어서 이어진 맵 끝 길이 없어 길이 안 보였음 */
+WMAPLINK22.push({a:G100.spire,b:G140.sky,t:'하늘 계단',col:'#fff6a0',open:()=>g140Open(),
+  lab:o=>o?'⇅ 하늘 계단':'⇅ 하늘 계단 (잠김)',leg:ph=>ph?`= 구름 돌기둥 숲 ↔ 부서진 하늘섬 · 「식은 별의 심장」을 쓰러뜨리면 열림${g140Open()?' (지금 열림)':' (지금 잠김)'}`:`= 구름 돌기둥 숲 큰 구덩이 곁 계단 ↔ 부서진 하늘섬 · ${G140.minLv}레벨부터 · 「식은 별의 심장」을 한 번 쓰러뜨리면 열림${g140Open()?' (지금 열림)':' (지금 잠김)'} · 별바다 가장자리는 하늘섬 서쪽`});
 function g140Arr(to){const g=to===G140.sky?G140V.gate.down:G140V.gate.up;return g&&g.d?{x:g.d.x,y:g.d.y+90}:null}
 function g140Stair(to){const a=g140Arr(to);if(!a)return false;
   if(to===G140.sky&&!NET.guest&&!g140Open()){w3Deny('하늘 계단이 아직 잠들어 있습니다 · 큰 구덩이의 「식은 별의 심장」을 한 번 쓰러뜨려야 열립니다');return false}

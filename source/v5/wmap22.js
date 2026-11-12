@@ -45,11 +45,32 @@ function wmapWorld22(g,Wd,Hd){const G=WMAP.geo&&WMAP.geo.Wd===Wd&&WMAP.geo.Hd===
     if(G.lines===3&&tn){g.fillStyle=id==='home'?'#a39d8f':'#d9c38a';g.fillText(wmapFit(g,tn,w-8,f2),p.x,y3)}
     if(here){g.fillStyle='#fff';g.beginPath();g.arc(L+w-8,T+8,4,0,6.283);g.fill()}
     if(QR[id]){g.strokeStyle='#ffd34d';g.lineWidth=2;g.setLineDash([5,4]);rr(L-5,T-5,w+10,h+10,8);g.stroke();g.setLineDash([]);g.font=`700 ${f2}px ${FONT}`;g.fillStyle='#ffd34d';g.textAlign='center';g.fillText(`◎ 의뢰 ${QR[id]}`,p.x,T+h+f2+5)}}
-  $('#wmapLeg').innerHTML=(G.fix?WMAP22.hint+' ':'')+'가운데가 처음 시작한 땅입니다. 점선은 맵 끝 포탈로 이어진 길입니다. 한 번 간 지역의 마을은 짝문으로 바로 건너갈 수 있습니다. 흰 점이 지금 있는 곳입니다.'}
+  $('#wmapLeg').innerHTML=(G.fix?WMAP22.hint+' ':'')+'가운데가 처음 시작한 땅입니다. 점선은 맵 끝 포탈로 이어진 길입니다. 한 번 간 지역의 마을은 짝문으로 바로 건너갈 수 있습니다. 흰 점이 지금 있는 곳입니다.'+WMAPLINK22.filter(L=>WPOS[L.a]&&WPOS[L.b]).map(L=>` <span class="w60leg"><b style="color:${L.col}">┅ ${L.t}</b> ${L.leg(!!G.fix)}</span>`).join('')}
+/* v60: 세계 지도 연결선을 칸 테두리(보라 테두리 · 의뢰 · 잿빛 메아리 테두리) 위에 한 번 더 · 칸 밖 부분만. 맨 마지막에 그림(dark57.js의 wmapDraw 감싸기). 맵 끝 길이 아닌 특별한 길(하늘 계단)은 WMAPLINK22 */
+const WMAPLINK22=[];
+function wmapSegOut22(G,ax,ay,bx,by,pad){let iv=[[0,1]];const dx=bx-ax,dy=by-ay;
+  for(const id in REGIONS){if(!WPOS[id])continue;const p=G.pos(id),x0=p.x-G.w/2-pad,x1=p.x+G.w/2+pad,y0=p.y-G.h/2-pad,y1=p.y+G.h/2+pad;let t0=0,t1=1,ok=true;
+    for(const [q,r] of [[-dx,ax-x0],[dx,x1-ax],[-dy,ay-y0],[dy,y1-ay]]){if(q===0){if(r<0){ok=false;break}continue}const t=r/q;if(q<0){if(t>t1){ok=false;break}if(t>t0)t0=t}else{if(t<t0){ok=false;break}if(t<t1)t1=t}}
+    if(!ok||t1<=t0)continue;const nx=[];for(const [u,v] of iv){if(t1<=u||t0>=v){nx.push([u,v]);continue}if(t0>u)nx.push([u,t0]);if(t1<v)nx.push([t1,v])}iv=nx}
+  return iv.filter(([u,v])=>v-u>1e-3).map(([u,v])=>[ax+dx*u,ay+dy*u,ax+dx*v,ay+dy*v])}
+function wmapTop22(g,G){let n=0;g.save();g.lineCap='round';g.strokeStyle='rgba(232,204,140,.9)';g.lineWidth=2.5;g.setLineDash([5,4]);
+  for(const id in REGIONS){if(!WPOS[id])continue;for(const sd in REGIONS[id].edges){const to=REGIONS[id].edges[sd];if(!WPOS[to]||to<id&&REGIONS[to].edges)continue;const a=G.pos(id),b=G.pos(to);
+    for(const s of wmapSegOut22(G,a.x,a.y,b.x,b.y,1.5)){const sh=Math.hypot(s[2]-s[0],s[3]-s[1])<16;g.setLineDash(sh?[]:[5,4]);g.lineWidth=sh?3:2.5;g.beginPath();g.moveTo(s[0],s[1]);g.lineTo(s[2],s[3]);g.stroke();n++}}}/* 짧은 틈(옆 칸 사이)은 끊김 없는 선: 점선이면 틈에 빈 곳만 걸려 안 보일 수 있음 */
+  g.setLineDash([]);
+  for(const L of WMAPLINK22){if(!WPOS[L.a]||!WPOS[L.b])continue;const a=G.pos(L.a),b=G.pos(L.b),open=L.open(),gap=G.sy-G.h,ly=Math.max(a.y,b.y)+G.h/2+gap/2;
+    /* 같은 줄이면 두 칸 아래 틈으로 돌아가는 길 · 아니면 곧은 길 */
+    const pts=Math.abs(a.y-b.y)<1?[[a.x,a.y+G.h/2],[a.x,ly],[b.x,ly],[b.x,b.y+G.h/2]]:[[a.x,a.y],[b.x,b.y]];
+    g.strokeStyle=L.col;g.globalAlpha=open?1:.75;g.lineWidth=2.5;g.setLineDash(open?[7,4]:[2,4]);g.beginPath();pts.forEach((q,i)=>i?g.lineTo(q[0],q[1]):g.moveTo(q[0],q[1]));g.stroke();g.setLineDash([]);
+    for(const q of [pts[0],pts[pts.length-1]]){g.fillStyle=L.col;g.beginPath();g.arc(q[0],q[1],3.5,0,6.283);g.fill()}
+    const fs=Math.max(10,G.fs-2),tx=(pts[1][0]+pts[pts.length-2][0])/2,ty=pts.length>2?ly:(a.y+b.y)/2,lab=L.lab(open);g.font=`700 ${fs}px ${FONT}`;const tw=g.measureText(lab).width+10;
+    g.globalAlpha=1;g.fillStyle='rgba(16,14,10,.92)';g.fillRect(tx-tw/2,ty-fs/2-3,tw,fs+6);g.strokeStyle=L.col;g.lineWidth=1;g.strokeRect(tx-tw/2+.5,ty-fs/2-2.5,tw-1,fs+5);
+    g.fillStyle=L.col;g.textAlign='center';g.textBaseline='middle';g.fillText(lab,tx,ty+.5);g.textBaseline='alphabetic';L.box={x:tx-tw/2,y:ty-fs/2-3,w:tw,h:fs+6,pts};n++}
+  g.restore();WMAP.top22=n;return n}
 {const _wr=wmapRegion;wmapRegion=function(g,Wd,Hd){const r=_wr.apply(this,arguments);if(WMAP.ph){const lg=$('#wmapLeg');if(lg)lg.innerHTML=WMAP22.hint+' '+lg.innerHTML}return r}}
 {const st=document.createElement('style');st.textContent=`#wmap .wscr{max-width:100%;overflow:auto;touch-action:pan-x pan-y;overscroll-behavior:contain;border-radius:3px}
 #wmap .wscr #wmapCv{max-width:none;box-sizing:border-box}
 #wmap.w22world .card{width:min(1200px,100%)}
 #wmap.w22phone{padding:8px;align-items:start}#wmap.w22phone .card{padding:10px;max-height:100%;overflow:auto;box-sizing:border-box}
 #wmap.w22phone .wtop button{min-height:40px;min-width:44px;padding:0 12px;font-size:14px}
-#wmap.w22phone .wleg{font-size:12.5px;line-height:1.5}`;document.head.appendChild(st)}
+#wmap.w22phone .wleg{font-size:12.5px;line-height:1.5}
+.w60leg{white-space:normal}`;document.head.appendChild(st)}

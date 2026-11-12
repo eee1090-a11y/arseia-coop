@@ -1405,18 +1405,24 @@ qT('전사·궁수','v19 고친 문제: 도약(leap)을 몬스터 자체에 겨�
 qT('소리','고위 스킬 대사에 없는 스킬 id 없음 · 모든 지역·마을·던전·보스에 곡이 있음 · 곡 10개 모두 옆 파일 audio/music/*.mp3 (v20: 게임 파일 안에 넣지 않음)',()=>{const bad=AUDIO_QA();qOk(!bad.length,bad.slice(0,6).join(', '));
   const slots=Object.keys(MUSIC_INDEX);qOk(slots.length===10,`곡 ${slots.length}개`);for(const k of slots){const m=MUSIC_INDEX[k];qOk(!m.data&&/^music\/[a-z]+\.mp3$/.test(m.file||''),`${k}: 옆 파일 아님 ${m.file}`);qOk(/^audio\/music\/[a-z]+\.mp3$/.test(bgmStreamUrl(k)||''),`${k}: 주소 ${bgmStreamUrl(k)}`)}
   for(const id of REG_IDS.concat(['home']))qOk(MUSIC_INDEX[BGM_REG[id]||'field'],`지역 ${id} 곡 없음`);
-  const miss=AUDIO_QA_MISSING();return `대사 ${Object.keys(SKILL_LINES).length}개 · 대사 없는 5위계 이상 ${miss.length}개(말풍선 없이 지나감)`});
+  const miss=AUDIO_QA_MISSING();return `대사 ${Object.keys(SKILL_LINES).length}개 · 대사 없는 3차 기술 ${miss.length}개(말풍선 없이 지나감)`});
 qT('소리','#qa는 조용함: 키·클릭에도 AudioContext를 만들지 않고, 소리 함수는 오류 없이 아무것도 안 함',()=>{qPrep('mage',{lvl:60});
   qKey('KeyX');qKey('KeyX','keyup');window.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true}));qOk(!AU.ctx&&!AU.on,'#qa에서 AudioContext가 생김');
   const e=qDummy(P.x+60,P.y);for(const k in SFX){try{SFX[k]('fire',e,true,true)}catch(err){qOk(0,`SFX.${k}: ${err.message}`)}}
   BGM.play(BGM.pick());qOk(BGM.cur===null,'소리 없이 곡이 재생 상태');qClear();return `효과음 ${Object.keys(SFX).length}가지 호출 · 오류 0`});
-qT('소리','대사: 말풍선만 (기계 음성 speechSynthesis.speak 0회) · 없는 id는 건너뜀 · 끄면 안 뜸',()=>{qPrep('mage',{lvl:60});const sy=window.speechSynthesis;let spoke=0;const SU=window.SpeechSynthesisUtterance;
+qT('소리','대사: 말풍선만 (기계 음성 speechSynthesis.speak 0회) · 없는 id는 건너뜀 · 끄면 안 뜸 · v60: 3차 전직 기술만 외침 (1차 · 2차는 안 외침)',()=>{qPrep('mage',{lvl:60});const sy=window.speechSynthesis;let spoke=0;const SU=window.SpeechSynthesisUtterance;
   const o=sy&&sy.speak;if(sy)try{sy.speak=function(){spoke++}}catch(_){}try{window.SpeechSynthesisUtterance=function(){spoke++}}catch(_){}
   try{qOk(LINES.say({id:'qa_no_such_skill',rank:9,cls:'warrior',cd:30})===false,'없는 id에 말풍선');qOk(LINES.say(null)===false,'null');
-    const ids=Object.keys(SKILL_LINES).filter(id=>SPELLS[id]&&SPELLS[id].cls==='mage'&&SPELLS[id].rank>=7&&isDmg(SPELLS[id])).slice(0,4);qOk(ids.length>=3,'7위계 이상 마법사 대사');let shown=0;
-    for(const id of ids){qClear();LINES.lastAll=-99;LINES.lastBy.clear();SAYS.length=0;P.sk[id]=10;qCast(id,qDummy(P.x+200,P.y));qStep(20,{render:true});if(SAYS.some(b=>b.o===P))shown++}
-    qOk(shown===ids.length,`말풍선 ${shown}/${ids.length}`);
-    AU.set.lines=false;LINES.lastAll=-99;LINES.lastBy.clear();SAYS.length=0;qClear();const id=ids[0];qCast(id,qDummy(P.x+200,P.y));qStep(5,{render:false});qOk(!SAYS.length,'꺼도 말풍선');
+    /* v60: 3차 전직 기술만 외침 (사용자 2026-11-12). 1차 7위계 이상은 써도 말풍선 없음 · say는 불림 */
+    const ids=Object.keys(SKILL_LINES).filter(id=>SPELLS[id]&&SPELLS[id].cls==='mage'&&SPELLS[id].rank>=7&&!SPELLS[id].job3&&isDmg(SPELLS[id])).slice(0,4);qOk(ids.length>=3,'7위계 이상 마법사 대사');let shown=0,called=0;
+    const sy0=LINES.say;LINES.say=function(){called++;return sy0.apply(this,arguments)};
+    try{for(const id of ids){qClear();LINES.lastAll=-99;LINES.lastBy.clear();SAYS.length=0;P.sk[id]=10;qCast(id,qDummy(P.x+200,P.y));qStep(20,{render:true});if(SAYS.some(b=>b.o===P))shown++}}finally{LINES.say=sy0}
+    qOk(called>=ids.length&&shown===0,`1차 기술 말풍선 ${shown}/${ids.length} · 불림 ${called}`);
+    const j2=Object.keys(SKILL_LINES).filter(id=>SPELLS[id]&&(SPELLS[id].job2||SPELLS[id].tab==='adv')&&!SPELLS[id].job3);for(const id of j2){LINES.lastAll=-99;LINES.lastBy.clear();qOk(LINES.say(SPELLS[id])===false,'2차 기술이 외침 '+id)}
+    const j3=Object.keys(SKILL_LINES).filter(id=>SPELLS[id]&&SPELLS[id].job3);qOk(j3.length>=10,'3차 대사 '+j3.length);let s3=0;
+    for(const id of j3){LINES.lastAll=-99;LINES.lastBy.clear();SAYS.length=0;if(LINES.say(SPELLS[id])&&SAYS.some(b=>b.o===P))s3++}qOk(s3===j3.length,`3차 기술 말풍선 ${s3}/${j3.length}`);
+    {const all=Object.values(SPELLS).filter(x=>x.kind!=='passive');qOk(all.filter(lineOn).every(x=>x.job3)&&all.filter(x=>!x.job3).every(x=>!lineOn(x)),'외치는 규칙')}
+    AU.set.lines=false;LINES.lastAll=-99;LINES.lastBy.clear();SAYS.length=0;qClear();qOk(LINES.say(SPELLS[j3[0]])===false&&!SAYS.length,'꺼도 말풍선');
   }finally{AU.set.lines=true;if(sy&&o)try{sy.speak=o}catch(_){}try{window.SpeechSynthesisUtterance=SU}catch(_){}SAYS.length=0;qClear()}
   qOk(spoke===0,`기계 음성 ${spoke}회`);return '말풍선만 · 음성 0회'});
 qT('소리','설정 창: 배경음악·효과음 음량 + 대사 말풍선 켜기/끄기 · 음악 출처(CC-BY-SA 포함) · arseia-audio 한 키에만 저장',()=>{qPrep('mage');const s0=Object.assign({},AU.set),n0=QA.storeLog.length;
@@ -5691,7 +5697,7 @@ qT('이펙트 v33','그림 묶음이 없을 때: 궁수 화살 · 덫 · 강화�
 qT('고친 버그 v33','독 가시 덫: 밟으면 6초 동안 독 가시밭이 펼쳐짐 (예전에는 그림 장치가 덫 터짐을 바꿔 끼워 가시밭이 안 생겼음)',()=>{qPrep('archer',{lvl:60});P.x=QA_SPOT.x;P.y=QA_SPOT.y;followCam();
   const s=Object.assign({},SPELLS.thorntrap,eff('thorntrap',5));traps.push({x:P.x+120,y:P.y,s,id:'thorntrap',own:0,dmg:10,arm:.1,life:30,age:1});const e=dgMob('wolf',P.x+120,P.y,60);e.hp=e.max=1e9;e.atkCd=1e9;
   qStep(6,{render:false});const f=fields.find(f=>f.s&&f.s.id==='thorntrap');qOk(f&&Math.abs(f.max-SPELLS.thorntrap.field.dur)<.01&&f.s.slow,'가시밭 '+JSON.stringify(f&&{t:f.max,slow:f.s.slow}));
-  qStep(60,{render:false});qOk(e.taken>0||e.hp<e.max,'가시밭 피해');return '가시밭 '+(f?f.max+'초':'없음')});
+  {const hc=hitChance;hitChance=()=>1;e.spd=0;e.x=f?f.x:e.x;e.y=f?f.y:e.y;try{qStep(60,{render:false})}finally{hitChance=hc}}/* v60: 늑대가 가시밭 밖으로 걷거나 빗나감이 이어지면 가끔 피해 0이었음 */qOk(e.taken>0||e.hp<e.max,'가시밭 피해');return '가시밭 '+(f?f.max+'초':'없음')});
 // ---------- v34 최적화: 휴대폰 발열 · 밀림 ----------
 function qDpr(v,fn){const d=Object.getOwnPropertyDescriptor(window,'devicePixelRatio');Object.defineProperty(window,'devicePixelRatio',{get:()=>v,configurable:true});
   try{return fn()}finally{if(d)Object.defineProperty(window,'devicePixelRatio',d);else delete window.devicePixelRatio;resize()}}
@@ -8661,8 +8667,8 @@ qT(QM57,'짝문: 대상 지역 칸만 보라 굵은 테두리와 이름 앞 ✦ 
     for(const c of w.querySelectorAll('.g26c[data-greg]')){const id=c.getAttribute('data-greg'),on=c.classList.contains('d57');qOk(on===d57Ok(id),'칸 표시 '+id);if(on){n++;qOk(c.querySelector('.g26n .d57b'),'✦ 없음 '+id)}}
     qOk(n>=10,'대상 칸 '+n);qOk(panel.querySelector('.d57h')&&panel.querySelector('.d57h').textContent.includes('100레벨'),'설명 줄');qOk(getComputedStyle(w.querySelector('.g26c.d57')).boxShadow.includes('180, 138, 255'),'테두리 색');out.push(n+'칸');closePanel();
     qPrep('mage',{lvl:50});P.towns=ALLTOWNS.map(t=>t.id);openPanel('gate');qOk(!$('#g26w .g26c.d57')&&!panel.querySelector('.d57h'),'50레벨에 보임');closePanel()}finally{qD21End()}return out.join()});
-qT(QM57,'세계 지도: 대상 지역마다 보라 굵은 테두리(굵기 4) · 설명 줄에 규칙과 지금 단계 · 미니맵: 대상 지역에서 「✦ 등불 대상 · N단계」(둥근 칸 안에 들어가는 길이), 지옥이 아니면 「✦ 지옥에서 등불 대상」, 대상 아닌 곳은 없음',()=>{const out=[];
-  try{qD21Prep();P.dark.cur=3;qWxTo('roots');const R0=CanvasRenderingContext2D.prototype.strokeRect,rs=[];CanvasRenderingContext2D.prototype.strokeRect=function(){if(this.strokeStyle===D57.col&&this.lineWidth===4)rs.push([...arguments]);return R0.apply(this,arguments)};
+qT(QM57,'세계 지도: 대상 지역마다 보라 테두리(v60: 칸 안쪽 굵기 2.5) · 설명 줄에 규칙과 지금 단계 · 미니맵: 대상 지역에서 「✦ 등불 대상 · N단계」(둥근 칸 안에 들어가는 길이), 지옥이 아니면 「✦ 지옥에서 등불 대상」, 대상 아닌 곳은 없음',()=>{const out=[];
+  try{qD21Prep();P.dark.cur=3;qWxTo('roots');const R0=CanvasRenderingContext2D.prototype.strokeRect,rs=[];CanvasRenderingContext2D.prototype.strokeRect=function(){if(this.strokeStyle===D57.col&&this.lineWidth===2.5)rs.push([...arguments]);return R0.apply(this,arguments)};
     try{wmapOpen();WMAP.tab='world';wmapDraw()}finally{CanvasRenderingContext2D.prototype.strokeRect=R0}const want=Object.keys(REGIONS).filter(id=>WPOS[id]&&d57Ok(id)).length;
     qOk(rs.length===want&&want>=10,`테두리 ${rs.length}/${want}`);const lg=$('#wmapLeg').innerHTML;qOk(lg.includes('d57leg')&&lg.includes('100레벨')&&lg.includes('어둠 3단계'),'설명 줄 '+lg.slice(-120));wmapClose();out.push('지도 '+rs.length);
     qOk(d57MiniLabel()==='✦ 등불 대상 · 3단계','미니맵 '+d57MiniLabel());mmBg=null;drawMinimap();{const S0=mm.width,f=Math.max(10,Math.round(S0/15));mctx.font=`700 ${f}px ${FONT}`;const wd=mctx.measureText(d57MiniLabel()).width,ch=2*Math.sqrt(Math.max(0,(S0/2)**2-(S0*.3)**2));qOk(wd<=ch,`미니맵 글이 둥근 칸 밖 ${Math.round(wd)}/${Math.round(ch)}`)}P.diff=0;qOk(d57MiniLabel()==='✦ 지옥에서 등불 대상','보통 '+d57MiniLabel());P.diff=2;
@@ -8739,8 +8745,10 @@ qT(QA57,'묶음이 없을 때(받기 전 · #qa · 「예전 그림」): 새 땅
 qT(QA57,'묶음이 있을 때: 몬스터 · 준보스 · 보스 · 떠도는 강자 · 마을 사람 · 물체(대성당 바깥 · 예배당 · 소금 더미 · 첨탑) · 던전 입구 · 호수 얼음 · 대성당 바닥 · 빛줄기 · 벽 · 스킬 그림이 새 그림 · 충돌 크기 그대로 · 「예전 그림」이면 모두 예전 그대로',()=>qA57(seen=>{
   const ids=Object.keys(A57.mon).filter((k,i,a)=>TYPES[k].boss||TYPES[k].mini||k.startsWith('st_')||i%9===0),r0={};for(const id of ids)r0[id]=dgMob(id,0,0,140).r;enemies.length=0;
   qA57Fake(Object.keys(A57.keys));for(const id of ids){const cv=qA57Mon(id);qOk(qA57Px(cv)>150,'새 그림이 아님 '+id);const e=dgMob(id,0,0,140);qOk(e.r===r0[id],'충돌 크기가 바뀜 '+id);enemies.length=0}
+  const k0s=GFX.skic;GFX.skic='detail';A57.ic.clear();/* v60: 새 스킬 그림은 「자세한 그림」을 골랐을 때만 */
   const sp=Object.values(SPELLS).find(x=>x.cls==='mage'&&A57.keys['icon57-mage'].includes('mage_'+x.id));qOk(spellSvg(sp).includes('<image'),'스킬 그림 '+sp.id);
   const pr=Object.values(SPELLS).find(x=>x.cls==='priest'&&A57.keys['icon57-priest'].includes('priest_'+x.id));qOk(spellSvg(pr).includes('<image'),'사제 스킬 그림 '+pr.id);
+  if(k0s)GFX.skic=k0s;else delete GFX.skic;A57.ic.clear();
   qWxTo('r110_lake');const T=TOWNS[0],f=WX_FOLK.r110_ulgen;P.x=T.x+f.at[0]+40;P.y=T.y+f.at[1]+40;followCam();qStep(3,{renderEvery:1});qOk(seen.has('npc_r110_ulgen'),'마을 사람');
   const Q=RCACHE[R110.lake].r110;if(Q&&Q.holes[0]){P.x=Q.holes[0].x+30;P.y=Q.holes[0].y+30;followCam();qStep(2,{renderEvery:1});qOk(seen.has('r110_fishhole'),'낚시 구멍')}
   for(const [id,t,k] of [['r110_peak','chapel','r110/chapel'],['g1_salt','salt',null],['g1_spire','spire',null]]){qWxTo(id);const d=decor.find(x=>(x.k==='r110'||x.k==='g100')&&x.t===t);qOk(d,'물체 없음 '+id+' '+t);if(!d)continue;
@@ -8889,7 +8897,7 @@ qT(QA58,'묶음이 없을 때(받기 전 · #qa): 스킬 그림 · 방패 · 맞
   return '그대로'}));
 qT(QA58,'묶음이 있을 때: 전사 · 궁수 · 사제 스킬 그림 · 전사 방패 2~7단계 · 맞음 빛(자기 그림이 없는 스킬 · 물리 불꽃) · 치명타 · 빗나감 · 피함 · 레벨 업 · 되살아남이 새 그림 · 「예전 그림」이면 모두 예전 그대로',()=>qA58('warrior',()=>{
   qA58FakeIc();qA58FakeSh();qA58FakeFx();
-  for(const c of ['warrior','archer','priest']){const sp=Object.values(SPELLS).find(s=>s.cls===c&&A58.set['icon58-'+c].has(c+'_'+s.id));qOk(sp&&spellSvg(sp).includes('<image'),'스킬 그림 '+c+' '+(sp&&sp.id))}
+  {const k0=GFX.skic;GFX.skic='detail';A58.ic.clear();try{  for(const c of ['warrior','archer','priest']){const sp=Object.values(SPELLS).find(s=>s.cls===c&&A58.set['icon58-'+c].has(c+'_'+s.id));qOk(sp&&spellSvg(sp).includes('<image'),'스킬 그림 '+c+' '+(sp&&sp.id))}}finally{if(k0)GFX.skic=k0;else delete GFX.skic;A58.ic.clear()}}
   const L=heroLook18(P);L.ot=4;L.g54={o:-1,r:-1,w:-1,r1:-1,r2:-1,am:-1};const e=heroPart18('warrior','shield',0,L,1,1);qOk(e&&/hero58-warrior:shield\/4\/1/.test(e.key||''),'방패 4단계 '+(e&&e.key));
   L.g54.o=1;const e2=heroPart18('warrior','shield',0,L,1,1);qOk(!e2||!/hero58/.test(e2.key||''),'희귀 방패는 장비 겉모습 그대로');L.g54.o=-1;L.ot=1;const e3=heroPart18('warrior','shield',0,L,1,0);qOk(!e3||!/hero58/.test(e3.key||''),'1단계는 v54 그림 그대로');
   const ws=Object.values(SPELLS).find(s=>s.cls==='warrior'&&!FX31.M[s.id]),i0=FXR.imp.length;let h0=qA58Ins('fx_common_hit_physical');FXR.hit({x:P.x,y:P.y,z:10,s:ws,col:'#fff'});
@@ -8956,11 +8964,11 @@ qT(QM59,'5 파일을 바로 열었을 때만 그림 안내를 한 번 · 인터�
 }
 qT('고침 v59','짝문 지도: 100레벨 이상(등불 대상 표시)이어도 지도 크기 그대로 · 설명 줄이 지도를 가리지 않음 (PC 왼쪽 칸 · 휴대폰 지도 위 한 줄) · 휴대폰 위 줄 넘침 없음',()=>{const out=[];
   const gate=lv=>{if(lv>=100)qD21Prep('mage',lv);else qPrep('mage',{lvl:lv});P.towns=ALLTOWNS.map(t=>t.id);openPanel('gate');return $('#g26w')};
-  try{for(const [w,h] of [[1366,768],[1920,1080],[1280,720]])qM22('',w,h,()=>{
+  try{for(const [w,h] of [[1366,768],[1920,1080],[1280,720],[1241,874]])qM22('',w,h,()=>{
       const m0=gate(50);const r0=qmR(m0);closePanel();const m=gate(140);const r=qmR(m),lg=panel.querySelector('.d57h');
       qOk(lg,`${w}: 설명 줄 없음`);qOk(Math.abs(r.width-r0.width)<2&&Math.abs(r.left-r0.left)<2,`${w}: 지도 폭 ${Math.round(r0.width)}→${Math.round(r.width)}`);
       qOk(lg.closest('.g27side'),`${w}: 설명 줄이 왼쪽 칸 밖`);qOk(!qmOv(qmR(lg),r),`${w}: 설명 줄이 지도를 덮음`);
-      if(m.style.overflow==='hidden'){const g=m.querySelector('.g26m');qOk(qmR(g).right<=r.right+2,`${w}: 지도 오른쪽 잘림`)}closePanel();out.push(w+' '+Math.round(r.width))});
+      if(m.style.overflow==='hidden'){const g=m.querySelector('.g26m');qOk(qmR(g).right<=r.right+2,`${w}: 지도 오른쪽 잘림`);/* v59: 모든 지역 칸이 지도 틀 안에 보임 */for(const c of m.querySelectorAll('.g26c')){const q=qmR(c);qOk(q.left>=r.left-1&&q.right<=r.right+1&&q.top>=r.top-1&&q.bottom<=r.bottom+1,`${w}: 칸 잘림 ${c.getAttribute('data-greg')}`)}}else qOk(m.scrollWidth>m.clientWidth||m.scrollHeight>m.clientHeight,`${w}: 지도가 안 맞는데 밀어 볼 수 없음`);closePanel();out.push(w+' '+Math.round(r.width))});
     for(const [md,w,h] of [['P',390,844],['L',844,390]])qM22(md,w,h,()=>{const m=gate(140),lg=panel.querySelector('.d57h'),card=panel.querySelector('.card'),hd=panel.querySelector('.f29gatehead');
       qOk(lg&&lg.nextElementSibling===m,`${md}: 설명 줄이 지도 위에 없음`);const rl=qmR(lg),rm=qmR(m),rc=qmR(card),rh=qmR(hd);
       qOk(rl.bottom<=rm.top+1&&rl.height<=20,`${md}: 설명 줄 ${Math.round(rl.height)}px · 지도 위 ${Math.round(rl.bottom-rm.top)}`);qOk(rm.bottom<=Math.min(rc.bottom,innerHeight)+1,`${md}: 지도 아래가 칸 밖 ${Math.round(rm.bottom-rc.bottom)}`);
@@ -8969,6 +8977,44 @@ qT('고침 v59','짝문 지도: 100레벨 이상(등불 대상 표시)이어도 
     qM22('P',390,844,()=>{const m=gate(30);qOk(!panel.querySelector('.d57h'),'30레벨에 설명 줄');const hd=panel.querySelector('.f29gatehead'),rh=qmR(hd),rc=qmR(panel.querySelector('.card'));
       for(const b of hd.querySelectorAll('button')){const q=qmR(b);qOk(q.bottom<=rh.bottom+6&&q.right<=rc.right+1,'30레벨 위 줄 단추 넘침 '+b.textContent)}closePanel()})
   }finally{if(!panel.hidden)closePanel();qD21End()}return out.join(' · ')});
+/* v60 고침: 새 땅(부서진 하늘섬 · 별바다 가장자리)으로 가는 길이 세계 지도에 안 보였고, 보라 테두리가 연결선을 가렸음 */
+qT('고침 v60','모든 지역에 갈 수 있음: 처음 땅에서 맵 끝 길 + 특별한 길(하늘 계단)로 40곳 모두 · 특별한 길은 세계 지도 목록에 있고 길 찾기도 앎 · 실제 계단이 있음',()=>{
+  const ids=Object.keys(REGIONS),nb=id=>{const o=Object.values(REGIONS[id].edges||{}).filter(t=>REGIONS[t]);for(const L of WMAPLINK22){if(L.a===id)o.push(L.b);if(L.b===id)o.push(L.a)}return o};
+  const seen=new Set(['home']),q=['home'];while(q.length){const id=q.shift();for(const t of nb(id))if(!seen.has(t)){seen.add(t);q.push(t)}}
+  const lost=ids.filter(i=>!seen.has(i));qOk(!lost.length,'갈 수 없는 지역 '+lost.map(i=>REGIONS[i].n).join(', '));
+  for(const id of ids){qOk(WPOS[id],'세계 지도 자리 없음 '+REGIONS[id].n);const e=REGIONS[id].edges||{};for(const sd in e){const t=e[sd];qOk(REGIONS[t]&&Object.values(REGIONS[t].edges||{}).includes(id),`한쪽 길 ${REGIONS[id].n}→${t}`)}}
+  /* 맵 끝 길이 없는 땅은 반드시 특별한 길로 */for(const id of ids){const e=Object.values(REGIONS[id].edges||{}).filter(t=>REGIONS[t]);if(!e.length||!seen.has(id))qOk(WMAPLINK22.some(L=>L.a===id||L.b===id),'외딴 지역 '+REGIONS[id].n)}
+  const L=WMAPLINK22.find(L=>L.b===G140.sky);qOk(L&&L.a===G100.spire,'하늘 계단 길 없음');qOk(regHop(G100.spire,G140.sky)===G140.sky&&regHop(G140.sky,G100.spire)===G100.spire,'길 찾기가 계단을 모름');
+  qOk(regHop('home',G140.grave)&&regHop(G140.grave,'home'),'처음 땅 ↔ 별바다 가장자리 길 찾기');
+  qW3Prep('mage',140);try{qWxTo(G100.spire);qOk(G140V.gate.up&&G140V.gate.up.d,'구름 돌기둥 숲에 하늘 계단 없음');qWxTo(G140.sky);qOk(G140V.gate.down&&G140V.gate.down.d,'하늘섬에 내려가는 계단 없음')}finally{loadRegion('home')}
+  return `${seen.size}/${ids.length}곳 · 특별한 길 ${WMAPLINK22.length}`});
+qT('고침 v60','세계 지도 연결선이 보임: 100레벨(보라 테두리 켜짐) · 이웃 칸 사이 틈마다 금빛 선이 보이고 보라색이 없음 · 보라 테두리는 칸 안쪽 · 하늘 계단 길과 이름표(잠김/열림) · 설명 줄',()=>{const out=[];
+  for(const [w,h] of [[1241,874],[1366,768],[390,844]])qM22(w<640?'P':'',w,h,()=>{qD21Prep('mage',140);P.towns=ALLTOWNS.map(t=>t.id);G140V.qaLock=1;const bk=g100S().bk,h0=bk.b_cr1_heart;delete bk.b_cr1_heart;
+    const R0=CanvasRenderingContext2D.prototype.strokeRect,rs=[];CanvasRenderingContext2D.prototype.strokeRect=function(x,y,ww,hh){if(this.strokeStyle===D57.col)rs.push([x,y,ww,hh]);return R0.apply(this,arguments)};
+    try{wmapOpen();WMAP.tab='world';wmapDraw()}finally{CanvasRenderingContext2D.prototype.strokeRect=R0}
+    try{const G=WMAP.geo,cv=$('#wmapCv'),dp=cv.width/G.Wd,cx=cv.getContext('2d'),px=(x,y)=>cx.getImageData(Math.round(x*dp),Math.round(y*dp),1,1).data;
+      qOk(rs.length>=10,`${w}: 보라 테두리 ${rs.length}`);for(const [x,y,ww,hh] of rs){const id=Object.keys(REGIONS).find(i=>WPOS[i]&&Math.abs(G.pos(i).x-(x+ww/2))<1&&Math.abs(G.pos(i).y-(y+hh/2))<1);qOk(id&&ww<G.w&&hh<G.h,`${w}: 보라 테두리가 칸 밖 ${id} ${Math.round(ww)}/${Math.round(G.w)}`)}
+      let gaps=0,bad=[];const isGold=c=>c[0]>170&&c[1]>140&&c[2]<170&&c[0]-c[2]>50,isPur=c=>c[2]>200&&c[0]>140&&c[1]<170&&c[2]-c[1]>60;
+      for(const id in REGIONS){if(!WPOS[id])continue;for(const sd in REGIONS[id].edges){const to=REGIONS[id].edges[sd];if(!WPOS[to]||to<id)continue;const a=G.pos(id),b=G.pos(to),dx=Math.abs(WPOS[id][0]-WPOS[to][0]),dy=Math.abs(WPOS[id][1]-WPOS[to][1]);if(dx+dy!==1)continue;
+        const segs=wmapSegOut22(G,a.x,a.y,b.x,b.y,2.5);if(!segs.length)continue;gaps++;let gold=0,pur=0;for(const s of segs)for(let k=1;k<12;k++){const c=px(s[0]+(s[2]-s[0])*k/12,s[1]+(s[3]-s[1])*k/12);if(isGold(c))gold++;if(isPur(c))pur++}
+        if(!gold||pur)bad.push(`${REGIONS[id].n}-${REGIONS[to].n} 금${gold} 보라${pur}`)}}
+      qOk(gaps>=30,`${w}: 틈 ${gaps}`);qOk(!bad.length,`${w}: 선이 안 보임 ${bad.slice(0,6).join(' · ')}`);
+      const L=WMAPLINK22.find(L=>L.b===G140.sky);qOk(L.box&&L.box.x>=0&&L.box.x+L.box.w<=G.Wd&&L.box.y>=0,`${w}: 계단 이름표 자리`);qOk(L.lab(false).includes('잠김')&&!L.lab(true).includes('잠김'),'잠김 글');
+      {const B=L.box,d=cx.getImageData(Math.round(B.x*dp),Math.round(B.y*dp),Math.max(1,Math.round(B.w*dp)),Math.max(1,Math.round(B.h*dp))).data;let k=0;for(let i=0;i<d.length;i+=4)if(d[i]>200&&d[i+1]>200&&d[i+2]>120)k++;qOk(k>20,`${w}: 이름표 글씨가 안 보임 ${k}`)}
+      const lg=$('#wmapLeg').innerHTML;qOk(lg.includes('하늘 계단')&&lg.includes('식은 별의 심장')&&lg.includes('지금 잠김'),`${w}: 설명 줄 `+lg.slice(-160));qOk(WMAP.top22>=gaps,`${w}: 위에 그린 선 ${WMAP.top22}`);
+      bk.b_cr1_heart=1;wmapDraw();qOk($('#wmapLeg').innerHTML.includes('지금 열림'),`${w}: 열림 설명`);out.push(`${w} 틈${gaps}`)}
+    finally{if(h0)bk.b_cr1_heart=h0;else delete bk.b_cr1_heart;G140V.qaLock=0;wmapClose();WMAP.tab='reg';qD21End()}});
+  return out.join(' · ')});
+qT('고침 v60','스킬 그림: 기본은 예전 단순한 그림(새 그림 묶음이 있어도) · 사제 계열 색 5가지가 다시 보임 · 설정 ⚙ 화면 탭 「스킬 그림」에서 자세한 그림을 고르면 새 그림 · arseia-gfx 한 키에만 · 묶음은 고른 사람만 받음',()=>{
+  const k0=GFX.skic,out=[];delete GFX.skic;A57.ic.clear();A58.ic.clear();
+  try{for(const c of ['mage','priest','warrior','archer']){const L=Object.values(SPELLS).filter(s=>s.cls===c&&s.kind!=='passive');let img=0;for(const s of L)if(spellSvg(s).includes('<image'))img++;qOk(img===0,`${c}: 기본인데 새 그림 ${img}`);qOk(L.every(s=>a57Icon(s)===null&&a58Icon(s)===null),c+': 새 그림 함수')}
+    const fams=new Set(),cols=new Set();for(const s of Object.values(SPELLS)){if(s.cls!=='priest'||s.kind==='passive')continue;const f=IC25.fam(s);fams.add(f);const h=spellSvg(s);if(IC25.has(s)&&h.includes(IC25.FAM[f][0]))cols.add(f)}
+    qOk(fams.size===5&&cols.size===5,`사제 계열 색 ${[...cols].join(',')} / ${[...fams].join(',')}`);out.push('사제 색 '+cols.size);
+    qPrep('priest',{lvl:60});const w0=Object.keys(FL.want||{}).length;a57IcNeed();a58IcNeed();qOk(!FL.want['icon57-priest']&&!FL.want['icon58-priest'],'단순한 그림인데 묶음을 받으러 감');
+    set24Open(true);const box=SET24.el.querySelector('.skic60');qOk(box&&box.dataset.tab45==='화면','설정 칸 없음 / 탭');qOk(box.querySelector('[data-skic="simple"].on'),'기본이 단순한 그림이 아님');
+    const n0=QA.storeLog.length;box.querySelector('[data-skic="detail"]').click();qOk(GFX.skic==='detail','자세한 그림 고름');const keys=new Set(QA.storeLog.slice(n0).map(o=>o.op+':'+o.k));qOk(keys.size>=1&&[...keys].every(k=>k==='set:arseia-gfx'),'저장 키 '+[...keys]);
+    qOk(SET24.el.querySelector('.skic60 [data-skic="detail"].on'),'다시 그린 칸');SET24.el.querySelector('.skic60 [data-skic="simple"]').click();qOk(!GFX.skic,'단순한 그림으로 돌아감');set24Open(false);out.push('설정 '+[...keys].join())
+  }finally{if(k0)GFX.skic=k0;else delete GFX.skic;A57.ic.clear();A58.ic.clear();try{set24Open(false)}catch(_){}}return out.join(' · ')});
 {const SURE=g=>g==='호크아이 v34'||g==='궁수 재정비 v38';/* 두 묶음 모두 화살 기술 동작 시험 (불새 · 셔터 · 퓨즈가 번갈아 한 발씩 빗나갔음) */for(const t of QT)if(SURE(t.group)){const f=t.fn;t.fn=function(){const k=hitChance;hitChance=()=>1;try{return f.apply(this,arguments)}finally{hitChance=k}}}}
 window.__QA_RUN=qaRun;
 setTimeout(()=>{qaRun().catch(e=>{window.__QA_RESULT={fatal:String(e&&e.stack||e),results:[],summary:{total:0,pass:0,fail:1}}})},120);

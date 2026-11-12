@@ -11,7 +11,7 @@ const A58={keys:{"icon58-warrior":["warrior_avatarofwar","warrior_battleblood","
 A58.set={};for(const n in A58.keys)A58.set[n]=new Set(A58.keys[n]);
 /* ===== 스킬 그림 (전사 · 궁수 · 사제 나머지 · 내 직업 묶음만) ===== */
 const a58IcPk=cls=>'icon58-'+cls;
-function a58Icon(s){if(!s||!s.cls||!s.id||(typeof flWant==='function'&&!flWant()))return null;// 「예전 그림」이면 기억해 둔 것도 쓰지 않음
+function a58Icon(s){if(!s||!s.cls||!s.id||!skicDetail()||(typeof flWant==='function'&&!flWant()))return null;/* v60: 기본은 예전 단순한 그림 (art57.js skicDetail) */// 「예전 그림」이면 기억해 둔 것도 쓰지 않음
   const pk=a58IcPk(s.cls),key=s.cls+'_'+s.id;if(!A58.set[pk]||!A58.set[pk].has(key))return null;
   let u=A58.ic.get(key);if(u)return u;const PK=typeof flPack==='function'?flPack(pk):null,r=PK&&PK.meta.r[key];if(!r)return null;
   try{const cv=document.createElement('canvas');cv.width=r[2];cv.height=r[3];cv.getContext('2d').drawImage(PK.img,r[0],r[1],r[2],r[3],0,0,r[2],r[3]);
@@ -20,7 +20,7 @@ function a58Icon(s){if(!s||!s.cls||!s.id||(typeof flWant==='function'&&!flWant()
 if(typeof IC25==='object'&&typeof IC25.svg==='function'){const _s=IC25.svg;IC25.svg=function(s){return a58Icon(s)||_s.apply(this,arguments)};
   if(typeof IC25.has==='function'){const _h=IC25.has;IC25.has=function(s){return !!a58Icon(s)||_h.apply(this,arguments)}}}
 if(typeof physIcon==='function'){const _p=physIcon;physIcon=function(s){return a58Icon(s)||_p.apply(this,arguments)}}
-function a58IcNeed(){if(P&&P.cls&&A58.set[a58IcPk(P.cls)]&&typeof flNeed==='function')flNeed(a58IcPk(P.cls))}
+function a58IcNeed(){if(skicDetail()&&P&&P.cls&&A58.set[a58IcPk(P.cls)]&&typeof flNeed==='function')flNeed(a58IcPk(P.cls))}
 {const _ng=newGame;newGame=function(){const r=_ng.apply(this,arguments);try{a58IcNeed()}catch(e){if(window.__QA)throw e}return r}}
 {const _ld=load;load=function(){const r=_ld.apply(this,arguments);try{if(r)a58IcNeed()}catch(e){if(window.__QA)throw e}return r}}
 {const _r=flReady;flReady=function(name){const r=_r.apply(this,arguments);try{if(/^icon58-/.test(name)){A58.ic.clear();if(typeof PUI==='object'&&PUI&&PUI.ic)PUI.ic.clear();if(P&&typeof buildBar==='function')buildBar();if(typeof renderPanel==='function'&&typeof panel!=='undefined'&&panel&&!panel.hidden)renderPanel()}}catch(e){if(window.__QA)throw e}return r}}
@@ -55,3 +55,13 @@ function a58Add(stem,o){const PK=a58Pk(stem);if(!PK)return false;FX31.add(Object
 {const _c=FXB.cast;FXB.cast=function(s,o,from){const r=_c.apply(this,arguments);try{if(s&&(s.kind==='rez'||s.kind==='heal')&&!(s.id&&FX31.get(s.id,false))){const q=o||P,rez=s.kind==='rez';
     if(a58Add(rez?'fx_common_revive':'fx_common_heal',{who:q,fol:1,x:q.x,y:q.y,z:rez?0:20,d:rez?.9:.7,sc:rez?1.6:1.3,ay:rez?72:64}))A58.n[rez?'rez':'heal']++}}catch(e){if(window.__QA)throw e}return r}}
 setTimeout(()=>{try{if(window.__game)Object.assign(window.__game,{A58,a58Icon,a58Pk})}catch(_){}},0);
+
+/* ===== v60: 스킬 그림 고르기 (설정 ⚙ → 화면 탭) · 기본 「단순한 그림」 ===== */
+function skicSet(v){GFX.skic=v==='detail'?'detail':undefined;if(!GFX.skic)delete GFX.skic;if(typeof gfxSave==='function')gfxSave();
+  A57.ic.clear();A58.ic.clear();if(typeof PUI==='object'&&PUI&&PUI.ic)PUI.ic.clear();if(skicDetail()){a57IcNeed();a58IcNeed()}
+  if(P&&P.cls&&typeof buildBar==='function')buildBar();if(typeof renderPanel==='function'&&typeof panel!=='undefined'&&panel&&!panel.hidden)renderPanel()}
+{const _d=set24Draw;set24Draw=function(){_d.apply(this,arguments);try{const el=SET24.el;if(!el||el.hidden)return;const sep=el.querySelector('.s24sep'),cur=skicDetail()?'detail':'simple';
+  const box=document.createElement('div');box.className='m43set skic60';box.dataset.tab45='화면';
+  box.innerHTML=`<div class="s24h">스킬 그림</div><div class="s24row">${[['simple','단순한 그림'],['detail','자세한 그림']].map(([v,t])=>`<button type="button" class="s24seg${cur===v?' on':''}" data-skic="${v}" aria-pressed="${cur===v}">${t}</button>`).join('')}</div>
+    <div class="s24n">단순한 그림: 한눈에 알아보기 쉬운 예전 그림이에요. 사제는 계열마다 색이 달라요(심판 금 · 퇴마 보라 · 치유 초록 · 수호 파랑 · 축복 분홍). 자세한 그림: v57~v58에 넣은 그림</div>`;
+  el.insertBefore(box,sep||null);box.querySelectorAll('[data-skic]').forEach(b=>b.onclick=e=>{e.stopPropagation();skicSet(b.dataset.skic);set24Draw();set24Place()})}catch(e){if(window.__QA)throw e}}}

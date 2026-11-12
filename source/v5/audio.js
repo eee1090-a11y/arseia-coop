@@ -132,7 +132,7 @@ setInterval(()=>{if(!AU.on)return;const p=BGM.pick();if(p!==BGM.cand){BGM.cand=p
 const SAYS=[];// {o:말하는 사람, t:글, life, max, col}
 const LINES={lastAll:-9,lastBy:new Map(),
   // 마법사: 주문 + 끝에 룬 영창, 사제: 기도 + 끝에 짧은 기도. 연달아 쓰는 마법은 가끔만 말한다
-  say(s,who,start){if(!AU.set.lines||!s||(s.rank||0)<LINE_MIN_RANK)return false;const ln=SKILL_LINES[s.id];if(!ln)return false;
+  say(s,who,start){if(!AU.set.lines||!s||!lineOn(s))return false;const ln=SKILL_LINES[s.id];if(!ln)return false;
     const now=performance.now()/1000,key=(who&&who.id||0)+':'+s.id,lb=this.lastBy.get(key)||-99,spam=(s.cd||0)<3;
     if(now-this.lastAll<(spam?4:1.2)||(spam&&now-lb<9))return false;this.lastAll=now;this.lastBy.set(key,now);
     const parts=ln.split(' / '),fin=s.chant?(s.cls==='mage'?s.chant+'!':s.chant):null,col=EL[s.el]||'#ffe39a',o=who||P;
@@ -182,7 +182,7 @@ function auPanel(){let el=document.getElementById('auPanel');if(el){el.hidden=!e
   const sl=(k,n)=>`<label style="display:flex;align-items:center;gap:8px;margin:6px 0"><span style="min-width:56px">${n}</span><input type="range" min="0" max="100" value="${Math.round(AU.set[k]*100)}" data-k="${k}" style="flex:1" aria-label="${n} 음량"><output data-o="${k}" style="min-width:34px;text-align:right">${pc(AU.set[k])}</output></label>`;
   const ck=(k,n)=>`<label style="display:flex;align-items:center;gap:8px;margin:6px 0"><input type="checkbox" data-c="${k}" ${AU.set[k]?'checked':''}>${n}</label>`;
   const cr=(typeof MUSIC_INDEX!=='undefined'?Object.values(MUSIC_INDEX):[]).filter(m=>m.credit&&!m.reuse).map(m=>`<li>${m.credit}</li>`).join('');
-  el.innerHTML=`<b style="font-size:15px">소리</b><div style="font-size:12px;color:#a39d8f">0으로 내리면 꺼집니다. 이 설정은 캐릭터 저장과 따로, 이 기기에 저장됩니다.</div>${sl('music','배경음악')}${sl('sfx','효과음')}${ck('lines','고위 스킬 대사 말풍선 (5위계 이상)')}
+  el.innerHTML=`<b style="font-size:15px">소리</b><div style="font-size:12px;color:#a39d8f">0으로 내리면 꺼집니다. 이 설정은 캐릭터 저장과 따로, 이 기기에 저장됩니다.</div>${sl('music','배경음악')}${sl('sfx','효과음')}${ck('lines','고위 스킬 대사 말풍선 (3차 전직 기술)')}
     <div style="margin-top:10px"><b>음악 출처</b><ul style="margin:4px 0 0 16px;padding:0;font-size:12px;line-height:1.5">${cr||'<li>(음악 파일 없음)</li>'}</ul><div style="font-size:12px;color:#a39d8f">효과음은 게임 안에서 직접 합성한 소리입니다.</div></div>
     <div style="text-align:right;margin-top:8px"><button type="button" class="ghost" id="auClose">닫기</button></div>`;
   el.querySelectorAll('[data-k]').forEach(i=>i.oninput=()=>{AU.set[i.dataset.k]=+i.value/100;auVol();auSave();const o=el.querySelector(`[data-o="${i.dataset.k}"]`);if(o)o.textContent=pc(AU.set[i.dataset.k])});
@@ -203,7 +203,7 @@ function auPanel(){let el=document.getElementById('auPanel');if(el){el.hidden=!e
 
 /* ===== #qa에서 부를 점검 (qa.js 블록 안에서 AUDIO_QA()를 불러 결과를 qOk로 확인) ===== */
 // 대사가 없는 고위 스킬(전사·궁수, v18에서 위계가 바뀐 마법)은 말풍선 없이 지나간다 → 실패가 아니라 목록으로만 알려 준다
-function AUDIO_QA_MISSING(){const m=[];for(const id in SPELLS){const s=SPELLS[id];if(s.kind!=='passive'&&(s.rank||0)>=LINE_MIN_RANK&&!SKILL_LINES[id])m.push(id)}return m}
+function AUDIO_QA_MISSING(){const m=[];for(const id in SPELLS){const s=SPELLS[id];if(s.kind!=='passive'&&lineOn(s)&&!SKILL_LINES[id])m.push(id)}return m}
 function AUDIO_QA(){const bad=[];
   for(const id in SKILL_LINES)if(!SPELLS[id])bad.push('없는 스킬의 대사: '+id);
   for(const slot of new Set(Object.values(BGM_REG).concat(['title','town','dungeon','boss'])))if(!BGM.url(slot))bad.push('곡 없음: '+slot);

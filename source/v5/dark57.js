@@ -3,7 +3,7 @@
    대상 규칙(dark21.js darkRegOk): 지옥에서 몬스터가 100레벨부터 나오는 지역 전부 + 그 던전 · 오늘의 잿빛 메아리 둘(140레벨 캐릭터).
    · 미니맵(둥근 칸): 지금 있는 곳이 대상이면 아래쪽에 「✦ 등불 대상 · N단계/꺼짐」(보통 · 악몽에서는 「✦ 지옥에서 등불 대상」) · 지옥에서는 대상 지역으로 가는 포탈에 보라 고리
    · 짝문: 대상 지역 칸에 보라 굵은 테두리와 이름 앞 ✦ · 아래 설명 줄
-   · 세계 지도: 대상 지역 칸에 보라 굵은 테두리 · 아래 설명 줄에 규칙
+   · 세계 지도: 대상 지역 칸에 칸 안쪽 보라 테두리 (v60: 가늘게 · 연결선 안 가림) · 아래 설명 줄에 규칙
    보이는 때: 100레벨 이상이거나 등불이 켜졌을 때(fix51g G51.SHOW_LAMP와 같음). 그림 · 글만, 수치 · 저장은 그대로. */
 const D57={col:'#b48aff',dim:'#8a78a8'};
 const d57Show=()=>!!P&&(P.lvl>=G51.SHOW_LAMP||darkLit());
@@ -37,9 +37,11 @@ function d57GateLeg(w,s){const side=pbody.querySelector('.g27side');if(side){sid
 .d57h{font-size:12.5px;margin:4px 0}.g27side .d57h{margin:10px 0 0;line-height:1.5}.d57h.d57hm{font-size:11px;margin:2px 0 0;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}`;document.head.appendChild(st)}
 /* ===== 세계 지도: 대상 지역 굵은 테두리 ===== */
 function d57Wmap(g){const G=WMAP.geo;if(!G||!g||!d57Show())return 0;let n=0;
-  g.save();g.strokeStyle=D57.col;g.lineWidth=4;g.shadowColor='rgba(180,138,255,.6)';g.shadowBlur=6;
-  for(const id in REGIONS){if(!WPOS[id]||!d57Ok(id))continue;const p=G.pos(id);g.strokeRect(p.x-G.w/2-6,p.y-G.h/2-6,G.w+12,G.h+12);n++}g.restore();
-  const lg=$('#wmapLeg');if(lg&&!lg.innerHTML.includes('d57leg'))lg.innerHTML+=`<span class="d57leg"> <b style="color:${D57.col}">▢ 보라 굵은 테두리</b> 어둠의 등불 대상 지역: ${d57Rule()}${darkLit()?` · 지금 ${(P.dark.cur|0)?`어둠 ${P.dark.cur}단계`:'꺼짐'}`:' · 등불은 아직 꺼져 있음'}.</span>`;
+  g.save();g.strokeStyle=D57.col;g.lineWidth=2.5;/* v60: 칸 안쪽 가는 테두리 · 예전 굵은 바깥 테두리는 옆 칸끼리 붙어 연결선을 가렸음 */
+  for(const id in REGIONS){if(!WPOS[id]||!d57Ok(id))continue;const p=G.pos(id);g.strokeRect(p.x-G.w/2+3,p.y-G.h/2+3,G.w-6,G.h-6);n++}g.restore();
+  const lg=$('#wmapLeg');if(lg&&!lg.innerHTML.includes('d57leg'))lg.innerHTML+=`<span class="d57leg"> <b style="color:${D57.col}">▢ 칸 안쪽 보라 테두리</b> 어둠의 등불 대상 지역: ${d57Rule()}${darkLit()?` · 지금 ${(P.dark.cur|0)?`어둠 ${P.dark.cur}단계`:'꺼짐'}`:' · 등불은 아직 꺼져 있음'}.</span>`;
   return n}
 {const _w=wmapWorld22;wmapWorld22=function(g){const r=_w.apply(this,arguments);d21Try(()=>d57Wmap(g));return r}}
+/* v60: 연결선 · 하늘 계단 길은 다른 표시를 모두 그린 뒤 맨 위에 (wmap22.js wmapTop22) */
+{const _d=wmapDraw;wmapDraw=function(){const r=_d.apply(this,arguments);d21Try(()=>{const el=$('#wmap'),cv=$('#wmapCv');if(el&&!el.hidden&&cv&&WMAP.tab==='world'&&WMAP.geo)wmapTop22(cv.getContext('2d'),WMAP.geo)});return r}}
 setTimeout(()=>{try{if(window.__game)Object.assign(window.__game,{D57,d57Show,d57Ok,d57MiniLabel,d57Gate,d57GateLeg,d57Wmap,darkRegOk,darkRegList})}catch(_){}},0);

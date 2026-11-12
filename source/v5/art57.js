@@ -101,7 +101,10 @@ function a57WallTex(){const R0=a57R('r110_cath_wall');if(!R0)return null;if(A57.
 
 /* ===== 스킬 그림 (마법사 · 사제 · 내 직업 묶음만) ===== */
 const a57IcPk=cls=>'icon57-'+cls;
-function a57Icon(s){if(!s||!s.cls||!s.id||(typeof flWant==='function'&&!flWant()))return null;// 「예전 그림」이면 기억해 둔 것도 쓰지 않음
+/* v60 사용자 2026-11-12 「스킬아이콘 너무 자세하고 난잡해서 직관성이 떨어져 · 이전과 유사한 정도로 단순화된 방식이 나은 거 같아」 「사제는 계열별로 색깔이 구분됐는데 지금은 죄다 노란색」
+   → 기본은 예전 단순한 스킬 그림(icons25 · 사제 계열 색). 설정 ⚙ 화면 「스킬 그림: 자세한 그림」을 고른 사람만 새 그림(묶음도 그때만 받음). 설정은 'arseia-gfx'의 skic 한 칸(캐릭터 키 아님) */
+const skicDetail=()=>typeof GFX==='object'&&GFX.skic==='detail';
+function a57Icon(s){if(!s||!s.cls||!s.id||!skicDetail()||(typeof flWant==='function'&&!flWant()))return null;// 「예전 그림」이면 기억해 둔 것도 쓰지 않음
   const key=s.cls+'_'+s.id;if(!A57.keys[a57IcPk(s.cls)]||!A57.keys[a57IcPk(s.cls)].includes(key))return null;
   let u=A57.ic.get(key);if(u)return u;const PK=typeof flPack==='function'?flPack(a57IcPk(s.cls)):null,r=PK&&PK.meta.r[key];if(!r)return null;
   try{const cv=document.createElement('canvas');cv.width=r[2];cv.height=r[3];cv.getContext('2d').drawImage(PK.img,r[0],r[1],r[2],r[3],0,0,r[2],r[3]);
@@ -110,7 +113,7 @@ function a57Icon(s){if(!s||!s.cls||!s.id||(typeof flWant==='function'&&!flWant()
 if(typeof IC25==='object'&&typeof IC25.svg==='function'){const _s=IC25.svg;IC25.svg=function(s){return a57Icon(s)||_s.apply(this,arguments)};
   if(typeof IC25.has==='function'){const _h=IC25.has;IC25.has=function(s){return !!a57Icon(s)||_h.apply(this,arguments)}}}
 if(typeof physIcon==='function'){const _p=physIcon;physIcon=function(s){return a57Icon(s)||_p.apply(this,arguments)}}
-function a57IcNeed(){if(P&&P.cls&&A57.keys[a57IcPk(P.cls)]&&typeof flNeed==='function')flNeed(a57IcPk(P.cls))}
+function a57IcNeed(){if(skicDetail()&&P&&P.cls&&A57.keys[a57IcPk(P.cls)]&&typeof flNeed==='function')flNeed(a57IcPk(P.cls))}
 {const _ng=newGame;newGame=function(){const r=_ng.apply(this,arguments);try{a57IcNeed()}catch(e){if(window.__QA)throw e}return r}}
 {const _ld=load;load=function(){const r=_ld.apply(this,arguments);try{if(r)a57IcNeed()}catch(e){if(window.__QA)throw e}return r}}
 // 묶음이 들어오면: 스킬 그림이면 단축칸 · 열린 창 다시 그리기, 새 땅 묶음이면 구운 그림 다시
