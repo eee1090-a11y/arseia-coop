@@ -227,11 +227,46 @@ function gPix(J,py0,py1,D){const {N,inv,ox,oy,gx0,gy0,GG,NG,KI,M,SA,TA,MX,LG,has
           R+=(wr-R)*a;G+=(wg-G)*a;B+=(wb-B)*a}}}
       D[o]=R;D[o+1]=G;D[o+2]=B;D[o+3]=255}}}
 // [v51 최적화] 땅 점 색 일꾼: 처음 쓸 때 한 번 만든다. 재질 그림(무늬)은 처음 한 번만 보내고 번호로 부른다
+// [v59 최적화] 땅 칸 계산(fieldAt)의 무거운 부분(재질 섞기 · 잡음 · 길 · 광장 · 밝기)을 일꾼에게 맡긴다. 지역마다 다른 부분(지역 무게 · 절벽 거리 · 물)은 화면 쪽에서 미리 계산해 넘긴다.
+// fieldAt과 같은 순서 · 같은 Float32 저장으로 계산해 결과가 한 비트도 다르지 않다 (점검: __gft). 이 함수는 일꾼 안에서도 돌므로 바깥 이름을 쓰지 않는다
+function gField(P,O){const clamp=(v,a,b)=>v<a?a:v>b?b:v,smooth=(a,b,v)=>{const t=clamp((v-a)/(b-a),0,1);return t*t*(3-2*t)};
+  function hash(x,y){let h=(x*374761393+y*668265263)|0;h=Math.imul(h^(h>>>13),1274126177);return((h^(h>>>16))>>>0)/4294967296}
+  function vnoise(x,y,sd){const i=Math.floor(x),j=Math.floor(y),fx=x-i,fy=y-j,u=fx*fx*(3-2*fx),v=fy*fy*(3-2*fy);
+    const a=hash(i+sd,j),b=hash(i+1+sd,j),c=hash(i+sd,j+1),d=hash(i+1+sd,j+1);return a+(b-a)*u+(c-a)*v+(a-b-c+d)*u*v}
+  const fbm=(x,y,sd)=>vnoise(x,y,sd)*.65+vnoise(x*2.3,y*2.3,sd+71)*.35;
+  function segDist(px,py,x1,y1,x2,y2){const dx=x2-x1,dy=y2-y1,l=dx*dx+dy*dy||1;const t=clamp(((px-x1)*dx+(py-y1)*dy)/l,0,1);return Math.hypot(px-(x1+dx*t),py-(y1+dy*t))}
+  const {NG,gx0,gy0,GG,GK,GSEED,RK,SK,sand,segs,towns,R0,off,gi,gw,A,far,dm,rc,Lq}=P,N2=NG*NG,{S,T,TU,MX,RD,LG,act}=O;
+  const s=new Float32Array(GK),t=new Float32Array(GK*3),tw=new Float32Array(GK),nS=segs.length/4,nT=towns.length/2;let hasL=false;
+  for(let j=0;j<NG;j++)for(let i=0;i<NG;i++){const x=gx0+i*GG,y=gy0+j*GG,q=j*NG+i,fr=far[q];let rd=1e9;
+    for(let k=0;k<GK;k++){s[k]=0;t[k*3]=t[k*3+1]=t[k*3+2]=0}
+    tw.fill(0);let dark=0,rc0=0,rc1=0,rc2=0,roadF=0,pc0=0,pc1=0,pc2=0,tuft=0,roadW=0;
+    for(let n=off[q];n<off[q+1];n++){const w=gw[n];if(w<=0)continue;const a=A[gi[n]],m=a.m,h=a.h;
+      for(let k=0;k<GK;k++){if(h[k]){s[k]+=w*m[k*4];t[k*3]+=w*m[k*4+1];t[k*3+1]+=w*m[k*4+2];t[k*3+2]+=w*m[k*4+3];tw[k]+=w}else s[k]-=w*2.2}
+      dark+=w*a.dark;rc0+=a.road[0]*w;rc1+=a.road[1]*w;rc2+=a.road[2]*w;roadF+=w*a.roadF;roadW+=w*a.roadW;
+      pc0+=a.plaza[0]*w;pc1+=a.plaza[1]*w;pc2+=a.plaza[2]*w;tuft+=w*a.tuft}
+    for(let k=0;k<8;k++){if(tw[k]>0){t[k*3]/=tw[k];t[k*3+1]/=tw[k];t[k*3+2]/=tw[k]}else{t[k*3]=90;t[k*3+1]=86;t[k*3+2]=70}
+      if(s[k]>-1.6)s[k]+=(fbm(x/230,y/230,GSEED[k])-.5)*1.5+(k&&tw[k]>0?(fbm(x/90,y/90,GSEED[k]+200)-.5)*1.2:0)}
+    const d0=dm[q];if(d0<60){const f=(1-d0/60)*(.4+fbm(x/36,y/36,141)*1.1);s[RK]=Math.max(s[RK],-.9+f*3);
+      if(tw[RK]<=0){t[RK*3]=rc[q*3]*.72;t[RK*3+1]=rc[q*3+1]*.72;t[RK*3+2]=rc[q*3+2]*.72}}
+    t[24]=rc0;t[25]=rc1;t[26]=rc2;t[27]=pc0;t[28]=pc1;t[29]=pc2;s[8]=s[9]=-5;
+    {let d=1e9;for(let n=0;n<nS;n++){const v=segDist(x,y,segs[n*4],segs[n*4+1],segs[n*4+2],segs[n*4+3]);if(v<d)d=v}
+      if(d<90){const hw=roadW/2+(fbm(x/60,y/60,5)-.5)*16,rs=.95+(hw-d)/20;if(roadF>.5)s[9]=Math.max(s[9],rs);else s[8]=rs;rd=d}else rd=1e9;
+      for(let n=0;n<nT;n++){const d2=Math.hypot(x-towns[n*2],y-towns[n*2+1]);if(d2<R0+60){s[9]=Math.max(s[9],1+(R0-d2+(fbm(x/50,y/50,9)-.5)*50)/28)}}}
+    const dune=sand?1+Math.sin((x*.55+y)/46+fbm(x/400,y/400,88)*7)*.07*smooth(-.5,.6,s[SK]):1;
+    const lum=dune*(1+(fbm(x/520,y/520,77)-.5)*.32)*(1-fr*.3-dark),ds=fr*.45+dark,hv=(fbm(x/380,y/380,61)-.5)*.5;
+    for(let k=0;k<GK;k++){let r=t[k*3],g=t[k*3+1],b=t[k*3+2];const gy=(r+g+b)/3;r+=(gy-r)*ds;g+=(gy-g)*ds;b+=(gy-b)*ds;t[k*3]=r*lum*(1+hv*.35);t[k*3+1]=g*lum*(1+hv*.1);t[k*3+2]=b*lum*(1-hv*.4)}
+    const L=Lq[q];let best=-1e9;
+    for(let k=0;k<GK;k++){S[k*N2+q]=s[k];T[(k*N2+q)*3]=t[k*3];T[(k*N2+q)*3+1]=t[k*3+1];T[(k*N2+q)*3+2]=t[k*3+2];if(s[k]>best)best=s[k]}
+    for(let k=0;k<GK;k++)if(s[k]>best-.75)act[k]=1;
+    LG[q]=L;if(L>.3)hasL=true;TU[q]=tuft;MX[q]=vnoise(x/300,y/300,55);RD[q]=rd}
+  return hasL}
+function gFieldOut(GK,N2){const fb=new Float32Array(GK*N2*4+N2*4);return{fb,S:fb.subarray(0,GK*N2),T:fb.subarray(GK*N2,GK*N2*4),TU:fb.subarray(GK*N2*4,GK*N2*4+N2),MX:fb.subarray(GK*N2*4+N2,GK*N2*4+N2*2),RD:fb.subarray(GK*N2*4+N2*2,GK*N2*4+N2*3),LG:fb.subarray(GK*N2*4+N2*3),act:new Uint8Array(GK)}}
 const GWK={w:null,bad:false,sync:false,id:new WeakMap(),nid:1,jobs:new Map(),k:0,n:0,
   ok(){if(this.bad||this.sync||window.__QA||location.hash==='#qa'||typeof Worker!=='function'||typeof Blob!=='function'||typeof URL==='undefined')return false;if(this.w)return true;
-    try{const src='const gPixW=('+gPix.toString()+');const TXS={};let GNZ=null,LUT=null;onmessage=e=>{const m=e.data;try{if(m.tx)for(const t of m.tx)TXS[t.id]=t;if(m.gnz){GNZ=m.gnz;LUT=m.lut}const J=m.J;J.TXh=J.tid.map(i=>TXS[i].h);J.TXr=J.tid.map(i=>TXS[i].rgb);J.LTh=J.lid?TXS[J.lid].h:null;J.LTr=J.lid?TXS[J.lid].rgb:null;J.GNZ=GNZ;J.LAVA_LUT=LUT;const D=new Uint8ClampedArray(J.N*J.N*4);gPixW(J,0,J.N,D);postMessage({k:m.k,buf:D},[D.buffer])}catch(err){postMessage({k:m.k,err:String(err)})}}';
-      const w=new Worker(URL.createObjectURL(new Blob([src],{type:'text/javascript'})));w.onmessage=e=>{const j=this.jobs.get(e.data.k);if(!j)return;this.jobs.delete(e.data.k);if(e.data.buf)j.buf=e.data.buf;else{j.err=1;this.bad=true}};
+    try{const src='const gPixW=('+gPix.toString()+');const gFieldW=('+gField.toString()+');const gFieldOutW=('+gFieldOut.toString()+');const TXS={};let GNZ=null,LUT=null;onmessage=e=>{const m=e.data;try{if(m.f){const P=m.P,O=gFieldOutW(P.GK,P.NG*P.NG),hasL=gFieldW(P,O);postMessage({k:m.k,fb:O.fb,act:O.act,hasL},[O.fb.buffer]);return}if(m.tx)for(const t of m.tx)TXS[t.id]=t;if(m.gnz){GNZ=m.gnz;LUT=m.lut}const J=m.J;J.TXh=J.tid.map(i=>TXS[i].h);J.TXr=J.tid.map(i=>TXS[i].rgb);J.LTh=J.lid?TXS[J.lid].h:null;J.LTr=J.lid?TXS[J.lid].rgb:null;J.GNZ=GNZ;J.LAVA_LUT=LUT;const D=new Uint8ClampedArray(J.N*J.N*4);gPixW(J,0,J.N,D);postMessage({k:m.k,buf:D},[D.buffer])}catch(err){postMessage({k:m.k,err:String(err)})}}';
+      const w=new Worker(URL.createObjectURL(new Blob([src],{type:'text/javascript'})));w.onmessage=e=>{const j=this.jobs.get(e.data.k);if(!j)return;this.jobs.delete(e.data.k);if(e.data.buf)j.buf=e.data.buf;else if(e.data.fb){j.fb=e.data.fb;j.act=e.data.act;j.hasL=e.data.hasL}else{j.err=1;this.bad=true}};
       w.onerror=()=>{this.bad=true;for(const j of this.jobs.values())j.err=1;this.jobs.clear()};this.w=w;this.first=true}catch(_){this.bad=true;return false}return true},
+  runF(P,tr){if(!this.ok()||this.noF)return null;const k=++this.k,j={fb:null,err:0};this.jobs.set(k,j);this.nf=(this.nf||0)+1;try{this.w.postMessage({f:1,k,P},tr)}catch(_){this.jobs.delete(k);this.bad=true;return null}return j},
   tid(t){let i=this.id.get(t);if(!i){i=this.nid++;this.id.set(t,i)}return i},
   run(J,TX,LT){if(!this.ok())return null;const tx=[],sent=this.sent||(this.sent=new Set()),add=t=>{const i=this.tid(t);if(!sent.has(i)){sent.add(i);tx.push({id:i,h:t.h,rgb:t.rgb})}return i};
     const Jw=Object.assign({},J,{TXh:null,TXr:null,LTh:null,LTr:null,GNZ:null,LAVA_LUT:null,tid:TX.map(add),lid:LT?add(LT):0}),k=++this.k,j={buf:null,err:0};this.jobs.set(k,j);this.n++;
@@ -246,7 +281,27 @@ function* paintGround(g,ox,oy,sc){
   const segs=[];for(const r of ROADS)for(let i=1;i<r.length;i++){const a=r[i-1],b=r[i];if(Math.max(a.x,b.x)<ox-150||Math.min(a.x,b.x)>ox+CH+150||Math.max(a.y,b.y)<oy-150||Math.min(a.y,b.y)>oy+CH+150)continue;segs.push([a.x,a.y,b.x,b.y])}
   const S=[],T=[],F={s:new Float32Array(GK),t:new Float32Array(GK*3),L:0};for(let k=0;k<GK;k++){S.push(gArr('s'+k,NG*NG));T.push(gArr('t'+k,NG*NG*3))}
   const LG=gArr('L',NG*NG),TU=gArr('tu',NG*NG),MX=gArr('mx',NG*NG),RD=gArr('rd',NG*NG);let hasL=false;const act=new Uint8Array(GK);
-  for(let j=0;j<NG;j++)for(let i=0;i<NG;i++){if(i===0&&j%10===9)yield;const x=gx0+i*GG,y=gy0+j*GG,q=j*NG+i;F.rd=1e9;fieldAt(x,y,segs,F);let best=-1e9;
+  let fdone=false;
+  if(GWK.ok()&&!GWK.noF){// [v59] 지역마다 다른 부분만 여기서 · 나머지는 일꾼
+    const N2=NG*NG,off=new Int32Array(N2+1),far=new Float64Array(N2),dmA=new Float64Array(N2),rcA=new Float64Array(N2*3),Lq=new Float64Array(N2),gi=[],gw=[],amap=new Map(),A=[];
+    const wallOn=typeof TGRID!=='undefined'&&TGRID&&TGRID.w;
+    const enc=a=>{const m=new Float64Array(GK*4),h=new Uint8Array(GK);for(let k=0;k<GK;k++){const e=a.m[GMAT[k]];if(e){h[k]=1;m[k*4]=e[0];m[k*4+1]=e[1][0];m[k*4+2]=e[1][1];m[k*4+3]=e[1][2]}}
+      return{m,h,dark:a.dark||0,road:(a.road||[110,94,66]).slice(0,3),roadF:a.roadFlag||0,roadW:a.roadW||44,plaza:(a.plaza||a.road||[120,110,96]).slice(0,3),tuft:a.tuft||0}};
+    let ts=performance.now();
+    for(let j=0;j<NG;j++){for(let i=0;i<NG;i++){const x=gx0+i*GG,y=gy0+j*GG,q=j*NG+i;far[q]=areaWeights(x,y);
+        for(const [a,w] of GAW){let id=amap.get(a);if(id==null){id=A.length;amap.set(a,id);A.push(enc(a))}gi.push(id);gw.push(w)}off[q+1]=gi.length;
+        let dm=1e9;if(wallOn){const ci=Math.floor(x/100),cj=Math.floor(y/100);for(let dj=-1;dj<=1;dj++)for(let di=-1;di<=1;di++){if(!terrWallIJ(ci+di,cj+dj))continue;const x0=(ci+di)*100,y0=(cj+dj)*100,dx=Math.max(x0-x,0,x-x0-100),dy=Math.max(y0-y,0,y-y0-100),d=Math.hypot(dx,dy);if(d<dm)dm=d}
+          if(dm<60){const c=TTHEME[terrTheme(REG.id,x,y)].rock;rcA[q*3]=c[0];rcA[q*3+1]=c[1];rcA[q*3+2]=c[2]}}
+        dmA[q]=dm;Lq[q]=LQ?liqAt(x,y):0}
+      if(performance.now()-ts>3){yield;ts=performance.now()}}
+    const sg=new Float64Array(segs.length*4);segs.forEach((g,n)=>{sg[n*4]=g[0];sg[n*4+1]=g[1];sg[n*4+2]=g[2];sg[n*4+3]=g[3]});const tn=new Float64Array(TOWNS.length*2);TOWNS.forEach((t,n)=>{tn[n*2]=t.x;tn[n*2+1]=t.y});
+    const P={NG,gx0,gy0,GG,GK,GSEED,RK:GI.rock,SK:GI.sand,sand:!!(REG.th&&REG.th.paint==='sand'),segs:sg,towns:tn,R0:TOWN_R+70,off,gi:new Int32Array(gi),gw:new Float64Array(gw),A,far,dm:dmA,rc:rcA,Lq};
+    const wf=GWK.runF(P,[off.buffer,far.buffer,dmA.buffer,rcA.buffer,Lq.buffer]);
+    if(wf){const t0=performance.now();while(!wf.fb&&!wf.err&&performance.now()-t0<4000)yield 'W';
+      if(wf.fb&&wf.fb.length===GK*N2*4+N2*4){const fb=wf.fb;for(let k=0;k<GK;k++){S[k]=fb.slice(k*N2,(k+1)*N2);T[k]=fb.slice(GK*N2+k*N2*3,GK*N2+(k+1)*N2*3)}
+        LG.set(fb.subarray(GK*N2*4+N2*3,GK*N2*4+N2*4));TU.set(fb.subarray(GK*N2*4,GK*N2*4+N2));MX.set(fb.subarray(GK*N2*4+N2,GK*N2*4+N2*2));RD.set(fb.subarray(GK*N2*4+N2*2,GK*N2*4+N2*3));
+        act.set(wf.act);hasL=!!wf.hasL;fdone=true;GWK.fo=(GWK.fo||0)+1}}}
+  if(!fdone)for(let j=0;j<NG;j++)for(let i=0;i<NG;i++){if(i===0&&j%10===9)yield;const x=gx0+i*GG,y=gy0+j*GG,q=j*NG+i;F.rd=1e9;fieldAt(x,y,segs,F);let best=-1e9;
     for(let k=0;k<GK;k++){S[k][q]=F.s[k];T[k][q*3]=F.t[k*3];T[k][q*3+1]=F.t[k*3+1];T[k][q*3+2]=F.t[k*3+2];if(F.s[k]>best)best=F.s[k]}
     for(let k=0;k<GK;k++)if(F.s[k]>best-.75)act[k]=1;
     LG[q]=F.L;if(F.L>.3)hasL=true;TU[q]=F.tuft;MX[q]=vnoise(x/300,y/300,55);RD[q]=F.rd}
@@ -312,7 +367,7 @@ function chunkPreview(cx,cy){const cv=document.createElement('canvas');cv.width=
   for(let j=0;j<5;j++)for(let i=0;i<5;i++){const c=DG?[12,11,10]:groundRGB(cx*CH+i*100,cy*CH+j*100).map(v=>v/.75),k=(j*5+i)*4;id.data[k]=c[0];id.data[k+1]=c[1];id.data[k+2]=c[2];id.data[k+3]=255}g.putImageData(id,0,0);return cv}
 function getChunkE(cx,cy){const want=clamp(Math.round(DPR*.9*20)/20,.8,1.4);if(want!==chunkScale){const first=!chunkScale;chunkScale=want;if(first){chunks.clear();GJOBS.length=0}else chunkStale()}// [v27] 해상도·확대가 바뀌어도 땅을 지우지 않고 새로 구울 때까지 예전 그림을 쓴다 (흐려졌다 다시 그려지던 깜빡임)
   const k=cx*1000+cy;let c=chunks.get(k);if(c){c.used=frameN;return c}
-  const cv2=document.createElement('canvas');cv2.width=cv2.height=Math.round(CH*chunkScale);const g2=cv2.getContext('2d');g2.scale(chunkScale,chunkScale);
+  const cv2=chunkCv(Math.round(CH*chunkScale)),g2=cv2.getContext('2d');g2.setTransform(chunkScale,0,0,chunkScale,0,0);
   c={cv:cv2,used:frameN,fx:null,ready:false,pv:chunkPreview(cx,cy),cx,cy,ms:0};c.job=paintChunkG(g2,cx*CH,cy*CH);chunks.set(k,c);GJOBS.push(c);
   chunkTrim();return c}
 // [v34 최적화] 땅 조각 저장을 개수(64개)가 아니라 메모리로 막는다: PC 96MB · 휴대폰 40MB (조각 그림 + 화면 방향 그림).
@@ -320,7 +375,14 @@ function getChunkE(cx,cy){const want=clamp(Math.round(DPR*.9*20)/20,.8,1.4);if(w
 const CH_CAP=(matchMedia('(pointer:coarse)').matches?40:96)*1048576;
 function chunkMem(c){return(c.cv?c.cv.width*c.cv.height*4:0)+(c.iso?c.iso.cv.width*c.iso.cv.height*4:0)}
 function chunkTrim(){let m=0;for(const v of chunks.values())m+=chunkMem(v);
-  while(chunks.size>64||m>CH_CAP){let old=null,ou=1e12;for(const [kk,v] of chunks)if(v.used<ou&&v.ready&&v.used<frameN-1){ou=v.used;old=kk}if(old==null)break;m-=chunkMem(chunks.get(old));chunks.delete(old)}return m}
+  while(chunks.size>64||m>CH_CAP){let old=null,ou=1e12;for(const [kk,v] of chunks)if(v.used<ou&&v.ready&&v.used<frameN-1){ou=v.used;old=kk}if(old==null)break;m-=chunkMem(chunks.get(old));chunkPool(chunks.get(old));chunks.delete(old)}return m}
+// [v59 최적화] 다 쓴 땅 조각 그림판(캔버스)을 버리지 않고 다음 조각에 다시 쓴다 (지역을 옮길 때 새 그림판 수십 장을 만드느라 멈칫하고 쓰레기 치우기가 늘던 것).
+// 다 구운 조각만 모은다(굽는 중인 조각은 일감이 아직 그 그림판을 쓸 수 있어서). 같은 크기만 다시 쓰고, 쓰기 전에 깨끗이 지운다
+const CHPOOL=[];let CHPOOL_ON=true;
+function chunkPool(v){if(!CHPOOL_ON||!v||!v.ready||!v.cv||v.job||CHPOOL.length>=16)return;CHPOOL.push(v.cv);v.cv=null}
+function chunkCv(n){for(let i=CHPOOL.length-1;i>=0;i--){const c=CHPOOL[i];if(c.width===n&&c.height===n){CHPOOL.splice(i,1);const g=c.getContext('2d');g.setTransform(1,0,0,1,0,0);g.globalAlpha=1;g.globalCompositeOperation='source-over';g.clearRect(0,0,n,n);return c}}
+  const c=document.createElement('canvas');c.width=c.height=n;return c}
+chunks.clear=function(){for(const v of this.values())chunkPool(v);return Map.prototype.clear.call(this)};
 // [v26 최적화] 땅 무늬 그림이 새로 도착하면(Flare 묶음) 다 구운 조각을 지우지 않고, 새로 다 구울 때까지 예전 그림을 그대로 보여 준다
 // (예전에는 모두 지워 흐린 미리보기로 돌아갔다가 다시 구웠다)
 function chunkStale(){for(const c of chunks.values()){if(c.ready)c.stale=1;else{c.job=null;chunks.delete(c.cx*1000+c.cy)}}for(const c of GJOBS)if(c.par)c.par.rb=null;GJOBS.length=0}

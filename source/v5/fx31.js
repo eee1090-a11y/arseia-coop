@@ -126,7 +126,7 @@ const FX31={P:{},want:{},busy:0,busyT:0,q:[],inst:[],nd:0,t:0,C:128,
     // [v42 경량화] 인터넷이면 작은 목록(.m.js)+그림 파일, 없으면 예전 .js (flare.js PKWEB)
     const fail=()=>{this.want[pk]='fail';this.busy=0},go=(src,f)=>{const s=document.createElement('script');s.src=src;s.onerror=f;s.onload=()=>{s.remove()};document.head.appendChild(s)};
     if(PKWEB)go('img/fx-'+pk+'.m.js',()=>go('img/fx-'+pk+'.js',fail));else go('img/fx-'+pk+'.js',fail)},
-  got(name,meta,url){const im=new Image(),put=b=>{if(!this.P[name])this.P[name]={img:b,meta,mem:meta.size[0]*meta.size[1]*4,used:this.now()};this.want[name]=2;if(this.busy===name)this.busy=0},ok=()=>{if(/^data:/.test(url))put(im);else pkBitmap(im,put)};
+  got(name,meta,url){const im=new Image(),put=b=>{if(!this.P[name])this.P[name]={img:b,meta,mem:meta.size[0]*meta.size[1]*4,used:this.now()};this.want[name]=2;if(this.busy===name)this.busy=0},ok=()=>{if(/^data:/.test(url))put(im);else pkBitmap(im,put,'fx-'+name,meta)};
     im.onload=()=>{im.decode?im.decode().then(ok,ok):ok()};im.onerror=()=>{const fail=()=>{this.want[name]='fail';if(this.busy===name)this.busy=0};if(/^data:/.test(url)){fail();return}const s=document.createElement('script');s.src='img/fx-'+name+'.js';s.onerror=fail;s.onload=()=>{s.remove()};document.head.appendChild(s)};im.src=url},
   barPacks(){const s=new Set();if(P&&P.bar)for(const id of P.bar){const m=id&&this.M[id];if(m&&skLv(id)>0)s.add(m.pk)}return s},
   // 게임 중 1.5초마다: 단축칸 스킬 묶음을 줄 세우고 하나씩 받고, 오래 안 쓴 묶음을 내려놓는다

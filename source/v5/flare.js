@@ -18,8 +18,11 @@ function pkLoad(base,onfail){if(!PKWEB){pkScript(base+'.js',onfail);return}pkScr
 // 그림 파일이 다른 출처로 취급돼 색을 못 읽는 곳(일부 미리보기 창 등)이면 예전 .js로 다시 받는다
 function pkTainted(im){try{const c=document.createElement('canvas');c.width=c.height=1;const g=c.getContext('2d');g.drawImage(im,0,0,1,1);g.getImageData(0,0,1,1);return false}catch(_){return true}}
 // 파일에서 받은 그림은 미리 풀어 둔 그림(ImageBitmap)으로 바꿔 그린다 (그대로 쓰면 그릴 때마다 다시 푸는지 마을 그리기가 15% 느렸음)
-function pkBitmap(im,cb){if(typeof createImageBitmap!=='function'){cb(im);return}createImageBitmap(im).then(cb,()=>cb(im))}
-window.FLARE_PACK=function(name,meta,url){const im=new Image();const ok=()=>{if(FL.P[name])return;if(!/^data:/.test(url)){if(pkTainted(im)){pkScript('img/flare-'+name+'.js',()=>{FL.want[name]='fail'});return}pkBitmap(im,b=>{if(FL.P[name])return;FL.P[name]={img:b,meta};flReady(name)});return}FL.P[name]={img:im,meta};flReady(name)};im.onload=()=>{im.decode?im.decode().then(ok,ok):ok()};
+function pkBitmap(im,cb,name,meta){if(typeof createImageBitmap!=='function'){cb(im);return}
+  // [v59 경량화] 그래픽 「낮음」이면 몬스터 · 건물 · 사람 · 기술 그림 묶음을 절반 크기로 풀어 둔다 (메모리 약 1/4). 그릴 때 자르는 자리는 lap59.js가 맞춰 준다
+  const hw=name&&typeof h59Want==='function'&&h59Want(name,meta,im);if(hw){const w2=Math.max(1,Math.ceil(im.width/2)),h2=Math.max(1,Math.ceil(im.height/2));createImageBitmap(im,{resizeWidth:w2,resizeHeight:h2,resizeQuality:'high'}).then(b=>{h59Reg(b,im.width,im.height,name);cb(b)},()=>createImageBitmap(im).then(cb,()=>cb(im)));return}
+  createImageBitmap(im).then(cb,()=>cb(im))}
+window.FLARE_PACK=function(name,meta,url){const im=new Image();const ok=()=>{if(FL.P[name])return;if(!/^data:/.test(url)){if(pkTainted(im)){pkScript('img/flare-'+name+'.js',()=>{FL.want[name]='fail'});return}pkBitmap(im,b=>{if(FL.P[name])return;FL.P[name]={img:b,meta};flReady(name)},name,meta);return}FL.P[name]={img:im,meta};flReady(name)};im.onload=()=>{im.decode?im.decode().then(ok,ok):ok()};
   im.onerror=()=>{if(/^data:/.test(url))FL.want[name]='fail';else pkScript('img/flare-'+name+'.js',()=>{FL.want[name]='fail'})};im.src=url};
 function flWant(){return GFX.art!=='old'}
 // 묶음 하나 받기 (한 번만). #qa에서는 받지 않는다.

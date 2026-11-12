@@ -22,12 +22,19 @@ function d57Gate(){const w=$('#g26w');if(!w||!d57Show())return 0;let n=0;
   for(const c of w.querySelectorAll('.g26c[data-greg]')){const id=c.getAttribute('data-greg'),on=d57Ok(id);c.classList.toggle('d57',on);
     const nm=c.querySelector('.g26n');let b=c.querySelector('.d57b');if(on&&!b&&nm){b=document.createElement('span');b.className='d57b';b.textContent='✦ ';b.title='어둠의 등불 대상 지역';nm.prepend(b)}else if(!on&&b)b.remove();if(on)n++}
   if(!panel.querySelector('.d57h')){const s=document.createElement('p');s.className='muted d57h';
-    s.innerHTML=`<b style="color:${D57.col}">✦ 보라 굵은 테두리</b> = 어둠의 등불 대상 지역 (${d57Rule()})`;w.insertAdjacentElement('afterend',s)}return n}
+    s.innerHTML=`<b style="color:${D57.col}">✦ 보라 굵은 테두리</b> = 어둠의 등불 대상 지역 (${d57Rule()})`;d57GateLeg(w,s)}return n}
+/* v59 고침: 설명 줄을 지도 바로 뒤(PC 가로 줄 안)에 넣어 지도가 좁아지고 오른쪽이 가려지던 것 →
+   PC는 왼쪽 칸 맨 아래, 휴대폰은 지도 위 한 줄(지도 칸 높이를 그만큼 줄임). 지도 크기 · 자리는 그대로 */
+function d57GateLeg(w,s){const side=pbody.querySelector('.g27side');if(side){side.appendChild(s);return 'side'}
+  const ph=typeof M22==='object'&&M22.phone()&&pbody.querySelector('.f29mapfit');
+  if(ph){s.classList.add('d57hm');s.innerHTML=`<b style="color:${D57.col}">✦ 보라 테두리</b> = 어둠의 등불 대상 지역`;s.title=d57Rule();w.before(s);const lh=s.getBoundingClientRect().height+2;
+    if(typeof M30==='object'&&M30.gh)M30.gh=Math.max(60,M30.gh-lh);w.style.height=Math.max(60,parseFloat(w.style.height||w.clientHeight)-lh)+'px';return 'phone'}
+  w.insertAdjacentElement('afterend',s);return 'after'}
 {const _rp=renderPanel;renderPanel=function(){const r=_rp.apply(this,arguments);if(tab==='gate')d21Try(d57Gate);return r}}
 {const st=document.createElement('style');st.textContent=`
 .g26c.d57{box-shadow:0 0 0 3px ${D57.col},0 0 10px rgba(180,138,255,.45)}
 .g26c .d57b{color:${D57.col};font-weight:700}
-.d57h{font-size:12.5px;margin:4px 0}`;document.head.appendChild(st)}
+.d57h{font-size:12.5px;margin:4px 0}.g27side .d57h{margin:10px 0 0;line-height:1.5}.d57h.d57hm{font-size:11px;margin:2px 0 0;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}`;document.head.appendChild(st)}
 /* ===== 세계 지도: 대상 지역 굵은 테두리 ===== */
 function d57Wmap(g){const G=WMAP.geo;if(!G||!g||!d57Show())return 0;let n=0;
   g.save();g.strokeStyle=D57.col;g.lineWidth=4;g.shadowColor='rgba(180,138,255,.6)';g.shadowBlur=6;
@@ -35,4 +42,4 @@ function d57Wmap(g){const G=WMAP.geo;if(!G||!g||!d57Show())return 0;let n=0;
   const lg=$('#wmapLeg');if(lg&&!lg.innerHTML.includes('d57leg'))lg.innerHTML+=`<span class="d57leg"> <b style="color:${D57.col}">▢ 보라 굵은 테두리</b> 어둠의 등불 대상 지역: ${d57Rule()}${darkLit()?` · 지금 ${(P.dark.cur|0)?`어둠 ${P.dark.cur}단계`:'꺼짐'}`:' · 등불은 아직 꺼져 있음'}.</span>`;
   return n}
 {const _w=wmapWorld22;wmapWorld22=function(g){const r=_w.apply(this,arguments);d21Try(()=>d57Wmap(g));return r}}
-setTimeout(()=>{try{if(window.__game)Object.assign(window.__game,{D57,d57Show,d57Ok,d57MiniLabel,d57Gate,d57Wmap,darkRegOk,darkRegList})}catch(_){}},0);
+setTimeout(()=>{try{if(window.__game)Object.assign(window.__game,{D57,d57Show,d57Ok,d57MiniLabel,d57Gate,d57GateLeg,d57Wmap,darkRegOk,darkRegList})}catch(_){}},0);

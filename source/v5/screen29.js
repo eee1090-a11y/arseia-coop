@@ -44,4 +44,5 @@ body.m22 #panel .card.f29gate{height:100%;overflow:hidden;padding:6px 10px;displ
 body.m22 .f29gate .phead{flex:none;margin:0 0 2px;height:32px}body.m22 .f29gate .phead h1{font-size:16px}body.m22 .f29gate #pclose{padding:3px 10px;min-height:28px}
 body.m22 .f29gate #pbody{min-height:0;flex:1}.f29gatehead{display:flex;align-items:center;gap:6px;white-space:nowrap;font-size:11px;height:28px}.f29gatehead .diffs{display:flex;gap:3px;margin:0}.f29gatehead button{font-size:11px;padding:3px 5px}.f29gatehead>span:last-child{overflow:hidden;text-overflow:ellipsis}
 body.m22 .f29gate .g26w{margin:2px 0 0}
+.f29gatehead .diffs{flex-wrap:nowrap;flex:none}.f29gatehead>span:not(.m30z){min-width:0;flex:1 1 auto;overflow:hidden;text-overflow:ellipsis}.f29gatehead .m30z,.f29gatehead>span:first-child{flex:none}body.m22P .f29gatehead>span:first-child{display:none}/* v59: 좁은 휴대폰에서 「지옥」 단추가 아랫줄로 넘쳐 지도 위를 덮던 것 */
 `;document.head.appendChild(st);}

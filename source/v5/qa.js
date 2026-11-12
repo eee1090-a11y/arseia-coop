@@ -8533,9 +8533,11 @@ qT(QG,'바다 동굴: 밀물이면 입구가 막히고 썰물이면 열림 (입�
 qT(QG,'큰 구덩이: 네 땅 주인을 다 잡기 전엔 닫힘 · 식은 별의 심장 · 별똥 · 조각 있으면 피해 0.4배',()=>{qG1(G100.spire,140);const c=CAVES.find(q=>q.cave&&q.cave.id===G100.crater);qOk(c,'입구 없음');
   const s=g100S();s.bk={};G100H.qaLock=true;try{enterDungeon(c);qOk(!DG,'잠겼는데 들어감');for(const k of G100.bosses)s.bk[k]=1;enterDungeon(c);qOk(DG&&DG.boss&&DG.boss.k==='b_cr1_heart','심장 없음');
     const b=DG.boss;P.x=b.x;P.y=b.y+200;b.aggroed=true;P.hp=maxHp();let mf=0;qStep(240,{dt:1/20,each:()=>{const S=G100HV.st;if(S)mf=Math.max(mf,S.falls.length)}});qOk(mf>=3,'별똥 '+mf);
-    b.hp=b.max*.7;qStep(3,{dt:.05});const S=G100HV.st;qOk(S.shards.length>=1,'조각 '+S.shards.length);/* v58: 같은 걸음에 동료가 조각을 잡으면 가끔 막이 없어 실패하던 것 고침: 때리기 전에 조각을 살려 두고, 막 있음 / 막 풀림 비율로 봄 */
-    for(const e of S.shards){e.dead=false;e.hp=Math.max(e.hp,e.max*.5)}const al=S.shards.some(x=>!x.dead&&x.hp>0);const h0=b.hp;hurtE(b,1000,{});const d1=h0-b.hp;
-    for(const e of S.shards)qKillE(e);qStep(2,{dt:.05});const h1=b.hp;hurtE(b,1000,{});const d2=h1-b.hp;qOk(al&&d2>0&&Math.abs(d1/d2-G100H.shield)<.01,'막 '+d1+' / 풀림 '+d2)}finally{s.bk={};G100H.qaLock=false;if(DG)leaveDungeon()}
+    b.hp=b.max*.7;qStep(3,{dt:.05});const S=G100HV.st;qOk(S.shards.length>=1,'조각 '+S.shards.length);/* v58: 같은 걸음에 동료가 조각을 잡으면 가끔 막이 없어 실패하던 것 고침: 때리기 전에 조각을 살려 두고, 막 있음 / 막 풀림 비율로 봄
+       v59: 진짜 원인은 hurtE 안의 무작위 치명타(×1.75) → 두 번 때릴 때 치명타를 끔 */
+    const gs=gearStats;gearStats=()=>Object.assign({},gs(),{crit:-1e4});let d1,d2,al;try{
+    for(const e of S.shards){e.dead=false;e.hp=Math.max(e.hp,e.max*.5)}al=S.shards.some(x=>!x.dead&&x.hp>0);const h0=b.hp;hurtE(b,1000,{});d1=h0-b.hp;
+    for(const e of S.shards)qKillE(e);qStep(2,{dt:.05});const h1=b.hp;hurtE(b,1000,{});d2=h1-b.hp}finally{gearStats=gs}qOk(Math.abs(d2-1000)<1,'막 풀림 '+d2);qOk(al&&d2>0&&Math.abs(d1/d2-G100H.shield)<.01,'막 '+d1+' / 풀림 '+d2)}finally{s.bk={};G100H.qaLock=false;if(DG)leaveDungeon()}
   loadRegion('home');return '잠김 · 별똥 · 조각 막'});
 qT(QG,'130레벨부터 나보다 높은 몬스터 경험치: 줄지 않고 1레벨마다 +2% (최대 +40%) · 130 아래는 그대로',()=>{qW3Prep('mage',135);const seen=[];const _g=gainXp;
   try{gainXp=function(n){seen.push(G100B.kx);return _g.apply(this,arguments)};
@@ -8904,6 +8906,69 @@ qT(QA58,'묶음이 있을 때: 전사 · 궁수 · 사제 스킬 그림 · 전�
   const L2=heroLook18(P);L2.ot=4;L2.g54={o:-1,r:-1,w:-1,r1:-1,r2:-1,am:-1};const e4=heroPart18('warrior','shield',0,L2,1,0);qOk(!e4||!/hero58/.test(e4.key||''),'예전 그림인데 방패 새 그림');
   return '스킬 · 방패 · 맞음 · 치명타 · 빗나감 · 피함 · 레벨 업 · 되살아남'}));
 }
+{const QM59='최적화 v59';
+const qChar59=()=>Object.keys(localStorage).filter(k=>/^arseia-char-/.test(k)).map(k=>k+'='+localStorage.getItem(k).length).join();
+qT(QM59,'1 땅 칸 계산을 일꾼에게 맡겨도 땅 그림이 화소 하나까지 같음 (마을 · 들판 · 모래 · 물/용암 지역) · 일꾼 계산 함수는 혼자서 돌아감(바깥 이름을 안 씀)',async()=>{qPrep('mage');
+  const gF=(0,eval)('('+gField.toString()+')'),gO=(0,eval)('('+gFieldOut.toString()+')');// 일꾼 안과 같은 조건: 게임 밖 전역에서 만든 복사본
+  const ids=['home','plains','canyon'];const lava=Object.keys(REGIONS).find(k=>REGIONS[k].th&&REGIONS[k].th.liq&&REGIONS[k].th.liq.kind==='lava');if(lava)ids.push(lava);const ice=Object.keys(REGIONS).find(k=>REGIONS[k].th&&REGIONS[k].th.liq&&REGIONS[k].th.liq.kind==='ice');if(ice)ids.push(ice);
+  const o0=GWK.ok,r0=GWK.runF,u0=GWK.run,nf0=GWK.noF,out=[];let used=0,tot=0;
+  const paint=(cx,cy,sc)=>{const N=Math.round(CH*sc),c=document.createElement('canvas');c.width=c.height=N;const g=c.getContext('2d');g.scale(sc,sc);const it=paintChunkG(g,cx*CH,cy*CH);let r,n=0;while(!(r=it.next()).done){if(r.value==='W'&&++n>5)throw new Error('일꾼 기다림')}return g.getImageData(0,0,N,N).data};
+  try{GWK.ok=function(){return true};GWK.run=function(){return null};GWK.runF=function(P){if(this.noF)return null;used++;const O=gO(P.GK,P.NG*P.NG),h=gF(P,O);return{fb:O.fb,act:O.act,hasL:h,err:0}};
+    for(const id of ids){loadRegion(id);const T=id==='home'&&TOWNS[0]?TOWNS[0]:P,cx=Math.floor(T.x/CH),cy=Math.floor(T.y/CH);let d=0;
+      for(const [dx,dy] of [[0,0],[1,1]]){GWK.noF=true;const a=paint(cx+dx,cy+dy,.5);GWK.noF=false;const u1=used;const b=paint(cx+dx,cy+dy,.5);qOk(used===u1+1,id+' 일꾼 길을 안 탐');tot++;for(let i=0;i<a.length;i++)if(a[i]!==b[i])d++}
+      qOk(d===0,id+' 화소가 다름 '+d);out.push(id+' '+d)}}
+  finally{GWK.ok=o0;GWK.runF=r0;GWK.run=u0;GWK.noF=nf0;loadRegion('home')}
+  return `조각 ${tot}개 · 다른 화소 ${out.join(' · ')}`});
+qT(QM59,'1 일꾼을 못 쓰면(검사 · 오류 · 끊김) 예전처럼 여기서 계산 · 일꾼이 틀린 크기를 돌려줘도 예전 계산으로',()=>{qPrep('mage');const o0=GWK.ok,r0=GWK.runF,u0=GWK.run;let n=0;
+  const paint=()=>{const c=document.createElement('canvas');c.width=c.height=CH/4;const g=c.getContext('2d');g.scale(.25,.25);const it=paintChunkG(g,Math.floor(P.x/CH)*CH,Math.floor(P.y/CH)*CH);let r,w=0;while(!(r=it.next()).done){if(r.value==='W')w++}return [g.getImageData(0,0,c.width,c.height).data,w]};
+  try{qOk(!GWK.ok(),'#qa 에서 일꾼을 씀');const [a]=paint();GWK.ok=function(){return true};GWK.run=function(){return null};GWK.runF=function(){n++;return{fb:new Float32Array(3),act:new Uint8Array(1),err:0}};const [b]=paint();
+    GWK.runF=function(){n++;return{fb:null,err:1}};const [c,w]=paint();let d=0;for(let i=0;i<a.length;i++)if(a[i]!==b[i]||a[i]!==c[i])d++;qOk(n===2,'일꾼 부름 '+n);qOk(d===0,'예전 계산과 다름 '+d);return '틀린 크기 · 오류 → 예전 계산, 같은 그림'}
+  finally{GWK.ok=o0;GWK.runF=r0;GWK.run=u0}});
+qT(QM59,'1 땅 조각 그림판 다시 쓰기: 같은 크기는 다시 쓰고 깨끗이 지움 · 크기가 다르면 새로 · 많아야 16개 · 아직 그리는 중인 조각은 안 넣음',()=>{const keep=CHPOOL.splice(0),on=CHPOOL_ON;
+  try{CHPOOL_ON=true;const mk=n=>{const c=document.createElement('canvas');c.width=c.height=n;const g=c.getContext('2d');g.fillStyle='#f00';g.fillRect(0,0,n,n);g.setTransform(2,0,0,2,5,5);g.globalAlpha=.3;return c};
+    const v={ready:true,cv:mk(64),job:null},c0=v.cv;chunkPool(v);qOk(CHPOOL.length===1&&v.cv===null,'그림판을 안 넣음');const c1=chunkCv(64);qOk(c1===c0&&CHPOOL.length===0,'같은 크기인데 새로 만듦');
+    const g=c1.getContext('2d'),px=g.getImageData(0,0,64,64).data;let s=0;for(let i=3;i<px.length;i+=4)s+=px[i];qOk(s===0,'지우지 않음');const t=g.getTransform();qOk(t.a===1&&t.e===0&&g.globalAlpha===1,'설정이 남음');
+    chunkPool({ready:true,cv:mk(64),job:null});const c2=chunkCv(48);qOk(c2.width===48&&CHPOOL.length===1,'크기가 다른데 다시 씀');
+    const w={ready:true,cv:mk(64),job:{}};chunkPool(w);qOk(w.cv&&CHPOOL.length===1,'그리는 중인 조각을 넣음');chunkPool({ready:false,cv:mk(64)});qOk(CHPOOL.length===1,'준비 안 된 조각을 넣음');
+    for(let i=0;i<30;i++)chunkPool({ready:true,cv:mk(8),job:null});qOk(CHPOOL.length===16,'많아야 16 '+CHPOOL.length);return '다시 씀 · 지움 · 16개까지'}
+  finally{CHPOOL.splice(0);CHPOOL.push(...keep);CHPOOL_ON=on}});
+qT(QM59,'2 「낮음」일 때만 몬스터 · 건물 · 사람 · 기술 그림 묶음을 절반으로 · 땅 · 절벽 무늬 · 땅 색을 읽는 묶음 · 작은 그림은 그대로',()=>{const q0=GFX.q,im={width:1024,height:512};
+  try{GFX.q='low';for(const n of ['m-wolf','g48-orc','npc48-bren','folk','folk-role','cg-town','cg-decor','fx-mage-fire','fx-common'])qOk(h59Want(n,{r:{a:[0,0,1,1]}},im),'절반이 안 됨 '+n);
+    for(const n of ['cg-ground','cg-cliff','hero58-w','gear-x','icon-sk',''])qOk(!h59Want(n,{r:{}},im),'절반이 됨 '+n);
+    qOk(!h59Want('m-wolf',{r:{'tex/grass':[0,0,1,1]}},im),'땅 무늬 묶음이 절반');qOk(!h59Want('m-wolf',{r:{}},{width:40,height:40}),'작은 그림이 절반');
+    for(const q of ['auto','mid','high']){GFX.q=q;qOk(!h59Want('m-wolf',{r:{}},im),q+' 에서 절반')}return '낮음 · 몬스터 · 건물 · 사람 · 기술만'}finally{GFX.q=q0}});
+qT(QM59,'2 절반 그림을 그릴 때 자르는 자리를 비율대로 맞춤: 원래 그림과 같은 자리 · 같은 크기 · 같은 색으로 나옴 (다른 그림은 그대로)',async()=>{
+  const src=document.createElement('canvas');src.width=128;src.height=64;const sg=src.getContext('2d');const C=['#e02020','#20c040','#2040e0','#e0c020'];for(let i=0;i<4;i++){sg.fillStyle=C[i];sg.fillRect(i*32,0,32,64)}
+  const h=await createImageBitmap(src,{resizeWidth:64,resizeHeight:32,resizeQuality:'high'});const st0=H59S.half;h59Reg(h,128,64,'m-qa59');H59S.half=st0;delete H59S.names['m-qa59'];qOk(window.__h59.isHalf(h),'절반으로 안 적힘');
+  const mk=()=>{const c=document.createElement('canvas');c.width=200;c.height=100;return c.getContext('2d')},A=mk(),B=mk();
+  A.drawImage(src,32,0,32,64,10,10,32,64);B.drawImage(h,32,0,32,64,10,10,32,64);A.drawImage(src,120,0);B.drawImage(h,120,0);
+  const pa=A.getImageData(0,0,200,100).data,pb=B.getImageData(0,0,200,100).data,at=(p,x,y)=>{const i=(y*200+x)*4;return [p[i],p[i+1],p[i+2],p[i+3]]};
+  for(const [x,y] of [[26,40],[136,30],[168,30],[176,60],[100,50],[190,20]]){const a=at(pa,x,y),b=at(pb,x,y);qOk(a.every((v,i)=>Math.abs(v-b[i])<=6),`(${x},${y}) ${a} ≠ ${b}`)}
+  const own=mk();own.drawImage(src,0,0,64,32,0,0,64,32);qOk(at(own.getImageData(0,0,200,100).data,20,20)[0]>200,'보통 그림이 바뀜');h.close&&h.close();return '9개 인자 · 3개 인자 모두 같은 자리 · 같은 색'});
+qT(QM59,'2 「낮음」을 켜거나 끄면 크기가 안 맞는 묶음만 내려놓아 다음에 맞는 크기로 다시 받음 · 맞는 것은 그대로',async()=>{const q0=GFX.q,c=document.createElement('canvas');c.width=c.height=64;
+  const h=await createImageBitmap(c,{resizeWidth:32,resizeHeight:32});const st0=H59S.half;h59Reg(h,64,64,'m-qa59a');H59S.half=st0;delete H59S.names['m-qa59a'];const keys=['m-qa59a','m-qa59b','cg-ground-qa'];
+  try{FL.P['m-qa59a']={img:h,meta:{r:{}}};FL.P['m-qa59b']={img:c,meta:{r:{}}};FL.want['m-qa59a']=FL.want['m-qa59b']=1;
+    GFX.q='mid';h59Repack();qOk(!FL.P['m-qa59a']&&FL.want['m-qa59a']===0,'보통인데 절반 묶음이 남음');qOk(FL.P['m-qa59b'],'보통인데 원래 크기 묶음을 내려놓음');
+    FL.P['m-qa59a']={img:h,meta:{r:{}}};GFX.q='low';h59Repack();qOk(!FL.P['m-qa59b']&&FL.want['m-qa59b']===0,'낮음인데 원래 크기 묶음이 남음');qOk(FL.P['m-qa59a'],'낮음인데 절반 묶음을 내려놓음');return '보통 ↔ 낮음 바꾸면 맞는 크기로 다시'}
+  finally{for(const k of keys){delete FL.P[k];delete FL.want[k]}GFX.q=q0}});
+qT(QM59,'5 파일을 바로 열었을 때만 그림 안내를 한 번 · 인터넷 주소 · #qa 에서는 안 띄움 · 캐릭터 저장 키는 안 건드림',()=>{const k0=qChar59();qOk(f59Check()===false&&!document.getElementById('f59file'),'#qa · http 에서 안내가 뜸');qOk(F59.key==='arseia-file-tip'&&!/^arseia-char-/.test(F59.key),'안내 키 '+F59.key);
+  qOk(/f59Check/.test(String(f59Check))&&/file:/.test(String(f59Check)),'파일 열기 확인이 없음');qOk(qChar59()===k0,'캐릭터 키가 바뀜');return 'file:// 에서만 · 한 번'});
+}
+qT('고침 v59','짝문 지도: 100레벨 이상(등불 대상 표시)이어도 지도 크기 그대로 · 설명 줄이 지도를 가리지 않음 (PC 왼쪽 칸 · 휴대폰 지도 위 한 줄) · 휴대폰 위 줄 넘침 없음',()=>{const out=[];
+  const gate=lv=>{if(lv>=100)qD21Prep('mage',lv);else qPrep('mage',{lvl:lv});P.towns=ALLTOWNS.map(t=>t.id);openPanel('gate');return $('#g26w')};
+  try{for(const [w,h] of [[1366,768],[1920,1080],[1280,720]])qM22('',w,h,()=>{
+      const m0=gate(50);const r0=qmR(m0);closePanel();const m=gate(140);const r=qmR(m),lg=panel.querySelector('.d57h');
+      qOk(lg,`${w}: 설명 줄 없음`);qOk(Math.abs(r.width-r0.width)<2&&Math.abs(r.left-r0.left)<2,`${w}: 지도 폭 ${Math.round(r0.width)}→${Math.round(r.width)}`);
+      qOk(lg.closest('.g27side'),`${w}: 설명 줄이 왼쪽 칸 밖`);qOk(!qmOv(qmR(lg),r),`${w}: 설명 줄이 지도를 덮음`);
+      if(m.style.overflow==='hidden'){const g=m.querySelector('.g26m');qOk(qmR(g).right<=r.right+2,`${w}: 지도 오른쪽 잘림`)}closePanel();out.push(w+' '+Math.round(r.width))});
+    for(const [md,w,h] of [['P',390,844],['L',844,390]])qM22(md,w,h,()=>{const m=gate(140),lg=panel.querySelector('.d57h'),card=panel.querySelector('.card'),hd=panel.querySelector('.f29gatehead');
+      qOk(lg&&lg.nextElementSibling===m,`${md}: 설명 줄이 지도 위에 없음`);const rl=qmR(lg),rm=qmR(m),rc=qmR(card),rh=qmR(hd);
+      qOk(rl.bottom<=rm.top+1&&rl.height<=20,`${md}: 설명 줄 ${Math.round(rl.height)}px · 지도 위 ${Math.round(rl.bottom-rm.top)}`);qOk(rm.bottom<=Math.min(rc.bottom,innerHeight)+1,`${md}: 지도 아래가 칸 밖 ${Math.round(rm.bottom-rc.bottom)}`);
+      for(const b of hd.querySelectorAll('button')){const q=qmR(b);qOk(q.bottom<=rh.bottom+6&&q.right<=rc.right+1,`${md}: 위 줄 단추 넘침 ${b.textContent} 단추 ${Math.round(q.right)},${Math.round(q.bottom)} 줄 ${Math.round(rh.right)},${Math.round(rh.bottom)} 칸 ${Math.round(rc.right)} · ${document.body.className}`)}
+      closePanel();out.push(md+' '+Math.round(rm.height))});
+    qM22('P',390,844,()=>{const m=gate(30);qOk(!panel.querySelector('.d57h'),'30레벨에 설명 줄');const hd=panel.querySelector('.f29gatehead'),rh=qmR(hd),rc=qmR(panel.querySelector('.card'));
+      for(const b of hd.querySelectorAll('button')){const q=qmR(b);qOk(q.bottom<=rh.bottom+6&&q.right<=rc.right+1,'30레벨 위 줄 단추 넘침 '+b.textContent)}closePanel()})
+  }finally{if(!panel.hidden)closePanel();qD21End()}return out.join(' · ')});
 {const SURE=g=>g==='호크아이 v34'||g==='궁수 재정비 v38';/* 두 묶음 모두 화살 기술 동작 시험 (불새 · 셔터 · 퓨즈가 번갈아 한 발씩 빗나갔음) */for(const t of QT)if(SURE(t.group)){const f=t.fn;t.fn=function(){const k=hitChance;hitChance=()=>1;try{return f.apply(this,arguments)}finally{hitChance=k}}}}
 window.__QA_RUN=qaRun;
 setTimeout(()=>{qaRun().catch(e=>{window.__QA_RESULT={fatal:String(e&&e.stack||e),results:[],summary:{total:0,pass:0,fail:1}}})},120);
