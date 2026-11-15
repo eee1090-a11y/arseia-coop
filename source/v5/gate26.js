@@ -18,8 +18,19 @@ function gate26Map(){const ids=Object.keys(REGIONS).filter(id=>WPOS[id]&&ALLTOWN
         :k?`<button type="button" class="g26t" data-travel="${t.id}" aria-label="${t.n}(으)로 건너가기">${t.n}<small>Lv${t.base+w3Add(D)}~</small></button>`
         :`<button type="button" class="g26t lock" disabled aria-label="아직 가 보지 않은 마을">🔒<small>가 본 적 없음</small></button>`}
     cells+=`<div class="g26c${isHere?' now':''}${known?'':' unk'}${two?' two':''}" data-greg="${id}" style="left:${cx(id)}px;top:${cy(id)}px;width:${CW}px;height:${CH}px;--rc:${D.col}"><div class="g26n">${known?D.n:D.n+' ?'}</div>${b}</div>`}
-  return `<div class="g26w" id="g26w"><div class="g26m" style="width:${Wd}px;height:${Hd}px"><svg width="${Wd}" height="${Hd}" aria-hidden="true">${lines}</svg>${cells}</div></div>
+  const top=g26Top(ids,cx,cy,Wd,Hd);
+  return `<div class="g26w" id="g26w"><div class="g26m" style="width:${Wd}px;height:${Hd}px"><svg width="${Wd}" height="${Hd}" aria-hidden="true">${lines}</svg>${cells}${top}</div></div>
     <p class="muted g26h">북쪽이 위입니다. 한 번 가 본 마을만 누를 수 있습니다. 처음 가는 곳은 맵 끝 포탈로 걸어가 보세요.</p>`}
+/* v60 고침(사용자 2026-11-12 「반영안됐는데」 짝문 사진): 칸 사이 틈이 8px뿐이라 보라 테두리(바깥 3px + 빛)가 연결선을 덮었음.
+   → 칸 위에 한 번 더: 칸 밖 조각만 밝은 선(끊김 없음) · 특별한 길(하늘 계단)은 칸 아래 틈으로 돌아가는 금빛 점선 + 이름표 */
+function g26Top(ids,cx,cy,Wd,Hd){if(typeof segOutR22!=='function')return '';const {CW,CH,SY}=G26,R=ids.map(id=>[cx(id),cy(id),cx(id)+CW,cy(id)+CH]);let ln='',lk='',lb='';
+  for(const id of ids)for(const sd in REGIONS[id].edges){const to=REGIONS[id].edges[sd];if(!ids.includes(to)||to<id&&REGIONS[to].edges&&Object.values(REGIONS[to].edges).includes(id))continue;
+    for(const q of segOutR22(R,cx(id)+CW/2,cy(id)+CH/2,cx(to)+CW/2,cy(to)+CH/2))ln+=`<line x1="${q[0].toFixed(1)}" y1="${q[1].toFixed(1)}" x2="${q[2].toFixed(1)}" y2="${q[3].toFixed(1)}"/>`}
+  for(const L of (typeof WMAPLINK22==='object'?WMAPLINK22:[])){if(!ids.includes(L.a)||!ids.includes(L.b))continue;const o=L.open(),ax=cx(L.a)+CW/2,bx=cx(L.b)+CW/2;let pts,tx,ty;
+    if(cy(L.a)===cy(L.b)){const y=cy(L.a)+CH,gy=y+(SY-CH)/2;pts=[[ax,y],[ax,gy],[bx,gy],[bx,y]];tx=(ax+bx)/2;ty=gy}else{pts=[[ax,cy(L.a)+CH/2],[bx,cy(L.b)+CH/2]];tx=(ax+bx)/2;ty=(cy(L.a)+cy(L.b))/2+CH/2}
+    lk+=`<polyline class="g26lk${o?'':' off'}" points="${pts.map(q=>q.join(',')).join(' ')}" style="stroke:${L.col}"/>`;
+    lb+=`<div class="g26lb" data-g60link="${L.a}-${L.b}" style="left:${tx}px;top:${ty}px;color:${L.col};border-color:${L.col}" title="${L.leg(true).replace(/^= /,'')}">${L.lab(o)}</div>`}
+  return `<svg class="g26top" width="${Wd}" height="${Hd}" aria-hidden="true">${ln}${lk}</svg>${lb}`}
 // 열 때 지금 있는 지역을 가운데로
 function g26Center(){const w=$('#g26w');if(!w)return;const c=w.querySelector('.g26c.now')||w.querySelector('[data-greg="home"]');if(!c)return;
   w.scrollLeft=Math.max(0,c.offsetLeft+c.offsetWidth/2-w.clientWidth/2);w.scrollTop=Math.max(0,c.offsetTop+c.offsetHeight/2-w.clientHeight/2)}
@@ -29,6 +40,9 @@ function g26Center(){const w=$('#g26w');if(!w)return;const c=w.querySelector('.g
 .g26w{overflow:auto;max-height:min(62vh,560px);border:1px solid rgba(176,142,82,.25);border-radius:3px;background:#0c0b09;overscroll-behavior:contain;touch-action:pan-x pan-y;margin:6px 0 8px}
 .g26m{position:relative}
 .g26m svg{position:absolute;left:0;top:0}.g26m line{stroke:rgba(200,170,110,.45);stroke-width:3;stroke-dasharray:6 6;stroke-linecap:round}
+.g26m svg.g26top{pointer-events:none;z-index:2}.g26m svg.g26top line{stroke:#e8cc8c;stroke-width:4;stroke-dasharray:none;stroke-linecap:butt}
+.g26m .g26lk{fill:none;stroke-width:3;stroke-dasharray:6 3;stroke-linecap:round}.g26m .g26lk.off{stroke-dasharray:2 4;opacity:.85}
+.g26lb{position:absolute;z-index:3;transform:translate(-50%,-50%);pointer-events:none;white-space:nowrap;font-size:11px;font-weight:700;line-height:1.2;padding:1px 6px;background:rgba(16,14,10,.94);border:1px solid;border-radius:8px}
 .g26c{position:absolute;box-sizing:border-box;border:1.5px solid color-mix(in srgb,var(--rc) 70%,#000);border-radius:6px;background:#14120e;padding:4px;display:flex;flex-direction:column;gap:4px}
 .g26c.unk{border-color:#4a4438}.g26c.now{border:2.5px solid #ffd76a;background:#221d12}
 .g26n{font-size:11.5px;line-height:1.25;color:var(--rc);text-align:center;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}

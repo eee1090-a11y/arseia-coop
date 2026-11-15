@@ -48,8 +48,10 @@ function wmapWorld22(g,Wd,Hd){const G=WMAP.geo&&WMAP.geo.Wd===Wd&&WMAP.geo.Hd===
   $('#wmapLeg').innerHTML=(G.fix?WMAP22.hint+' ':'')+'가운데가 처음 시작한 땅입니다. 점선은 맵 끝 포탈로 이어진 길입니다. 한 번 간 지역의 마을은 짝문으로 바로 건너갈 수 있습니다. 흰 점이 지금 있는 곳입니다.'+WMAPLINK22.filter(L=>WPOS[L.a]&&WPOS[L.b]).map(L=>` <span class="w60leg"><b style="color:${L.col}">┅ ${L.t}</b> ${L.leg(!!G.fix)}</span>`).join('')}
 /* v60: 세계 지도 연결선을 칸 테두리(보라 테두리 · 의뢰 · 잿빛 메아리 테두리) 위에 한 번 더 · 칸 밖 부분만. 맨 마지막에 그림(dark57.js의 wmapDraw 감싸기). 맵 끝 길이 아닌 특별한 길(하늘 계단)은 WMAPLINK22 */
 const WMAPLINK22=[];
-function wmapSegOut22(G,ax,ay,bx,by,pad){let iv=[[0,1]];const dx=bx-ax,dy=by-ay;
-  for(const id in REGIONS){if(!WPOS[id])continue;const p=G.pos(id),x0=p.x-G.w/2-pad,x1=p.x+G.w/2+pad,y0=p.y-G.h/2-pad,y1=p.y+G.h/2+pad;let t0=0,t1=1,ok=true;
+function wmapSegOut22(G,ax,ay,bx,by,pad){const R=[];for(const id in REGIONS){if(!WPOS[id])continue;const p=G.pos(id);R.push([p.x-G.w/2-pad,p.y-G.h/2-pad,p.x+G.w/2+pad,p.y+G.h/2+pad])}return segOutR22(R,ax,ay,bx,by)}
+/* 선분 a→b 중에서 네모들(R: [x0,y0,x1,y1]) 밖에 있는 조각들 (세계 지도 · 짝문 지도가 같이 씀) */
+function segOutR22(R,ax,ay,bx,by){let iv=[[0,1]];const dx=bx-ax,dy=by-ay;
+  for(const [x0,y0,x1,y1] of R){let t0=0,t1=1,ok=true;
     for(const [q,r] of [[-dx,ax-x0],[dx,x1-ax],[-dy,ay-y0],[dy,y1-ay]]){if(q===0){if(r<0){ok=false;break}continue}const t=r/q;if(q<0){if(t>t1){ok=false;break}if(t>t0)t0=t}else{if(t<t0){ok=false;break}if(t<t1)t1=t}}
     if(!ok||t1<=t0)continue;const nx=[];for(const [u,v] of iv){if(t1<=u||t0>=v){nx.push([u,v]);continue}if(t0>u)nx.push([u,t0]);if(t1<v)nx.push([t1,v])}iv=nx}
   return iv.filter(([u,v])=>v-u>1e-3).map(([u,v])=>[ax+dx*u,ay+dy*u,ax+dx*v,ay+dy*v])}

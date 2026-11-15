@@ -9015,6 +9015,34 @@ qT('고침 v60','스킬 그림: 기본은 예전 단순한 그림(새 그림 묶
     const n0=QA.storeLog.length;box.querySelector('[data-skic="detail"]').click();qOk(GFX.skic==='detail','자세한 그림 고름');const keys=new Set(QA.storeLog.slice(n0).map(o=>o.op+':'+o.k));qOk(keys.size>=1&&[...keys].every(k=>k==='set:arseia-gfx'),'저장 키 '+[...keys]);
     qOk(SET24.el.querySelector('.skic60 [data-skic="detail"].on'),'다시 그린 칸');SET24.el.querySelector('.skic60 [data-skic="simple"]').click();qOk(!GFX.skic,'단순한 그림으로 돌아감');set24Open(false);out.push('설정 '+[...keys].join())
   }finally{if(k0)GFX.skic=k0;else delete GFX.skic;A57.ic.clear();A58.ic.clear();try{set24Open(false)}catch(_){}}return out.join(' · ')});
+qT('고침 v60','짝문 지도 연결선이 보임 (사용자 휴대폰 사진): 보라 테두리는 칸 안쪽(바깥으로 안 번짐) · 이웃 칸 사이 틈마다 밝은 선이 칸 위에 · 선은 모두 칸 밖 · 하늘 계단 길과 이름표(잠김/열림) · PC · 휴대폰 가로 · 세로',()=>{const out=[];
+  for(const [md,w,h] of [['',1366,768],['',1241,874],['L',844,390],['L',882,411],['P',390,844]])qM22(md,w,h,()=>{qD21Prep('mage',140);P.towns=ALLTOWNS.map(t=>t.id);G140V.qaLock=1;const bk=g100S().bk,h0=bk.b_cr1_heart;delete bk.b_cr1_heart;
+    try{openPanel('gate');const m=$('#g26w .g26m');qOk(m,'지도 없음');const cs=[...m.querySelectorAll('.g26c[data-greg]')],d=cs.filter(c=>c.classList.contains('d57'));qOk(d.length>=10,`${w}: 보라 칸 ${d.length}`);
+      for(const c of d){const b=getComputedStyle(c).boxShadow;qOk(/inset/.test(b)&&b.includes('180, 138, 255')&&!/\d+px \d+px 10px/.test(b),`${w}: 보라 테두리가 칸 밖 ${b}`)}
+      const top=m.querySelector('svg.g26top');qOk(top&&top.compareDocumentPosition(cs[cs.length-1])&Node.DOCUMENT_POSITION_PRECEDING&&+getComputedStyle(top).zIndex>=1,`${w}: 선이 칸 위가 아님`);
+      const R=cs.map(c=>[c.offsetLeft,c.offsetTop,c.offsetLeft+c.offsetWidth,c.offsetTop+c.offsetHeight]),ls=[...top.querySelectorAll('line')];
+      let adj=0;const ids=cs.map(c=>c.getAttribute('data-greg'));for(const id of ids)for(const sd in REGIONS[id].edges){const to=REGIONS[id].edges[sd];if(ids.includes(to)&&to>id&&Math.abs(WPOS[id][0]-WPOS[to][0])+Math.abs(WPOS[id][1]-WPOS[to][1])===1)adj++}
+      qOk(ls.length>=adj&&adj>=30,`${w}: 틈 선 ${ls.length}/${adj}`);
+      for(const l of ls){const x1=+l.getAttribute('x1'),y1=+l.getAttribute('y1'),x2=+l.getAttribute('x2'),y2=+l.getAttribute('y2'),mx=(x1+x2)/2,my=(y1+y2)/2;qOk(Math.hypot(x2-x1,y2-y1)>=4,`${w}: 너무 짧은 선`);qOk(!R.some(([a,b,c,e])=>mx>a+.5&&mx<c-.5&&my>b+.5&&my<e-.5),`${w}: 선이 칸 안 ${mx},${my}`)}
+      {const sc=getComputedStyle(ls[0]);qOk(sc.strokeDasharray==='none'&&parseFloat(sc.strokeWidth)>=3.5,`${w}: 틈 선 모양 ${sc.strokeDasharray} ${sc.strokeWidth}`)}
+      const lb=m.querySelector('.g26lb[data-g60link]'),pl=top.querySelector('polyline.g26lk');qOk(lb&&pl,`${w}: 하늘 계단 길 없음`);qOk(lb.textContent.includes('하늘 계단')&&lb.textContent.includes('잠김')&&pl.classList.contains('off'),`${w}: 잠김 표시 ${lb.textContent}`);
+      {const rl=lb.getBoundingClientRect(),rm=m.getBoundingClientRect();qOk(rl.left>=rm.left-1&&rl.right<=rm.right+1&&rl.top>=rm.top-1,`${w}: 이름표가 지도 밖`)}
+      closePanel();bk.b_cr1_heart=1;openPanel('gate');const lb2=$('#g26w .g26lb[data-g60link]');qOk(lb2&&!lb2.textContent.includes('잠김')&&!$('#g26w polyline.g26lk').classList.contains('off'),`${w}: 열림 표시`);out.push(`${w}${md} 선${ls.length}`)}
+    finally{if(h0)bk.b_cr1_heart=h0;else delete bk.b_cr1_heart;G140V.qaLock=0;if(!panel.hidden)closePanel();qD21End()}});
+  return out.join(' · ')});
+/* v61: 협업자 PR #10 (tae9230, 2026-11-03) */
+qT('휴대폰 v52','창을 열면 중요한 의뢰 카드 숨기기(mobile52.js · 고친 버그: 카드가 가방 · 상점 · 스킬 트리 · 도감 창 한가운데를 덮음): 가로 · 작은 가로 · 세로 휴대폰에서 창이 열리면 카드가 안 보이고 창을 닫으면 그대로 다시 보임(지워지지 않음 · 단추 그대로) · PC는 창이 열려도 그대로',async()=>{
+  const qa0=QN21.qa;QN21.qa=true;const out=[];
+  const show=()=>{qPrep('mage',{lvl:50});P.job2=null;QN21.seen.clear();qnClose21();const L=qImpList21();qnShow21(L.length?L:SQ.filter(q=>qImp21(q)).slice(0,1));return $('#qn21')};
+  const vis=el=>!!el&&el.isConnected&&getComputedStyle(el).display!=='none';
+  try{
+    for(const [m,w,h] of [['L',844,390],['L',667,375],['P',390,844]])await qM22(m,w,h,async()=>{closePanel();const el=show();qOk(el,m+' 카드가 안 뜸');m52Sync();qOk(vis(el),`${w}×${h} 창 없을 때 카드가 안 보임`);
+      for(const t of ['char','tree','codex']){openPanel(t);await Promise.resolve();m52Sync();qOk(!vis(el)&&el.isConnected,`${w}×${h} ${t} 창 위에 카드가 보임`);
+        closePanel();await Promise.resolve();m52Sync();qOk(vis(el)&&$('#qn21')===el&&el.querySelector('[data-qn="later"]'),`${w}×${h} ${t} 창을 닫아도 카드가 안 돌아옴`)}
+      out.push(`${w}×${h}`)});
+    await qM22('',0,0,async()=>{const el=show();openPanel('codex');m52Sync();qOk(vis(el),'PC: 창이 열리면 카드가 숨겨짐(PC는 그대로여야 함)');closePanel();m52Sync();qOk(vis(el),'PC 닫은 뒤');out.push('PC 그대로')});
+  }finally{closePanel();qnClose21();QN21.qa=qa0;m52Sync()}
+  return out.join(' · ')});
 {const SURE=g=>g==='호크아이 v34'||g==='궁수 재정비 v38';/* 두 묶음 모두 화살 기술 동작 시험 (불새 · 셔터 · 퓨즈가 번갈아 한 발씩 빗나갔음) */for(const t of QT)if(SURE(t.group)){const f=t.fn;t.fn=function(){const k=hitChance;hitChance=()=>1;try{return f.apply(this,arguments)}finally{hitChance=k}}}}
 window.__QA_RUN=qaRun;
 setTimeout(()=>{qaRun().catch(e=>{window.__QA_RESULT={fatal:String(e&&e.stack||e),results:[],summary:{total:0,pass:0,fail:1}}})},120);

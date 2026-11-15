@@ -2,7 +2,7 @@
    그리고 짝문에서도 볼 수 있도록 해주고, 월드맵을 봤을 때에도 굵은 선이라던가 하는 방식으로 표기될 수 있도록 해줘」) ----------
    대상 규칙(dark21.js darkRegOk): 지옥에서 몬스터가 100레벨부터 나오는 지역 전부 + 그 던전 · 오늘의 잿빛 메아리 둘(140레벨 캐릭터).
    · 미니맵(둥근 칸): 지금 있는 곳이 대상이면 아래쪽에 「✦ 등불 대상 · N단계/꺼짐」(보통 · 악몽에서는 「✦ 지옥에서 등불 대상」) · 지옥에서는 대상 지역으로 가는 포탈에 보라 고리
-   · 짝문: 대상 지역 칸에 보라 굵은 테두리와 이름 앞 ✦ · 아래 설명 줄
+   · 짝문: 대상 지역 칸에 칸 안쪽 보라 테두리(v60) 와 이름 앞 ✦ · 아래 설명 줄
    · 세계 지도: 대상 지역 칸에 칸 안쪽 보라 테두리 (v60: 가늘게 · 연결선 안 가림) · 아래 설명 줄에 규칙
    보이는 때: 100레벨 이상이거나 등불이 켜졌을 때(fix51g G51.SHOW_LAMP와 같음). 그림 · 글만, 수치 · 저장은 그대로. */
 const D57={col:'#b48aff',dim:'#8a78a8'};
@@ -22,7 +22,7 @@ function d57Gate(){const w=$('#g26w');if(!w||!d57Show())return 0;let n=0;
   for(const c of w.querySelectorAll('.g26c[data-greg]')){const id=c.getAttribute('data-greg'),on=d57Ok(id);c.classList.toggle('d57',on);
     const nm=c.querySelector('.g26n');let b=c.querySelector('.d57b');if(on&&!b&&nm){b=document.createElement('span');b.className='d57b';b.textContent='✦ ';b.title='어둠의 등불 대상 지역';nm.prepend(b)}else if(!on&&b)b.remove();if(on)n++}
   if(!panel.querySelector('.d57h')){const s=document.createElement('p');s.className='muted d57h';
-    s.innerHTML=`<b style="color:${D57.col}">✦ 보라 굵은 테두리</b> = 어둠의 등불 대상 지역 (${d57Rule()})`;d57GateLeg(w,s)}return n}
+    s.innerHTML=`<b style="color:${D57.col}">✦ 칸 안쪽 보라 테두리</b> = 어둠의 등불 대상 지역 (${d57Rule()})`;d57GateLeg(w,s)}return n}
 /* v59 고침: 설명 줄을 지도 바로 뒤(PC 가로 줄 안)에 넣어 지도가 좁아지고 오른쪽이 가려지던 것 →
    PC는 왼쪽 칸 맨 아래, 휴대폰은 지도 위 한 줄(지도 칸 높이를 그만큼 줄임). 지도 크기 · 자리는 그대로 */
 function d57GateLeg(w,s){const side=pbody.querySelector('.g27side');if(side){side.appendChild(s);return 'side'}
@@ -32,7 +32,7 @@ function d57GateLeg(w,s){const side=pbody.querySelector('.g27side');if(side){sid
   w.insertAdjacentElement('afterend',s);return 'after'}
 {const _rp=renderPanel;renderPanel=function(){const r=_rp.apply(this,arguments);if(tab==='gate')d21Try(d57Gate);return r}}
 {const st=document.createElement('style');st.textContent=`
-.g26c.d57{box-shadow:0 0 0 3px ${D57.col},0 0 10px rgba(180,138,255,.45)}
+.g26c.d57{box-shadow:inset 0 0 0 2px ${D57.col}}/* v60: 칸 안쪽 · 예전 바깥 3px + 빛은 칸 사이 틈(8px)의 연결선을 덮었음 */
 .g26c .d57b{color:${D57.col};font-weight:700}
 .d57h{font-size:12.5px;margin:4px 0}.g27side .d57h{margin:10px 0 0;line-height:1.5}.d57h.d57hm{font-size:11px;margin:2px 0 0;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}`;document.head.appendChild(st)}
 /* ===== 세계 지도: 대상 지역 굵은 테두리 ===== */
