@@ -90,7 +90,7 @@ function g42BsProps(){for(let i=decor.length-1;i>=0;i--)if(decor[i].g42bs)decor.
 {const _ld=load;load=function(){const ok=_ld.apply(this,arguments);try{if(ok&&P)g42BsProps()}catch(e){if(window.__QA)throw e}return ok}}
 function g42BsHtml(){const b=g42Bs(),M=g42Mat(),reg=REG.id,inCamp=G42_BSREG.includes(reg)&&g42InTown();
   let h=`<div class="v20box"><h3>거점 ${b.reg?`<b style="color:#ffd98a">${v20Esc(RCACHE[b.reg]&&RCACHE[b.reg].town?RCACHE[b.reg].town.n:REGIONS[b.reg].n)}</b> <span class="muted">· ${REGIONS[b.reg].n}</span>`:'<span class="muted">없음</span>'}</h3>
-    <p class="muted" style="margin:4px 0">70~100레벨 여섯 쉼터 가운데 하나를 거점으로 삼고 건물을 올립니다. 건물은 거점 쉼터 안에서 올립니다(금화와 재료).${b.reg?` 거점을 옮기면 금화 ${G42_BSMOVE.toLocaleString()} (건물 단계는 그대로).`:''}</p>
+    <p class="muted" style="margin:4px 0">70레벨 이상 사냥터(지옥 지역 포함)의 쉼터 가운데 하나를 거점으로 삼고 건물을 올립니다. 건물은 거점 쉼터 안에서 올립니다(금화와 재료).${b.reg?` 거점을 옮기면 금화 ${G42_BSMOVE.toLocaleString()} (건물 단계는 그대로).`:''}</p>
     ${inCamp&&b.reg!==reg?v20Btn('g42bsset',1,b.reg?`이 쉼터로 거점 옮기기 (금화 ${G42_BSMOVE.toLocaleString()})`:'이 쉼터를 거점으로',{dis:!!b.reg&&P.gold<G42_BSMOVE}):''}</div>`;
   if(!b.reg)return h;const here=g42BsInCamp();
   for(const k in G42_BSB){const B=G42_BSB[k],L=b.b[k],C=G42_BSC[L];h+=`<div class="v20box"><div class="v20row" style="border:0;padding:0"><div><b>${B.n}</b> <span style="color:#ffd98a">${L}/3단계</span><br><span class="muted" style="font-size:12px">${L?'지금: '+B.d(L):'아직 없음'}${L<3?` · 다음: ${B.d(L+1)}`:''}</span></div>

@@ -36,7 +36,7 @@ g51PlacePosts();
 
 /* ===== 거점 칸: 고를 수 있는 쉼터 여섯 ===== */
 function g51BsList(){const b=g42Bs(),inCamp=G42_BSREG.includes(REG.id)&&g42InTown();
-  let h=`<div class="v20box"><h3>거점으로 삼을 수 있는 쉼터 여섯</h3><p class="muted" style="margin:4px 0">${inCamp?'':'<b style="color:#ffb07a">지금은 쉼터 밖이라 고르는 단추가 없습니다.</b> '}아래 쉼터 가운데 하나에 들어가(안전한 원 안) 이 칸을 다시 열거나, 쉼터의 「거점 표지판」을 누르면 「이 쉼터를 거점으로」 단추가 나옵니다. 세계 지도에는 <b style="color:#ffd98a">⌂</b>로 표시됩니다.</p>`;
+  let h=`<div class="v20box"><h3>거점으로 삼을 수 있는 쉼터 ${G42_BSREG.filter(id=>g51Camp(id)).length}곳</h3><p class="muted" style="margin:4px 0">${inCamp?'':'<b style="color:#ffb07a">지금은 쉼터 밖이라 고르는 단추가 없습니다.</b> '}아래 쉼터 가운데 하나에 들어가(안전한 원 안) 이 칸을 다시 열거나, 쉼터의 「거점 표지판」을 누르면 「이 쉼터를 거점으로」 단추가 나옵니다. 세계 지도에는 <b style="color:#ffd98a">⌂</b>로 표시됩니다.</p>`;
   for(const id of G42_BSREG){const R0=REGIONS[id];if(!R0)continue;const T=g51Camp(id),tn=T?T.n:R0.n,been=!!(T&&P.towns.includes(T.id)),mine=b.reg===id,here=REG.id===id&&g42InTown();
     h+=`<div class="v20row"><div><b style="color:${mine?'#ffd98a':R0.col}">⌂ ${v20Esc(tn)}</b>${mine?' <span style="color:#ffd98a">· 내 거점</span>':''}${here?' <span style="color:#9fe0ff">· 지금 여기</span>':''}<br><span class="muted" style="font-size:12px">${v20Esc(R0.n)} · Lv${g51Lv(id)}~ · ${been?'가 본 곳: 마을 짝문으로 바로 갈 수 있음':'가는 길: '+v20Esc(g51Way(id))}</span></div></div>`}
   return h+'</div>'}
@@ -44,16 +44,17 @@ function g51BsList(){const b=g42Bs(),inCamp=G42_BSREG.includes(REG.id)&&g42InTow
 
 /* ===== 「성장」 칸: 어디서 고르나요 ===== */
 function g51WhereHtml(){if(!P)return '';const rows=[],b=g42Bs();
-  if(P.lvl>=G51.SHOW_BS||b.reg){const T=b.reg&&g51Camp(b.reg);rows.push(`<div class="v20row"><div><b style="color:#ffd98a">⌂ 거점 쉼터</b><br><span class="muted" style="font-size:12px">70~100레벨 지역의 쉼터 여섯 가운데 하나 · 그 쉼터 안에서 「거점」 칸이나 거점 표지판으로 고릅니다${T?` · 지금 거점: ${v20Esc(T.n)}`:' · 아직 없음'}</span></div></div>`)}
+  if(P.lvl>=G51.SHOW_BS||b.reg){const T=b.reg&&g51Camp(b.reg);rows.push(`<div class="v20row"><div><b style="color:#ffd98a">⌂ 거점 쉼터</b><br><span class="muted" style="font-size:12px">70레벨 이상 사냥터의 쉼터 가운데 하나 · 그 쉼터 안에서 「거점」 칸이나 거점 표지판으로 고릅니다${T?` · 지금 거점: ${v20Esc(T.n)}`:' · 아직 없음'}</span></div></div>`)}
   if(P.lvl>=G51.SHOW_LAMP||darkLit()){rows.push(`<div class="v20row"><div><b style="color:#b48aff">✦ 어둠의 등불 (어둠 단계)</b><br><span class="muted" style="font-size:12px">지옥 난이도 「불 꺼진 왕도」의 쉼터 「꺼진 등대지기의 집」 안 · ${darkLit()?'켜져 있음: 다가가 F(휴대폰은 누르기)로 단계를 고릅니다':'꺼져 있음: 같은 왕도의 「재의 왕좌」에서 재의 군주를 처음 쓰러뜨리면 켜집니다'}</span></div></div>`)}
   return rows.length?`<div class="v20box"><h3>어디서 고르나요</h3>${rows.join('')}</div>`:''}
 {const t=G42.tabs.find(x=>x.k==='main');if(t){const _h=t.html;t.html=function(){return _h.apply(this,arguments)+g51WhereHtml()}}}
 
 /* ===== 처음 들어오면 한 번 알림 (게임을 켤 때마다 새로) ===== */
 function g51Tips(){if(!P||P.dead||DG||IN)return '';const id=REG.id;
+  /* v62: 거점이 70레벨 이상 모든 사냥터로 넓어져 불 꺼진 왕도도 거점 → 등불 알림을 먼저 */
+  if(id==='capital'&&!darkLit()&&!G51.lampTip&&P.diff===2&&g42InTown()){const T=g51Camp('capital');if(T&&T.id==='keeperhouse'){G51.lampTip=1;msg('이 집에 꺼진 「어둠의 등불」이 있습니다 · 재의 군주를 처음 쓰러뜨리면 켜지고, 여기서 어둠 단계를 고릅니다','#c8a0ff');return 'lamp'}}
   if(G42_BSREG.includes(id)&&g42InTown()&&!G51.tip[id]){G51.tip[id]=1;const b=g42Bs();if(b.reg)return '';
     const s=`이 쉼터를 내 거점으로 삼을 수 있습니다 · ${g51Menu()} 창의 「거점」 칸이나 쉼터의 「거점 표지판」을 눌러 보세요`;msg(s,'#ffd98a');return s}
-  if(id==='capital'&&!darkLit()&&!G51.lampTip&&P.diff===2&&g42InTown()){const T=g51Camp('capital');if(T&&T.id==='keeperhouse'){G51.lampTip=1;msg('이 집에 꺼진 「어둠의 등불」이 있습니다 · 재의 군주를 처음 쓰러뜨리면 켜지고, 여기서 어둠 단계를 고릅니다','#c8a0ff');return 'lamp'}}
   return ''}
 V20.slowTick.push(()=>{try{g51Tips()}catch(e){if(window.__QA)throw e}});
 

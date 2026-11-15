@@ -25,7 +25,8 @@ function enVal(k,L){L=Math.max(1,L|0);const K=EN36.K,r=x=>Math.max(1,Math.round(
   return 0}
 // 내 직업이 고를 수 있는 옵션: {k, lv(최소 레벨), g(묶음)}
 function enOpts(cls){cls=cls||P.cls;const o=[],add=(k,lv,g)=>o.push({k,lv,g});const phys=!!PHYS_CLS[cls];
-  add(enMain(cls),1,'기본');add('hp',1,'기본');add('mp',1,'기본');add('regen',1,'기본');
+  // v62 (사용자 2026-11-15 「주능력치가 붙었으면 별개로 붙는 주능력치는 없어야지. 체력도 마찬가지」): 모든 장비에 기본으로 붙는 주 능력치 · 생명력은 부여 옵션에서 뺀다
+  add('mp',1,'기본');add('regen',1,'기본');
   const els=[...new Set(Object.values(SPELLS).filter(s=>s.cls===cls&&isDmg(s)&&s.el&&s.el!=='phys').map(s=>s.el))];
   if(phys)add('pdmg',5,'원소 · 물리');for(const e of els)add('el_'+e,5,'원소 · 물리');
   add('crit',10,'전투');add('ms',10,'전투');

@@ -125,8 +125,8 @@ function tipReg(it,o){if(!it)return'';if(TIP.m.size>4000)TIP.m.clear();const k='
 const tipName=it=>typeof itemName==='function'?itemName(it):it.name;
 function tipKind(it){return it.wt&&WT[it.wt]?WT[it.wt].n:SLOT[it.slot]?SLOT[it.slot].n:''}
 function tipCmp(it,cur,sl){if(!canWear(it))return'';if(!cur)return `<div class="tt-c">${gearSlotN(sl)} 칸이 비어 있습니다 · 끼면 그대로 더해집니다</div>`;
-  const sc=Math.round(itemScore(it)-itemScore(cur)),ks=[...new Set(Object.keys(it.stats).concat(Object.keys(cur.stats)))],out=[];
-  for(const k of ks){const d=Math.round(((+it.stats[k]||0)-(+cur.stats[k]||0))*10)/10;if(d)out.push(`<div style="color:${d>0?'#8cf08a':'#ff8a7a'}">${d>0?'+':''}${d} ${statName(k)}</div>`)}
+  const sc=Math.round(itemScore(it)-itemScore(cur)),A=Object.fromEntries(statView(it)),B=Object.fromEntries(statView(cur)),ks=[...new Set(Object.keys(A).concat(Object.keys(B)))],out=[];
+  for(const k of ks){const d=Math.round(((+A[k]||0)-(+B[k]||0))*10)/10;if(d)out.push(`<div style="color:${d>0?'#8cf08a':'#ff8a7a'}">${d>0?'+':''}${d} ${statName(k)}</div>`)}
   return `<div class="tt-c"><div>착용 중인 ${gearSlotN(sl)}: <b style="color:${RAR[cur.rar].c}">${tipName(cur)}</b></div><div style="color:${sc>0?'#8cf08a':sc<0?'#ff8a7a':'#a39d8f'}">${sc>0?'▲ 지금보다 좋음':sc<0?'▼ 지금보다 약함':'비슷함'}${sc?` (${sc>0?'+':''}${sc})`:''}</div>${out.length?out.join(''):'<div class="muted">옵션 차이 없음</div>'}</div>`}
 function itemTip(it,o){o=o||{};if(!it||!it.stats)return'';const rr=RAR[clamp(it.rar|0,0,RAR.length-1)];
   let h=`<div class="tt-n" style="color:${rr.c}">${tipName(it)}</div><div class="tt-k">${rr.n} ${tipKind(it)} · Lv${it.il}${o.eq?` · 착용 중 (${gearSlotN(o.eq)})`:''}</div>`;

@@ -24,7 +24,7 @@ function drawV5Glow(){
   // 지면 예고 (보스 기술)
   G();ctx.globalCompositeOperation='lighter';
   for(const w of warns){const k=1-w.t/w.max;ctx.globalAlpha=.5;ctx.strokeStyle=w.col;ctx.lineWidth=4;ctx.beginPath();ctx.arc(w.x,w.y,w.rad,0,6.283);ctx.stroke();ctx.globalAlpha=.18+.2*k;ctx.fillStyle=w.col;circ(w.x,w.y,w.rad*k)}
-  if(DG)for(const p of DG.portals){ctx.globalAlpha=.6;ctx.strokeStyle='#9fe0ff';ctx.lineWidth=3;for(let k=0;k<3;k++){ctx.beginPath();ctx.arc(p.x,p.y,22+k*10+Math.sin(time*3+k)*3,time*2+k,time*2+k+4.2);ctx.stroke()}ctx.globalAlpha=.25;ctx.fillStyle='#6ac8ff';circ(p.x,p.y,34)}
+  if(DG)for(const p of DG.portals){if(typeof pt62On==='function'&&pt62On(p))continue;/* v62: 새 포탈 그림을 그렸으면 예전 고리는 안 그림 */ctx.globalAlpha=.6;ctx.strokeStyle='#9fe0ff';ctx.lineWidth=3;for(let k=0;k<3;k++){ctx.beginPath();ctx.arc(p.x,p.y,22+k*10+Math.sin(time*3+k)*3,time*2+k,time*2+k+4.2);ctx.stroke()}ctx.globalAlpha=.25;ctx.fillStyle='#6ac8ff';circ(p.x,p.y,34)}
   ctx.globalAlpha=1;S();
   if(DG)for(const t of DG.torches){const s=W2S(t.x,t.y);if(!onScreen(s,60))continue;ctx.globalAlpha=.7;glow(s.x,s.y-82+Math.sin(time*13+t.x)*1.5,16+Math.sin(time*9+t.y)*2,DG.d.torch);drawTorchFlame(s,t)}
   /* v37: 새 그림이 있으면 예전 구슬 빛 · 갑옷 빛은 그리지 않음(겹침 없앰). 갑옷 범위 선은 그대로 */const a37=id=>typeof FX31!=='undefined'&&FX31.on()&&!!FX31.get(id,false);
@@ -34,7 +34,7 @@ function drawV5Glow(){
   ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over'}
 function drawV5Labels(){ctx.textAlign='center';ctx.font='700 13px '+FONT;ctx.lineWidth=3;ctx.strokeStyle='rgba(0,0,0,.85)';
   if(!DG)for(const c of CAVES){const s=W2S(c.x,c.y);if(!onScreen(s,80))continue;const t=`${c.cave.n} · 던전 Lv${c.cave.lvl+DIFF[P.diff].add}`;ctx.strokeText(t,s.x,s.y-74);ctx.fillStyle='#ffb07a';ctx.fillText(t,s.x,s.y-74)}
-  if(DG)for(const p of DG.portals){const s=W2S(p.x,p.y);if(!onScreen(s,60))continue;ctx.strokeText('나가는 문',s.x,s.y-46);ctx.fillStyle='#9fe0ff';ctx.fillText('나가는 문',s.x,s.y-46)}}
+  if(DG)for(const p of DG.portals){const s=W2S(p.x,p.y);if(!onScreen(s,60))continue;const ly=s.y-(typeof pt62On==='function'&&pt62On(p)?PT62.lab:46);ctx.strokeText('나가는 문',s.x,ly);ctx.fillStyle='#9fe0ff';ctx.fillText('나가는 문',s.x,ly)}}
 function drawDungeonMap(S0,m){
   const px=(P.x-P.y)*KI,py=(P.x+P.y)*KI/2;
   mctx.setTransform(m*KI,m*KI/2,-m*KI,m*KI/2,S0/2-m*px,S0/2-m*py);

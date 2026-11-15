@@ -24,7 +24,8 @@ const g57EnsureAll=list=>{if(Array.isArray(list))for(const it of list)g57Ensure(
 ITEM_W.pri=3;
 {const _sn=statName;statName=function(k){if(k==='pri')return `주 능력치(${G57_MN[g57Main(P&&P.cls)]||'지능'})`;return _sn.apply(this,arguments)}}
 // 모든 생성 경로 (드랍 · 상점 · 보상 · 모자 · 세트 · 유니크)
-{const _mi=makeItem;makeItem=function(){return g57Ensure(_mi.apply(this,arguments))}}
+// v62: 새로 만든 장비는 기본 두 줄을 붙이기 전에 겹치는 무작위 옵션부터 바꾼다 (dup62.js g62New)
+{const _mi=makeItem;makeItem=function(){return g57Ensure(g62New(_mi.apply(this,arguments)))}}
 // 장비 합계: 주 능력치를 직업의 주 능력치로
 const G57_DONE=new WeakSet();
 {const _gs=gearStats;gearStats=function(){if(P&&P.gear){let ch=false;for(const s in P.gear){const it=P.gear[s];if(it&&it.stats&&!it.b57){g57Ensure(it);ch=true}}if(ch)gsKey=''}

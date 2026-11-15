@@ -47,9 +47,9 @@ const btyActive=()=>{const s=btyState();return s.took.filter(id=>!s.done.include
 const BTYSP={};
 function btySpot(b){if(BTYSP[b.id])return BTYSP[b.id];const B=BTY_BOARDS[b.board],T=v20Town(b.board);if(!T)return null;const rg=v20Rng(v20Hash(b.id));let base=null,here=B.reg===REG.id&&!DG;
   if(B.reg==='home'){const z=qZone([b.k],'haven');if(z){for(let i=0;i<30;i++){const a=b.ang+i*.9,r=60+rg()*220,x=z.x+Math.cos(a)*r,y=z.y+Math.sin(a)*r;if(x<200||y<200||x>WORLD-200||y>WORLD-200)continue;
-      const c={x,y};if(!base)base=c;if(here&&(blockedAt(x,y)||inSafe(x,y,160)))continue;BTYSP[b.id]={reg:'home',x,y};return BTYSP[b.id]}}}
+      const c={x,y};if(!base)base=c;if(here&&(blockedAt(x,y)||inSafe(x,y,160)||(typeof r62Ok==='function'&&!r62Ok(x,y))))continue;/* v62: 걸어서 닿는 땅만 */BTYSP[b.id]={reg:'home',x,y};return BTYSP[b.id]}}}
   else for(let i=0;i<40;i++){const a=b.ang+i*.55,r=900+b.dist*1400+(i%5)*60,x=T.x+Math.cos(a)*r,y=T.y+Math.sin(a)*r;if(x<200||y<200||x>WORLD-200||y>WORLD-200)continue;
-    const c={x,y};if(!base)base=c;if(!here)break;if(blockedAt(x,y)||inSafe(x,y,160)||zoneLevel(x,y)<1)continue;BTYSP[b.id]={reg:B.reg,x,y};return BTYSP[b.id]}
+    const c={x,y};if(!base)base=c;if(!here)break;if(blockedAt(x,y)||inSafe(x,y,160)||zoneLevel(x,y)<1||(typeof r62Ok==='function'&&!r62Ok(x,y)))continue;BTYSP[b.id]={reg:B.reg,x,y};return BTYSP[b.id]}
   return base?{reg:B.reg,x:base.x,y:base.y,rough:1}:null}
 function btyDir(b,sp){const T=v20Town(b.board);if(!T||!sp)return '';const dx=sp.x-T.x,dy=sp.y-T.y,a=Math.atan2((dx+dy)/2,dx-dy),i=((Math.round(a/(Math.PI/4))%8)+8)%8;return `${T.n} ${QDIR[i]}쪽`}
 /* ===== 나타나기 · 기술 ===== */

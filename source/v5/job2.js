@@ -13,7 +13,7 @@ const JOB2={
   archer:{hawkeye:{n:'호크아이',tree:'명궁',desc:'멀리서 정확하게 쏘는 사격 특화.',next:'신궁'},
           ranger:{n:'레인저',tree:'덫과 사냥',desc:'덫을 깔고 동료와 함께 몹을 다루는 덫 특화.',next:'그림자 사냥꾼'}}};
 const J2LV=50;
-const job2Ok=id=>{const s=SPELLS[id];return !s||!s.job2||s.job2===P.job2};
+const job2Ok=id=>{const s=SPELLS[id];return !s||!s.job2||s.job2===P.job2||!!(P&&P.job2&&j2gBorrow(P.job2,id))};// 보조 계열로 빌려 온 다른 갈래 기술도 (J2G, job2d.js)
 const job2Of=br=>{for(const c in JOB2)if(JOB2[c][br])return JOB2[c][br];return null};
 const job2SwapPrice=()=>40000+Math.max(0,P.lvl-50)*2200;
 // 시전 시간 · 채널링 표 (castmark.js 표시도 이 표를 읽는다)
@@ -91,7 +91,7 @@ function j2Post(c){const s0=c.s0,id=c.id;if(c.crown){s0.one=1;delete s0.party}
   if(s0.kind==='buff'&&(s0.petDmg||s0.petHp)&&!G)for(const a of j2Pets())j2PetBuff(a,s);
   if(c.crown&&NET.on&&!G)netSend({t:'j2x',k:'crown',sp:id,L,pw:Math.round(power())})}
 {const _tc=tryCast;tryCast=function(id,t){const s0=SPELLS[id];if(!s0)return _tc(id,t);
-  if(s0.job2&&!GHOST&&!CAST_MOD&&s0.job2!==P.job2&&s0.cls===P.cls){if(P.noMpT<=0){const j=job2Of(s0.job2);msg(`${s0.n}: 2차 전직 「${j?j.n:s0.job2}」 갈래의 기술입니다`,'#a39d8f');P.noMpT=1.5}return}
+  if(s0.job2&&!GHOST&&!CAST_MOD&&!job2Ok(id)&&s0.cls===P.cls){if(P.noMpT<=0){const j=job2Of(s0.job2);msg(`${s0.n}: 2차 전직 「${j?j.n:s0.job2}」 갈래의 기술입니다`,'#a39d8f');P.noMpT=1.5}return}
   const c=j2Pre(id,t);if(c===false)return;const r=_tc(id,c.t||t);try{j2Post(c)}catch(err){if(window.__QA)throw err}return r}}
 // 다 외운 시전(시전 시간 마법)은 cast.js가 안쪽 tryCast로 바로 부른다 → 같은 앞뒤 처리
 {const _cr=_castRelease;_castRelease=function(cu){const s0=SPELLS[cu.id];if(!s0||(!s0.job2&&s0.kind!=='summon'))return _cr(cu);const c=j2Pre(cu.id,cu.tg);if(c===false)return;_cr(cu);j2Post(c)}}

@@ -357,7 +357,7 @@ const J3W_RULE={
 function jwTick(dt){const host=!NET.guest;
   // 투혼 · 호흡
   if(P.job3==='warlord'&&J3W.fz>0&&!P.dead){J3W.fzT-=dt;if(J3W.fzT<=0){J3W.fzD+=dt;if(J3W.fzD>=1){J3W.fzD=0;J3W.fz--}}}
-  if(P.job3==='divinearcher'&&!P.dead){if(P.moving){if(J3W.br>0)burst(P.x,P.y,'#bfe6ff',6,60,2,40);J3W.br=0;J3W.brT=0}else{J3W.brT+=dt;while(J3W.brT>=.5){J3W.brT-=.5;if(J3W.br<5){J3W.br++;if(J3W.br===5)rings.push({x:P.x,y:P.y,r:6,max:50,life:.4,col:'#bfe6ff'})}}}
+  if(P.job3==='divinearcher'&&!P.dead){/* v62: 서 있어도 · 움직여도 호흡은 그대로 (맞히기 · 피하기로 쌓임: breath62.js) */
     const bc=passSum('breathCrit')*J3W.br;if(bc>0)P.buffs._j3br={t:.5,max:.5,crit:bc,n:''};else delete P.buffs._j3br}else if(P.buffs._j3br)delete P.buffs._j3br;
   if(P.buffs._j3ctr&&!(typeof J3CH!=='undefined'&&J3CH&&J3CH.id==='bulwarkcounter'&&J3CH.p===P))delete P.buffs._j3ctr;
   // 무너지지 않는 왕국: 끝날 때 회복

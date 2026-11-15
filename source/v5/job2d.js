@@ -104,13 +104,30 @@ const CAST_T_J2={absolutezero:1.2,testament:1.5,spiritlegion:1.5,heavenblades:1,
 const CHAN_J2={meteorswarm:{mode:'keep'},holyflame:{mode:'tick',dur:2,iv:.25},archhymn:{mode:'keep'},whirlslash:{mode:'tick',dur:2,iv:.25,walk:1}};
 const LINKS_J2=`
 prismbolt>frostchain steamburst>absolutezero magmafield>meteorswarm frostchain>collapse collapse>testament overload>testament
-fireelem>phoenix frostgolem>stonetitan stonetitan>spiritlegion communion>spiritlegion fireelem>spiritburst
-lightvolley>holyflame heresybrand>purgefire heresybrand>finalverdict judgechain>heavenblades heavenblades>grandverdict
+fireelem>phoenix frostgolem>stonetitan summoncircle>spiritlegion communion>spiritlegion fireelem>spiritburst
+purgefire>holyflame heresybrand>finalverdict judgechain>heavenblades holyflame>grandverdict confessbell>grandverdict
 grandblessing>lightwings lifespring>archhymn grandblessing>crownofblessing sanctum>crownofblessing archhymn>battlerez
 grandtaunt>lastbastion chainpull>guardrush shieldwall>citadel bulwark>citadel
 crushcombo>rend rend>execute whirlslash>myriadslash bloodfrenzy>avatarofwar battletrance>avatarofwar
 tripleshot>splitarrow pierceblow>heavenbow snipe>heavenbow elemrain>arrowvortex
 blasttrap>dominion thorntrap>dominion lure>earthbind netshot>earthbind`;
+/* 2차 갈래 계열(사용자 2026-11-15 「1차처럼 계열을 골라 올리게, 대심문관이면 심판·퇴마가 주력이고 축복·치유·수호는 보조로」):
+   갈래마다 [이름, 주 계열이면 1 · 보조면 0, 기술 id들]. 주 계열 둘은 그 갈래 기술, 보조 계열은 그 갈래의 지키는 기술 + 같은 직업 다른 갈래의 낮은 단 기술 몇 개.
+   보조 계열: 한 기술 최대 J2G_SUP.per점, 계열 합계 최대 J2G_SUP.tot점. 스킬 id·저장 형식은 그대로(빌려 온 기술은 원래 갈래 id를 그대로 씀). 규칙·화면은 j2grp.js. */
+const J2G_SUP={per:10,tot:20};
+const J2G={
+  archmage:[['불과 얼음',1,'steamburst magmafield resonance meteorswarm absolutezero'],['번개와 마력',1,'prismbolt frostchain elempierce overload collapse testament'],['수호와 소환',0,'elembarrier frostgolem stonetitan']],
+  summoner:[['소환수',1,'fireelem frostgolem stormhawk stonetitan spiritburst phoenix'],['계약과 소환진',1,'pactmark affinity communion summoncircle swapplace spiritlegion'],['원소 마법',0,'prismbolt magmafield elembarrier']],
+  inquisitor:[['심판',1,'lightvolley conviction heresybrand judgechain finalverdict heavenblades'],['퇴마',1,'purgefire confessbell holyflame grandverdict'],['축복·치유·수호',0,'grandblessing lifespring penitence inqarmor']],
+  archbishop:[['치유',1,'graceamp gracelink lifespring chainheal archhymn battlerez'],['축복·수호',1,'grandblessing hymnecho purifyhand sanctum lightwings crownofblessing'],['심판·퇴마',0,'lightvolley heresybrand confessbell']],
+  guardian:[['도발과 끌기',1,'grandtaunt chainpull guardrush guardianoath retaliation lastbastion'],['방패와 성벽',1,'ironflesh shieldwall steadfast commandshout bulwark citadel'],['격노',0,'crushcombo thunderdrop rend']],
+  berserker:[['연타와 처형',1,'crushcombo whirlslash rend weaponmastery execute myriadslash'],['피와 광기',1,'bloodlust thunderdrop bloodfrenzy terrorroar battletrance avatarofwar'],['수호',0,'grandtaunt chainpull retaliation']],
+  hawkeye:[['정밀 사격',1,'farsight pierceblow snipe weakpoint deathmark heavenbow'],['화살 비',1,'tripleshot splitarrow elemrain focus backshot arrowvortex'],['덫과 생존',0,'blasttrap smoke netshot']],
+  ranger:[['덫',1,'blasttrap trapmaster thorntrap traptoss detonate dominion'],['사냥과 생존',1,'smoke wildsense netshot beastawaken lure earthbind'],['사격',0,'tripleshot snipe focus']]};
+for(const br in J2G)J2G[br]=J2G[br].map(([n,main,ids])=>({n,main:!!main,ids:ids.split(' ')}));
+// 그 갈래가 이 기술을 쓰는가 (자기 갈래 기술 + 보조 계열로 빌려 온 기술) · 어느 계열인가
+const j2gOf=(br,id)=>{const G=J2G[br];if(!G)return null;for(const g of G)if(g.ids.includes(id))return g;return null};
+const j2gBorrow=(br,id)=>{const s=SPELLS[id],g=j2gOf(br,id);return !!(s&&s.job2&&s.job2!==br&&g&&!g.main)};
 const NAMES_J2={
   prismbolt:['프리즘 볼트','카스 에아 타룬'],resonance:['엘리멘탈 레조넌스',''],steamburst:['스팀 버스트','카스 에아셀 엔테'],magmafield:['마그마 필드','카스 도르 오르'],
   frostchain:['프로스트 볼트 체인','에아셀 타룬 벨'],elempierce:['엘리멘탈 피어스',''],elembarrier:['엘리멘탈 배리어','셀 카스 에아 도르'],overload:['아케인 오버로드','비엔 아르 셀'],

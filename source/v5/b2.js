@@ -107,7 +107,9 @@ function itemScore(it){if(!it)return 0;let v=0;for(const [k,x] of Object.entries
   else v+=x*(k==='hp'&&P&&P.cls==='warrior'?.4:ITEM_W[k]||1)}if(it.set)v+=25;return v}
 const itemPrice=it=>Math.max(1,Math.round(it.il*4*(it.rar+1)));
 const statOne=(k,v)=>PROCN[k]?`<b style="color:#ff9a6a">적중 시 ${v}% 확률로 ${PROCN[k]}</b>`:k.startsWith('sk_')||k.startsWith('tr_')||k==='all'?`<b style="color:#ffd76a">+${v} ${statName(k)}</b>`:`+${v} ${statName(k)}`;
-const statLine=it=>Object.entries(it.stats).map(([k,v])=>statOne(k,v)).join(' · ')+(it.set?setLine(it):'')+(typeof rfLine==='function'?rfLine(it):'')+(it.lore?`<div class="muted" style="font-style:italic">${it.lore}</div>`:'');
+// v62: 화면에 보이는 옵션 줄 (dup62.js가 주 능력치와 같은 줄을 한 줄로 합친다)
+function statView(it){return Object.entries(it.stats)}
+const statLine=it=>statView(it).map(([k,v])=>statOne(k,v)).join(' · ')+(it.set?setLine(it):'')+(typeof rfLine==='function'?rfLine(it):'')+(it.lore?`<div class="muted" style="font-style:italic">${it.lore}</div>`:'');
 
 /* ---------- monsters ---------- */
 const TYPES={

@@ -53,7 +53,7 @@ function g42Hud(){let el2=G42.hud;if(!el2){const x=$('#xptext');if(!x)return;el2
 v20Css('#g42hud{font-size:11px;line-height:1.3;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px}#g42hud:empty{display:none}');
 /* ===== 2 다음 성장 길잡이 ===== */
 function g42Spells(){const out=[];for(const id in SPELLS){const s=SPELLS[id];if(s.cls!==P.cls||s.merged||s.hidden||s.kind==='passive'&&!s.job2&&!s.job3)continue;
-    if(s.job2&&P.job2&&s.job2!==P.job2)continue;if(s.job3&&P.job3&&s.job3!==P.job3)continue;if(s.job2&&!P.job2&&P.lvl>=J2LV)continue;
+    if(s.job2&&P.job2&&!job2Ok(id))continue;if(s.job3&&P.job3&&s.job3!==P.job3)continue;if(s.job2&&!P.job2&&P.lvl>=J2LV)continue;
     let L=0;try{L=reqLvOf(id)}catch(_){continue}if(L>P.lvl&&L<=MAXLV)out.push({id,L,n:s.n})}
   return out.sort((a,b)=>a.L-b.L)}
 function g42Places(){const out=[],dgs=[...DUNGEONS,...(typeof WX_DUNGEONS!=='undefined'?WX_DUNGEONS:[])];

@@ -112,18 +112,18 @@ const dm21ActOf=a=>{if(typeof a!=='string'||a.slice(0,5)!=='dm21:')return null;c
 {const _dl=drawV5Labels;drawV5Labels=function(){if(!(DG&&DG.a21)){const r=_dl.apply(this,arguments);if(!DG&&!IN)dm21GateLabels();return r}
   const keep=DG.portals,mine=keep.filter(p=>p.dm21);DG.portals=keep.filter(p=>!p.dm21);try{_dl.apply(this,arguments)}finally{DG.portals=keep}
   ctx.textAlign='center';ctx.font='700 13px '+FONT;ctx.lineWidth=3;ctx.strokeStyle='rgba(0,0,0,.85)';
-  for(const p of mine){const s=W2S(p.x,p.y);if(!onScreen(s,60))continue;const t=p.lab||'짝문';ctx.strokeText(t,s.x,s.y-46);ctx.fillStyle=p.col||'#c9b4ff';ctx.fillText(t,s.x,s.y-46)}
+  for(const p of mine){const s=W2S(p.x,p.y);if(!onScreen(s,60))continue;const t=p.lab||'짝문',ly=s.y-(typeof pt62On==='function'&&pt62On(p)?PT62.lab:46);ctx.strokeText(t,s.x,ly);ctx.fillStyle=p.col||'#c9b4ff';ctx.fillText(t,s.x,ly)}
   dm21DrawLocks()}}
 function dm21GateLabels(){ctx.textAlign='center';ctx.font='700 13px '+FONT;ctx.lineWidth=3;ctx.strokeStyle='rgba(0,0,0,.85)';
   for(const g of DM21GATES){if(g.reg!==REG.id||!g.d||dist(P,g.d)<260)continue;const s=W2S(g.d.x,g.d.y);if(!onScreen(s,120))continue;let L=null;try{L=g.lab()}catch(e){if(window.__QA)throw e}if(!L)continue;
     const y=s.y-(g.h||150);ctx.strokeText(L.t,s.x,y);ctx.fillStyle=L.col;ctx.fillText(L.t,s.x,y);if(L.s){ctx.font='600 11px '+FONT;ctx.strokeText(L.s,s.x,y+15);ctx.fillStyle='#e8dcc0';ctx.fillText(L.s,s.x,y+15);ctx.font='700 13px '+FONT}}}
 // 잠긴 다음 층 짝문 (아직 문이 아니라 표시만)
 function dm21DrawLocks(){const a=DG.a21;if(!a||!a.door||a.open)return;const s=W2S(a.door.x,a.door.y);if(!onScreen(s,60))return;
-  const t=a.k==='mz'?`잠긴 짝문 · ${Math.min(a.kills|0,a.need|0)}/${a.need|0} 처치${a.bossF&&!DG.bossDead?' · 보스':''}`:'잠긴 문';ctx.strokeText(t,s.x,s.y-46);ctx.fillStyle='#a8a0c0';ctx.fillText(t,s.x,s.y-46)}
+  const t=a.k==='mz'?`잠긴 짝문 · ${Math.min(a.kills|0,a.need|0)}/${a.need|0} 처치${a.bossF&&!DG.bossDead?' · 보스':''}`:'잠긴 문';const ly=s.y-(typeof pt62On==='function'&&pt62On(a.door)?PT62.lab:46);ctx.strokeText(t,s.x,ly);ctx.fillStyle='#a8a0c0';ctx.fillText(t,s.x,ly)}
 // 던전 문 그림: 내 문은 보랏빛 · 잠긴 짝문은 잿빛 고리
 {const _g=drawV5Glow;drawV5Glow=function(){_g.apply(this,arguments);if(!DG||!DG.a21)return;G();ctx.globalCompositeOperation='lighter';const a=DG.a21;
-  for(const p of DG.portals)if(p.dm21){ctx.globalAlpha=.5;ctx.strokeStyle=p.col||'#c9b4ff';ctx.lineWidth=4;ctx.beginPath();ctx.arc(p.x,p.y,40+Math.sin(time*3)*4,0,6.283);ctx.stroke()}
-  if(a.door&&!a.open){ctx.globalAlpha=.35;ctx.strokeStyle='#8a84a0';ctx.lineWidth=4;ctx.beginPath();ctx.arc(a.door.x,a.door.y,38,0,6.283);ctx.stroke();ctx.globalAlpha=.12;ctx.fillStyle='#8a84a0';circ(a.door.x,a.door.y,34)}
+  for(const p of DG.portals)if(p.dm21&&!(typeof pt62On==='function'&&pt62On(p))){ctx.globalAlpha=.5;ctx.strokeStyle=p.col||'#c9b4ff';ctx.lineWidth=4;ctx.beginPath();ctx.arc(p.x,p.y,40+Math.sin(time*3)*4,0,6.283);ctx.stroke()}
+  if(a.door&&!a.open&&!(typeof pt62On==='function'&&pt62On(a.door))){ctx.globalAlpha=.35;ctx.strokeStyle='#8a84a0';ctx.lineWidth=4;ctx.beginPath();ctx.arc(a.door.x,a.door.y,38,0,6.283);ctx.stroke();ctx.globalAlpha=.12;ctx.fillStyle='#8a84a0';circ(a.door.x,a.door.y,34)}
   ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';S();for(const f of DM21GLOW)try{f()}catch(e){if(window.__QA)throw e}}}
 const DM21GLOW=[];
 
@@ -314,9 +314,10 @@ V20A.mzbuy=id=>{const s=mzS(),it=MAZE_SHOP.find(x=>x.id===id);if(!it||s.keys<it.
   else if(id==='cape'){if(s.cape)return;s.cape=1;s.capeOn=1;msg('길잡이 망토 겉모습을 얻었습니다 (이 창에서 입고 벗기)','#c9b4ff')}
   s.keys-=it.cost;burst(P.x,P.y,'#c9b4ff',16,90,3,24);save()};
 // 옵션 한 줄 다시 굴리기: 같은 칸 · 같은 레벨 장비에서 새 옵션 하나를 가져온다 (+모든 스킬 · 계열 +1은 빼고)
-const MZ_NOROLL=k=>k==='all'||/^tr_/.test(k)||/^sk_/.test(k);
+// v62: 기본 두 줄(주 능력치 · 생명력)은 다시 굴리지 않고, 새로 가져오는 옵션도 주 능력치 · 생명력이 아니게
+const MZ_NOROLL=k=>k==='all'||k==='pri'||k==='hp'||/^tr_/.test(k)||/^sk_/.test(k);
 function mzReroll(it){if(!it||it.rar!==2||!it.stats)return false;const ks=Object.keys(it.stats).filter(k=>!MZ_NOROLL(k));if(!ks.length)return false;const old=ks[Math.floor(R()*ks.length)];
-  for(let n=0;n<120;n++){const x=makeItem(it.il||P.lvl,true,it.cls||null);if(!x||x.slot!==it.slot||!x.stats)continue;const c=Object.keys(x.stats).filter(k=>!MZ_NOROLL(k)&&!(k in it.stats));if(!c.length)continue;
+  for(let n=0;n<120;n++){const x=makeItem(it.il||P.lvl,true,it.cls||null);if(!x||x.slot!==it.slot||!x.stats)continue;const mk=typeof g57Main==='function'?g57Main(it.cls||P.cls):'int';const c=Object.keys(x.stats).filter(k=>!MZ_NOROLL(k)&&k!==mk&&!(k in it.stats));if(!c.length)continue;
     const nk=c[Math.floor(R()*c.length)];const st={};for(const k in it.stats){if(k===old)st[nk]=x.stats[nk];else st[k]=it.stats[k]}it.stats=st;return{old,nk}}
   return false}
 V20A.mzroll=v=>{MZ.pick=0;if(!v)return;const s=mzS(),it=P.bag.find(x=>x&&String(x.id)===String(v));if(!it||s.keys<6)return;const r=mzReroll(it);if(!r){msg('이 장비는 다시 굴릴 옵션이 없습니다','#a39d8f');return}
